@@ -287,3 +287,16 @@ See [Automatic releases](operations/AUTO_RELEASE_AND_UPDATES.md), [Backup/data v
 **New module:** [M26 dossier](modules/M26.md). Every issue/warning/enhancement/bug/update creates a durable change/audit event. PRs contain machine-validated change records with relevant module IDs, test evidence and updated documentation. Unreleased/closed issues must not enter the public shipped changelog. Signed release publication atomically produces: root `CHANGELOG.md`, GitHub release notes, versioned in-app What's New, related Help indexes and Wiki source links from verified manifest; protect security/private data. See [M26 detailed contract](operations/CHANGE_INTELLIGENCE_CHANGELOG.md), [ADR-0007](adr/0007-change-intelligence-and-changelog.md) and [Planning Change History](PLANNING_CHANGELOG.md).
 
 **Phase hooks:** P00 policy/schema; P01 append-only event persistence; P02 final shared changelog UI/help foundation; P03–P10 every changed module links change record/documentation; P11 verified release notes/changelog/update parity. All new features must preserve data, backup and release traceability standards from v3.1.
+
+
+---
+
+## Addendum 3.2.1: Cross-tool Designer import/export (deferred after P08)
+
+The user requires external design files to be editable in Zynoa Designer and Zynoa documents to be exportable to other UI design tools. Research Figma, Penpot, `open-pencil/open-pencil` and `ZSeven-W/openpencil` separately, plus standards-based formats and future plugin adapters. Differentiate imported editable nodes from flat raster previews and an official API/plugin bridge from proprietary undocumented native writers. Never claim universal interchange fidelity.
+
+**Mandatory sequence:** P00 research/RFC only → P02 global GUI system → **P08 Designer core fully implemented, tested, screenshot-documented and remotely merged** → **P08I** separate branch/primary PR for proven cross-tool import/export adapters → P09 next media phase. The M11/M12 core must independently pass its original completion gate before P08I begins; P08I is not part of P08's original exit criterion. Existing basic SVG/raster export remains P08 scope. No cross-tool import/export feature is implemented by this plan.
+
+P08I provides versioned format capability matrices, import/export wizards, preflight preview, fonts/components/tokens/variants mappings, fidelity and unsupported warnings, safe worker execution, reproducible target-app round-trip tests, backup/undo, Help/Wiki and actual product screenshots. Each new format is independently tested; native `.fig` writer cannot be promised absent permitted official interfaces.
+
+**Primary requirements:** [DESIGN-IO](operations/DESIGN_INTEROPERABILITY.md) · [P08I phase](PHASE_SPECS.md) · [Design research](research/DESIGN_RESEARCH.md).
