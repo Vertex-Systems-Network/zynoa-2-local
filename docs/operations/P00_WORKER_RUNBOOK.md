@@ -109,3 +109,11 @@ Uses only `phase-policy`, `design-spec`, and `docs-integrity` handlers. Stores p
 ## P00 worktree planning smoke (trusted fixture only)
 
 The phase branch contains `tools/workspace_policy.py` (file-capability decisions) and `tools/worktree_plan.py` (immutable detached/no-checkout command plan). Run `python -m unittest tests.test_workspace_policy -v` to validate the policy and execute a Git worktree **only in the test-created disposable repository**. No production repo Git worktree changes are performed by this test or by the planner. Never expose host scope-root paths, policy-grant objects, Git credentials or Git config to model-generated code. Worktree planning alone is **not a sandbox**; see [P00 Worktree Policy](P00_WORKTREE_POLICY.md) and the open host/deployment blocker Issue #3.
+
+## Task status PR synchronization (P00 2026-11-18)
+
+Current P00 task manifest: `docs/state/pr-tasks/P00.json`. Every phase PR must show total, Done/In progress/Pending/Blocked and per-row evidence links. Use `python -m scripts.check_pr_task_board` (read-only) and `python -m tools.pr_task_board --manifest docs/state/pr-tasks/P00.json --print` to preview. [Detailed PR task contract](PR_TASK_TABLES.md) explains the opt-in `--sync --expected-head <verified-SHA>` command and narrowly scoped PR-only credentials.
+
+A trusted-main workflow `.github/workflows/pr-task-table-sync.yml` can auto-update later phase PRs after successful governance CI, without running PR code with write permissions; it does not activate until **actually merged to main**. The current P00 PR table was synchronized by authorized GitHub connector. Do not enable write credentials on pull_request test jobs.
+
+Host model preflight before any model-backed worker: `python -m tools.local_model_probe`. This is a loopback Ollama health check, not a deployed AI coder, GitHub writer or validated OS sandbox. See [local preflight](P00_LOCAL_MODEL_PREFLIGHT.md), [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3).
