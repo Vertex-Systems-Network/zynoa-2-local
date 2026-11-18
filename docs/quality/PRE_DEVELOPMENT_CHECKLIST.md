@@ -60,3 +60,11 @@
 - Deny model access to protected governance/CI/state/secrets; deny traversal, symlink/junction escapes, Windows path ambiguity and invisible Unicode. Record permission denials with sanitized codes.
 - Plan detached no-checkout worktree using exact commit and immutable job ID; validate only via disposable trusted fixture until host authorization broker and OS sandbox are deployed.
 - Require real Windows/Linux executor, file handle/race, network/process, quota, credential separation, failure cleanup/receipt and restart testing before claiming automated coding works.
+
+## Per-PR total task status and host model preflight (2026-11-18)
+
+- Reconcile actual GitHub active phase, branch, primary PR, HEAD, CI and Issues.
+- Open/create **one** `docs/state/pr-tasks/<PHASE>.json` with all known phase tasks, stable IDs, 4 allowed statuses and relevant evidence/blocker links; update PR body managed section with derived task count.
+- Before each patch/checkpoint, record task status changes in manifest alongside tests, incidents, Help/Wiki and unreleased change records; never hardcode percentage or mark task DONE from unrelated CI.
+- Validate `python -m scripts.check_pr_task_board` before claiming healthy PR state; remember trusted PR-body write workflow only exists after default-main installation.
+- On actual developer host, run localhost-only Ollama preflight; no model inventory/probe on an ephemeral CI runner proves user's host has a working local model.
