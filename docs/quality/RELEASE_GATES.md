@@ -61,3 +61,14 @@
 - P00-Q06: All actual module Help/Wiki/screenshots validated when running UI exists; no documentation placeholder represented as real screenshot or published Wiki.
 
 See [queue contract](../operations/P00_DURABLE_JOB_QUEUE.md) and [open infrastructure Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3). These non-waivable requirements block P00 finalization and next-phase creation.
+
+## P00 dependency planner acceptance — current code slice
+
+- P00-DAG-01: Every dependency must match active phase and branch; invalid/missing parent and self-edges are rejected.
+- P00-DAG-02: Transactional cycle detection rejects direct and indirect loops; multi-edge batches roll back completely on error.
+- P00-DAG-03: A higher-priority dependent cannot run before its predecessor commits success; unrelated eligible work remains runnable.
+- P00-DAG-04: Restarted SQLite queue preserves dependency edges, and blocked prerequisites cascade transitively. Corrupt/orphan parent never counts as success.
+- P00-DAG-05: CI smoke proves actual three-stage governance checks in dependency order with zero shell/model/GitHub writes.
+- P00-DAG-06: Tests/Help/Wiki/ADR/changelog and remote CI are linked. This is a backend-only implementation; no GUI screenshots can be claimed.
+
+Passing these DAG-specific checks **does not** waive P00-Q04/Q05, protected-main ruleset, permanent worker deployment, sandboxed coding execution or actual remote merge verification. Details: [DAG contract](../operations/P00_TASK_DEPENDENCY_GRAPH.md).
