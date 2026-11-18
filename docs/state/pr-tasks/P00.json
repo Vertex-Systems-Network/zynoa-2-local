@@ -149,6 +149,12 @@
       "title": "P00 exit gates and policy-compliant PR merge",
       "status": "BLOCKED",
       "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+    },
+    {
+      "id": "P00-T25",
+      "title": "Ephemeral model fixture staging and no-execution receipt tests",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44237855342"
     }
   ]
 }
