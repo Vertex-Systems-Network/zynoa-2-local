@@ -85,3 +85,7 @@ Source documents reviewed for P00 (2026-11-18):
 6. Tested PR auto-merge policy, post-merge verification and next-phase creation only after previous merge.
 
 **Do not mark P00/M22 complete from the above read-only queue or unit tests.** The protected main rule, host provisioning and model-backed executor are still open blockers in [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3).
+
+## Read-only DAG extension (2026-11-18)
+
+`tools/dev_task_graph.py` extends the single-phase queue with `job_dependencies`. Edges are transactionally registered and cycle-checked using SQLite recursive queries. A dependent only becomes runnable when **all** prerequisites commit SUCCESS, including when its priority is numerically higher. Missing/corrupt or permanently blocked parent tasks block descendants; unrelated safe jobs remain eligible. The updated `dev_job_runner --smoke` runs the three governance checks as a real dependency chain. See [DAG technical details](P00_TASK_DEPENDENCY_GRAPH.md), [ADR-0010](../adr/0010-phase-task-dag.md) and the still-open [host/sandbox blocker](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3).
