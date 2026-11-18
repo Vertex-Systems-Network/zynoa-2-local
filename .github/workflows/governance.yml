@@ -41,5 +41,22 @@ jobs:
         env:
           ZYNOA_GITHUB_TOKEN: ${{ github.token }}
         run: python -m tools.phase_worker --once --db "$RUNNER_TEMP/zynoa-controller-observation.db"
+      - name: Guarded PR merge dry-run (must make no GitHub mutation)
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          ZYNOA_GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          python -m tools.phase_merge_guard > "$RUNNER_TEMP/zynoa-merge-dryrun.json"
+          exit_code=$?
+          set -e
+          python - "$RUNNER_TEMP/zynoa-merge-dryrun.json" "$exit_code" <<'PY'
+          import json, sys
+          result = json.load(open(sys.argv[1], encoding="utf-8"))
+          assert int(sys.argv[2]) in (0, 2)
+          assert result["merge_performed"] is False
+          assert result["status"] in ("BLOCKED", "ELIGIBLE_FOR_SEPARATELY_AUTHORIZED_MERGE")
+          print("MERGE-GUARD DRY-RUN: PASS (zero GitHub mutations)")
+          PY
       - name: Incident redaction tests
         run: python -m unittest discover -s tests -v
