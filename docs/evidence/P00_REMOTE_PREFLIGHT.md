@@ -75,3 +75,11 @@ Code committed in the same P00 phase branch and PR:
 - Verified pre-hardening test [CI #44219522536](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44219522536) passed **115 Python tests**. Later orphan-recovery and smoke changes need latest HEAD CI check. No privileged code execution, live GitHub write, host deployment or phase advancement is claimed.
 
 **P00 remains OPEN/DRAFT, blocked on Issue #3:** main protection/ruleset not configured, permanent worker host absent and sandboxed AI worktree execution not verified. P01 remains not started.
+
+## P00 trusted worktree / Windows-first CI evidence (2026-11-18)
+
+**New actual source:** `tools/workspace_policy.py` (P00-only path capability validator) and `tools/worktree_plan.py` (detached no-checkout immutable-SHA Git plan; no implementation of execution broker). Tests: `tests/test_workspace_policy.py`; separate GitHub Actions `workspace-windows` job; detailed [policy](../operations/P00_WORKTREE_POLICY.md) and [ADR-0011](../adr/0011-worktree-is-not-sandbox.md).
+
+**Verified CI:** [run #44224444145](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44224444145) at `1bb228c74f2e0518fe720ee52ad9ef39705238e0`: `governance-lint` passed **138 tests** (plus **21 explicitly repeated workspace tests**, all pass), `workspace-windows` passed **21 tests**, Git worktree fixture integration succeeded on Windows and Linux, changelog PR gate passed, merge dry-run made **zero** GitHub writes. A previous [Windows run #44224215132](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44224215132) exposed 8.3 short path vs canonical long path test mismatch, fixed in the same branch. No new real product executable or remote phase transition.
+
+**Security constraints:** Git worktree ≠ sandbox; all Git subprocess integration runs on freshly constructed temporary trusted fixture only. Actual protected-main ruleset still not configured, no always-on host or sandboxed model worker deployed, actual M22 Help UI screenshots and Wiki publication unavailable; blocker [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3) remains OPEN. Later commits require new HEAD CI check.
