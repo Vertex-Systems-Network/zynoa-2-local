@@ -16,7 +16,15 @@ class FakeTransport:
         self.main_protected = True
         self.main_sha = MERGE
         self.issue_open = False
-        self.checks = [{"name": "governance-lint", "head_sha": SHA, "status": "completed", "conclusion": "success"}]
+        self.checks = [{"name": "governance-lint", "head_sha": SHA, "status": "completed", "conclusion": "success", "app": {"id": 42}}]
+        self.rules = [
+            {"type": "pull_request", "parameters": {}},
+            {"type": "required_status_checks", "parameters": {
+                "required_status_checks": [
+                    {"context": "governance-lint", "integration_id": 42}
+                ]
+            }},
+        ]
         self.head = SHA
         self.head_ref = BRANCH
         self.request_count = 0
@@ -35,6 +43,8 @@ class FakeTransport:
                 "merged_at": "2026-11-18T00:00:00Z" if self.pr_merged else None,
                 "merge_commit_sha": MERGE, "draft": self.pr_draft,
             }
+        if path.endswith("/rules/branches/main"):
+            return self.rules
         if path.endswith("/branches/main"):
             return {"name": "main", "protected": self.main_protected, "commit": {"sha": self.main_sha}}
         if path.endswith("/commits/" + SHA + "/check-runs"):
@@ -61,6 +71,7 @@ class GitHubEvidenceTests(unittest.TestCase):
         self.assertTrue(snapshot["authenticated_remote"])
         self.assertTrue(snapshot["transition_ready"])
         self.assertTrue(snapshot["checks_passed"])
+        self.assertTrue(snapshot["rules_policy_verified"])
         self.assertEqual(MERGE, snapshot["merge_sha"])
         self.assertGreaterEqual(fake.request_count, 5)
 
@@ -83,6 +94,41 @@ class GitHubEvidenceTests(unittest.TestCase):
         client, fake = self.build()
         fake.main_protected = False
         self.assertFalse(client.observe(STATE)["transition_ready"])
+
+    def test_protected_branch_without_required_pr_rule_blocks(self):
+        client, fake = self.build()
+        fake.rules = [r for r in fake.rules if r["type"] != "pull_request"]
+        snapshot = client.observe(STATE)
+        self.assertTrue(snapshot["branch_protected"])
+        self.assertFalse(snapshot["rules_policy_verified"])
+        self.assertFalse(snapshot["transition_ready"])
+
+    def test_required_check_without_pinned_app_blocks(self):
+        client, fake = self.build()
+        fake.rules[1]["parameters"]["required_status_checks"][0]["integration_id"] = None
+        self.assertFalse(client.observe(STATE)["rules_policy_verified"])
+
+    def test_wrong_check_provider_blocks(self):
+        client, fake = self.build()
+        fake.checks[0]["app"]["id"] = 999
+        snap = client.observe(STATE)
+        self.assertTrue(snap["checks_passed"])
+        self.assertFalse(snap["rules_policy_verified"])
+
+    def test_no_required_status_rule_blocks(self):
+        client, fake = self.build()
+        fake.rules = [fake.rules[0]]
+        self.assertFalse(client.observe(STATE)["rules_policy_verified"])
+
+    def test_rules_readback_unavailable_blocks_without_api_write(self):
+        client, fake = self.build()
+        old = fake.__call__
+        def unavailable(method, url, headers, body, timeout):
+            if "/rules/branches/" in url:
+                raise GitHubEvidenceError("permissions denied")
+            return old(method, url, headers, body, timeout)
+        client.transport = unavailable
+        self.assertFalse(client.observe(STATE)["rules_policy_verified"])
 
     def test_stale_main_sha_blocks_transition(self):
         client, fake = self.build()
