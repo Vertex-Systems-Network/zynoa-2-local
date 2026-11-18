@@ -1,5 +1,14 @@
 # Engineering Specification Changelog (not product releases)
 
+## [3.2.1] - 2026-11-18
+### Added
+- [DESIGN-IO](operations/DESIGN_INTEROPERABILITY.md): planned tool-neutral editable import/export with format adapters, fidelity reports, security tests and help/screenshots for Figma, Penpot, OpenPencil-A, OpenPencil-B and additional supported formats.
+- ADR-0008 and deferred **P08I** implementation phase. P08 Designer core must be completed, tested, documented and remotely merged before P08I is started.
+### Changed
+- Phase contracts, agent constitution and designer documentation now explicitly prohibit premature cross-tool compatibility claims.
+### Status
+- Planning and P00 governance work; no working import/export or desktop application release.
+
 ## [3.2.0] - 2026-11-18
 ### Added
 - M26 change intelligence, issue/PR/release traceability, user-facing What's New, version history and audit timeline requirements.
