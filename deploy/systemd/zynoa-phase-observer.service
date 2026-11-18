@@ -13,7 +13,8 @@ Group=zynoa
 WorkingDirectory=/srv/zynoa/current
 Environment=PYTHONDONTWRITEBYTECODE=1
 EnvironmentFile=/etc/zynoa/observer.env
-ExecStart=/usr/bin/python3 -m tools.phase_worker --repo Vertex-Systems-Network/zynoa-2-local --state /srv/zynoa/current/docs/state/PHASE.json --db /var/lib/zynoa/controller.db --interval 30
+ExecStartPre=/usr/bin/python3 -m tools.host_bootstrap --repo-root /srv/zynoa/current --host-root /var/lib/zynoa inspect
+ExecStart=/usr/bin/python3 -m tools.phase_worker --repo Vertex-Systems-Network/zynoa-2-local --state /srv/zynoa/current/docs/state/PHASE.json --db /var/lib/zynoa/state/controller.db --interval 30
 Restart=on-failure
 RestartSec=30
 TimeoutStopSec=20
