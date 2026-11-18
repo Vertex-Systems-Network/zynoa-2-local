@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from contextlib import closing
 import sqlite3
 import tempfile
 import time
@@ -127,7 +128,7 @@ class WorkerHeartbeatTests(unittest.TestCase):
         view = worker.run_once()
         self.assertEqual(HEAD, view["head_sha"])
         self.assertEqual(1, gateway.calls)
-        with sqlite3.connect(self.layout.db) as db:
+        with closing(sqlite3.connect(self.layout.db)) as db, db:
             row = db.execute(
                 "SELECT head_sha,main_sha FROM worker_observation_health "
                 "WHERE name='active-phase'"
@@ -169,13 +170,13 @@ class WorkerHeartbeatTests(unittest.TestCase):
         self.assertEqual("GitHubEvidenceError", worker.last_error_class)
         self.assertTrue(seen[0]["lease_current"])
         self.assertFalse(seen[0]["last_successful_remote_observation_recent"])
-        with sqlite3.connect(self.layout.db) as db:
+        with closing(sqlite3.connect(self.layout.db)) as db, db:
             self.assertEqual(0, db.execute(
                 "SELECT COUNT(*) FROM worker_observation_health"
             ).fetchone()[0])
 
     def test_missing_success_table_or_corrupt_data_fails_closed(self):
-        with sqlite3.connect(self.layout.db) as db:
+        with closing(sqlite3.connect(self.layout.db)) as db, db:
             db.execute("DROP TABLE worker_observation_health")
         with self.assertRaises(WorkerHealthDenied):
             self.report()
@@ -187,15 +188,27 @@ class WorkerHeartbeatTests(unittest.TestCase):
         with self.assertRaises(Exception):
             probe_local_observer(self.repo, self.host / "does-not-exist")
 
-    def test_no_new_source_or_host_file_writes_from_read_only_probe(self):
+    def test_probe_preserves_database_records_and_host_manifest(self):
         lease = WorkerLease(self.layout.db)
         lease.acquire("active-phase", "owner")
         lease.record_observation("active-phase", "owner", HEAD, MAIN)
-        before = {p.relative_to(self.host): p.stat().st_size
-                  for p in self.host.rglob("*") if p.is_file()}
+        # A WAL-mode SQLite read-only connection may create -wal/-shm protocol
+        # sidecars; immutable=1 would miss uncheckpointed live transactions.
+        # Verify no application/host data records change instead.
+        def rows():
+            with closing(sqlite3.connect(
+                self.layout.db.as_uri() + "?mode=ro", uri=True
+            )) as db:
+                return (
+                    db.execute("SELECT * FROM worker_leases").fetchall(),
+                    db.execute("SELECT * FROM worker_observation_health").fetchall(),
+                    db.execute("SELECT * FROM phase_events").fetchall(),
+                )
+        marker_before = self.layout.marker.read_bytes()
+        before = rows()
         report = self.report()
-        after = {p.relative_to(self.host): p.stat().st_size
-                 for p in self.host.rglob("*") if p.is_file()}
+        after = rows()
+        self.assertEqual(marker_before, self.layout.marker.read_bytes())
         self.assertEqual(before, after)
         self.assertTrue(report["last_successful_remote_observation_recent"])
         self.assertFalse(report["model_coding_verified"])

@@ -32,3 +32,8 @@ The new `tools.worker_health` CLI opens an **existing** operator-provisioned hos
 - No application GUI/screenshot exists yet, and this source document is not a published GitHub Wiki page.
 
 **External blockers:** [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3) real host/service identity, managed credentials, approved sandbox/model worker, protected `main` and guarded PR writes. [Issue #4](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/4) is post-merge only. P00 PR #1 remains draft; no P01.
+
+
+### SQLite WAL read-only nuance (CI regression corrected)
+
+`mode=ro` protects application/database tables from mutation, **but it does not guarantee a byte-for-byte unchanged directory**. SQLite may create or maintain the `-shm` and `-wal` coordination sidecars for a WAL-mode DB while opening a read-only connection. This behavior is documented by [SQLite's WAL read-only rules](https://www.sqlite.org/wal.html#read_only_databases). Do **not** use `immutable=1` against a live worker DB merely to suppress sidecars: it can miss live uncheckpointed WAL changes and provide stale health status. The correct test compares actual database records and host metadata before/after, permits SQLite's own WAL sidecars, and explicitly closes connections to avoid Windows file locks. A deployment must ensure the observer identity can safely maintain private WAL sidecars without giving access to unrelated users.
