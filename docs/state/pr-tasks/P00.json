@@ -99,7 +99,8 @@
     {
       "id": "P00-T16",
       "title": "Persistent worker host package and installer configuration",
-      "status": "TODO"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44233203055"
     },
     {
       "id": "P00-T17",
