@@ -2,7 +2,7 @@
 
 An LLM may suggest a DRAFT_ONLY fixture file, but a trusted host must provide
 the same validated plan and candidate UTF-8 text. Candidates are staged under
-a NEW OS-managed temporary directory, parsed *without execution*, hashed and
+a NEW OS-managed temporary directory, validated as bounded text, hashed and
 deleted before returning. No actual workspace file is read or written.
 
 This is NOT an operating-system security sandbox or an autonomous patcher.
@@ -10,7 +10,6 @@ Never expose the model to this Python process's host filesystem privileges.
 """
 from __future__ import annotations
 
-import ast
 import hashlib
 import json
 import os
@@ -56,14 +55,15 @@ def _text_bytes(text: object) -> bytes:
 def _static_parse(filename: str, value: str) -> str:
     try:
         if filename.endswith(".py"):
-            # AST parser only; never import/eval/run or compile model code.
-            ast.parse(value, filename="<ephemeral-fixture>")
-            return "PYTHON_AST_PARSED_NOT_EXECUTED"
+            # Never parse untrusted Python in the privileged host process.
+            # Python AST parsing can exhaust recursion/stack resources;
+            # syntax validation must happen in a real isolated executor.
+            return "PYTHON_TEXT_ONLY_NO_PARSE_OR_EXECUTION"
         if filename.endswith(".json"):
             json.loads(value)
             return "JSON_PARSED_NOT_EXECUTED"
         return "TEXT_VALIDATED_NOT_EXECUTED"
-    except (SyntaxError, ValueError, UnicodeError, RecursionError):
+    except (ValueError, UnicodeError, RecursionError):
         raise FixtureStageDenied("candidate static syntax check failed") from None
 
 
