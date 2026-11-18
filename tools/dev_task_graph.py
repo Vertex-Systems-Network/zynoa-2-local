@@ -19,6 +19,8 @@ class JobGraph:
         """Atomically link prerequisites; repeats are idempotent. Returns new edges."""
         if isinstance(prerequisites, (str, bytes)) or not isinstance(prerequisites, (list, tuple)):
             raise QueuePolicyError("prerequisites must be a list of job IDs")
+        if any(not isinstance(parent, str) for parent in prerequisites):
+            raise QueuePolicyError("prerequisite IDs must be strings")
         if len(prerequisites) > 32 or len(set(prerequisites)) != len(prerequisites):
             raise QueuePolicyError("too many or repeated prerequisites")
         if not prerequisites:
@@ -93,8 +95,8 @@ class JobGraph:
         with self.queue._connect() as db:
             rows = db.execute(
                 """
-                SELECT p.id,p.state FROM job_dependencies d
-                JOIN development_jobs p ON p.id=d.depends_on_job_id
+                SELECT d.depends_on_job_id,p.state FROM job_dependencies d
+                LEFT JOIN development_jobs p ON p.id=d.depends_on_job_id
                 WHERE d.job_id=? ORDER BY p.id
                 """,
                 (job_id,),
@@ -102,8 +104,8 @@ class JobGraph:
             return {
                 "job_id": job_id,
                 "prerequisites": [
-                    {"id": parent_id, "status": state} for parent_id, state in rows
+                    {"id": parent_id, "status": state or "MISSING"} for parent_id, state in rows
                 ],
                 "ready": all(state == "SUCCEEDED" for _, state in rows),
-                "blocked": any(state == "BLOCKED" for _, state in rows),
+                "blocked": any(state in ("BLOCKED", None) for _, state in rows),
             }
