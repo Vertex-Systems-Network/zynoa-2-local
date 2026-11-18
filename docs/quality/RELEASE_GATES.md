@@ -43,3 +43,10 @@
 - `CHANGE-05` workflow events and retries are deduplicated; public logs never leak private details.
 - `CHANGE-06` root CHANGELOG, GitHub release, Help What's New, signed JSON feed and installed update UI pass change-ID parity.
 - `CHANGE-07` tests cover release rollback, recovery, offline feed, broken link, version incompatibility, private security issue, schema mismatch and old client.
+
+
+## DESIGN-IO — future Designer interoperability gates
+
+- **DESIGN-IO-01:** P08 native Designer core must be **remotely verified merged** with M11/M12 evidence before any P08I branch/implementation.
+- **DESIGN-IO-02..10:** Proven editable imports, target-verified exports, fidelity reports, undo/backup/recovery, safe parsing and permissions, illustrated Help/Wiki with real screenshots, truthful per-version compatibility matrix, verified artifact hashes and measured performance. Full normative contract: [DESIGN_INTEROPERABILITY](../operations/DESIGN_INTEROPERABILITY.md).
+- P00–P08 are research/specification only for external-tool conversion. Native P08 basic raster/vector exports remain in scope. No premature claims of native .fig/.sketch support or all-format compatibility.
