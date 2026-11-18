@@ -5,15 +5,18 @@ on:
     branches: [main]
 permissions:
   contents: read
+  checks: read
+  issues: read
+  pull-requests: read
 jobs:
   governance:
     name: governance-lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: Policy checks
@@ -31,5 +34,12 @@ jobs:
         run: python scripts/check_changelog_pr.py
       - name: Deferred Designer interoperability policy (spec only)
         run: python scripts/check_design_interop_policy.py
+      - name: Check controller source syntax
+        run: python -m compileall -q tools scripts tests
+      - name: Remote P00 observation (read-only; cannot merge)
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          ZYNOA_GITHUB_TOKEN: ${{ github.token }}
+        run: python -m tools.phase_worker --once --db "$RUNNER_TEMP/zynoa-controller-observation.db"
       - name: Incident redaction tests
         run: python -m unittest discover -s tests -v
