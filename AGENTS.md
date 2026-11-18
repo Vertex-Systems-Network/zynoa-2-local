@@ -56,3 +56,7 @@ Every AI agent (Codex/ChatGPT, Claude, Cursor, Gemini, Copilot, autonomous worke
 6. After each development slice output `change_ids`, `issue_status`, `release_status`, `docs_links`, `help/wiki_revision`, `screenshot_evidence`, `test_results` and `checkpoint`. A local planning changelog is NOT the released product changelog.
 
 See `docs/quality/RELEASE_GATES.md` CHANGE-01..07 and ADR-0007. These are specifications until actual CI/desktop components exist.
+
+## Deferred Designer interoperability / cross-tool import-export (P00 policy addition)
+
+All agents MUST read [DESIGN-IO specification](docs/operations/DESIGN_INTEROPERABILITY.md) when researching or working on the Designer. Figma, Penpot, both distinct OpenPencil projects, and future design tools use an extensible adapter strategy. **P00–P08 may research the adapters, but MUST NOT implement external-tool conversion or promise native editable interchange.** Complete M11/M12 Designer core in P08 with real tests, screenshots, Help/Wiki and verified merge. Only after the P08 remote merge and all core acceptance gates pass may a separate **P08I** phase branch and PR implement file import/export adapters. No unsupported proprietary-format compatibility claims. See DESIGN-IO-01..10.
