@@ -61,5 +61,7 @@ jobs:
       - name: Durable development queue smoke (read-only)
         run: |
           python -m tools.dev_job_runner --smoke --repo-root . --db "$RUNNER_TEMP/zynoa-job-smoke.db"
+      - name: Trusted disposable worktree and file-scope regression
+        run: python -m unittest tests.test_workspace_policy -v
       - name: Incident redaction tests
         run: python -m unittest discover -s tests -v
