@@ -300,3 +300,7 @@ The user requires external design files to be editable in Zynoa Designer and Zyn
 P08I provides versioned format capability matrices, import/export wizards, preflight preview, fonts/components/tokens/variants mappings, fidelity and unsupported warnings, safe worker execution, reproducible target-app round-trip tests, backup/undo, Help/Wiki and actual product screenshots. Each new format is independently tested; native `.fig` writer cannot be promised absent permitted official interfaces.
 
 **Primary requirements:** [DESIGN-IO](operations/DESIGN_INTEROPERABILITY.md) · [P08I phase](PHASE_SPECS.md) · [Design research](research/DESIGN_RESEARCH.md).
+
+## P00 execution boundary implementation note (2026-11-18)
+
+The repository contains an early M22 **policy/plan-only** foundation for workspace file scope and Git worktree creation. It does not run generated code and does not replace the Windows-first OS sandbox or full autonomous agent requirements. Before enabling executable code tools, require host-controlled immutable scope grants, process and network isolation, safe file-handle operations, resource budgets, trusted Git source validation, crash reconciled worktrees and credentials segregated from model processes. See [P00 Worktree Policy](operations/P00_WORKTREE_POLICY.md), [ADR-0011](adr/0011-worktree-is-not-sandbox.md) and [active project status](state/STATUS.md). This addendum does not change the phase roadmap.
