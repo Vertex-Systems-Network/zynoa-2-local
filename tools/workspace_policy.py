@@ -21,6 +21,7 @@ Operation = Literal["read", "write"]
 _ALWAYS_PROTECTED = (
     ".git", ".github", ".env", ".ssh", ".aws", ".npmrc", ".pypirc",
     ".venv", "venv", "node_modules", "__pycache__", ".secrets",
+    ".gitattributes", ".gitmodules", ".gitconfig",
 )
 _PROTECTED_PATHS = (
     "AGENTS.md", "docs/state", "docs/quality", "docs/adr",
@@ -65,7 +66,8 @@ def _has_symlink_component(path: Path) -> bool:
 def _relative_parts(raw: str) -> tuple[str, ...]:
     if not isinstance(raw, str) or not raw or len(raw) > 4096:
         raise WorkspaceDenied("path missing or too long")
-    if not _RELATIVE.fullmatch(raw) or unicodedata.normalize("NFC", raw) != raw:
+    if (not _RELATIVE.fullmatch(raw) or unicodedata.normalize("NFC", raw) != raw
+            or any(unicodedata.category(ch) in ("Cc", "Cf", "Cs") for ch in raw)):
         raise WorkspaceDenied("path contains unsafe separators or control characters")
     if raw.startswith("/") or ntpath.isabs(raw) or ntpath.splitdrive(raw)[0]:
         raise WorkspaceDenied("absolute or drive-relative path forbidden")
@@ -76,6 +78,7 @@ def _relative_parts(raw: str) -> tuple[str, ...]:
         not part or part in (".", "..") or part.rstrip(" .") != part
         or part.split(".")[0].casefold() in _WINDOWS_RESERVED
         or part.casefold() in _ALWAYS_PROTECTED
+        or part.casefold().startswith((".env.", ".ssh.", ".aws."))
         for part in parts
     ):
         raise WorkspaceDenied("unsafe or reserved path component")
