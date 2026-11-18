@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
 permissions:
+  actions: read
   contents: read
   checks: read
   issues: read

@@ -150,3 +150,8 @@ See [P00 local model planning](../operations/P00_LOCAL_MODEL_PLANNING.md) and [I
 
 - **DOCKER-SYN-07:** `tools.docker_host_smoke` refuses by default, requires two explicit operator authorization flags and nonroot Linux identity, exact P00/PR state, fixed valid/invalid harmless syntax fixtures and strict sanitized result/hash/zero-write verification. Linux and Windows CI exercise mocked success/denial only.
 - **DOCKER-SYN-08 (BLOCKED):** The actual operator-owned Linux execution, delegated cgroup negative tests, independent network/filesystem/credential containment, supervisor recovery, verified image provenance and protected-main GitHub identity remain unverified. A successful smoke alone cannot mark T19/T20 complete or approve PR merge.
+
+
+### P00 required check workflow provenance gate (2026-11-19)
+
+P00-Q02 requires GitHub required check name, pinned Actions App and authenticated Actions run/job identity bound to current PR, SHA, check suite and expected workflow path. Same-name successful checks from another workflow fail closed. Passing code-level provenance does not attest hosted worker, GitHub ruleset installation, rootless isolation, CI workflow integrity or actual merge; Issue #3 remains open.

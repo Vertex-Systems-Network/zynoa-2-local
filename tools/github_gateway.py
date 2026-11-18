@@ -21,6 +21,12 @@ _SHA_PATTERN = re.compile(r"^[0-9a-f]{40}$")
 # The accepted app identity is host-owned policy, not something a branch ruleset
 # or PR-authored check can redefine. GitHub Actions App ID is 15368.
 _TRUSTED_CHECK_APPS = {"governance-lint": 15368, "workspace-windows": 15368}
+_TRUSTED_WORKFLOW_PATH = re.compile(r"^\\.github/workflows/governance\\.yml(?:@[A-Za-z0-9._/-]{1,128})?$")
+_TRUSTED_ACTIONS_JOB = re.compile(
+    r"^https://github\\.com/Vertex-Systems-Network/zynoa-2-local/"
+    r"actions/runs/([1-9][0-9]*)/job/([1-9][0-9]*)$"
+)
+_APPROVED_REPO = "Vertex-Systems-Network/zynoa-2-local"
 
 
 class GitHubEvidenceError(RuntimeError):
@@ -111,6 +117,17 @@ class GitHubGateway:
             raise GitHubEvidenceError("invalid commit SHA")
         return self._get("/commits/" + sha + "/check-runs", {"per_page": "100"})
 
+    def workflow_run(self, run_id: int) -> dict:
+        """Authenticate an Actions run, not just a check name/provider."""
+        if type(run_id) is not int or not 0 < run_id < 2**63:
+            raise GitHubEvidenceError("invalid workflow run ID")
+        return self._get("/actions/runs/" + str(run_id))
+
+    def workflow_job(self, job_id: int) -> dict:
+        if type(job_id) is not int or not 0 < job_id < 2**63:
+            raise GitHubEvidenceError("invalid workflow job ID")
+        return self._get("/actions/jobs/" + str(job_id))
+
     def issue(self, number: int) -> dict:
         if type(number) is not int or number < 1:
             raise GitHubEvidenceError("invalid issue number")
@@ -170,6 +187,76 @@ class GitHubGateway:
                 return False
         return True
 
+    def _verify_actions_provenance(
+        self, observed_checks: Mapping[str, list[dict]],
+        required_checks: tuple[str, ...], head_sha: str,
+        branch: str, pr_number: int,
+    ) -> bool:
+        """Link each required check to a trusted Actions run AND exact job.
+
+        The Actions App ID alone does not authenticate a particular workflow.
+        This verifies origin, not that PR-editable workflow code is safe.
+        """
+        runs: dict[int, dict] = {}
+        for name in required_checks:
+            matches = observed_checks.get(name)
+            if not isinstance(matches, list) or len(matches) != 1:
+                return False
+            check = matches[0]
+            if not isinstance(check, dict) or (
+                check.get("name") != name or check.get("head_sha") != head_sha
+                or check.get("status") != "completed"
+                or check.get("conclusion") != "success"
+                or not isinstance(check.get("app"), dict)
+                or check["app"].get("id") != _TRUSTED_CHECK_APPS.get(name)
+            ):
+                return False
+            details = check.get("details_url")
+            match = _TRUSTED_ACTIONS_JOB.fullmatch(details) if isinstance(details, str) else None
+            if match is None:
+                return False
+            run_id, job_id = (int(value) for value in match.groups())
+            if run_id >= 2**63 or job_id >= 2**63:
+                return False
+            suite = check.get("check_suite")
+            if not isinstance(suite, dict) or type(suite.get("id")) is not int:
+                return False
+            if run_id not in runs:
+                runs[run_id] = self.workflow_run(run_id)
+            run = runs[run_id]
+            if not isinstance(run, dict) or (
+                run.get("id") != run_id
+                or run.get("check_suite_id") != suite["id"]
+                or run.get("name") != "Governance v3.2"
+                or not isinstance(run.get("path"), str)
+                or not _TRUSTED_WORKFLOW_PATH.fullmatch(run["path"])
+                or run.get("event") != "pull_request"
+                or run.get("status") != "completed"
+                or run.get("conclusion") != "success"
+                or run.get("head_sha") != head_sha
+                or run.get("head_branch") != branch
+                or not isinstance(run.get("repository"), dict)
+                or run["repository"].get("full_name") != _APPROVED_REPO
+                or not isinstance(run.get("head_repository"), dict)
+                or run["head_repository"].get("full_name") != _APPROVED_REPO
+            ):
+                return False
+            prs = run.get("pull_requests")
+            if not isinstance(prs, list) or not any(
+                isinstance(pr, dict) and type(pr.get("number")) is int
+                and pr["number"] == pr_number for pr in prs
+            ):
+                return False
+            job = self.workflow_job(job_id)
+            if not isinstance(job, dict) or (
+                job.get("id") != job_id or job.get("run_id") != run_id
+                or job.get("name") != name or job.get("head_sha") != head_sha
+                or job.get("status") != "completed"
+                or job.get("conclusion") != "success"
+            ):
+                return False
+        return True
+
     def observe(self, state: Mapping[str, Any], required_checks: tuple[str, ...] = ("governance-lint",),
                 blocker_numbers: tuple[int, ...] = (3,)) -> dict:
         """Live authoritative observation. Read-only; not a merge authorization.
@@ -199,6 +286,7 @@ class GitHubGateway:
         if check_result.get("total_count", len(all_checks)) > len(all_checks):
             # A single page is not exhaustive; fail closed rather than missing failures.
             checks_passed = False
+            observed = {}
         else:
             observed = {}
             for check in all_checks:
@@ -217,6 +305,16 @@ class GitHubGateway:
             if any(c.get("status") == "completed" and c.get("conclusion") in ("failure", "timed_out", "cancelled")
                    for c in all_checks):
                 checks_passed = False
+        # A same-named check from another Actions workflow is not trustworthy.
+        workflow_provenance_verified = False
+        if checks_passed:
+            try:
+                workflow_provenance_verified = self._verify_actions_provenance(
+                    observed, required_checks, head_sha, phase_branch, number
+                )
+            except (GitHubEvidenceError, ValueError, TypeError):
+                workflow_provenance_verified = False
+        checks_passed = checks_passed and workflow_provenance_verified
         open_blockers = []
         for issue_number in blocker_numbers:
             issue = self.issue(issue_number)
@@ -265,6 +363,7 @@ class GitHubGateway:
             "merge_sha": merge_sha,
             "main_matches_merge": main_matches_merge,
             "checks_passed": checks_passed,
+            "workflow_provenance_verified": workflow_provenance_verified,
             "open_critical_blockers": len(open_blockers),
             "blocker_issue_numbers": open_blockers,
             "branch_protected": branch_protected,

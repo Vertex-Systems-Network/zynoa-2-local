@@ -49,3 +49,10 @@ The read-only GitHub phase observer now compares the effective `main` required-s
 The actual remote `main` still has `protected=false` and **zero installed rulesets** at this checkpoint. This is fail-closed source verification, **not branch-protection provisioning** and not proof that GitHub ruleset bypass actors or host privileges have been independently audited. A privileged, operator-owned ruleset deployment and live GitHub readback remain required under Issue #3. P00 PR #1 remains draft; no next phase or release is authorized.
 
 Primary reference: https://docs.github.com/en/rest/repos/rules?apiVersion=2022-11-28
+
+
+## Required Actions workflow-run and job provenance (P00 in progress — 2026-11-19)
+
+GitHub Actions App ID `15368` identifies the application, **not the exact workflow**. A second workflow could produce a same-named check, so the P00 gateway must correlate required `governance-lint` to GitHub's check-run `details_url`, authenticated `GET /actions/runs/{run_id}` and `GET /actions/jobs/{job_id}`. Require consistent run/job IDs, suite ID, completed success, exact PR HEAD SHA, P00 branch, repo/head repo, PR #1 association, workflow name and `.github/workflows/governance.yml` path. Missing `actions:read`, stale or incomplete API evidence fails closed. This verifies **source provenance**, not that a PR-editable workflow's commands have been security reviewed. Actual protected-main ruleset remains absent; no host deployment/merge is implied.
+
+Official references: https://docs.github.com/en/rest/actions/workflow-runs#get-a-workflow-run and https://docs.github.com/en/rest/actions/workflow-jobs#get-a-job-for-a-workflow-run.

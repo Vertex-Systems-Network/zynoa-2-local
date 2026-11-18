@@ -16,7 +16,17 @@ class FakeTransport:
         self.main_protected = True
         self.main_sha = MERGE
         self.issue_open = False
-        self.checks = [{"name": "governance-lint", "head_sha": SHA, "status": "completed", "conclusion": "success", "app": {"id": 15368}}]
+        self.run_id = 1234
+        self.job_id = 5678
+        self.suite_id = 99
+        self.run_overrides = {}
+        self.job_overrides = {}
+        self.checks = [{
+            "name": "governance-lint", "head_sha": SHA,
+            "status": "completed", "conclusion": "success", "app": {"id": 15368},
+            "check_suite": {"id": self.suite_id},
+            "details_url": f"https://github.com/{REPO}/actions/runs/{self.run_id}/job/{self.job_id}",
+        }]
         self.rules = [
             {"type": "pull_request", "parameters": {"required_review_thread_resolution": True}},
             {"type": "required_status_checks", "parameters": {
@@ -44,6 +54,23 @@ class FakeTransport:
                 "merged_at": "2026-11-18T00:00:00Z" if self.pr_merged else None,
                 "merge_commit_sha": MERGE, "draft": self.pr_draft,
             }
+        if path.endswith(f"/actions/runs/{self.run_id}"):
+            data = {
+                "id": self.run_id, "check_suite_id": self.suite_id,
+                "name": "Governance v3.2", "path": ".github/workflows/governance.yml",
+                "event": "pull_request", "status": "completed", "conclusion": "success",
+                "head_sha": SHA, "head_branch": BRANCH,
+                "repository": {"full_name": REPO},
+                "head_repository": {"full_name": REPO},
+                "pull_requests": [{"number": 1}],
+            }
+            return {**data, **self.run_overrides}
+        if path.endswith(f"/actions/jobs/{self.job_id}"):
+            data = {
+                "id": self.job_id, "run_id": self.run_id, "name": "governance-lint",
+                "head_sha": SHA, "status": "completed", "conclusion": "success",
+            }
+            return {**data, **self.job_overrides}
         if path.endswith("/rules/branches/main"):
             return self.rules
         if path.endswith("/branches/main"):
@@ -73,8 +100,66 @@ class GitHubEvidenceTests(unittest.TestCase):
         self.assertTrue(snapshot["transition_ready"])
         self.assertTrue(snapshot["checks_passed"])
         self.assertTrue(snapshot["rules_policy_verified"])
+        self.assertTrue(snapshot["workflow_provenance_verified"])
         self.assertEqual(MERGE, snapshot["merge_sha"])
         self.assertGreaterEqual(fake.request_count, 5)
+
+    def test_lookalike_actions_workflow_cannot_grant_merge_readiness(self):
+        for key, forged in (
+            ("name", "Untrusted Tests"),
+            ("path", ".github/workflows/other.yml"),
+            ("event", "workflow_dispatch"),
+            ("head_sha", "e" * 40),
+            ("head_branch", "phase/01-unauthorized"),
+            ("check_suite_id", 100),
+            ("repository", {"full_name": "other/fork"}),
+            ("head_repository", {"full_name": "other/fork"}),
+            ("pull_requests", [{"number": 2}]),
+            ("conclusion", "failure"),
+        ):
+            client, fake = self.build()
+            fake.run_overrides[key] = forged
+            with self.subTest(key=key):
+                result = client.observe(STATE)
+                self.assertFalse(result["workflow_provenance_verified"])
+                self.assertFalse(result["checks_passed"])
+                self.assertFalse(result["transition_ready"])
+
+    def test_forged_job_or_check_url_cannot_grant_merge_readiness(self):
+        for key, forged in (
+            ("name", "other-job"), ("run_id", 77),
+            ("head_sha", "f" * 40), ("conclusion", "failure"),
+            ("id", 999),
+        ):
+            client, fake = self.build()
+            fake.job_overrides[key] = forged
+            with self.subTest(key=key):
+                result = client.observe(STATE)
+                self.assertFalse(result["workflow_provenance_verified"])
+        for bad_url in (
+            "https://evil.example/actions/runs/1234/job/5678",
+            f"https://github.com/{REPO}/actions/runs/1234/job/5678?x=1",
+            f"https://github.com/{REPO}/actions/runs/1234/job/999",
+            None,
+        ):
+            client, fake = self.build()
+            fake.checks[0]["details_url"] = bad_url
+            with self.subTest(url=bad_url):
+                result = client.observe(STATE)
+                self.assertFalse(result["workflow_provenance_verified"])
+                self.assertFalse(result["transition_ready"])
+
+    def test_workflow_run_api_inaccessible_blocks_without_faking_success(self):
+        client, fake = self.build()
+        old = fake.__call__
+        def unavailable(method, url, headers, body, timeout):
+            if "/actions/runs/" in url:
+                raise GitHubEvidenceError("permission unavailable")
+            return old(method, url, headers, body, timeout)
+        client.transport = unavailable
+        result = client.observe(STATE)
+        self.assertFalse(result["workflow_provenance_verified"])
+        self.assertFalse(result["transition_ready"])
 
     def test_unmerged_draft_never_advances(self):
         client, fake = self.build()
