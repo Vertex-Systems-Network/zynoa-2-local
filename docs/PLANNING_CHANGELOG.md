@@ -92,3 +92,14 @@
 - Added detailed [PR Task Tables](operations/PR_TASK_TABLES.md), [ADR-0012](adr/0012-pr-task-table-trust.md), [Local Model Preflight](operations/P00_LOCAL_MODEL_PREFLIGHT.md), M22 Help/Wiki source and 2 distinct unreleased change records.
 - A transient CI failure caused by importing a script as a file was fixed by module invocation; a later failure caused by hardcoded 50% test assertions was fixed to compute counts dynamically. [CI #44230241651](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44230241651) passed **181 Linux + 21 Windows tests** and all task manifest checks.
 - **NOT RELEASED:** No persistent AI developer host, protected GitHub main, deployed trusted workflow, model-backed code executor, sandbox, GUI, screenshot or public product changelog is claimed.
+
+## P00 host bootstrap, SQLite WAL recovery and Windows file-handle repair — 2026-11-18 (UNRELEASED)
+
+- Added `tools/host_bootstrap.py` for explicit host data-root initialization **outside source**, private metadata/database initialization, SQLite online backup with checksum sidecar, integrity checks and disposable restore drill without overwriting live journal.
+- Added `tests/test_host_bootstrap.py` covering real WAL event snapshot vs current journal, corruption/missing receipt/missing schema, unapproved initialization, symlink/junction, overlapping paths, idempotent preservation and POSIX permission checks.
+- Repaired existing controller `EventJournal` and worker `WorkerLease` to CLOSE SQLite connections explicitly. Windows test teardown had previously failed with file-lock errors after transaction context managers, which committed but did not close connections.
+- Extended Linux systemd observer template with host DB preflight and moved observer DB to `/var/lib/zynoa/state/controller.db`; added systemd daily online backup service and timer templates.
+- Added Windows current-user least-privilege **at-logon** task script, preview default and explicit `-Install`; cannot guarantee 24/7 runtime after logoff. Resolved PowerShell multiple-Python-path selection and Windows backup file-descriptor sync failures found by actual CI.
+- [CI #44233203055](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44233203055) passed **197 Linux + 21 Windows workspace + 16 Windows host** tests and real disposable SQLite backups/restores on both OS runners.
+- Updated Help/Wiki *source*, security/release/pre-development checks, host operator guide and structured unreleased developer change record. **No product release, actual service installation, model/host inference, GUI screenshot or published Wiki** is claimed.
+- PR #1 task table now **24 total / 14 done / 2 in progress / 1 pending / 7 blocked = 58% scoped completion**. External deployment T17 and [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3) remain unresolved and block merge.
