@@ -118,6 +118,25 @@ class ScopePolicyTests(unittest.TestCase):
                           "reason": "WORKSPACE_SCOPE_DENIED"}, decision)
         self.assertNotIn(str(self.root), str(decision))
 
+    def test_invalid_phase_or_branch_scope_rejected(self):
+        for phase, branch in (
+            ("P99", "phase/00-governance"),
+            ("P01", "phase/01-foundation"),
+            ("P00", "main"),
+            ("P00", "phase/00-impostor"),
+        ):
+            with self.subTest(phase=phase, branch=branch), self.assertRaises(WorkspaceDenied):
+                WorkspaceScope(self.root, phase, branch)
+
+    def test_hidden_secrets_git_attributes_and_invisible_characters_denied(self):
+        for path in (
+            "docs/help/.env.local", "docs/help/.gitattributes",
+            "docs/help/.gitmodules", "docs/help/.aws.credentials",
+            "docs/help/name\\u202emod.exe", "docs/help/name\\u200binvisible",
+        ):
+            with self.subTest(path=path), self.assertRaises(WorkspaceDenied):
+                self.scope.check(path, "write")
+
     def test_missing_read_denied(self):
         with self.assertRaises(WorkspaceDenied):
             self.scope.check("docs/help/not-found.md", "read")
