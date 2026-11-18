@@ -202,5 +202,8 @@ class GitHubGateway:
             "branch_protected": branch_protected,
             "auto_merge_available": auto_merge_available,
             "draft": pr.get("draft") is True,
+            "pr_state": pr.get("state"),
+            "mergeable": pr.get("mergeable") is True,
+            "base_sha": (base.get("sha") if isinstance(base.get("sha"), str) else None),
             "transition_ready": can_proceed,
         }
