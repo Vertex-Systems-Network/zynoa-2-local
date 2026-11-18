@@ -1,0 +1,14 @@
+{
+  "module": "M03",
+  "error_code": "MODEL_RUNTIME_CRASH",
+  "severity": "P1",
+  "source_type": "developer-ci",
+  "app_version": "0.0.0",
+  "platform": "Windows",
+  "message_class": "ModelRuntimeError",
+  "token": "should-not-appear",
+  "user_email": "example@private.com",
+  "prompt": "private prompt and source code",
+  "stack": "C:\\Users\\Alice\\Documents\\secret.py",
+  "password": "p@ssw0rd"
+}

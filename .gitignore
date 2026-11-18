@@ -1,0 +1,28 @@
+# Local build/state artifacts
+node_modules/
+dist/
+build/
+target/
+.vite/
+.turbo/
+coverage/
+playwright-report/
+test-results/
+*.log
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+# Never commit model weights or credentials
+models/
+model-cache/
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.key
+secrets/
+# Keep explicitly approved UI fixture artifacts in git rather than all generated files

@@ -1,0 +1,245 @@
+module_id,option_id,option,phase,help,screenshot,status,definition
+M01,M01-OPT-01,Auto-restore last session,P01,docs/help/articles/M01.md,docs/screenshots/M01/M01-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M01,M01-OPT-02,Multi-window behavior,P01,docs/help/articles/M01.md,docs/screenshots/M01/M01-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M01,M01-OPT-03,Backup on graceful shutdown,P01,docs/help/articles/M01.md,docs/screenshots/M01/M01-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M01,M01-OPT-04,Schema migration rollback,P01,docs/help/articles/M01.md,docs/screenshots/M01/M01-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M01,M01-OPT-05,Offline launch policy,P01,docs/help/articles/M01.md,docs/screenshots/M01/M01-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M01,M01-OPT-06,Safe mode boot,P01,docs/help/articles/M01.md,docs/screenshots/M01/M01-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M02,M02-OPT-01,Navigation density,P02,docs/help/articles/M02.md,docs/screenshots/M02/M02-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M02,M02-OPT-02,Light/Dark/System theme,P02,docs/help/articles/M02.md,docs/screenshots/M02/M02-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M02,M02-OPT-03,Compact properties panel,P02,docs/help/articles/M02.md,docs/screenshots/M02/M02-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M02,M02-OPT-04,Global keyboard shortcut mapping,P02,docs/help/articles/M02.md,docs/screenshots/M02/M02-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M02,M02-OPT-05,Command palette search,P02,docs/help/articles/M02.md,docs/screenshots/M02/M02-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M02,M02-OPT-06,Split pane resizing,P02,docs/help/articles/M02.md,docs/screenshots/M02/M02-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M02,M02-OPT-07,Focus visibility,P02,docs/help/articles/M02.md,docs/screenshots/M02/M02-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M02,M02-OPT-08,Reduce motion,P02,docs/help/articles/M02.md,docs/screenshots/M02/M02-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M03,M03-OPT-01,Per-thread model choice,P03,docs/help/articles/M03.md,docs/screenshots/M03/M03-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M03,M03-OPT-02,Streaming and stop,P03,docs/help/articles/M03.md,docs/screenshots/M03/M03-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M03,M03-OPT-03,Context budget inspector,P03,docs/help/articles/M03.md,docs/screenshots/M03/M03-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M03,M03-OPT-04,Attach local files,P03,docs/help/articles/M03.md,docs/screenshots/M03/M03-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M03,M03-OPT-05,Generate artifact,P03,docs/help/articles/M03.md,docs/screenshots/M03/M03-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M03,M03-OPT-06,Retry last turn,P03,docs/help/articles/M03.md,docs/screenshots/M03/M03-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M03,M03-OPT-07,Export full conversation,P03,docs/help/articles/M03.md,docs/screenshots/M03/M03-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M03,M03-OPT-08,Tool call details,P03,docs/help/articles/M03.md,docs/screenshots/M03/M03-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M04,M04-OPT-01,Workspace scope,P04,docs/help/articles/M04.md,docs/screenshots/M04/M04-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M04,M04-OPT-02,Read-only audit mode,P04,docs/help/articles/M04.md,docs/screenshots/M04/M04-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M04,M04-OPT-03,Edit-in-worktree mode,P04,docs/help/articles/M04.md,docs/screenshots/M04/M04-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M04,M04-OPT-04,Terminal command approval,P04,docs/help/articles/M04.md,docs/screenshots/M04/M04-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M04,M04-OPT-05,Git diff review,P04,docs/help/articles/M04.md,docs/screenshots/M04/M04-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M04,M04-OPT-06,Test runner preset,P04,docs/help/articles/M04.md,docs/screenshots/M04/M04-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M04,M04-OPT-07,Commit and PR agent,P04,docs/help/articles/M04.md,docs/screenshots/M04/M04-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M04,M04-OPT-08,Undo changes,P04,docs/help/articles/M04.md,docs/screenshots/M04/M04-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M05,M05-OPT-01,Auto-detect hardware,P05,docs/help/articles/M05.md,docs/screenshots/M05/M05-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M05,M05-OPT-02,GPU acceleration probe,P05,docs/help/articles/M05.md,docs/screenshots/M05/M05-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M05,M05-OPT-03,Context memory estimate,P05,docs/help/articles/M05.md,docs/screenshots/M05/M05-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M05,M05-OPT-04,Fast/Balanced/Quality routing,P05,docs/help/articles/M05.md,docs/screenshots/M05/M05-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M05,M05-OPT-05,Local eval benchmark,P05,docs/help/articles/M05.md,docs/screenshots/M05/M05-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M05,M05-OPT-06,Manual model override,P05,docs/help/articles/M05.md,docs/screenshots/M05/M05-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M05,M05-OPT-07,Thermal/resource guard,P05,docs/help/articles/M05.md,docs/screenshots/M05/M05-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M05,M05-OPT-08,Model compatibility explanation,P05,docs/help/articles/M05.md,docs/screenshots/M05/M05-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M06,M06-OPT-01,Search Hugging Face,P05,docs/help/articles/M06.md,docs/screenshots/M06/M06-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M06,M06-OPT-02,Search Ollama,P05,docs/help/articles/M06.md,docs/screenshots/M06/M06-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M06,M06-OPT-03,License filter,P05,docs/help/articles/M06.md,docs/screenshots/M06/M06-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M06,M06-OPT-04,Compare quantizations,P05,docs/help/articles/M06.md,docs/screenshots/M06/M06-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M06,M06-OPT-05,Verified download,P05,docs/help/articles/M06.md,docs/screenshots/M06/M06-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M06,M06-OPT-06,Pause/resume supported transfer,P05,docs/help/articles/M06.md,docs/screenshots/M06/M06-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M06,M06-OPT-07,Storage cleanup,P05,docs/help/articles/M06.md,docs/screenshots/M06/M06-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M06,M06-OPT-08,Remove installed model,P05,docs/help/articles/M06.md,docs/screenshots/M06/M06-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M07,M07-OPT-01,Default provider,P06,docs/help/articles/M07.md,docs/screenshots/M07/M07-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M07,M07-OPT-02,Search region/language,P06,docs/help/articles/M07.md,docs/screenshots/M07/M07-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M07,M07-OPT-03,Freshness filter,P06,docs/help/articles/M07.md,docs/screenshots/M07/M07-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M07,M07-OPT-04,Provider fallback,P06,docs/help/articles/M07.md,docs/screenshots/M07/M07-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M07,M07-OPT-05,Result deduplication,P06,docs/help/articles/M07.md,docs/screenshots/M07/M07-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M07,M07-OPT-06,Offline explanation,P06,docs/help/articles/M07.md,docs/screenshots/M07/M07-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M07,M07-OPT-07,Result citation view,P06,docs/help/articles/M07.md,docs/screenshots/M07/M07-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M07,M07-OPT-08,Source exclusion,P06,docs/help/articles/M07.md,docs/screenshots/M07/M07-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M08,M08-OPT-01,Research question decomposition,P06,docs/help/articles/M08.md,docs/screenshots/M08/M08-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M08,M08-OPT-02,Source quality rubric,P06,docs/help/articles/M08.md,docs/screenshots/M08/M08-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M08,M08-OPT-03,Full-text extraction,P06,docs/help/articles/M08.md,docs/screenshots/M08/M08-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M08,M08-OPT-04,Evidence capture,P06,docs/help/articles/M08.md,docs/screenshots/M08/M08-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M08,M08-OPT-05,Citation format,P06,docs/help/articles/M08.md,docs/screenshots/M08/M08-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M08,M08-OPT-06,Conflicting evidence panel,P06,docs/help/articles/M08.md,docs/screenshots/M08/M08-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M08,M08-OPT-07,Report version history,P06,docs/help/articles/M08.md,docs/screenshots/M08/M08-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M08,M08-OPT-08,Export report,P06,docs/help/articles/M08.md,docs/screenshots/M08/M08-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M09,M09-OPT-01,Domain allowlist,P06,docs/help/articles/M09.md,docs/screenshots/M09/M09-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M09,M09-OPT-02,View browser session,P06,docs/help/articles/M09.md,docs/screenshots/M09/M09-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M09,M09-OPT-03,Inspect DOM,P06,docs/help/articles/M09.md,docs/screenshots/M09/M09-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M09,M09-OPT-04,Record screenshots,P06,docs/help/articles/M09.md,docs/screenshots/M09/M09-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M09,M09-OPT-05,Replay safe actions,P06,docs/help/articles/M09.md,docs/screenshots/M09/M09-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M09,M09-OPT-06,Form action review,P06,docs/help/articles/M09.md,docs/screenshots/M09/M09-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M09,M09-OPT-07,Session cleanup,P06,docs/help/articles/M09.md,docs/screenshots/M09/M09-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M09,M09-OPT-08,Network troubleshooting,P06,docs/help/articles/M09.md,docs/screenshots/M09/M09-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M10,M10-OPT-01,Choose index folders,P07,docs/help/articles/M10.md,docs/screenshots/M10/M10-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M10,M10-OPT-02,Rebuild index,P07,docs/help/articles/M10.md,docs/screenshots/M10/M10-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M10,M10-OPT-03,Recall source,P07,docs/help/articles/M10.md,docs/screenshots/M10/M10-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M10,M10-OPT-04,Forget indexed item,P07,docs/help/articles/M10.md,docs/screenshots/M10/M10-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M10,M10-OPT-05,Data retention,P07,docs/help/articles/M10.md,docs/screenshots/M10/M10-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M10,M10-OPT-06,Source freshness policy,P07,docs/help/articles/M10.md,docs/screenshots/M10/M10-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M10,M10-OPT-07,Semantic search depth,P07,docs/help/articles/M10.md,docs/screenshots/M10/M10-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M10,M10-OPT-08,Project-memory scope,P07,docs/help/articles/M10.md,docs/screenshots/M10/M10-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M11,M11-OPT-01,Add page or frame,P08,docs/help/articles/M11.md,docs/screenshots/M11/M11-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M11,M11-OPT-02,Draw vector shape,P08,docs/help/articles/M11.md,docs/screenshots/M11/M11-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M11,M11-OPT-03,Edit text,P08,docs/help/articles/M11.md,docs/screenshots/M11/M11-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M11,M11-OPT-04,Auto layout constraints,P08,docs/help/articles/M11.md,docs/screenshots/M11/M11-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M11,M11-OPT-05,Component variants,P08,docs/help/articles/M11.md,docs/screenshots/M11/M11-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M11,M11-OPT-06,Undo/redo,P08,docs/help/articles/M11.md,docs/screenshots/M11/M11-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M11,M11-OPT-07,Export raster/vector,P08,docs/help/articles/M11.md,docs/screenshots/M11/M11-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M11,M11-OPT-08,AI edit selected layers,P08,docs/help/articles/M11.md,docs/screenshots/M11/M11-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M12,M12-OPT-01,Token creation,P08,docs/help/articles/M12.md,docs/screenshots/M12/M12-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M12,M12-OPT-02,Change typography,P08,docs/help/articles/M12.md,docs/screenshots/M12/M12-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M12,M12-OPT-03,Link component variable,P08,docs/help/articles/M12.md,docs/screenshots/M12/M12-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M12,M12-OPT-04,Import asset,P08,docs/help/articles/M12.md,docs/screenshots/M12/M12-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M12,M12-OPT-05,Asset license record,P08,docs/help/articles/M12.md,docs/screenshots/M12/M12-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M12,M12-OPT-06,Variant configuration,P08,docs/help/articles/M12.md,docs/screenshots/M12/M12-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M12,M12-OPT-07,Design library search,P08,docs/help/articles/M12.md,docs/screenshots/M12/M12-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M12,M12-OPT-08,Export token JSON,P08,docs/help/articles/M12.md,docs/screenshots/M12/M12-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M13,M13-OPT-01,Choose local model,P09,docs/help/articles/M13.md,docs/screenshots/M13/M13-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M13,M13-OPT-02,Select workflow,P09,docs/help/articles/M13.md,docs/screenshots/M13/M13-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M13,M13-OPT-03,Set output size,P09,docs/help/articles/M13.md,docs/screenshots/M13/M13-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M13,M13-OPT-04,Inference memory limits,P09,docs/help/articles/M13.md,docs/screenshots/M13/M13-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M13,M13-OPT-05,Pause job,P09,docs/help/articles/M13.md,docs/screenshots/M13/M13-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M13,M13-OPT-06,Retry generation,P09,docs/help/articles/M13.md,docs/screenshots/M13/M13-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M13,M13-OPT-07,Asset provenance,P09,docs/help/articles/M13.md,docs/screenshots/M13/M13-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M13,M13-OPT-08,Export images,P09,docs/help/articles/M13.md,docs/screenshots/M13/M13-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M14,M14-OPT-01,Plan task,P10,docs/help/articles/M14.md,docs/screenshots/M14/M14-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M14,M14-OPT-02,Review execution trace,P10,docs/help/articles/M14.md,docs/screenshots/M14/M14-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M14,M14-OPT-03,Inspect checkpoint,P10,docs/help/articles/M14.md,docs/screenshots/M14/M14-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M14,M14-OPT-04,Retry failed bounded step,P10,docs/help/articles/M14.md,docs/screenshots/M14/M14-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M14,M14-OPT-05,Switch agent specialist,P10,docs/help/articles/M14.md,docs/screenshots/M14/M14-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M14,M14-OPT-06,Task queue priority,P10,docs/help/articles/M14.md,docs/screenshots/M14/M14-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M14,M14-OPT-07,Pause development worker,P10,docs/help/articles/M14.md,docs/screenshots/M14/M14-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M14,M14-OPT-08,Resume authorized work,P10,docs/help/articles/M14.md,docs/screenshots/M14/M14-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M15,M15-OPT-01,Install MCP adapter,P10,docs/help/articles/M15.md,docs/screenshots/M15/M15-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M15,M15-OPT-02,Grant capability scope,P10,docs/help/articles/M15.md,docs/screenshots/M15/M15-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M15,M15-OPT-03,Test tool schema,P10,docs/help/articles/M15.md,docs/screenshots/M15/M15-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M15,M15-OPT-04,Disable connection,P10,docs/help/articles/M15.md,docs/screenshots/M15/M15-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M15,M15-OPT-05,Review tool provenance,P10,docs/help/articles/M15.md,docs/screenshots/M15/M15-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M15,M15-OPT-06,Manage local secrets,P10,docs/help/articles/M15.md,docs/screenshots/M15/M15-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M15,M15-OPT-07,Audit tool calls,P10,docs/help/articles/M15.md,docs/screenshots/M15/M15-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M15,M15-OPT-08,Safe tool uninstall,P10,docs/help/articles/M15.md,docs/screenshots/M15/M15-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M16,M16-OPT-01,Create workspace,P01,docs/help/articles/M16.md,docs/screenshots/M16/M16-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M16,M16-OPT-02,Import directory,P01,docs/help/articles/M16.md,docs/screenshots/M16/M16-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M16,M16-OPT-03,Switch projects,P01,docs/help/articles/M16.md,docs/screenshots/M16/M16-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M16,M16-OPT-04,Configure file exclusions,P01,docs/help/articles/M16.md,docs/screenshots/M16/M16-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M16,M16-OPT-05,Pin recent project,P01,docs/help/articles/M16.md,docs/screenshots/M16/M16-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M16,M16-OPT-06,Snapshot workspace,P01,docs/help/articles/M16.md,docs/screenshots/M16/M16-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M16,M16-OPT-07,Restore backup,P01,docs/help/articles/M16.md,docs/screenshots/M16/M16-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M16,M16-OPT-08,Archive project,P01,docs/help/articles/M16.md,docs/screenshots/M16/M16-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M17,M17-OPT-01,Manage approved paths,P01,docs/help/articles/M17.md,docs/screenshots/M17/M17-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M17,M17-OPT-02,Set outbound domains,P01,docs/help/articles/M17.md,docs/screenshots/M17/M17-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M17,M17-OPT-03,Review approval policy,P01,docs/help/articles/M17.md,docs/screenshots/M17/M17-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M17,M17-OPT-04,Local secrets store,P01,docs/help/articles/M17.md,docs/screenshots/M17/M17-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M17,M17-OPT-05,Privacy incident preview,P01,docs/help/articles/M17.md,docs/screenshots/M17/M17-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M17,M17-OPT-06,Check audit journal,P01,docs/help/articles/M17.md,docs/screenshots/M17/M17-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M17,M17-OPT-07,Revoke capability,P01,docs/help/articles/M17.md,docs/screenshots/M17/M17-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M17,M17-OPT-08,Policy validation,P01,docs/help/articles/M17.md,docs/screenshots/M17/M17-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M18,M18-OPT-01,Inspect crash signature,P01,docs/help/articles/M18.md,docs/screenshots/M18/M18-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M18,M18-OPT-02,Group identical errors,P01,docs/help/articles/M18.md,docs/screenshots/M18/M18-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M18,M18-OPT-03,View redacted report,P01,docs/help/articles/M18.md,docs/screenshots/M18/M18-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M18,M18-OPT-04,Enable project diagnostics,P01,docs/help/articles/M18.md,docs/screenshots/M18/M18-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M18,M18-OPT-05,Link GitHub issue,P01,docs/help/articles/M18.md,docs/screenshots/M18/M18-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M18,M18-OPT-06,Retry queued report,P01,docs/help/articles/M18.md,docs/screenshots/M18/M18-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M18,M18-OPT-07,Mark fixed build,P01,docs/help/articles/M18.md,docs/screenshots/M18/M18-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M18,M18-OPT-08,Export local diagnostics,P01,docs/help/articles/M18.md,docs/screenshots/M18/M18-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M19,M19-OPT-01,Search article,P02,docs/help/articles/M19.md,docs/screenshots/M19/M19-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M19,M19-OPT-02,Open contextual help,P02,docs/help/articles/M19.md,docs/screenshots/M19/M19-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M19,M19-OPT-03,View screenshot steps,P02,docs/help/articles/M19.md,docs/screenshots/M19/M19-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M19,M19-OPT-04,Show glossary,P02,docs/help/articles/M19.md,docs/screenshots/M19/M19-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M19,M19-OPT-05,Browse FAQ,P02,docs/help/articles/M19.md,docs/screenshots/M19/M19-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M19,M19-OPT-06,Open GitHub Wiki,P02,docs/help/articles/M19.md,docs/screenshots/M19/M19-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M19,M19-OPT-07,Report broken article,P02,docs/help/articles/M19.md,docs/screenshots/M19/M19-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M19,M19-OPT-08,Offline help mode,P02,docs/help/articles/M19.md,docs/screenshots/M19/M19-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M20,M20-OPT-01,Check update,P11,docs/help/articles/M20.md,docs/screenshots/M20/M20-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M20,M20-OPT-02,Select release channel,P11,docs/help/articles/M20.md,docs/screenshots/M20/M20-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M20,M20-OPT-03,Read changelog,P11,docs/help/articles/M20.md,docs/screenshots/M20/M20-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M20,M20-OPT-04,Verify signature,P11,docs/help/articles/M20.md,docs/screenshots/M20/M20-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M20,M20-OPT-05,Inspect migration status,P11,docs/help/articles/M20.md,docs/screenshots/M20/M20-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M20,M20-OPT-06,Restore previous version,P11,docs/help/articles/M20.md,docs/screenshots/M20/M20-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M20,M20-OPT-07,Export diagnostic bundle,P11,docs/help/articles/M20.md,docs/screenshots/M20/M20-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M20,M20-OPT-08,Check app version,P11,docs/help/articles/M20.md,docs/screenshots/M20/M20-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M21,M21-OPT-01,Run benchmark,P11,docs/help/articles/M21.md,docs/screenshots/M21/M21-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M21,M21-OPT-02,Compare before/after,P11,docs/help/articles/M21.md,docs/screenshots/M21/M21-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M21,M21-OPT-03,Inspect TTFT,P11,docs/help/articles/M21.md,docs/screenshots/M21/M21-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M21,M21-OPT-04,Compare UI render,P11,docs/help/articles/M21.md,docs/screenshots/M21/M21-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M21,M21-OPT-05,Profile memory,P11,docs/help/articles/M21.md,docs/screenshots/M21/M21-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M21,M21-OPT-06,Run task evaluation,P11,docs/help/articles/M21.md,docs/screenshots/M21/M21-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M21,M21-OPT-07,Export metric trend,P11,docs/help/articles/M21.md,docs/screenshots/M21/M21-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M21,M21-OPT-08,Set performance budget,P11,docs/help/articles/M21.md,docs/screenshots/M21/M21-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M22,M22-OPT-01,Read active phase,P00,docs/help/articles/M22.md,docs/screenshots/M22/M22-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M22,M22-OPT-02,Create phase branch,P00,docs/help/articles/M22.md,docs/screenshots/M22/M22-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M22,M22-OPT-03,Open/update phase PR,P00,docs/help/articles/M22.md,docs/screenshots/M22/M22-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M22,M22-OPT-04,Observe CI checks,P00,docs/help/articles/M22.md,docs/screenshots/M22/M22-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M22,M22-OPT-05,Fix test failures,P00,docs/help/articles/M22.md,docs/screenshots/M22/M22-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M22,M22-OPT-06,Reconcile GitHub status,P00,docs/help/articles/M22.md,docs/screenshots/M22/M22-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M22,M22-OPT-07,Validate merge gate,P00,docs/help/articles/M22.md,docs/screenshots/M22/M22-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M22,M22-OPT-08,Start next phase,P00,docs/help/articles/M22.md,docs/screenshots/M22/M22-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M23,M23-OPT-01,Auto-save acknowledged chats,P01,docs/help/articles/M23.md,docs/screenshots/M23/M23-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M23,M23-OPT-02,Select backup categories,P01,docs/help/articles/M23.md,docs/screenshots/M23/M23-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M23,M23-OPT-03,Choose backup destination,P01,docs/help/articles/M23.md,docs/screenshots/M23/M23-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M23,M23-OPT-04,Enable scheduled backups,P01,docs/help/articles/M23.md,docs/screenshots/M23/M23-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M23,M23-OPT-05,Backup frequency & retention,P01,docs/help/articles/M23.md,docs/screenshots/M23/M23-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M23,M23-OPT-06,Encrypt backup with passphrase,P01,docs/help/articles/M23.md,docs/screenshots/M23/M23-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M23,M23-OPT-07,Create backup now,P01,docs/help/articles/M23.md,docs/screenshots/M23/M23-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M23,M23-OPT-08,Verify existing backup,P01,docs/help/articles/M23.md,docs/screenshots/M23/M23-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M23,M23-OPT-09,Restore to new profile,P01,docs/help/articles/M23.md,docs/screenshots/M23/M23-OPT-09.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M23,M23-OPT-10,Selective restore or merge,P01,docs/help/articles/M23.md,docs/screenshots/M23/M23-OPT-10.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M23,M23-OPT-11,Export chat history,P01,docs/help/articles/M23.md,docs/screenshots/M23/M23-OPT-11.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M23,M23-OPT-12,Export all managed files,P01,docs/help/articles/M23.md,docs/screenshots/M23/M23-OPT-12.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M23,M23-OPT-13,Open managed data folder,P01,docs/help/articles/M23.md,docs/screenshots/M23/M23-OPT-13.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M23,M23-OPT-14,Include external project files (explicit),P01,docs/help/articles/M23.md,docs/screenshots/M23/M23-OPT-14.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M23,M23-OPT-15,Protect before update,P01,docs/help/articles/M23.md,docs/screenshots/M23/M23-OPT-15.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M23,M23-OPT-16,View restore audit & logs,P01,docs/help/articles/M23.md,docs/screenshots/M23/M23-OPT-16.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M23,M23-OPT-17,Data retention & deletion policy,P01,docs/help/articles/M23.md,docs/screenshots/M23/M23-OPT-17.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M23,M23-OPT-18,Recovery key assistance,P01,docs/help/articles/M23.md,docs/screenshots/M23/M23-OPT-18.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M24,M24-OPT-01,Browse current locations,P01,docs/help/articles/M24.md,docs/screenshots/M24/M24-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M24,M24-OPT-02,Set Ollama model path,P01,docs/help/articles/M24.md,docs/screenshots/M24/M24-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M24,M24-OPT-03,Set Hugging Face cache path,P01,docs/help/articles/M24.md,docs/screenshots/M24/M24-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M24,M24-OPT-04,Set llama.cpp GGUF path,P01,docs/help/articles/M24.md,docs/screenshots/M24/M24-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M24,M24-OPT-05,Set ComfyUI models path,P01,docs/help/articles/M24.md,docs/screenshots/M24/M24-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M24,M24-OPT-06,Set optional module install root,P01,docs/help/articles/M24.md,docs/screenshots/M24/M24-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M24,M24-OPT-07,Set user data location (advanced),P01,docs/help/articles/M24.md,docs/screenshots/M24/M24-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M24,M24-OPT-08,Set backup destination,P01,docs/help/articles/M24.md,docs/screenshots/M24/M24-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M24,M24-OPT-09,Set download staging location,P01,docs/help/articles/M24.md,docs/screenshots/M24/M24-OPT-09.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M24,M24-OPT-10,Choose move vs new-downloads-only,P01,docs/help/articles/M24.md,docs/screenshots/M24/M24-OPT-10.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M24,M24-OPT-11,Pause and resume relocation,P01,docs/help/articles/M24.md,docs/screenshots/M24/M24-OPT-11.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M24,M24-OPT-12,Verify moved files by checksum,P01,docs/help/articles/M24.md,docs/screenshots/M24/M24-OPT-12.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M24,M24-OPT-13,Rollback failed relocation,P01,docs/help/articles/M24.md,docs/screenshots/M24/M24-OPT-13.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M24,M24-OPT-14,Storage free-space warning,P01,docs/help/articles/M24.md,docs/screenshots/M24/M24-OPT-14.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M24,M24-OPT-15,Set per-category storage quotas,P01,docs/help/articles/M24.md,docs/screenshots/M24/M24-OPT-15.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M24,M24-OPT-16,Cleanup unused models safely,P01,docs/help/articles/M24.md,docs/screenshots/M24/M24-OPT-16.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M24,M24-OPT-17,Open data and model folders,P01,docs/help/articles/M24.md,docs/screenshots/M24/M24-OPT-17.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M24,M24-OPT-18,Detect external/shared runtime ownership,P01,docs/help/articles/M24.md,docs/screenshots/M24/M24-OPT-18.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M25,M25-OPT-01,Check updates at startup,P02,docs/help/articles/M25.md,docs/screenshots/M25/M25-OPT-01.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M25,M25-OPT-02,Periodic update checks,P02,docs/help/articles/M25.md,docs/screenshots/M25/M25-OPT-02.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M25,M25-OPT-03,Release channel Stable/Beta/Nightly,P02,docs/help/articles/M25.md,docs/screenshots/M25/M25-OPT-03.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M25,M25-OPT-04,Show desktop update notifications,P02,docs/help/articles/M25.md,docs/screenshots/M25/M25-OPT-04.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M25,M25-OPT-05,Check now,P02,docs/help/articles/M25.md,docs/screenshots/M25/M25-OPT-05.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M25,M25-OPT-06,View release notes,P02,docs/help/articles/M25.md,docs/screenshots/M25/M25-OPT-06.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M25,M25-OPT-07,Download update now,P02,docs/help/articles/M25.md,docs/screenshots/M25/M25-OPT-07.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M25,M25-OPT-08,Enable optional auto-download,P02,docs/help/articles/M25.md,docs/screenshots/M25/M25-OPT-08.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M25,M25-OPT-09,Defer or remind later,P02,docs/help/articles/M25.md,docs/screenshots/M25/M25-OPT-09.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M25,M25-OPT-10,Set metered/bandwidth policy,P02,docs/help/articles/M25.md,docs/screenshots/M25/M25-OPT-10.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M25,M25-OPT-11,Install update and restart,P02,docs/help/articles/M25.md,docs/screenshots/M25/M25-OPT-11.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M25,M25-OPT-12,View signature verification,P02,docs/help/articles/M25.md,docs/screenshots/M25/M25-OPT-12.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M25,M25-OPT-13,View update history,P02,docs/help/articles/M25.md,docs/screenshots/M25/M25-OPT-13.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M25,M25-OPT-14,Restore compatible previous build,P02,docs/help/articles/M25.md,docs/screenshots/M25/M25-OPT-14.png,PENDING_IMPLEMENTATION,purpose/default/type/validation/error/undo/help/image required
+M26,M26-OPT-01,Filter by release version or channel,P02 + P11,docs/help/articles/M26.md,docs/screenshots/M26/M26-OPT-01.png,PENDING_IMPLEMENTATION,Choose stable/beta and version without mixing audiences
+M26,M26-OPT-02,Filter by module,P02 + P11,docs/help/articles/M26.md,docs/screenshots/M26/M26-OPT-02.png,PENDING_IMPLEMENTATION,Show only changes to current module or all modules
+M26,M26-OPT-03,Filter by change category,P02 + P11,docs/help/articles/M26.md,docs/screenshots/M26/M26-OPT-03.png,PENDING_IMPLEMENTATION,Added Changed Fixed Security Deprecated Removed Performance
+M26,M26-OPT-04,Toggle end-user or technical details,P02 + P11,docs/help/articles/M26.md,docs/screenshots/M26/M26-OPT-04.png,PENDING_IMPLEMENTATION,Respect source/audience/privacy flags
+M26,M26-OPT-05,Search changelog,P02 + P11,docs/help/articles/M26.md,docs/screenshots/M26/M26-OPT-05.png,PENDING_IMPLEMENTATION,Indexed offline search and keyboard navigation
+M26,M26-OPT-06,Open linked issue,P02 + P11,docs/help/articles/M26.md,docs/screenshots/M26/M26-OPT-06.png,PENDING_IMPLEMENTATION,Navigate to verified GitHub issue when available
+M26,M26-OPT-07,Open linked pull request,P02 + P11,docs/help/articles/M26.md,docs/screenshots/M26/M26-OPT-07.png,PENDING_IMPLEMENTATION,Navigate to verified PR with merge SHA
+M26,M26-OPT-08,View documentation changes,P02 + P11,docs/help/articles/M26.md,docs/screenshots/M26/M26-OPT-08.png,PENDING_IMPLEMENTATION,Open version-matched Help and Wiki source
+M26,M26-OPT-09,Display release badges and dates,P02 + P11,docs/help/articles/M26.md,docs/screenshots/M26/M26-OPT-09.png,PENDING_IMPLEMENTATION,Do not infer shipped state from closed issue
+M26,M26-OPT-10,View known problems,P02 + P11,docs/help/articles/M26.md,docs/screenshots/M26/M26-OPT-10.png,PENDING_IMPLEMENTATION,Separate open issues and release notes
+M26,M26-OPT-11,View fixed problems,P02 + P11,docs/help/articles/M26.md,docs/screenshots/M26/M26-OPT-11.png,PENDING_IMPLEMENTATION,Only show fixed in released versions after verification
+M26,M26-OPT-12,Module history navigation,P02 + P11,docs/help/articles/M26.md,docs/screenshots/M26/M26-OPT-12.png,PENDING_IMPLEMENTATION,Inspect module-specific releases and support notes
+M26,M26-OPT-13,Subscribe to what-is-new indicator,P02 + P11,docs/help/articles/M26.md,docs/screenshots/M26/M26-OPT-13.png,PENDING_IMPLEMENTATION,Local notification of newly detected signed release
+M26,M26-OPT-14,Show migration and breaking-change notes,P02 + P11,docs/help/articles/M26.md,docs/screenshots/M26/M26-OPT-14.png,PENDING_IMPLEMENTATION,"Display backup, compatibility and action guidance"
+M26,M26-OPT-15,Open technical audit timeline,P02 + P11,docs/help/articles/M26.md,docs/screenshots/M26/M26-OPT-15.png,PENDING_IMPLEMENTATION,Audit events require appropriate role/scope
+M26,M26-OPT-16,Export change history,P02 + P11,docs/help/articles/M26.md,docs/screenshots/M26/M26-OPT-16.png,PENDING_IMPLEMENTATION,Export sanitized JSON/Markdown; no private event fields
+M26,M26-OPT-17,Compare two released versions,P02 + P11,docs/help/articles/M26.md,docs/screenshots/M26/M26-OPT-17.png,PENDING_IMPLEMENTATION,Diff shipped entries and breaking changes
+M26,M26-OPT-18,Open rollback/recovery guidance,P02 + P11,docs/help/articles/M26.md,docs/screenshots/M26/M26-OPT-18.png,PENDING_IMPLEMENTATION,Only show supported migration rollback steps
+M26,M26-OPT-19,Configure update/changelog unread marker,P02 + P11,docs/help/articles/M26.md,docs/screenshots/M26/M26-OPT-19.png,PENDING_IMPLEMENTATION,Per-device state without marking unpublished as new
+M26,M26-OPT-20,Report problem from a change,P02 + P11,docs/help/articles/M26.md,docs/screenshots/M26/M26-OPT-20.png,PENDING_IMPLEMENTATION,Prefill minimal identifiers; sanitized issue routing

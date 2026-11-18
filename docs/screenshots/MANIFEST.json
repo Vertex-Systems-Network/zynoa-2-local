@@ -1,0 +1,3165 @@
+{
+  "status": "not captured; project not yet implemented",
+  "required": [
+    {
+      "asset_id": "M01-OPT-01",
+      "kind": "control",
+      "module": "M01",
+      "path": "docs/screenshots/M01/M01-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M01-OPT-02",
+      "kind": "control",
+      "module": "M01",
+      "path": "docs/screenshots/M01/M01-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M01-OPT-03",
+      "kind": "control",
+      "module": "M01",
+      "path": "docs/screenshots/M01/M01-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M01-OPT-04",
+      "kind": "control",
+      "module": "M01",
+      "path": "docs/screenshots/M01/M01-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M01-OPT-05",
+      "kind": "control",
+      "module": "M01",
+      "path": "docs/screenshots/M01/M01-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M01-OPT-06",
+      "kind": "control",
+      "module": "M01",
+      "path": "docs/screenshots/M01/M01-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M01-S01",
+      "kind": "screen",
+      "module": "M01",
+      "path": "docs/screenshots/M01/M01-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M01-S02",
+      "kind": "screen",
+      "module": "M01",
+      "path": "docs/screenshots/M01/M01-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M01-S03",
+      "kind": "screen",
+      "module": "M01",
+      "path": "docs/screenshots/M01/M01-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M01-S04",
+      "kind": "screen",
+      "module": "M01",
+      "path": "docs/screenshots/M01/M01-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M01-S05",
+      "kind": "screen",
+      "module": "M01",
+      "path": "docs/screenshots/M01/M01-S05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M02-OPT-01",
+      "kind": "control",
+      "module": "M02",
+      "path": "docs/screenshots/M02/M02-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M02-OPT-02",
+      "kind": "control",
+      "module": "M02",
+      "path": "docs/screenshots/M02/M02-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M02-OPT-03",
+      "kind": "control",
+      "module": "M02",
+      "path": "docs/screenshots/M02/M02-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M02-OPT-04",
+      "kind": "control",
+      "module": "M02",
+      "path": "docs/screenshots/M02/M02-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M02-OPT-05",
+      "kind": "control",
+      "module": "M02",
+      "path": "docs/screenshots/M02/M02-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M02-OPT-06",
+      "kind": "control",
+      "module": "M02",
+      "path": "docs/screenshots/M02/M02-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M02-OPT-07",
+      "kind": "control",
+      "module": "M02",
+      "path": "docs/screenshots/M02/M02-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M02-OPT-08",
+      "kind": "control",
+      "module": "M02",
+      "path": "docs/screenshots/M02/M02-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M02-S01",
+      "kind": "screen",
+      "module": "M02",
+      "path": "docs/screenshots/M02/M02-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M02-S02",
+      "kind": "screen",
+      "module": "M02",
+      "path": "docs/screenshots/M02/M02-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M02-S03",
+      "kind": "screen",
+      "module": "M02",
+      "path": "docs/screenshots/M02/M02-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M02-S04",
+      "kind": "screen",
+      "module": "M02",
+      "path": "docs/screenshots/M02/M02-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M02-S05",
+      "kind": "screen",
+      "module": "M02",
+      "path": "docs/screenshots/M02/M02-S05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M02-S06",
+      "kind": "screen",
+      "module": "M02",
+      "path": "docs/screenshots/M02/M02-S06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M02-S07",
+      "kind": "screen",
+      "module": "M02",
+      "path": "docs/screenshots/M02/M02-S07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M03-OPT-01",
+      "kind": "control",
+      "module": "M03",
+      "path": "docs/screenshots/M03/M03-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M03-OPT-02",
+      "kind": "control",
+      "module": "M03",
+      "path": "docs/screenshots/M03/M03-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M03-OPT-03",
+      "kind": "control",
+      "module": "M03",
+      "path": "docs/screenshots/M03/M03-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M03-OPT-04",
+      "kind": "control",
+      "module": "M03",
+      "path": "docs/screenshots/M03/M03-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M03-OPT-05",
+      "kind": "control",
+      "module": "M03",
+      "path": "docs/screenshots/M03/M03-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M03-OPT-06",
+      "kind": "control",
+      "module": "M03",
+      "path": "docs/screenshots/M03/M03-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M03-OPT-07",
+      "kind": "control",
+      "module": "M03",
+      "path": "docs/screenshots/M03/M03-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M03-OPT-08",
+      "kind": "control",
+      "module": "M03",
+      "path": "docs/screenshots/M03/M03-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M03-S01",
+      "kind": "screen",
+      "module": "M03",
+      "path": "docs/screenshots/M03/M03-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M03-S02",
+      "kind": "screen",
+      "module": "M03",
+      "path": "docs/screenshots/M03/M03-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M03-S03",
+      "kind": "screen",
+      "module": "M03",
+      "path": "docs/screenshots/M03/M03-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M03-S04",
+      "kind": "screen",
+      "module": "M03",
+      "path": "docs/screenshots/M03/M03-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M03-S05",
+      "kind": "screen",
+      "module": "M03",
+      "path": "docs/screenshots/M03/M03-S05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M03-S06",
+      "kind": "screen",
+      "module": "M03",
+      "path": "docs/screenshots/M03/M03-S06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M04-OPT-01",
+      "kind": "control",
+      "module": "M04",
+      "path": "docs/screenshots/M04/M04-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M04-OPT-02",
+      "kind": "control",
+      "module": "M04",
+      "path": "docs/screenshots/M04/M04-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M04-OPT-03",
+      "kind": "control",
+      "module": "M04",
+      "path": "docs/screenshots/M04/M04-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M04-OPT-04",
+      "kind": "control",
+      "module": "M04",
+      "path": "docs/screenshots/M04/M04-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M04-OPT-05",
+      "kind": "control",
+      "module": "M04",
+      "path": "docs/screenshots/M04/M04-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M04-OPT-06",
+      "kind": "control",
+      "module": "M04",
+      "path": "docs/screenshots/M04/M04-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M04-OPT-07",
+      "kind": "control",
+      "module": "M04",
+      "path": "docs/screenshots/M04/M04-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M04-OPT-08",
+      "kind": "control",
+      "module": "M04",
+      "path": "docs/screenshots/M04/M04-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M04-S01",
+      "kind": "screen",
+      "module": "M04",
+      "path": "docs/screenshots/M04/M04-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M04-S02",
+      "kind": "screen",
+      "module": "M04",
+      "path": "docs/screenshots/M04/M04-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M04-S03",
+      "kind": "screen",
+      "module": "M04",
+      "path": "docs/screenshots/M04/M04-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M04-S04",
+      "kind": "screen",
+      "module": "M04",
+      "path": "docs/screenshots/M04/M04-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M04-S05",
+      "kind": "screen",
+      "module": "M04",
+      "path": "docs/screenshots/M04/M04-S05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M04-S06",
+      "kind": "screen",
+      "module": "M04",
+      "path": "docs/screenshots/M04/M04-S06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M04-S07",
+      "kind": "screen",
+      "module": "M04",
+      "path": "docs/screenshots/M04/M04-S07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M04-S08",
+      "kind": "screen",
+      "module": "M04",
+      "path": "docs/screenshots/M04/M04-S08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M05-OPT-01",
+      "kind": "control",
+      "module": "M05",
+      "path": "docs/screenshots/M05/M05-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M05-OPT-02",
+      "kind": "control",
+      "module": "M05",
+      "path": "docs/screenshots/M05/M05-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M05-OPT-03",
+      "kind": "control",
+      "module": "M05",
+      "path": "docs/screenshots/M05/M05-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M05-OPT-04",
+      "kind": "control",
+      "module": "M05",
+      "path": "docs/screenshots/M05/M05-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M05-OPT-05",
+      "kind": "control",
+      "module": "M05",
+      "path": "docs/screenshots/M05/M05-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M05-OPT-06",
+      "kind": "control",
+      "module": "M05",
+      "path": "docs/screenshots/M05/M05-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M05-OPT-07",
+      "kind": "control",
+      "module": "M05",
+      "path": "docs/screenshots/M05/M05-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M05-OPT-08",
+      "kind": "control",
+      "module": "M05",
+      "path": "docs/screenshots/M05/M05-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M05-S01",
+      "kind": "screen",
+      "module": "M05",
+      "path": "docs/screenshots/M05/M05-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M05-S02",
+      "kind": "screen",
+      "module": "M05",
+      "path": "docs/screenshots/M05/M05-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M05-S03",
+      "kind": "screen",
+      "module": "M05",
+      "path": "docs/screenshots/M05/M05-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M05-S04",
+      "kind": "screen",
+      "module": "M05",
+      "path": "docs/screenshots/M05/M05-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M05-S05",
+      "kind": "screen",
+      "module": "M05",
+      "path": "docs/screenshots/M05/M05-S05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M06-OPT-01",
+      "kind": "control",
+      "module": "M06",
+      "path": "docs/screenshots/M06/M06-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M06-OPT-02",
+      "kind": "control",
+      "module": "M06",
+      "path": "docs/screenshots/M06/M06-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M06-OPT-03",
+      "kind": "control",
+      "module": "M06",
+      "path": "docs/screenshots/M06/M06-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M06-OPT-04",
+      "kind": "control",
+      "module": "M06",
+      "path": "docs/screenshots/M06/M06-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M06-OPT-05",
+      "kind": "control",
+      "module": "M06",
+      "path": "docs/screenshots/M06/M06-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M06-OPT-06",
+      "kind": "control",
+      "module": "M06",
+      "path": "docs/screenshots/M06/M06-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M06-OPT-07",
+      "kind": "control",
+      "module": "M06",
+      "path": "docs/screenshots/M06/M06-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M06-OPT-08",
+      "kind": "control",
+      "module": "M06",
+      "path": "docs/screenshots/M06/M06-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M06-S01",
+      "kind": "screen",
+      "module": "M06",
+      "path": "docs/screenshots/M06/M06-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M06-S02",
+      "kind": "screen",
+      "module": "M06",
+      "path": "docs/screenshots/M06/M06-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M06-S03",
+      "kind": "screen",
+      "module": "M06",
+      "path": "docs/screenshots/M06/M06-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M06-S04",
+      "kind": "screen",
+      "module": "M06",
+      "path": "docs/screenshots/M06/M06-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M06-S05",
+      "kind": "screen",
+      "module": "M06",
+      "path": "docs/screenshots/M06/M06-S05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M06-S06",
+      "kind": "screen",
+      "module": "M06",
+      "path": "docs/screenshots/M06/M06-S06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M07-OPT-01",
+      "kind": "control",
+      "module": "M07",
+      "path": "docs/screenshots/M07/M07-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M07-OPT-02",
+      "kind": "control",
+      "module": "M07",
+      "path": "docs/screenshots/M07/M07-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M07-OPT-03",
+      "kind": "control",
+      "module": "M07",
+      "path": "docs/screenshots/M07/M07-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M07-OPT-04",
+      "kind": "control",
+      "module": "M07",
+      "path": "docs/screenshots/M07/M07-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M07-OPT-05",
+      "kind": "control",
+      "module": "M07",
+      "path": "docs/screenshots/M07/M07-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M07-OPT-06",
+      "kind": "control",
+      "module": "M07",
+      "path": "docs/screenshots/M07/M07-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M07-OPT-07",
+      "kind": "control",
+      "module": "M07",
+      "path": "docs/screenshots/M07/M07-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M07-OPT-08",
+      "kind": "control",
+      "module": "M07",
+      "path": "docs/screenshots/M07/M07-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M07-S01",
+      "kind": "screen",
+      "module": "M07",
+      "path": "docs/screenshots/M07/M07-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M07-S02",
+      "kind": "screen",
+      "module": "M07",
+      "path": "docs/screenshots/M07/M07-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M07-S03",
+      "kind": "screen",
+      "module": "M07",
+      "path": "docs/screenshots/M07/M07-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M07-S04",
+      "kind": "screen",
+      "module": "M07",
+      "path": "docs/screenshots/M07/M07-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M08-OPT-01",
+      "kind": "control",
+      "module": "M08",
+      "path": "docs/screenshots/M08/M08-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M08-OPT-02",
+      "kind": "control",
+      "module": "M08",
+      "path": "docs/screenshots/M08/M08-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M08-OPT-03",
+      "kind": "control",
+      "module": "M08",
+      "path": "docs/screenshots/M08/M08-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M08-OPT-04",
+      "kind": "control",
+      "module": "M08",
+      "path": "docs/screenshots/M08/M08-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M08-OPT-05",
+      "kind": "control",
+      "module": "M08",
+      "path": "docs/screenshots/M08/M08-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M08-OPT-06",
+      "kind": "control",
+      "module": "M08",
+      "path": "docs/screenshots/M08/M08-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M08-OPT-07",
+      "kind": "control",
+      "module": "M08",
+      "path": "docs/screenshots/M08/M08-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M08-OPT-08",
+      "kind": "control",
+      "module": "M08",
+      "path": "docs/screenshots/M08/M08-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M08-S01",
+      "kind": "screen",
+      "module": "M08",
+      "path": "docs/screenshots/M08/M08-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M08-S02",
+      "kind": "screen",
+      "module": "M08",
+      "path": "docs/screenshots/M08/M08-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M08-S03",
+      "kind": "screen",
+      "module": "M08",
+      "path": "docs/screenshots/M08/M08-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M08-S04",
+      "kind": "screen",
+      "module": "M08",
+      "path": "docs/screenshots/M08/M08-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M08-S05",
+      "kind": "screen",
+      "module": "M08",
+      "path": "docs/screenshots/M08/M08-S05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M09-OPT-01",
+      "kind": "control",
+      "module": "M09",
+      "path": "docs/screenshots/M09/M09-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M09-OPT-02",
+      "kind": "control",
+      "module": "M09",
+      "path": "docs/screenshots/M09/M09-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M09-OPT-03",
+      "kind": "control",
+      "module": "M09",
+      "path": "docs/screenshots/M09/M09-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M09-OPT-04",
+      "kind": "control",
+      "module": "M09",
+      "path": "docs/screenshots/M09/M09-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M09-OPT-05",
+      "kind": "control",
+      "module": "M09",
+      "path": "docs/screenshots/M09/M09-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M09-OPT-06",
+      "kind": "control",
+      "module": "M09",
+      "path": "docs/screenshots/M09/M09-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M09-OPT-07",
+      "kind": "control",
+      "module": "M09",
+      "path": "docs/screenshots/M09/M09-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M09-OPT-08",
+      "kind": "control",
+      "module": "M09",
+      "path": "docs/screenshots/M09/M09-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M09-S01",
+      "kind": "screen",
+      "module": "M09",
+      "path": "docs/screenshots/M09/M09-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M09-S02",
+      "kind": "screen",
+      "module": "M09",
+      "path": "docs/screenshots/M09/M09-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M09-S03",
+      "kind": "screen",
+      "module": "M09",
+      "path": "docs/screenshots/M09/M09-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M09-S04",
+      "kind": "screen",
+      "module": "M09",
+      "path": "docs/screenshots/M09/M09-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M09-S05",
+      "kind": "screen",
+      "module": "M09",
+      "path": "docs/screenshots/M09/M09-S05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M10-OPT-01",
+      "kind": "control",
+      "module": "M10",
+      "path": "docs/screenshots/M10/M10-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M10-OPT-02",
+      "kind": "control",
+      "module": "M10",
+      "path": "docs/screenshots/M10/M10-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M10-OPT-03",
+      "kind": "control",
+      "module": "M10",
+      "path": "docs/screenshots/M10/M10-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M10-OPT-04",
+      "kind": "control",
+      "module": "M10",
+      "path": "docs/screenshots/M10/M10-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M10-OPT-05",
+      "kind": "control",
+      "module": "M10",
+      "path": "docs/screenshots/M10/M10-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M10-OPT-06",
+      "kind": "control",
+      "module": "M10",
+      "path": "docs/screenshots/M10/M10-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M10-OPT-07",
+      "kind": "control",
+      "module": "M10",
+      "path": "docs/screenshots/M10/M10-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M10-OPT-08",
+      "kind": "control",
+      "module": "M10",
+      "path": "docs/screenshots/M10/M10-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M10-S01",
+      "kind": "screen",
+      "module": "M10",
+      "path": "docs/screenshots/M10/M10-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M10-S02",
+      "kind": "screen",
+      "module": "M10",
+      "path": "docs/screenshots/M10/M10-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M10-S03",
+      "kind": "screen",
+      "module": "M10",
+      "path": "docs/screenshots/M10/M10-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M10-S04",
+      "kind": "screen",
+      "module": "M10",
+      "path": "docs/screenshots/M10/M10-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M10-S05",
+      "kind": "screen",
+      "module": "M10",
+      "path": "docs/screenshots/M10/M10-S05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M11-OPT-01",
+      "kind": "control",
+      "module": "M11",
+      "path": "docs/screenshots/M11/M11-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M11-OPT-02",
+      "kind": "control",
+      "module": "M11",
+      "path": "docs/screenshots/M11/M11-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M11-OPT-03",
+      "kind": "control",
+      "module": "M11",
+      "path": "docs/screenshots/M11/M11-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M11-OPT-04",
+      "kind": "control",
+      "module": "M11",
+      "path": "docs/screenshots/M11/M11-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M11-OPT-05",
+      "kind": "control",
+      "module": "M11",
+      "path": "docs/screenshots/M11/M11-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M11-OPT-06",
+      "kind": "control",
+      "module": "M11",
+      "path": "docs/screenshots/M11/M11-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M11-OPT-07",
+      "kind": "control",
+      "module": "M11",
+      "path": "docs/screenshots/M11/M11-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M11-OPT-08",
+      "kind": "control",
+      "module": "M11",
+      "path": "docs/screenshots/M11/M11-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M11-S01",
+      "kind": "screen",
+      "module": "M11",
+      "path": "docs/screenshots/M11/M11-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M11-S02",
+      "kind": "screen",
+      "module": "M11",
+      "path": "docs/screenshots/M11/M11-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M11-S03",
+      "kind": "screen",
+      "module": "M11",
+      "path": "docs/screenshots/M11/M11-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M11-S04",
+      "kind": "screen",
+      "module": "M11",
+      "path": "docs/screenshots/M11/M11-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M11-S05",
+      "kind": "screen",
+      "module": "M11",
+      "path": "docs/screenshots/M11/M11-S05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M11-S06",
+      "kind": "screen",
+      "module": "M11",
+      "path": "docs/screenshots/M11/M11-S06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M11-S07",
+      "kind": "screen",
+      "module": "M11",
+      "path": "docs/screenshots/M11/M11-S07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M12-OPT-01",
+      "kind": "control",
+      "module": "M12",
+      "path": "docs/screenshots/M12/M12-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M12-OPT-02",
+      "kind": "control",
+      "module": "M12",
+      "path": "docs/screenshots/M12/M12-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M12-OPT-03",
+      "kind": "control",
+      "module": "M12",
+      "path": "docs/screenshots/M12/M12-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M12-OPT-04",
+      "kind": "control",
+      "module": "M12",
+      "path": "docs/screenshots/M12/M12-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M12-OPT-05",
+      "kind": "control",
+      "module": "M12",
+      "path": "docs/screenshots/M12/M12-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M12-OPT-06",
+      "kind": "control",
+      "module": "M12",
+      "path": "docs/screenshots/M12/M12-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M12-OPT-07",
+      "kind": "control",
+      "module": "M12",
+      "path": "docs/screenshots/M12/M12-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M12-OPT-08",
+      "kind": "control",
+      "module": "M12",
+      "path": "docs/screenshots/M12/M12-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M12-S01",
+      "kind": "screen",
+      "module": "M12",
+      "path": "docs/screenshots/M12/M12-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M12-S02",
+      "kind": "screen",
+      "module": "M12",
+      "path": "docs/screenshots/M12/M12-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M12-S03",
+      "kind": "screen",
+      "module": "M12",
+      "path": "docs/screenshots/M12/M12-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M12-S04",
+      "kind": "screen",
+      "module": "M12",
+      "path": "docs/screenshots/M12/M12-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M12-S05",
+      "kind": "screen",
+      "module": "M12",
+      "path": "docs/screenshots/M12/M12-S05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M12-S06",
+      "kind": "screen",
+      "module": "M12",
+      "path": "docs/screenshots/M12/M12-S06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M13-OPT-01",
+      "kind": "control",
+      "module": "M13",
+      "path": "docs/screenshots/M13/M13-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M13-OPT-02",
+      "kind": "control",
+      "module": "M13",
+      "path": "docs/screenshots/M13/M13-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M13-OPT-03",
+      "kind": "control",
+      "module": "M13",
+      "path": "docs/screenshots/M13/M13-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M13-OPT-04",
+      "kind": "control",
+      "module": "M13",
+      "path": "docs/screenshots/M13/M13-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M13-OPT-05",
+      "kind": "control",
+      "module": "M13",
+      "path": "docs/screenshots/M13/M13-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M13-OPT-06",
+      "kind": "control",
+      "module": "M13",
+      "path": "docs/screenshots/M13/M13-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M13-OPT-07",
+      "kind": "control",
+      "module": "M13",
+      "path": "docs/screenshots/M13/M13-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M13-OPT-08",
+      "kind": "control",
+      "module": "M13",
+      "path": "docs/screenshots/M13/M13-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M13-S01",
+      "kind": "screen",
+      "module": "M13",
+      "path": "docs/screenshots/M13/M13-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M13-S02",
+      "kind": "screen",
+      "module": "M13",
+      "path": "docs/screenshots/M13/M13-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M13-S03",
+      "kind": "screen",
+      "module": "M13",
+      "path": "docs/screenshots/M13/M13-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M13-S04",
+      "kind": "screen",
+      "module": "M13",
+      "path": "docs/screenshots/M13/M13-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M13-S05",
+      "kind": "screen",
+      "module": "M13",
+      "path": "docs/screenshots/M13/M13-S05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M14-OPT-01",
+      "kind": "control",
+      "module": "M14",
+      "path": "docs/screenshots/M14/M14-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M14-OPT-02",
+      "kind": "control",
+      "module": "M14",
+      "path": "docs/screenshots/M14/M14-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M14-OPT-03",
+      "kind": "control",
+      "module": "M14",
+      "path": "docs/screenshots/M14/M14-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M14-OPT-04",
+      "kind": "control",
+      "module": "M14",
+      "path": "docs/screenshots/M14/M14-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M14-OPT-05",
+      "kind": "control",
+      "module": "M14",
+      "path": "docs/screenshots/M14/M14-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M14-OPT-06",
+      "kind": "control",
+      "module": "M14",
+      "path": "docs/screenshots/M14/M14-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M14-OPT-07",
+      "kind": "control",
+      "module": "M14",
+      "path": "docs/screenshots/M14/M14-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M14-OPT-08",
+      "kind": "control",
+      "module": "M14",
+      "path": "docs/screenshots/M14/M14-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M14-S01",
+      "kind": "screen",
+      "module": "M14",
+      "path": "docs/screenshots/M14/M14-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M14-S02",
+      "kind": "screen",
+      "module": "M14",
+      "path": "docs/screenshots/M14/M14-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M14-S03",
+      "kind": "screen",
+      "module": "M14",
+      "path": "docs/screenshots/M14/M14-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M14-S04",
+      "kind": "screen",
+      "module": "M14",
+      "path": "docs/screenshots/M14/M14-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M14-S05",
+      "kind": "screen",
+      "module": "M14",
+      "path": "docs/screenshots/M14/M14-S05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M15-OPT-01",
+      "kind": "control",
+      "module": "M15",
+      "path": "docs/screenshots/M15/M15-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M15-OPT-02",
+      "kind": "control",
+      "module": "M15",
+      "path": "docs/screenshots/M15/M15-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M15-OPT-03",
+      "kind": "control",
+      "module": "M15",
+      "path": "docs/screenshots/M15/M15-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M15-OPT-04",
+      "kind": "control",
+      "module": "M15",
+      "path": "docs/screenshots/M15/M15-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M15-OPT-05",
+      "kind": "control",
+      "module": "M15",
+      "path": "docs/screenshots/M15/M15-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M15-OPT-06",
+      "kind": "control",
+      "module": "M15",
+      "path": "docs/screenshots/M15/M15-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M15-OPT-07",
+      "kind": "control",
+      "module": "M15",
+      "path": "docs/screenshots/M15/M15-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M15-OPT-08",
+      "kind": "control",
+      "module": "M15",
+      "path": "docs/screenshots/M15/M15-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M15-S01",
+      "kind": "screen",
+      "module": "M15",
+      "path": "docs/screenshots/M15/M15-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M15-S02",
+      "kind": "screen",
+      "module": "M15",
+      "path": "docs/screenshots/M15/M15-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M15-S03",
+      "kind": "screen",
+      "module": "M15",
+      "path": "docs/screenshots/M15/M15-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M15-S04",
+      "kind": "screen",
+      "module": "M15",
+      "path": "docs/screenshots/M15/M15-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M15-S05",
+      "kind": "screen",
+      "module": "M15",
+      "path": "docs/screenshots/M15/M15-S05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M16-OPT-01",
+      "kind": "control",
+      "module": "M16",
+      "path": "docs/screenshots/M16/M16-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M16-OPT-02",
+      "kind": "control",
+      "module": "M16",
+      "path": "docs/screenshots/M16/M16-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M16-OPT-03",
+      "kind": "control",
+      "module": "M16",
+      "path": "docs/screenshots/M16/M16-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M16-OPT-04",
+      "kind": "control",
+      "module": "M16",
+      "path": "docs/screenshots/M16/M16-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M16-OPT-05",
+      "kind": "control",
+      "module": "M16",
+      "path": "docs/screenshots/M16/M16-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M16-OPT-06",
+      "kind": "control",
+      "module": "M16",
+      "path": "docs/screenshots/M16/M16-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M16-OPT-07",
+      "kind": "control",
+      "module": "M16",
+      "path": "docs/screenshots/M16/M16-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M16-OPT-08",
+      "kind": "control",
+      "module": "M16",
+      "path": "docs/screenshots/M16/M16-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M16-S01",
+      "kind": "screen",
+      "module": "M16",
+      "path": "docs/screenshots/M16/M16-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M16-S02",
+      "kind": "screen",
+      "module": "M16",
+      "path": "docs/screenshots/M16/M16-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M16-S03",
+      "kind": "screen",
+      "module": "M16",
+      "path": "docs/screenshots/M16/M16-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M16-S04",
+      "kind": "screen",
+      "module": "M16",
+      "path": "docs/screenshots/M16/M16-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M16-S05",
+      "kind": "screen",
+      "module": "M16",
+      "path": "docs/screenshots/M16/M16-S05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M17-OPT-01",
+      "kind": "control",
+      "module": "M17",
+      "path": "docs/screenshots/M17/M17-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M17-OPT-02",
+      "kind": "control",
+      "module": "M17",
+      "path": "docs/screenshots/M17/M17-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M17-OPT-03",
+      "kind": "control",
+      "module": "M17",
+      "path": "docs/screenshots/M17/M17-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M17-OPT-04",
+      "kind": "control",
+      "module": "M17",
+      "path": "docs/screenshots/M17/M17-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M17-OPT-05",
+      "kind": "control",
+      "module": "M17",
+      "path": "docs/screenshots/M17/M17-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M17-OPT-06",
+      "kind": "control",
+      "module": "M17",
+      "path": "docs/screenshots/M17/M17-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M17-OPT-07",
+      "kind": "control",
+      "module": "M17",
+      "path": "docs/screenshots/M17/M17-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M17-OPT-08",
+      "kind": "control",
+      "module": "M17",
+      "path": "docs/screenshots/M17/M17-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M17-S01",
+      "kind": "screen",
+      "module": "M17",
+      "path": "docs/screenshots/M17/M17-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M17-S02",
+      "kind": "screen",
+      "module": "M17",
+      "path": "docs/screenshots/M17/M17-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M17-S03",
+      "kind": "screen",
+      "module": "M17",
+      "path": "docs/screenshots/M17/M17-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M17-S04",
+      "kind": "screen",
+      "module": "M17",
+      "path": "docs/screenshots/M17/M17-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M17-S05",
+      "kind": "screen",
+      "module": "M17",
+      "path": "docs/screenshots/M17/M17-S05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M18-OPT-01",
+      "kind": "control",
+      "module": "M18",
+      "path": "docs/screenshots/M18/M18-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M18-OPT-02",
+      "kind": "control",
+      "module": "M18",
+      "path": "docs/screenshots/M18/M18-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M18-OPT-03",
+      "kind": "control",
+      "module": "M18",
+      "path": "docs/screenshots/M18/M18-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M18-OPT-04",
+      "kind": "control",
+      "module": "M18",
+      "path": "docs/screenshots/M18/M18-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M18-OPT-05",
+      "kind": "control",
+      "module": "M18",
+      "path": "docs/screenshots/M18/M18-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M18-OPT-06",
+      "kind": "control",
+      "module": "M18",
+      "path": "docs/screenshots/M18/M18-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M18-OPT-07",
+      "kind": "control",
+      "module": "M18",
+      "path": "docs/screenshots/M18/M18-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M18-OPT-08",
+      "kind": "control",
+      "module": "M18",
+      "path": "docs/screenshots/M18/M18-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M18-S01",
+      "kind": "screen",
+      "module": "M18",
+      "path": "docs/screenshots/M18/M18-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M18-S02",
+      "kind": "screen",
+      "module": "M18",
+      "path": "docs/screenshots/M18/M18-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M18-S03",
+      "kind": "screen",
+      "module": "M18",
+      "path": "docs/screenshots/M18/M18-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M18-S04",
+      "kind": "screen",
+      "module": "M18",
+      "path": "docs/screenshots/M18/M18-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M18-S05",
+      "kind": "screen",
+      "module": "M18",
+      "path": "docs/screenshots/M18/M18-S05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M18-S06",
+      "kind": "screen",
+      "module": "M18",
+      "path": "docs/screenshots/M18/M18-S06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M19-OPT-01",
+      "kind": "control",
+      "module": "M19",
+      "path": "docs/screenshots/M19/M19-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M19-OPT-02",
+      "kind": "control",
+      "module": "M19",
+      "path": "docs/screenshots/M19/M19-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M19-OPT-03",
+      "kind": "control",
+      "module": "M19",
+      "path": "docs/screenshots/M19/M19-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M19-OPT-04",
+      "kind": "control",
+      "module": "M19",
+      "path": "docs/screenshots/M19/M19-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M19-OPT-05",
+      "kind": "control",
+      "module": "M19",
+      "path": "docs/screenshots/M19/M19-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M19-OPT-06",
+      "kind": "control",
+      "module": "M19",
+      "path": "docs/screenshots/M19/M19-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M19-OPT-07",
+      "kind": "control",
+      "module": "M19",
+      "path": "docs/screenshots/M19/M19-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M19-OPT-08",
+      "kind": "control",
+      "module": "M19",
+      "path": "docs/screenshots/M19/M19-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M19-S01",
+      "kind": "screen",
+      "module": "M19",
+      "path": "docs/screenshots/M19/M19-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M19-S02",
+      "kind": "screen",
+      "module": "M19",
+      "path": "docs/screenshots/M19/M19-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M19-S03",
+      "kind": "screen",
+      "module": "M19",
+      "path": "docs/screenshots/M19/M19-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M19-S04",
+      "kind": "screen",
+      "module": "M19",
+      "path": "docs/screenshots/M19/M19-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M19-S05",
+      "kind": "screen",
+      "module": "M19",
+      "path": "docs/screenshots/M19/M19-S05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M19-S06",
+      "kind": "screen",
+      "module": "M19",
+      "path": "docs/screenshots/M19/M19-S06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M20-OPT-01",
+      "kind": "control",
+      "module": "M20",
+      "path": "docs/screenshots/M20/M20-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M20-OPT-02",
+      "kind": "control",
+      "module": "M20",
+      "path": "docs/screenshots/M20/M20-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M20-OPT-03",
+      "kind": "control",
+      "module": "M20",
+      "path": "docs/screenshots/M20/M20-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M20-OPT-04",
+      "kind": "control",
+      "module": "M20",
+      "path": "docs/screenshots/M20/M20-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M20-OPT-05",
+      "kind": "control",
+      "module": "M20",
+      "path": "docs/screenshots/M20/M20-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M20-OPT-06",
+      "kind": "control",
+      "module": "M20",
+      "path": "docs/screenshots/M20/M20-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M20-OPT-07",
+      "kind": "control",
+      "module": "M20",
+      "path": "docs/screenshots/M20/M20-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M20-OPT-08",
+      "kind": "control",
+      "module": "M20",
+      "path": "docs/screenshots/M20/M20-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M20-S01",
+      "kind": "screen",
+      "module": "M20",
+      "path": "docs/screenshots/M20/M20-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M20-S02",
+      "kind": "screen",
+      "module": "M20",
+      "path": "docs/screenshots/M20/M20-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M20-S03",
+      "kind": "screen",
+      "module": "M20",
+      "path": "docs/screenshots/M20/M20-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M20-S04",
+      "kind": "screen",
+      "module": "M20",
+      "path": "docs/screenshots/M20/M20-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M21-OPT-01",
+      "kind": "control",
+      "module": "M21",
+      "path": "docs/screenshots/M21/M21-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M21-OPT-02",
+      "kind": "control",
+      "module": "M21",
+      "path": "docs/screenshots/M21/M21-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M21-OPT-03",
+      "kind": "control",
+      "module": "M21",
+      "path": "docs/screenshots/M21/M21-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M21-OPT-04",
+      "kind": "control",
+      "module": "M21",
+      "path": "docs/screenshots/M21/M21-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M21-OPT-05",
+      "kind": "control",
+      "module": "M21",
+      "path": "docs/screenshots/M21/M21-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M21-OPT-06",
+      "kind": "control",
+      "module": "M21",
+      "path": "docs/screenshots/M21/M21-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M21-OPT-07",
+      "kind": "control",
+      "module": "M21",
+      "path": "docs/screenshots/M21/M21-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M21-OPT-08",
+      "kind": "control",
+      "module": "M21",
+      "path": "docs/screenshots/M21/M21-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M21-S01",
+      "kind": "screen",
+      "module": "M21",
+      "path": "docs/screenshots/M21/M21-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M21-S02",
+      "kind": "screen",
+      "module": "M21",
+      "path": "docs/screenshots/M21/M21-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M21-S03",
+      "kind": "screen",
+      "module": "M21",
+      "path": "docs/screenshots/M21/M21-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M21-S04",
+      "kind": "screen",
+      "module": "M21",
+      "path": "docs/screenshots/M21/M21-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M22-OPT-01",
+      "kind": "control",
+      "module": "M22",
+      "path": "docs/screenshots/M22/M22-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M22-OPT-02",
+      "kind": "control",
+      "module": "M22",
+      "path": "docs/screenshots/M22/M22-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M22-OPT-03",
+      "kind": "control",
+      "module": "M22",
+      "path": "docs/screenshots/M22/M22-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M22-OPT-04",
+      "kind": "control",
+      "module": "M22",
+      "path": "docs/screenshots/M22/M22-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M22-OPT-05",
+      "kind": "control",
+      "module": "M22",
+      "path": "docs/screenshots/M22/M22-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M22-OPT-06",
+      "kind": "control",
+      "module": "M22",
+      "path": "docs/screenshots/M22/M22-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M22-OPT-07",
+      "kind": "control",
+      "module": "M22",
+      "path": "docs/screenshots/M22/M22-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M22-OPT-08",
+      "kind": "control",
+      "module": "M22",
+      "path": "docs/screenshots/M22/M22-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M22-S01",
+      "kind": "screen",
+      "module": "M22",
+      "path": "docs/screenshots/M22/M22-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M22-S02",
+      "kind": "screen",
+      "module": "M22",
+      "path": "docs/screenshots/M22/M22-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M22-S03",
+      "kind": "screen",
+      "module": "M22",
+      "path": "docs/screenshots/M22/M22-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M22-S04",
+      "kind": "screen",
+      "module": "M22",
+      "path": "docs/screenshots/M22/M22-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M22-S05",
+      "kind": "screen",
+      "module": "M22",
+      "path": "docs/screenshots/M22/M22-S05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-S01",
+      "kind": "screen",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-S02",
+      "kind": "screen",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-S03",
+      "kind": "screen",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-S04",
+      "kind": "screen",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-S05",
+      "kind": "screen",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-S05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-S06",
+      "kind": "screen",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-S06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-S07",
+      "kind": "screen",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-S07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-S08",
+      "kind": "screen",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-S08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-S09",
+      "kind": "screen",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-S09.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-OPT-01",
+      "kind": "control",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-OPT-02",
+      "kind": "control",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-OPT-03",
+      "kind": "control",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-OPT-04",
+      "kind": "control",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-OPT-05",
+      "kind": "control",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-OPT-06",
+      "kind": "control",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-OPT-07",
+      "kind": "control",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-OPT-08",
+      "kind": "control",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-OPT-09",
+      "kind": "control",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-OPT-09.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-OPT-10",
+      "kind": "control",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-OPT-10.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-OPT-11",
+      "kind": "control",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-OPT-11.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-OPT-12",
+      "kind": "control",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-OPT-12.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-OPT-13",
+      "kind": "control",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-OPT-13.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-OPT-14",
+      "kind": "control",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-OPT-14.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-OPT-15",
+      "kind": "control",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-OPT-15.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-OPT-16",
+      "kind": "control",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-OPT-16.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-OPT-17",
+      "kind": "control",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-OPT-17.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M23-OPT-18",
+      "kind": "control",
+      "module": "M23",
+      "path": "docs/screenshots/M23/M23-OPT-18.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-S01",
+      "kind": "screen",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-S02",
+      "kind": "screen",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-S03",
+      "kind": "screen",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-S04",
+      "kind": "screen",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-S05",
+      "kind": "screen",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-S05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-S06",
+      "kind": "screen",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-S06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-S07",
+      "kind": "screen",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-S07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-S08",
+      "kind": "screen",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-S08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-OPT-01",
+      "kind": "control",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-OPT-02",
+      "kind": "control",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-OPT-03",
+      "kind": "control",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-OPT-04",
+      "kind": "control",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-OPT-05",
+      "kind": "control",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-OPT-06",
+      "kind": "control",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-OPT-07",
+      "kind": "control",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-OPT-08",
+      "kind": "control",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-OPT-09",
+      "kind": "control",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-OPT-09.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-OPT-10",
+      "kind": "control",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-OPT-10.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-OPT-11",
+      "kind": "control",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-OPT-11.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-OPT-12",
+      "kind": "control",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-OPT-12.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-OPT-13",
+      "kind": "control",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-OPT-13.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-OPT-14",
+      "kind": "control",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-OPT-14.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-OPT-15",
+      "kind": "control",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-OPT-15.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-OPT-16",
+      "kind": "control",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-OPT-16.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-OPT-17",
+      "kind": "control",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-OPT-17.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M24-OPT-18",
+      "kind": "control",
+      "module": "M24",
+      "path": "docs/screenshots/M24/M24-OPT-18.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M25-S01",
+      "kind": "screen",
+      "module": "M25",
+      "path": "docs/screenshots/M25/M25-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M25-S02",
+      "kind": "screen",
+      "module": "M25",
+      "path": "docs/screenshots/M25/M25-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M25-S03",
+      "kind": "screen",
+      "module": "M25",
+      "path": "docs/screenshots/M25/M25-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M25-S04",
+      "kind": "screen",
+      "module": "M25",
+      "path": "docs/screenshots/M25/M25-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M25-S05",
+      "kind": "screen",
+      "module": "M25",
+      "path": "docs/screenshots/M25/M25-S05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M25-S06",
+      "kind": "screen",
+      "module": "M25",
+      "path": "docs/screenshots/M25/M25-S06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M25-S07",
+      "kind": "screen",
+      "module": "M25",
+      "path": "docs/screenshots/M25/M25-S07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M25-OPT-01",
+      "kind": "control",
+      "module": "M25",
+      "path": "docs/screenshots/M25/M25-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M25-OPT-02",
+      "kind": "control",
+      "module": "M25",
+      "path": "docs/screenshots/M25/M25-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M25-OPT-03",
+      "kind": "control",
+      "module": "M25",
+      "path": "docs/screenshots/M25/M25-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M25-OPT-04",
+      "kind": "control",
+      "module": "M25",
+      "path": "docs/screenshots/M25/M25-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M25-OPT-05",
+      "kind": "control",
+      "module": "M25",
+      "path": "docs/screenshots/M25/M25-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M25-OPT-06",
+      "kind": "control",
+      "module": "M25",
+      "path": "docs/screenshots/M25/M25-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M25-OPT-07",
+      "kind": "control",
+      "module": "M25",
+      "path": "docs/screenshots/M25/M25-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M25-OPT-08",
+      "kind": "control",
+      "module": "M25",
+      "path": "docs/screenshots/M25/M25-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M25-OPT-09",
+      "kind": "control",
+      "module": "M25",
+      "path": "docs/screenshots/M25/M25-OPT-09.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M25-OPT-10",
+      "kind": "control",
+      "module": "M25",
+      "path": "docs/screenshots/M25/M25-OPT-10.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M25-OPT-11",
+      "kind": "control",
+      "module": "M25",
+      "path": "docs/screenshots/M25/M25-OPT-11.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M25-OPT-12",
+      "kind": "control",
+      "module": "M25",
+      "path": "docs/screenshots/M25/M25-OPT-12.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M25-OPT-13",
+      "kind": "control",
+      "module": "M25",
+      "path": "docs/screenshots/M25/M25-OPT-13.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M25-OPT-14",
+      "kind": "control",
+      "module": "M25",
+      "path": "docs/screenshots/M25/M25-OPT-14.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-S01",
+      "kind": "screen",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-S01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-S02",
+      "kind": "screen",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-S02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-S03",
+      "kind": "screen",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-S03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-S04",
+      "kind": "screen",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-S04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-S05",
+      "kind": "screen",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-S05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-S06",
+      "kind": "screen",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-S06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-S07",
+      "kind": "screen",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-S07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-S08",
+      "kind": "screen",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-S08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-OPT-01",
+      "kind": "control",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-OPT-01.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-OPT-02",
+      "kind": "control",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-OPT-02.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-OPT-03",
+      "kind": "control",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-OPT-03.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-OPT-04",
+      "kind": "control",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-OPT-04.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-OPT-05",
+      "kind": "control",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-OPT-05.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-OPT-06",
+      "kind": "control",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-OPT-06.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-OPT-07",
+      "kind": "control",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-OPT-07.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-OPT-08",
+      "kind": "control",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-OPT-08.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-OPT-09",
+      "kind": "control",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-OPT-09.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-OPT-10",
+      "kind": "control",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-OPT-10.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-OPT-11",
+      "kind": "control",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-OPT-11.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-OPT-12",
+      "kind": "control",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-OPT-12.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-OPT-13",
+      "kind": "control",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-OPT-13.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-OPT-14",
+      "kind": "control",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-OPT-14.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-OPT-15",
+      "kind": "control",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-OPT-15.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-OPT-16",
+      "kind": "control",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-OPT-16.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-OPT-17",
+      "kind": "control",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-OPT-17.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-OPT-18",
+      "kind": "control",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-OPT-18.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-OPT-19",
+      "kind": "control",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-OPT-19.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    },
+    {
+      "asset_id": "M26-OPT-20",
+      "kind": "control",
+      "module": "M26",
+      "path": "docs/screenshots/M26/M26-OPT-20.png",
+      "status": "PENDING",
+      "source": "REAL_APP_CAPTURE_REQUIRED"
+    }
+  ]
+}

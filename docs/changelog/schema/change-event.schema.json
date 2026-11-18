@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Runtime change audit event envelope (planned)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "stream_id",
+    "sequence",
+    "event_type",
+    "occurred_at",
+    "origin",
+    "correlation_id",
+    "module_id",
+    "audience",
+    "payload",
+    "idempotency_key"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "minLength": 8
+    },
+    "stream_id": {
+      "type": "string",
+      "minLength": 4
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "event_type": {
+      "enum": [
+        "issue.reported",
+        "issue.triaged",
+        "change.planned",
+        "change.started",
+        "test.failed",
+        "test.passed",
+        "docs.updated",
+        "pr.opened",
+        "pr.merged_verified",
+        "change.verified",
+        "release.qualified",
+        "release.published",
+        "client.update.detected",
+        "client.update.applied",
+        "change.reverted"
+      ]
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "origin": {
+      "enum": [
+        "client",
+        "agent",
+        "ci",
+        "github",
+        "worker",
+        "system"
+      ]
+    },
+    "correlation_id": {
+      "type": "string"
+    },
+    "causation_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "module_id": {
+      "type": "string",
+      "pattern": "^M[0-9]{2}$"
+    },
+    "audience": {
+      "enum": [
+        "user",
+        "developer",
+        "private"
+      ]
+    },
+    "payload": {
+      "type": "object"
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 8
+    },
+    "retention_class": {
+      "enum": [
+        "system",
+        "support",
+        "private",
+        "release"
+      ]
+    }
+  }
+}

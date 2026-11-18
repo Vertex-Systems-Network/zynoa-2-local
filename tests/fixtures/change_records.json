@@ -1,0 +1,154 @@
+[
+  {
+    "change_id": "CHG-EXAMPLE-0001",
+    "module_id": "M03",
+    "kind": "bugfix",
+    "title": "Recover chats after restart",
+    "summary": "Fixed conversation history recovery after restart",
+    "status": "released",
+    "audience": "user",
+    "source_issue_urls": [
+      "https://github.com/example/ai-workspace/issues/2"
+    ],
+    "source_pr_url": "https://github.com/example/ai-workspace/pull/4",
+    "docs_paths": [
+      "docs/modules/M03.md"
+    ],
+    "help_paths": [
+      "docs/help/articles/M03.md"
+    ],
+    "wiki_paths": [
+      "docs/wiki/pages/M03.md"
+    ],
+    "test_evidence": [
+      "local sample test results - fixture, not real proof"
+    ],
+    "commit_sha": "ffffffffffffffffffffffffffffffffffffffff",
+    "release": {
+      "version": "0.1.0",
+      "date": "2026-11-18",
+      "channel": "stable"
+    },
+    "verification": {
+      "tests_passed": true,
+      "merge_verified": true,
+      "release_published": true
+    },
+    "breaking_change": false,
+    "migration_notes": "",
+    "created_at": "2026-11-18T00:00:00Z",
+    "updated_at": "2026-11-18T00:00:00Z",
+    "version_bump": "patch",
+    "affected_option_ids": [],
+    "docs_impact": true,
+    "data_migration": false
+  },
+  {
+    "change_id": "CHG-EXAMPLE-0002",
+    "module_id": "M06",
+    "kind": "enhancement",
+    "title": "Fast model downloads",
+    "summary": "Faster resumable downloads are planned",
+    "status": "planned",
+    "audience": "user",
+    "source_issue_urls": [
+      "https://github.com/example/ai-workspace/issues/2"
+    ],
+    "source_pr_url": null,
+    "docs_paths": [],
+    "help_paths": [],
+    "wiki_paths": [],
+    "test_evidence": [],
+    "commit_sha": null,
+    "release": null,
+    "verification": {
+      "tests_passed": false,
+      "merge_verified": false,
+      "release_published": false
+    },
+    "breaking_change": false,
+    "migration_notes": "",
+    "created_at": "2026-11-18T00:00:00Z",
+    "updated_at": "2026-11-18T00:00:00Z",
+    "version_bump": "patch",
+    "affected_option_ids": [],
+    "docs_impact": true,
+    "data_migration": false
+  },
+  {
+    "change_id": "CHG-EXAMPLE-0003",
+    "module_id": "M04",
+    "kind": "bugfix",
+    "title": "Repository sync issue",
+    "summary": "Repository synchronization issue was reported",
+    "status": "reported",
+    "audience": "user",
+    "source_issue_urls": [
+      "https://github.com/example/ai-workspace/issues/2"
+    ],
+    "source_pr_url": null,
+    "docs_paths": [],
+    "help_paths": [],
+    "wiki_paths": [],
+    "test_evidence": [],
+    "commit_sha": null,
+    "release": null,
+    "verification": {
+      "tests_passed": false,
+      "merge_verified": false,
+      "release_published": false
+    },
+    "breaking_change": false,
+    "migration_notes": "",
+    "created_at": "2026-11-18T00:00:00Z",
+    "updated_at": "2026-11-18T00:00:00Z",
+    "version_bump": "patch",
+    "affected_option_ids": [],
+    "docs_impact": true,
+    "data_migration": false
+  },
+  {
+    "change_id": "CHG-EXAMPLE-0004",
+    "module_id": "M03",
+    "kind": "security",
+    "title": "Private issue details",
+    "summary": "Private vulnerability description that must never be published",
+    "status": "released",
+    "audience": "private",
+    "source_issue_urls": [
+      "https://github.com/example/ai-workspace/issues/2"
+    ],
+    "source_pr_url": "https://github.com/example/ai-workspace/pull/4",
+    "docs_paths": [
+      "docs/modules/M03.md"
+    ],
+    "help_paths": [
+      "docs/help/articles/M03.md"
+    ],
+    "wiki_paths": [
+      "docs/wiki/pages/M03.md"
+    ],
+    "test_evidence": [
+      "local sample test results - fixture, not real proof"
+    ],
+    "commit_sha": "ffffffffffffffffffffffffffffffffffffffff",
+    "release": {
+      "version": "0.1.0",
+      "date": "2026-11-18",
+      "channel": "stable"
+    },
+    "verification": {
+      "tests_passed": true,
+      "merge_verified": true,
+      "release_published": true
+    },
+    "breaking_change": false,
+    "migration_notes": "",
+    "created_at": "2026-11-18T00:00:00Z",
+    "updated_at": "2026-11-18T00:00:00Z",
+    "version_bump": "patch",
+    "affected_option_ids": [],
+    "docs_impact": true,
+    "data_migration": false
+  }
+]

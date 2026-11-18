@@ -1,0 +1,152 @@
+module_id,phase,screen_id,screen,states,screenshot,help,status
+M01,P01,M01-S01,First Boot,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M01/M01-S01.png,docs/help/articles/M01.md,PENDING_IMPLEMENTATION
+M01,P01,M01-S02,App Recovery,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M01/M01-S02.png,docs/help/articles/M01.md,PENDING_IMPLEMENTATION
+M01,P01,M01-S03,Database Migration,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M01/M01-S03.png,docs/help/articles/M01.md,PENDING_IMPLEMENTATION
+M01,P01,M01-S04,Global Preferences,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M01/M01-S04.png,docs/help/articles/M01.md,PENDING_IMPLEMENTATION
+M01,P01,M01-S05,Window Management,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M01/M01-S05.png,docs/help/articles/M01.md,PENDING_IMPLEMENTATION
+M02,P02,M02-S01,Global Shell,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M02/M02-S01.png,docs/help/articles/M02.md,PENDING_IMPLEMENTATION
+M02,P02,M02-S02,Left Navigation Rail,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M02/M02-S02.png,docs/help/articles/M02.md,PENDING_IMPLEMENTATION
+M02,P02,M02-S03,Tabbed Workbench,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M02/M02-S03.png,docs/help/articles/M02.md,PENDING_IMPLEMENTATION
+M02,P02,M02-S04,Command Palette,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M02/M02-S04.png,docs/help/articles/M02.md,PENDING_IMPLEMENTATION
+M02,P02,M02-S05,Component Gallery,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M02/M02-S05.png,docs/help/articles/M02.md,PENDING_IMPLEMENTATION
+M02,P02,M02-S06,Theme Editor,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M02/M02-S06.png,docs/help/articles/M02.md,PENDING_IMPLEMENTATION
+M02,P02,M02-S07,Keyboard Shortcuts,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M02/M02-S07.png,docs/help/articles/M02.md,PENDING_IMPLEMENTATION
+M03,P03,M03-S01,Conversation Home,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M03/M03-S01.png,docs/help/articles/M03.md,PENDING_IMPLEMENTATION
+M03,P03,M03-S02,Conversation Detail,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M03/M03-S02.png,docs/help/articles/M03.md,PENDING_IMPLEMENTATION
+M03,P03,M03-S03,Attachment Composer,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M03/M03-S03.png,docs/help/articles/M03.md,PENDING_IMPLEMENTATION
+M03,P03,M03-S04,Model Switcher,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M03/M03-S04.png,docs/help/articles/M03.md,PENDING_IMPLEMENTATION
+M03,P03,M03-S05,Tool Trace,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M03/M03-S05.png,docs/help/articles/M03.md,PENDING_IMPLEMENTATION
+M03,P03,M03-S06,Conversation Export,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M03/M03-S06.png,docs/help/articles/M03.md,PENDING_IMPLEMENTATION
+M04,P04,M04-S01,Project Explorer,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M04/M04-S01.png,docs/help/articles/M04.md,PENDING_IMPLEMENTATION
+M04,P04,M04-S02,Code Editor,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M04/M04-S02.png,docs/help/articles/M04.md,PENDING_IMPLEMENTATION
+M04,P04,M04-S03,Code Diff,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M04/M04-S03.png,docs/help/articles/M04.md,PENDING_IMPLEMENTATION
+M04,P04,M04-S04,Integrated Terminal,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M04/M04-S04.png,docs/help/articles/M04.md,PENDING_IMPLEMENTATION
+M04,P04,M04-S05,Test Explorer,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M04/M04-S05.png,docs/help/articles/M04.md,PENDING_IMPLEMENTATION
+M04,P04,M04-S06,Git History,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M04/M04-S06.png,docs/help/articles/M04.md,PENDING_IMPLEMENTATION
+M04,P04,M04-S07,Agent Plan,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M04/M04-S07.png,docs/help/articles/M04.md,PENDING_IMPLEMENTATION
+M04,P04,M04-S08,PR Review,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M04/M04-S08.png,docs/help/articles/M04.md,PENDING_IMPLEMENTATION
+M05,P05,M05-S01,Hardware Overview,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M05/M05-S01.png,docs/help/articles/M05.md,PENDING_IMPLEMENTATION
+M05,P05,M05-S02,GPU Details,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M05/M05-S02.png,docs/help/articles/M05.md,PENDING_IMPLEMENTATION
+M05,P05,M05-S03,Model Recommendation,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M05/M05-S03.png,docs/help/articles/M05.md,PENDING_IMPLEMENTATION
+M05,P05,M05-S04,Benchmark Report,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M05/M05-S04.png,docs/help/articles/M05.md,PENDING_IMPLEMENTATION
+M05,P05,M05-S05,Routing Configuration,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M05/M05-S05.png,docs/help/articles/M05.md,PENDING_IMPLEMENTATION
+M06,P05,M06-S01,Model Marketplace,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M06/M06-S01.png,docs/help/articles/M06.md,PENDING_IMPLEMENTATION
+M06,P05,M06-S02,Model Details,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M06/M06-S02.png,docs/help/articles/M06.md,PENDING_IMPLEMENTATION
+M06,P05,M06-S03,License Gate,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M06/M06-S03.png,docs/help/articles/M06.md,PENDING_IMPLEMENTATION
+M06,P05,M06-S04,Download Manager,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M06/M06-S04.png,docs/help/articles/M06.md,PENDING_IMPLEMENTATION
+M06,P05,M06-S05,Installed Models,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M06/M06-S05.png,docs/help/articles/M06.md,PENDING_IMPLEMENTATION
+M06,P05,M06-S06,Storage & Cache,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M06/M06-S06.png,docs/help/articles/M06.md,PENDING_IMPLEMENTATION
+M07,P06,M07-S01,Search Home,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M07/M07-S01.png,docs/help/articles/M07.md,PENDING_IMPLEMENTATION
+M07,P06,M07-S02,Search Results,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M07/M07-S02.png,docs/help/articles/M07.md,PENDING_IMPLEMENTATION
+M07,P06,M07-S03,Source Filters,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M07/M07-S03.png,docs/help/articles/M07.md,PENDING_IMPLEMENTATION
+M07,P06,M07-S04,Search Provider Health,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M07/M07-S04.png,docs/help/articles/M07.md,PENDING_IMPLEMENTATION
+M08,P06,M08-S01,Research Project,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M08/M08-S01.png,docs/help/articles/M08.md,PENDING_IMPLEMENTATION
+M08,P06,M08-S02,Evidence Board,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M08/M08-S02.png,docs/help/articles/M08.md,PENDING_IMPLEMENTATION
+M08,P06,M08-S03,Claim Inspector,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M08/M08-S03.png,docs/help/articles/M08.md,PENDING_IMPLEMENTATION
+M08,P06,M08-S04,Report Editor,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M08/M08-S04.png,docs/help/articles/M08.md,PENDING_IMPLEMENTATION
+M08,P06,M08-S05,Citation Library,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M08/M08-S05.png,docs/help/articles/M08.md,PENDING_IMPLEMENTATION
+M09,P06,M09-S01,Browser Tabs,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M09/M09-S01.png,docs/help/articles/M09.md,PENDING_IMPLEMENTATION
+M09,P06,M09-S02,Inspection Panel,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M09/M09-S02.png,docs/help/articles/M09.md,PENDING_IMPLEMENTATION
+M09,P06,M09-S03,Automation Steps,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M09/M09-S03.png,docs/help/articles/M09.md,PENDING_IMPLEMENTATION
+M09,P06,M09-S04,Browser Permissions,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M09/M09-S04.png,docs/help/articles/M09.md,PENDING_IMPLEMENTATION
+M09,P06,M09-S05,Screenshot History,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M09/M09-S05.png,docs/help/articles/M09.md,PENDING_IMPLEMENTATION
+M10,P07,M10-S01,Knowledge Library,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M10/M10-S01.png,docs/help/articles/M10.md,PENDING_IMPLEMENTATION
+M10,P07,M10-S02,Index Progress,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M10/M10-S02.png,docs/help/articles/M10.md,PENDING_IMPLEMENTATION
+M10,P07,M10-S03,Memory Search,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M10/M10-S03.png,docs/help/articles/M10.md,PENDING_IMPLEMENTATION
+M10,P07,M10-S04,Re-index Settings,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M10/M10-S04.png,docs/help/articles/M10.md,PENDING_IMPLEMENTATION
+M10,P07,M10-S05,Citation Backlinks,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M10/M10-S05.png,docs/help/articles/M10.md,PENDING_IMPLEMENTATION
+M11,P08,M11-S01,Infinite Canvas,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M11/M11-S01.png,docs/help/articles/M11.md,PENDING_IMPLEMENTATION
+M11,P08,M11-S02,Layer Tree,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M11/M11-S02.png,docs/help/articles/M11.md,PENDING_IMPLEMENTATION
+M11,P08,M11-S03,Properties Inspector,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M11/M11-S03.png,docs/help/articles/M11.md,PENDING_IMPLEMENTATION
+M11,P08,M11-S04,Components Browser,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M11/M11-S04.png,docs/help/articles/M11.md,PENDING_IMPLEMENTATION
+M11,P08,M11-S05,Auto Layout,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M11/M11-S05.png,docs/help/articles/M11.md,PENDING_IMPLEMENTATION
+M11,P08,M11-S06,Prototype Preview,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M11/M11-S06.png,docs/help/articles/M11.md,PENDING_IMPLEMENTATION
+M11,P08,M11-S07,Export,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M11/M11-S07.png,docs/help/articles/M11.md,PENDING_IMPLEMENTATION
+M12,P08,M12-S01,Asset Organizer,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M12/M12-S01.png,docs/help/articles/M12.md,PENDING_IMPLEMENTATION
+M12,P08,M12-S02,Color Tokens,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M12/M12-S02.png,docs/help/articles/M12.md,PENDING_IMPLEMENTATION
+M12,P08,M12-S03,Typography Tokens,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M12/M12-S03.png,docs/help/articles/M12.md,PENDING_IMPLEMENTATION
+M12,P08,M12-S04,Component Variants,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M12/M12-S04.png,docs/help/articles/M12.md,PENDING_IMPLEMENTATION
+M12,P08,M12-S05,Style Gallery,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M12/M12-S05.png,docs/help/articles/M12.md,PENDING_IMPLEMENTATION
+M12,P08,M12-S06,Import Assets,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M12/M12-S06.png,docs/help/articles/M12.md,PENDING_IMPLEMENTATION
+M13,P09,M13-S01,Media Jobs,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M13/M13-S01.png,docs/help/articles/M13.md,PENDING_IMPLEMENTATION
+M13,P09,M13-S02,Generation Workflow,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M13/M13-S02.png,docs/help/articles/M13.md,PENDING_IMPLEMENTATION
+M13,P09,M13-S03,Image Gallery,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M13/M13-S03.png,docs/help/articles/M13.md,PENDING_IMPLEMENTATION
+M13,P09,M13-S04,Model Selection,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M13/M13-S04.png,docs/help/articles/M13.md,PENDING_IMPLEMENTATION
+M13,P09,M13-S05,Job Error View,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M13/M13-S05.png,docs/help/articles/M13.md,PENDING_IMPLEMENTATION
+M14,P10,M14-S01,Agent Control Center,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M14/M14-S01.png,docs/help/articles/M14.md,PENDING_IMPLEMENTATION
+M14,P10,M14-S02,Plan Timeline,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M14/M14-S02.png,docs/help/articles/M14.md,PENDING_IMPLEMENTATION
+M14,P10,M14-S03,Task Detail,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M14/M14-S03.png,docs/help/articles/M14.md,PENDING_IMPLEMENTATION
+M14,P10,M14-S04,Recovery & Retries,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M14/M14-S04.png,docs/help/articles/M14.md,PENDING_IMPLEMENTATION
+M14,P10,M14-S05,Agent Config,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M14/M14-S05.png,docs/help/articles/M14.md,PENDING_IMPLEMENTATION
+M15,P10,M15-S01,Tool Directory,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M15/M15-S01.png,docs/help/articles/M15.md,PENDING_IMPLEMENTATION
+M15,P10,M15-S02,MCP Connections,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M15/M15-S02.png,docs/help/articles/M15.md,PENDING_IMPLEMENTATION
+M15,P10,M15-S03,Tool Permissions,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M15/M15-S03.png,docs/help/articles/M15.md,PENDING_IMPLEMENTATION
+M15,P10,M15-S04,Tool Test Runner,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M15/M15-S04.png,docs/help/articles/M15.md,PENDING_IMPLEMENTATION
+M15,P10,M15-S05,Audit Log,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M15/M15-S05.png,docs/help/articles/M15.md,PENDING_IMPLEMENTATION
+M16,P01,M16-S01,Projects Home,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M16/M16-S01.png,docs/help/articles/M16.md,PENDING_IMPLEMENTATION
+M16,P01,M16-S02,New Project,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M16/M16-S02.png,docs/help/articles/M16.md,PENDING_IMPLEMENTATION
+M16,P01,M16-S03,Project Settings,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M16/M16-S03.png,docs/help/articles/M16.md,PENDING_IMPLEMENTATION
+M16,P01,M16-S04,Workspace Switcher,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M16/M16-S04.png,docs/help/articles/M16.md,PENDING_IMPLEMENTATION
+M16,P01,M16-S05,Backup & Restore,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M16/M16-S05.png,docs/help/articles/M16.md,PENDING_IMPLEMENTATION
+M17,P01,M17-S01,Security Overview,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M17/M17-S01.png,docs/help/articles/M17.md,PENDING_IMPLEMENTATION
+M17,P01,M17-S02,Approved Workspaces,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M17/M17-S02.png,docs/help/articles/M17.md,PENDING_IMPLEMENTATION
+M17,P01,M17-S03,Risky Action History,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M17/M17-S03.png,docs/help/articles/M17.md,PENDING_IMPLEMENTATION
+M17,P01,M17-S04,Telemetry Preferences,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M17/M17-S04.png,docs/help/articles/M17.md,PENDING_IMPLEMENTATION
+M17,P01,M17-S05,Credential Manager,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M17/M17-S05.png,docs/help/articles/M17.md,PENDING_IMPLEMENTATION
+M18,P01,M18-S01,Diagnostics Home,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M18/M18-S01.png,docs/help/articles/M18.md,PENDING_IMPLEMENTATION
+M18,P01,M18-S02,Crash Event,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M18/M18-S02.png,docs/help/articles/M18.md,PENDING_IMPLEMENTATION
+M18,P01,M18-S03,Issue Link,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M18/M18-S03.png,docs/help/articles/M18.md,PENDING_IMPLEMENTATION
+M18,P01,M18-S04,Report Queue,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M18/M18-S04.png,docs/help/articles/M18.md,PENDING_IMPLEMENTATION
+M18,P01,M18-S05,Privacy Preview,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M18/M18-S05.png,docs/help/articles/M18.md,PENDING_IMPLEMENTATION
+M18,P01,M18-S06,Incident History,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M18/M18-S06.png,docs/help/articles/M18.md,PENDING_IMPLEMENTATION
+M19,P02,M19-S01,Help Home,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M19/M19-S01.png,docs/help/articles/M19.md,PENDING_IMPLEMENTATION
+M19,P02,M19-S02,Search Help,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M19/M19-S02.png,docs/help/articles/M19.md,PENDING_IMPLEMENTATION
+M19,P02,M19-S03,Article Viewer,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M19/M19-S03.png,docs/help/articles/M19.md,PENDING_IMPLEMENTATION
+M19,P02,M19-S04,Tooltips & Tours,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M19/M19-S04.png,docs/help/articles/M19.md,PENDING_IMPLEMENTATION
+M19,P02,M19-S05,Troubleshooting Wizard,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M19/M19-S05.png,docs/help/articles/M19.md,PENDING_IMPLEMENTATION
+M19,P02,M19-S06,Wiki Links,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M19/M19-S06.png,docs/help/articles/M19.md,PENDING_IMPLEMENTATION
+M20,P11,M20-S01,Update Center,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M20/M20-S01.png,docs/help/articles/M20.md,PENDING_IMPLEMENTATION
+M20,P11,M20-S02,Release Notes,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M20/M20-S02.png,docs/help/articles/M20.md,PENDING_IMPLEMENTATION
+M20,P11,M20-S03,Installer Diagnostics,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M20/M20-S03.png,docs/help/articles/M20.md,PENDING_IMPLEMENTATION
+M20,P11,M20-S04,Rollback Recovery,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M20/M20-S04.png,docs/help/articles/M20.md,PENDING_IMPLEMENTATION
+M21,P11,M21-S01,Benchmark Dashboard,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M21/M21-S01.png,docs/help/articles/M21.md,PENDING_IMPLEMENTATION
+M21,P11,M21-S02,Quality Scoreboard,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M21/M21-S02.png,docs/help/articles/M21.md,PENDING_IMPLEMENTATION
+M21,P11,M21-S03,Performance Trace,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M21/M21-S03.png,docs/help/articles/M21.md,PENDING_IMPLEMENTATION
+M21,P11,M21-S04,Regression Report,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M21/M21-S04.png,docs/help/articles/M21.md,PENDING_IMPLEMENTATION
+M22,P00,M22-S01,Phase Controller,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M22/M22-S01.png,docs/help/articles/M22.md,PENDING_IMPLEMENTATION
+M22,P00,M22-S02,GitHub PR Status,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M22/M22-S02.png,docs/help/articles/M22.md,PENDING_IMPLEMENTATION
+M22,P00,M22-S03,Execution Timeline,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M22/M22-S03.png,docs/help/articles/M22.md,PENDING_IMPLEMENTATION
+M22,P00,M22-S04,Blocker Inbox,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M22/M22-S04.png,docs/help/articles/M22.md,PENDING_IMPLEMENTATION
+M22,P00,M22-S05,Handoff Viewer,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M22/M22-S05.png,docs/help/articles/M22.md,PENDING_IMPLEMENTATION
+M23,P01,M23-S01,Data & Privacy Overview,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M23/M23-S01.png,docs/help/articles/M23.md,PENDING_IMPLEMENTATION
+M23,P01,M23-S02,Chat History Browser,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M23/M23-S02.png,docs/help/articles/M23.md,PENDING_IMPLEMENTATION
+M23,P01,M23-S03,Backup Dashboard,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M23/M23-S03.png,docs/help/articles/M23.md,PENDING_IMPLEMENTATION
+M23,P01,M23-S04,Create Backup Wizard,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M23/M23-S04.png,docs/help/articles/M23.md,PENDING_IMPLEMENTATION
+M23,P01,M23-S05,Backup History & Verification,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M23/M23-S05.png,docs/help/articles/M23.md,PENDING_IMPLEMENTATION
+M23,P01,M23-S06,Restore Preview,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M23/M23-S06.png,docs/help/articles/M23.md,PENDING_IMPLEMENTATION
+M23,P01,M23-S07,Restore Progress & Results,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M23/M23-S07.png,docs/help/articles/M23.md,PENDING_IMPLEMENTATION
+M23,P01,M23-S08,Data Export/Import,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M23/M23-S08.png,docs/help/articles/M23.md,PENDING_IMPLEMENTATION
+M23,P01,M23-S09,Recovery Mode,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M23/M23-S09.png,docs/help/articles/M23.md,PENDING_IMPLEMENTATION
+M24,P01,M24-S01,Storage Overview,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M24/M24-S01.png,docs/help/articles/M24.md,PENDING_IMPLEMENTATION
+M24,P01,M24-S02,Custom Download Locations,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M24/M24-S02.png,docs/help/articles/M24.md,PENDING_IMPLEMENTATION
+M24,P01,M24-S03,Model Storage Manager,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M24/M24-S03.png,docs/help/articles/M24.md,PENDING_IMPLEMENTATION
+M24,P01,M24-S04,Installed Runtime Locations,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M24/M24-S04.png,docs/help/articles/M24.md,PENDING_IMPLEMENTATION
+M24,P01,M24-S05,Relocation Wizard,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M24/M24-S05.png,docs/help/articles/M24.md,PENDING_IMPLEMENTATION
+M24,P01,M24-S06,Relocation Progress & Recovery,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M24/M24-S06.png,docs/help/articles/M24.md,PENDING_IMPLEMENTATION
+M24,P01,M24-S07,Cleanup & Quotas,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M24/M24-S07.png,docs/help/articles/M24.md,PENDING_IMPLEMENTATION
+M24,P01,M24-S08,Storage Diagnostics,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M24/M24-S08.png,docs/help/articles/M24.md,PENDING_IMPLEMENTATION
+M25,P02,M25-S01,Update Center Overview,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M25/M25-S01.png,docs/help/articles/M25.md,PENDING_IMPLEMENTATION
+M25,P02,M25-S02,New Update Notification,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M25/M25-S02.png,docs/help/articles/M25.md,PENDING_IMPLEMENTATION
+M25,P02,M25-S03,Update Release Notes,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M25/M25-S03.png,docs/help/articles/M25.md,PENDING_IMPLEMENTATION
+M25,P02,M25-S04,Download & Installation Progress,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M25/M25-S04.png,docs/help/articles/M25.md,PENDING_IMPLEMENTATION
+M25,P02,M25-S05,Update History & Recovery,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M25/M25-S05.png,docs/help/articles/M25.md,PENDING_IMPLEMENTATION
+M25,P02,M25-S06,Update Preferences,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M25/M25-S06.png,docs/help/articles/M25.md,PENDING_IMPLEMENTATION
+M25,P02,M25-S07,Update Failure Troubleshooting,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M25/M25-S07.png,docs/help/articles/M25.md,PENDING_IMPLEMENTATION
+M26,P02 + P11,M26-S01,What's New / Release Feed,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M26/M26-S01.png,docs/help/articles/M26.md,PENDING_IMPLEMENTATION
+M26,P02 + P11,M26-S02,Open Issues & In Progress Changes,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M26/M26-S02.png,docs/help/articles/M26.md,PENDING_IMPLEMENTATION
+M26,P02 + P11,M26-S03,Version History Explorer,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M26/M26-S03.png,docs/help/articles/M26.md,PENDING_IMPLEMENTATION
+M26,P02 + P11,M26-S04,Individual Change Details & Traceability,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M26/M26-S04.png,docs/help/articles/M26.md,PENDING_IMPLEMENTATION
+M26,P02 + P11,M26-S05,Module Change History,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M26/M26-S05.png,docs/help/articles/M26.md,PENDING_IMPLEMENTATION
+M26,P02 + P11,M26-S06,Technical Event / Audit Timeline,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M26/M26-S06.png,docs/help/articles/M26.md,PENDING_IMPLEMENTATION
+M26,P02 + P11,M26-S07,Changelog Preferences & Notifications,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M26/M26-S07.png,docs/help/articles/M26.md,PENDING_IMPLEMENTATION
+M26,P02 + P11,M26-S08,Release Notes / Migration Warnings,empty|loading|active|success|error|offline|disabled|keyboard,docs/screenshots/M26/M26-S08.png,docs/help/articles/M26.md,PENDING_IMPLEMENTATION

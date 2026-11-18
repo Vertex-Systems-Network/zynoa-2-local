@@ -1,0 +1,30 @@
+# Persistent Autonomous Development Controller
+
+## Worker design
+
+Separate always-on worker with SQLite WAL, durable event queue, Git worktrees, GitHub App, scoped shell executor, model router, PR/CI observer and issue reporter. A simple chat request cannot start this persistently without installed hardware/runtime. Control plane has one active phase lease; independent agents have per-work-item leases and isolated worktrees; final patches integrate into same phase branch and PR.
+
+## Lifecycle
+
+1. Startup health → fetch remote GitHub current phase truth → verify branch lease.
+2. Reconcile current phase/PR/checks with local recorded snapshots and on-disk Git state.
+3. If no verified PR, create single `phase/NN-slug` branch from main, register and create PR after first safe vertical slice.
+4. Run Pre-DEV checklist, collect research, select design, define failing tests.
+5. Implement bounded increment, run fast checks; record output and warnings.
+6. Repair failures under bounded retries (signature-aware), add regression test, rerun impacted and global suites.
+7. Capture UI/document images from running test build, update help articles and wiki sources; check links and screenshots.
+8. Commit, push active branch, update same PR; request/observe CI, audit remote statuses.
+9. When all required gates pass, use repo-supported auto-merge (when allowed). Verify actual merge SHA and post-merge smoke.
+10. Update state/decisions/handoff; release branch lease and create next phase branch from current main.
+
+## Autonomous non-stop semantics
+
+- **Never** keep retrying identical failure indefinitely. Use exponential backoff and max attempts (illustrative: 2 transient infra retries, 3 distinct code fixes before opening blocker).
+- If one task blocked, switch to independent in-scope tasks; do not jump to next phase code.
+- If all work blocked, worker enters `BLOCKED_WAIT_EVENT`, records status/issue and wakes on GitHub, timer or environment change; it does NOT falsely mark phase complete.
+- Tools cannot self-authorize; approved capability envelope set during initial administrator setup. Pre-approved routine branch/PR/test/edit actions require no recurring approval prompts.
+- Logging and snapshots require low overhead but enough evidence to diagnose. Redact tokens, user content and project secrets.
+
+## Recovery and idempotency
+
+Avoid re-running non-idempotent actions after crashes. Before creating branch/PR/issue, check exact remote existing state and idempotency fingerprint. Event records use sequence, attempt ID, branch SHA, tool hash, result hash and monotonic timestamp. `MERGED_VERIFIED` only after server confirms. Manual modification of protected branch cannot be silently reconciled as 'expected'.

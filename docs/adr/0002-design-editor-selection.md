@@ -1,0 +1,3 @@
+# ADR-0002: Design Editor selection requires an evidence-backed spike
+
+Status: PROPOSED / NOT DECIDED. Decision deadline: P08 implementation preflight (research starts in P00/P02). Consider OpenPencil-A, OpenPencil-B, Penpot interoperability and custom canvas. Benchmarks: 1k/10k/50k nodes, text fidelity, vector ops, undo, auto-layout, Rust/Tauri integration, open license obligations, AI command schemas, capture/export and maintenance. Figma used as proprietary UX reference only. Compare using [rubric](../research/DESIGN_RESEARCH.md). No blanket commitment to one engine until measured spike. Avoid duplicative rewrite.

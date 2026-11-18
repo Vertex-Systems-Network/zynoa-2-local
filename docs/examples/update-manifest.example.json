@@ -1,0 +1,11 @@
+{
+  "version": "1.3.0",
+  "notes": "EXAMPLE ONLY",
+  "pub_date": "2026-11-18T00:00:00Z",
+  "platforms": {
+    "windows-x86_64": {
+      "signature": "EXAMPLE_PLACEHOLDER_NOT_A_VALID_SIGNATURE",
+      "url": "https://example.invalid/releases/aiworkspace-1.3.0.zip"
+    }
+  }
+}

@@ -1,0 +1,48 @@
+category,pattern,reference_to_research,intended_benefit,source_url,research_date,validated,own_implementation_note
+Navigation,Workspace left rail,Cursor/VS Code,Fast tool switch and spatial memory,,,NO,Research pattern and implement independently
+Navigation,Expandable project sidebar,VS Code,Project context without permanent width tax,,,NO,Research pattern and implement independently
+Navigation,Command palette,VS Code,Keyboard-first discoverability,,,NO,Research pattern and implement independently
+Navigation,Tab persistence,VS Code,Recover multi-task context,,,NO,Research pattern and implement independently
+Navigation,Breadcrumb hierarchy,Figma/VS Code,Understand nested project/location,,,NO,Research pattern and implement independently
+Layout,Resizable split panes,Cursor,Customizable working density,,,NO,Research pattern and implement independently
+Layout,Right property inspector,Figma,Inspect selection without page change,,,NO,Research pattern and implement independently
+Layout,Bottom console and problems,VS Code,See logs while staying in workspace,,,NO,Research pattern and implement independently
+Layout,Dockable panels,Modern IDEs,Customize information visibility,,,NO,Research pattern and implement independently
+Layout,Compact status bar,VS Code,Continuous state without interrupting flow,,,NO,Research pattern and implement independently
+Chat,Focused conversation composer,Claude,Lower composition friction,,,NO,Research pattern and implement independently
+Chat,Model picker and mode badges,AI chat workbenches,Clear model/mode selection,,,NO,Research pattern and implement independently
+Chat,Message edit and regenerate,ChatGPT,Iteration with context,,,NO,Research pattern and implement independently
+Chat,Streaming token state,Claude,Prompt feedback and perception of speed,,,NO,Research pattern and implement independently
+Chat,Artifacts or output split-view,AI workbenches,Compare answer with output,,,NO,Research pattern and implement independently
+Chat,Tool trace timeline,Agent interfaces,Explain actual actions,,,NO,Research pattern and implement independently
+Chat,Context usage inspector,Developer AI tools,Prevent silent context loss,,,NO,Research pattern and implement independently
+Chat,Conversation branch navigation,AI chat clients,Explore alternatives reversibly,,,NO,Research pattern and implement independently
+Coding,Code file tree with filters,VS Code,Find working files quickly,,,NO,Research pattern and implement independently
+Coding,Inline diff decorations,Cursor,Review edits in place,,,NO,Research pattern and implement independently
+Coding,Terminal with command provenance,IDEs,Make agent commands auditable,,,NO,Research pattern and implement independently
+Coding,Problems list + test results,VS Code,Fix detected failures,,,NO,Research pattern and implement independently
+Coding,Git branch and PR status,GitHub/IDEs,Stay aligned with phase workflow,,,NO,Research pattern and implement independently
+Coding,Checkpoints and rollback,Coding agents,Safe autonomous editing,,,NO,Research pattern and implement independently
+Coding,Code references panel,IDEs,Navigate symbols and definitions,,,NO,Research pattern and implement independently
+Research,Source result split view,Research apps,Review claims against evidence,,,NO,Research pattern and implement independently
+Research,Citation click-through,Research apps,Trace output to actual page,,,NO,Research pattern and implement independently
+Research,Evidence quality flags,Research apps,Distinguish strong/weak sourcing,,,NO,Research pattern and implement independently
+Research,Research notebook,Notebook tools,Persist and organize findings,,,NO,Research pattern and implement independently
+Research,Query/history exploration,Search UIs,Reproduce research,,,NO,Research pattern and implement independently
+Models,Compatibility reason tags,Model managers,Explain hardware feasibility,,,NO,Research pattern and implement independently
+Models,Model memory/VRAM estimator,Model runners,Avoid unsafe downloads/loads,,,NO,Research pattern and implement independently
+Models,Download state and verification,Download managers,Recover from interruption,,,NO,Research pattern and implement independently
+Models,Quality and speed eval history,Benchmark tools,Measure not guess,,,NO,Research pattern and implement independently
+Models,Per-task model profile,Local AI clients,Match model to intent,,,NO,Research pattern and implement independently
+Design,Canvas with layers and frames,Figma/Penpot,True editable layout,,,NO,Research pattern and implement independently
+Design,Properties inspector and variants,Figma/Penpot,Editable components and states,,,NO,Research pattern and implement independently
+Design,Auto-layout controls,Figma/Penpot,Responsive structured designs,,,NO,Research pattern and implement independently
+Design,Component library and tokens,Penpot,Consistent design and reuse,,,NO,Research pattern and implement independently
+Design,Zoom/pan/minimap,Figma,Navigate large documents,,,NO,Research pattern and implement independently
+Design,History + undo/redo,Figma,Non-destructive iteration,,,NO,Research pattern and implement independently
+Design,Asset selection/library,Design tools,Find reusable resources,,,NO,Research pattern and implement independently
+System,Hardware diagnostics view,System monitors,Transparent performance limits,,,NO,Research pattern and implement independently
+System,Background queue with checkpoints,Workflow apps,Unattended execution clarity,,,NO,Research pattern and implement independently
+System,Scoped security/audit log,Security dashboards,Trust and inspection,,,NO,Research pattern and implement independently
+System,Offline/degraded modes,Native apps,Reliable handling of connectivity,,,NO,Research pattern and implement independently
+System,Multi-window restore state,Desktop apps,Consistent workspace continuity,,,NO,Research pattern and implement independently

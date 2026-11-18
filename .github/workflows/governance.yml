@@ -1,0 +1,33 @@
+name: Governance v3.2
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  governance:
+    name: governance-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Policy checks
+        run: python scripts/check_governance.py
+      - name: Comprehensive v3 spec checks
+        run: python scripts/verify_v3_kit.py
+      - name: Comprehensive v3.2 spec checks
+        run: python scripts/verify_v32_kit.py
+      - name: Validate change records fixture
+        run: python tools/changelog.py validate --records tests/fixtures/change_records.json --check-docs
+      - name: Validate change record PR policy
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: python scripts/check_changelog_pr.py
+      - name: Incident redaction tests
+        run: python -m unittest discover -s tests -v

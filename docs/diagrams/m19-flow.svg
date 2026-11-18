@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="240" viewBox="0 0 1300 240" role="img" aria-label="Documentation Wiki &amp; Help Center technical flow">
+<rect width="1300" height="240" rx="18" fill="#0b1118"/>
+<text x="30" y="47" fill="#e7f1f8" font-size="23" font-family="Arial" font-weight="bold">M19 — Documentation Wiki &amp; Help Center · Concept diagram</text>
+<rect x="30" y="98" width="184" height="86" rx="12" fill="#121b25" stroke="#34605b" stroke-width="1.4"/>
+<text x="122" y="137" fill="#eef7f7" text-anchor="middle" font-size="15" font-family="Arial">User / Agent Intent</text>
+<path d="M 217 141 H 236" stroke="#42b89a" stroke-width="2"/><path d="M 236 141 l -7 -5 v 10 z" fill="#42b89a"/>
+<rect x="241" y="98" width="184" height="86" rx="12" fill="#192633" stroke="#34605b" stroke-width="1.4"/>
+<text x="333" y="137" fill="#eef7f7" text-anchor="middle" font-size="15" font-family="Arial">Typed Command</text>
+<path d="M 428 141 H 447" stroke="#42b89a" stroke-width="2"/><path d="M 447 141 l -7 -5 v 10 z" fill="#42b89a"/>
+<rect x="452" y="98" width="184" height="86" rx="12" fill="#132e30" stroke="#34605b" stroke-width="1.4"/>
+<text x="544" y="137" fill="#eef7f7" text-anchor="middle" font-size="15" font-family="Arial">Policy &amp; Validation</text>
+<path d="M 639 141 H 658" stroke="#42b89a" stroke-width="2"/><path d="M 658 141 l -7 -5 v 10 z" fill="#42b89a"/>
+<rect x="663" y="98" width="184" height="86" rx="12" fill="#193a36" stroke="#34605b" stroke-width="1.4"/>
+<text x="755" y="137" fill="#eef7f7" text-anchor="middle" font-size="15" font-family="Arial">Module Worker</text>
+<path d="M 850 141 H 869" stroke="#42b89a" stroke-width="2"/><path d="M 869 141 l -7 -5 v 10 z" fill="#42b89a"/>
+<rect x="874" y="98" width="184" height="86" rx="12" fill="#162431" stroke="#34605b" stroke-width="1.4"/>
+<text x="966" y="137" fill="#eef7f7" text-anchor="middle" font-size="15" font-family="Arial">Durable Event Store</text>
+<path d="M 1061 141 H 1080" stroke="#42b89a" stroke-width="2"/><path d="M 1080 141 l -7 -5 v 10 z" fill="#42b89a"/>
+<rect x="1085" y="98" width="184" height="86" rx="12" fill="#172d3a" stroke="#34605b" stroke-width="1.4"/>
+<text x="1177" y="137" fill="#eef7f7" text-anchor="middle" font-size="15" font-family="Arial">UI / Evidence</text>
+<text x="30" y="214" fill="#91a9b5" font-size="13" font-family="Arial">Architecture only — NOT a screenshot of a working product.</text>
+</svg>

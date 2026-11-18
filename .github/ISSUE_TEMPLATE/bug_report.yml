@@ -1,0 +1,39 @@
+name: Bug / regression report
+about: Use for safe, reproducible defects. Incident reporter may file sanitized metadata.
+title: "[Bug] "
+labels: [bug, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: "Never submit credentials, private project content, complete local paths, private prompts or security exploit details. Security findings use private reporting."
+  - type: input
+    id: module
+    attributes:
+      label: Module ID
+      placeholder: M03
+    validations:
+      required: true
+  - type: input
+    id: error_code
+    attributes:
+      label: Stable error code or fingerprint
+  - type: textarea
+    id: steps
+    attributes:
+      label: Safe reproduction steps
+      description: Explain using non-sensitive or synthetic data only.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result vs actual result
+  - type: input
+    id: app_version
+    attributes:
+      label: App version
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options: [P0 - Security / data loss, P1 - Crash / core blocked, P2 - Function broken, P3 - Warning / cosmetic]

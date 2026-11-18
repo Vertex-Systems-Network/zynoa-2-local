@@ -1,0 +1,5 @@
+tool_or_standard,purpose,strengths,limitations,decision,reference
+Keep a Changelog,Human-facing changelog convention,Clear release categories and history,Does not prove published artifact,Adopt for output formatting,https://keepachangelog.com/en/1.1.0/
+GitHub Automatically Generated Release Notes,Release metadata from merged PRs,Good cross-links and contributor records,Merge does not verify installer distribution,Supplement verified manifest and curated notes,https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes
+Changesets,Version bump and changeset workflow,Strong monorepo support,Package releases not same as signed desktop build,Optional adapter for package versioning,https://changesets.dev/guide/getting-started
+Verified change record and signed release manifest,Custom desktop release correctness,Separates issue/merge from installed release and synchronizes docs,Requires own implementation and tests,Canonical planned control plane,docs/operations/CHANGE_INTELLIGENCE_CHANGELOG.md

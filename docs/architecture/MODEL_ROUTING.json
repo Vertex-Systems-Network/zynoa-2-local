@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "ranking_principle": "Hard feasibility & policy filters first. Then task-specific weighted, measured scores with confidence.",
+  "weights": {
+    "task_quality": 0.3,
+    "memory_and_stability": 0.25,
+    "measured_speed": 0.15,
+    "agent_tool_reliability": 0.15,
+    "context": 0.05,
+    "trust_and_license": 0.05,
+    "local_availability": 0.05
+  },
+  "profiles": [
+    {
+      "id": "fast",
+      "intended_role": "classification, summaries, lightweight chat"
+    },
+    {
+      "id": "balanced",
+      "intended_role": "general user chat, everyday coding"
+    },
+    {
+      "id": "deep_reasoning",
+      "intended_role": "complex plans, architecture, review"
+    },
+    {
+      "id": "code",
+      "intended_role": "repo editing and tests"
+    },
+    {
+      "id": "vision",
+      "intended_role": "image comprehension"
+    },
+    {
+      "id": "embeddings",
+      "intended_role": "knowledge retrieval"
+    },
+    {
+      "id": "image_generation",
+      "intended_role": "creative raster generation"
+    }
+  ],
+  "mandatory_filters": [
+    "license_compliant",
+    "runtime_backend_available",
+    "modality_supported",
+    "free_memory_and_disk_fit",
+    "required_tools_verified",
+    "security_trust_status_acceptable"
+  ],
+  "missing_benchmarks": "UNVERIFIED; benchmark before claiming performance"
+}

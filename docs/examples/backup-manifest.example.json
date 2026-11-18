@@ -1,0 +1,28 @@
+{
+  "format_version": 1,
+  "app_version": "EXAMPLE-ONLY",
+  "schema_version": 1,
+  "created_at": "EXAMPLE-ONLY",
+  "profile_id": "example-profile",
+  "includes": [
+    "chats",
+    "managed_artifacts",
+    "settings"
+  ],
+  "excludes": [
+    "credentials",
+    "ollama_models",
+    "external_referenced_files"
+  ],
+  "encryption": {
+    "scheme": "XChaCha20-Poly1305",
+    "kdf": "Argon2id",
+    "salt": "EXAMPLE-ONLY"
+  },
+  "contents": [
+    {
+      "relative_path": "data/state.sqlite",
+      "sha256": "EXAMPLE-ONLY"
+    }
+  ]
+}

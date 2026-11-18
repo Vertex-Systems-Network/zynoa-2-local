@@ -1,0 +1,15 @@
+{
+  "schema_version": 3,
+  "phase": "P00",
+  "phase_status": "PLANNED_NOT_STARTED",
+  "active_branch": null,
+  "primary_pr": null,
+  "last_verified_remote_sha": null,
+  "worker_running": false,
+  "required_documents": [
+    "docs/MASTER_PLAN_V3.md",
+    "AGENTS.md",
+    "docs/quality/PRE_DEVELOPMENT_CHECKLIST.md"
+  ],
+  "next_phase": "P01"
+}

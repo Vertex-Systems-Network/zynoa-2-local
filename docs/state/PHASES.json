@@ -1,0 +1,93 @@
+[
+  {
+    "id": "P00",
+    "name": "Governance, product research and AI controller",
+    "modules": "M22 M26(governance)",
+    "acceptance": "Constitution, PR policy, verified source bank, local controller contract and test harness; change-event policy and release-note evidence contract",
+    "state": "NOT_STARTED"
+  },
+  {
+    "id": "P01",
+    "name": "Desktop foundation and secure services",
+    "modules": "M01 M16 M17 M18  M23(core) M24(registry) M26(event-store)",
+    "acceptance": "Bootable client, IPC and storage, native security, diagnostic spine; transactional user data vault, externalized managed data and location registry; durable privacy-scoped append-only audit events",
+    "state": "NOT_STARTED"
+  },
+  {
+    "id": "P02",
+    "name": "Final shared UI and help foundation",
+    "modules": "M02 M19  M23(UI) M24(UI) M25(UI) M26(UI)",
+    "acceptance": "Polished shell/design system, all shared UI states, help framework and visual gate; user-facing Changelog UI fully specified and design-system compliant",
+    "state": "NOT_STARTED"
+  },
+  {
+    "id": "P03",
+    "name": "Complete Chat module",
+    "modules": "M03  M23(chat-data)",
+    "acceptance": "Real local model inference, attachments, history, errors and streaming; durable history, managed attachments, backup/restore E2E gates; chat module changes linked to canonical changelog and Help",
+    "state": "NOT_STARTED"
+  },
+  {
+    "id": "P04",
+    "name": "Complete Coding module",
+    "modules": "M04  M23(project-artifacts)",
+    "acceptance": "Repository edit/test/verify workflow and scoped git operations",
+    "state": "NOT_STARTED"
+  },
+  {
+    "id": "P05",
+    "name": "Intelligent model, hardware and download suite",
+    "modules": "M05 M06  M24(complete)",
+    "acceptance": "Benchmarked routing and verified resumable model management; runtime-specific storage relocation and hash-verified downloads",
+    "state": "NOT_STARTED"
+  },
+  {
+    "id": "P06",
+    "name": "Search + Research + Browser",
+    "modules": "M07 M08 M09",
+    "acceptance": "Web research with citations, guarded browsing and verifiable evidence",
+    "state": "NOT_STARTED"
+  },
+  {
+    "id": "P07",
+    "name": "Advanced knowledge and memory",
+    "modules": "M10",
+    "acceptance": "Indexing, retrieval, context management, revalidation and recovery",
+    "state": "NOT_STARTED"
+  },
+  {
+    "id": "P08",
+    "name": "Figma-like Design Studio and assets",
+    "modules": "M11 M12",
+    "acceptance": "Editable node tree, real canvas, components, tokens, exports and QA",
+    "state": "NOT_STARTED"
+  },
+  {
+    "id": "P09",
+    "name": "Media generation",
+    "modules": "M13",
+    "acceptance": "Optional model worker, task scheduling, safe provenance and output gallery",
+    "state": "NOT_STARTED"
+  },
+  {
+    "id": "P10",
+    "name": "Advanced autonomy and tool ecosystem",
+    "modules": "M14 M15",
+    "acceptance": "Recoverable agents and policy-scoped MCP integrations",
+    "state": "NOT_STARTED"
+  },
+  {
+    "id": "P11",
+    "name": "Production release and performance lab",
+    "modules": "M20 M21  M25(complete) M26(release-publisher)",
+    "acceptance": "Signed delivery, regression budgets, observability and support readiness; automated release qualification, signed update manifest and in-app update recovery tests; release-only changelog generated from verified changes and docs in sync",
+    "state": "NOT_STARTED"
+  },
+  {
+    "id": "P12",
+    "name": "Future expansion (separate scoped phases)",
+    "modules": "\u2014",
+    "acceptance": "Native macOS/Linux maturity, collaboration, plugin SDK and innovation bank; changelog compatible with plugin/version upgrades",
+    "state": "NOT_STARTED"
+  }
+]

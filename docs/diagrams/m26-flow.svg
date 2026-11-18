@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="200" viewBox="0 0 960 200" role="img" aria-label="Changelog record flow from issue and PR to verified release, docs and in-app change history">
+<rect width="960" height="200" rx="14" fill="#111827"/>
+<g fill="#182235" stroke="#48647a" stroke-width="1.5"><rect x="24" y="54" width="160" height="88" rx="9"/><rect x="213" y="54" width="160" height="88" rx="9"/><rect x="402" y="54" width="160" height="88" rx="9"/><rect x="591" y="54" width="160" height="88" rx="9"/><rect x="780" y="54" width="156" height="88" rx="9"/></g>
+<g fill="#edf2fa" font-family="sans-serif" font-weight="600" font-size="14" text-anchor="middle"><text x="104" y="88">Issue / Change</text><text x="104" y="108">Event Ledger</text><text x="293" y="88">PR + Tests</text><text x="293" y="108">Docs Sync</text><text x="482" y="88">Verified Merge</text><text x="482" y="108">Release Gate</text><text x="671" y="88">Signed Release</text><text x="671" y="108">Manifest</text><text x="858" y="88">In-App Notes</text><text x="858" y="108">Help / Wiki</text></g>
+<g stroke="#66c7a0" fill="none" stroke-width="2"><path d="M184 98H209m-7 -6l7 6 -7 6M373 98H398m-7 -6l7 6 -7 6M562 98H587m-7 -6l7 6 -7 6M751 98H776m-7 -6l7 6 -7 6"/></g>
+<text x="28" y="32" fill="#66c7a0" font-family="sans-serif" font-size="17">M26 | Verified change history — diagram only, NOT a UI capture</text>
+<text x="480" y="174" fill="#bdc7d3" font-family="sans-serif" font-size="12" text-anchor="middle">Open issue = In Progress; only verified published releases appear under What's New</text>
+</svg>
