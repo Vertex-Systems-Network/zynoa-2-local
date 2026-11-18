@@ -134,3 +134,14 @@ See [P00 local model planning](../operations/P00_LOCAL_MODEL_PLANNING.md) and [I
 - **FIXTURE-05:** T25 completing proves *only* fixture preview; independent real OS sandbox/process/file-handle/network protection, live host/model, bounded coding repair loop, protected GitHub main and verified merge gates remain UNMET. PR may not advance to P01 based on this helper.
 
 [Fixture operator contract](../operations/P00_FIXTURE_DRAFT_STAGING.md) · [ADR-0014](../adr/0014-staging-not-sandbox.md).
+
+## P00 rootless syntax broker contract gates (2026-11-18)
+
+- **DOCKER-SYN-01:** Only operator-supplied P00 task identity and `WorkspaceScope`; one flat bounded Python fixture; exact digest-pinned official image; candidate never chooses Docker image/socket/command/args or run permission.
+- **DOCKER-SYN-02:** `enabled=False` is default and must issue **zero** Docker calls. Real invocation requires nonroot POSIX user, owned nonlinked rootless Unix socket and executable Docker binary. Reject rootful/remote daemon and unsigned/mutable image input.
+- **DOCKER-SYN-03:** Require daemon to report exact rootless status, cgroup version 2 and driver systemd. Confirm actual delegated controllers/resource ceilings separately on the provisioned host; reported info/command flags alone are not proof.
+- **DOCKER-SYN-04:** Only `--network none`, read-only filesystem, no mounts or Docker socket, all capabilities dropped, no-new-privileges, fixed nonroot user, constrained memory/CPU/PIDs and private tmpfs. `--pull never`; fixed trusted `python -I -S -B -c` syntax compilation only. No candidate bytecode execution.
+- **DOCKER-SYN-05:** Exact success/invalid markers, bounded output/no stderr leak, timeout targets only its own randomly named container and fails closed if cleanup uncertain; zero GitHub/workspace writes. Linux + Windows policy suites must pass.
+- **DOCKER-SYN-06 (UNMET):** Real host rootless Docker, image provenance/vulnerability audit, delegated cgroup resource enforcement, no-network/no-mount escape probes, process supervision, cleanup after hard crash and actual CI receipts must pass BEFORE T19/T20 or P00 exit. Mock tests are not deployment evidence.
+
+[Operator manual](../operations/P00_DOCKER_SYNTAX_BROKER.md) · [ADR-0015](../adr/0015-rootless-syntax-gate.md) · [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3).
