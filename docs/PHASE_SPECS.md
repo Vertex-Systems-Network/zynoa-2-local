@@ -220,3 +220,14 @@
 - **P12:** preserve semantic version changes across plugin capabilities and platform updates.
 
 **PR gate:** no affected module can become COMPLETED_VERIFIED if change record/docs/help/wiki/screenshot and CI evidence incomplete. A new reported issue is logged immediately but never described as fixed before release. See [M26 system contract](operations/CHANGE_INTELLIGENCE_CHANGELOG.md).
+
+
+## P08I — Cross-tool Designer import/export (AFTER P08, BEFORE P09)
+
+**Owner:** M11/M12 interoperability extension. **Mandatory prerequisite: P08 verified** merged GitHub SHA on `main`, native Designer core tests/undo/autosave/objects/components/assets/fidelity and real screenshots/help/Wiki complete. In P00–P08 research and document adapters only; do not add conversion runtime code.
+
+**Branch:** `phase/08i-design-interoperability`. One active branch and one primary PR. Create it only after P08 remote merge is verified, and never in parallel with an unmerged P08.
+
+**Scope:** capability-negotiated, license-aware import/export adapters for verified Figma, Penpot, two OpenPencil ecosystems and additional documented tools; canonical editable Zynoa document graph, supported/partial/experimental/unsupported registry, import/export UI, user controls, asset/font/token/component mapping, safe file parsing, round-trip fidelity report, tests and illustrated documentation. No unsupported proprietary format guarantees.
+
+**Exit:** All ten DESIGN-IO-01..10 requirements from [DESIGN-IO](operations/DESIGN_INTEROPERABILITY.md) with real target-tool evidence, security/failure fixtures, data preservation, CI, screenshots, Help/Wiki, changelog and verified phase PR merge. The original native P08 completion must not be blocked by unimplemented P08I features.
