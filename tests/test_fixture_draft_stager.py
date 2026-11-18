@@ -56,7 +56,7 @@ class FixtureStagerTests(unittest.TestCase):
         self.assertFalse(result["model_code_executed"])
         self.assertFalse(result["os_sandbox_verified"])
         self.assertFalse(result["persistent_worker_deployed"])
-        self.assertEqual("PYTHON_AST_PARSED_NOT_EXECUTED",
+        self.assertEqual("PYTHON_TEXT_ONLY_NO_PARSE_OR_EXECUTION",
                          result["candidate_receipts"][0]["static_check"])
         self.assertEqual(64, len(result["candidate_receipts"][0]["sha256"]))
         self.assertEqual(before, list(self.root.rglob("*")))
@@ -92,13 +92,16 @@ class FixtureStagerTests(unittest.TestCase):
                     self.preview(paths, contents)
         self.assertFalse((self.root / ONE_PATH).exists())
 
-    def test_rejects_malformed_python_and_json(self):
-        for filename, content in (
-            ("tests/fixtures/a.py", "def broken(:\n    pass"),
-            ("tests/fixtures/a.json", '{"unfinished":'),
-        ):
-            with self.subTest(filename=filename), self.assertRaises(FixtureStageDenied):
-                self.preview((filename,), {filename: content})
+    def test_untrusted_python_is_not_parsed_and_invalid_json_is_rejected(self):
+        python_path = "tests/fixtures/a.py"
+        malformed_python = "def broken(:\\n    pass"
+        # Host must not parse (or execute) adversarial Python source.
+        preview = self.preview((python_path,), {python_path: malformed_python})
+        self.assertEqual("PYTHON_TEXT_ONLY_NO_PARSE_OR_EXECUTION",
+                         preview["candidate_receipts"][0]["static_check"])
+        json_path = "tests/fixtures/a.json"
+        with self.assertRaises(FixtureStageDenied):
+            self.preview((json_path,), {json_path: '{"unfinished":'})
 
     def test_no_code_execution_even_when_candidate_contains_system_calls(self):
         candidate = "import os\nos.system('echo should-never-execute')\n"
@@ -106,7 +109,7 @@ class FixtureStagerTests(unittest.TestCase):
             result = self.preview(contents={ONE_PATH: candidate})
         mock_exec.assert_not_called()
         self.assertFalse((self.root / ONE_PATH).exists())
-        self.assertEqual("PYTHON_AST_PARSED_NOT_EXECUTED",
+        self.assertEqual("PYTHON_TEXT_ONLY_NO_PARSE_OR_EXECUTION",
                          result["candidate_receipts"][0]["static_check"])
 
     def test_disallows_non_fixture_proposals_even_when_scope_allows(self):
