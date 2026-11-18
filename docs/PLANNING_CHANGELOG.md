@@ -64,3 +64,12 @@
 - Updated governance smoke to execute actual `phase-policy → design-spec → docs-integrity` jobs despite inverted priority order; still zero GitHub writes/model tasks.
 - Added direct/indirect cycle, atomic batch rollback, wrong phase, crash persistence, retry/cascade/orphan and malformed input tests, plus ADR-0010, security gates, module Help/Wiki source and design notes.
 - [CI #44220171663](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44220171663) passed **117 tests**. P00 remains a draft backend-only development PR; no user-facing release or published Wiki/screenshot evidence.
+
+## P00 trusted worktree scope and cross-platform tests — 2026-11-18 (UNRELEASED)
+
+- Added `tools/workspace_policy.py`: narrow P00/phase-bound file access policy for future host-controlled agent operations, with traversal/UNC/drive/link/junction/Git metadata/secret/Unicode control denial, protected phase/CI/credential paths and privacy-safe decisions.
+- Added `tools/worktree_plan.py`: deterministic, SHA-pinned detached `git worktree add --no-checkout` plan for trusted existing repo + separate root/hooks directory; module **does not execute** it or grant a sandbox.
+- Added `tests/test_workspace_policy.py`: real Git worktree integration on a **synthetic disposable trusted repository** and hostile path/scoping fixtures.
+- Added `workspace-windows` GitHub Actions job for Windows-first path and Git fixture verification, alongside Linux governance tests. Fixed Windows short-path / long-path test assertion using canonical paths after failing early Windows CI.
+- Added [ADR-0011](adr/0011-worktree-is-not-sandbox.md), [worktree policy guide](operations/P00_WORKTREE_POLICY.md), additional M22 Help/Wiki source and threat/release/predevelopment rules.
+- [CI #44224444145](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44224444145) passed 138 Linux tests plus 21 Windows tests. This change is **not released**; a production OS sandbox, user worktrees, deployed model worker and P00 merge remain pending.
