@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "phase": "P00",
+  "branch": "phase/00-governance",
+  "pr_number": 1,
+  "update_policy": "evidence-gated",
+  "source_of_truth": "docs/state/pr-tasks/P00.json",
+  "tasks": [
+    {
+      "id": "P00-T01",
+      "title": "Canonical agent rules and consolidated master plan",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44227662477"
+    },
+    {
+      "id": "P00-T02",
+      "title": "Phase governance, single-branch PR and preflight contracts",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1"
+    },
+    {
+      "id": "P00-T03",
+      "title": "Authenticated GitHub PR and CI observer",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44227662477"
+    },
+    {
+      "id": "P00-T04",
+      "title": "Persistent SQLite journal and single-owner lease",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44227662477"
+    },
+    {
+      "id": "P00-T05",
+      "title": "Default-disabled guarded merge policy with unit tests",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44227662477"
+    },
+    {
+      "id": "P00-T06",
+      "title": "Read-only durable job queue and retry fencing",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44227662477"
+    },
+    {
+      "id": "P00-T07",
+      "title": "Phase-scoped task DAG and dependency tests",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44227662477"
+    },
+    {
+      "id": "P00-T08",
+      "title": "Model-facing workspace path policy and denial tests",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44227662477"
+    },
+    {
+      "id": "P00-T09",
+      "title": "Detached no-checkout worktree planner and fixture tests",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44227662477"
+    },
+    {
+      "id": "P00-T10",
+      "title": "Developer CI incident bridge code and privacy tests",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44227662477"
+    },
+    {
+      "id": "P00-T11",
+      "title": "Linux and Windows governance CI suites",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44227662477"
+    },
+    {
+      "id": "P00-T12",
+      "title": "Structured unreleased change record and docs checkpoints",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44227662477"
+    },
+    {
+      "id": "P00-T13",
+      "title": "Versioned PR task manifest and tracked description",
+      "status": "IN_PROGRESS",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1"
+    },
+    {
+      "id": "P00-T14",
+      "title": "Trusted automatic PR task board synchronization",
+      "status": "TODO"
+    },
+    {
+      "id": "P00-T15",
+      "title": "Model provider discovery and local Ollama health preflight",
+      "status": "TODO"
+    },
+    {
+      "id": "P00-T16",
+      "title": "Persistent worker host package and installer configuration",
+      "status": "TODO"
+    },
+    {
+      "id": "P00-T17",
+      "title": "Actual supervised developer host deployment and heartbeat",
+      "status": "BLOCKED",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+    },
+    {
+      "id": "P00-T18",
+      "title": "Configure and verify protected main ruleset",
+      "status": "BLOCKED",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+    },
+    {
+      "id": "P00-T19",
+      "title": "OS-level sandbox, scoped execution and recovery proof",
+      "status": "BLOCKED",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+    },
+    {
+      "id": "P00-T20",
+      "title": "Autonomous model-backed plan-edit-test-repair loop",
+      "status": "TODO"
+    },
+    {
+      "id": "P00-T21",
+      "title": "Non-bypass GitHub write identity and PR integration",
+      "status": "BLOCKED",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+    },
+    {
+      "id": "P00-T22",
+      "title": "Verified CI failure to sanitized GitHub Issue delivery",
+      "status": "BLOCKED",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+    },
+    {
+      "id": "P00-T23",
+      "title": "Unattended safe fixture development end-to-end test",
+      "status": "BLOCKED",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+    },
+    {
+      "id": "P00-T24",
+      "title": "P00 exit gates and policy-compliant PR merge",
+      "status": "BLOCKED",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+    }
+  ]
+}
