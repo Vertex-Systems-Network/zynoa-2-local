@@ -6,6 +6,7 @@ write, Ollama invocation, real production directory or service registration.
 from __future__ import annotations
 
 import copy
+from contextlib import closing
 import json
 import os
 import sqlite3
@@ -174,7 +175,7 @@ class HostStorageTests(unittest.TestCase):
         # WAL can recover data after rewriting only the main DB file.
         # Deleting the required schema within a committed SQLite transaction
         # is a deterministic incomplete/invalid host-state fixture.
-        with sqlite3.connect(self.host.db) as db:
+        with closing(sqlite3.connect(self.host.db)) as db, db:
             db.execute("DROP TABLE phase_events")
         with self.assertRaises(HostBootstrapError):
             self.host.backup()
