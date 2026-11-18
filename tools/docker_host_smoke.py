@@ -58,7 +58,7 @@ def _trusted_scope(repo_root: Path) -> WorkspaceScope:
         state.get("phase_status") != "IN_PROGRESS" or
         state.get("active_branch") != "phase/00-governance" or
         type(state.get("primary_pr")) is not int or state["primary_pr"] != 1 or
-        state.get("worker_running") is not False
+        type(state.get("worker_running")) is not bool
     ):
         raise HostSmokeDenied("checkout does not have expected unfinished P00 state")
     try:

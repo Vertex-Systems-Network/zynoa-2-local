@@ -100,7 +100,7 @@ class HostSmokeTests(unittest.TestCase):
         for key, bad in (
             ("phase", "P01"), ("phase_status", "MERGED_VERIFIED"),
             ("active_branch", "main"), ("primary_pr", 2),
-            ("primary_pr", True), ("worker_running", True),
+            ("primary_pr", True), ("worker_running", "unverified"),
         ):
             self.state[key] = bad
             self.write_state()
@@ -112,6 +112,16 @@ class HostSmokeTests(unittest.TestCase):
                 "active_branch": "phase/00-governance",
                 "primary_pr": 1, "worker_running": False,
             }[key]
+
+    def test_running_flag_not_taken_as_host_attestation(self):
+        # An independently deployed future worker may legitimately set True.
+        # The smoke CLI still MUST report that it has not verified deployment.
+        self.state["worker_running"] = True
+        self.write_state()
+        receipt = self.execute()
+        self.assertEqual("ROOTLESS_SYNTAX_SMOKE_ONLY", receipt["status"])
+        self.assertIs(receipt["persistent_worker_deployed"], False)
+        self.assertIs(receipt["independent_host_sandbox_verified"], False)
 
     def test_missing_or_oversized_phase_refuses(self):
         self.phase.write_bytes(b"x" * 4097)
