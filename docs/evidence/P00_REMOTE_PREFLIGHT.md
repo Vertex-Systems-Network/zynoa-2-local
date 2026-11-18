@@ -49,3 +49,12 @@ Prior GitHub Action runs on intermediate P00 commits have reported success. Fina
 - actions/checkout and setup-python upgraded to Node24-compatible v6; no deprecation warning in the reviewed CI log.
 - Worker observer and issue router remain code deployed only in the PR, not an always-on host; trusted failure-to-Issue workflow is inactive on unmerged branch. Test results establish the Python code slice, not autonomous end-to-end development.
 - Research comparison: [hosting options](../research/P00_WORKER_HOSTING_RESEARCH.md); architecture: [ADR-0009](../adr/0009-phase-observer-boundary.md); operator [runbook](../operations/P00_WORKER_RUNBOOK.md).
+
+## P00 continuation: job queue + effective branch rules (2026-11-18)
+
+- Source-of-truth audit: PR #1 open/draft on phase/00-governance; repository auto-merge available, but main branch unprotected and ruleset listing empty. No previous phase remote merge or P01 branch exists.
+- New read-only queue: `tools/dev_job_queue.py` and `tools/dev_job_runner.py`. CI proves three built-in policy/doc checks are enqueued and completed from a temporary SQLite file; no user code or network write executed.
+- SQLite concurrent claim, stale lease, idempotent retry, bounded blocked status and failed result prevention have automated regressions.
+- GitHub security: observer/merge guard requires applied PR rules + required governance check pinned to expected GitHub App ID, not simply successful check title and `protected=true`; unknown rules are rejected. External official references: https://docs.github.com/en/rest/repos/rules and https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets .
+- [CI run 44216634747](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44216634747): 97 tests passed, live merge-guard read-only smoke passed. Later HEAD commits require fresh CI; this result is a historical pinned evidence record.
+- No protected branch/ruleset created, no autonomous development runtime deployed, no screenshot/GUI generated. Remaining P00 blocker Issue #3 stays open.
