@@ -68,3 +68,12 @@
 - Before each patch/checkpoint, record task status changes in manifest alongside tests, incidents, Help/Wiki and unreleased change records; never hardcode percentage or mark task DONE from unrelated CI.
 - Validate `python -m scripts.check_pr_task_board` before claiming healthy PR state; remember trusted PR-body write workflow only exists after default-main installation.
 - On actual developer host, run localhost-only Ollama preflight; no model inventory/probe on an ephemeral CI runner proves user's host has a working local model.
+
+## P00 observer host pre-development and recovery acceptance
+
+- Confirm dedicated host scope outside repo, current user/service identity and secure credential mechanism; never initialize a folder that contains unrelated user data.
+- Refuse provisioning without explicit host capability; reject invalid P00 state, symlink/junction path and reinitialization of existing state.
+- Validate SQLite WAL state, required event/lease schema and file permissions; test online snapshot, checksum and non-destructive restore drill before enabling a persistent worker.
+- Exercise Windows database handle close and temporary-file cleanup in CI; never suppress locked-file warnings.
+- Verify Linux systemd unit and backup timer only after operator install; a Windows at-logon task is not an unattended service.
+- Record actual host heartbeat/restart/service status and model+OS sandbox only if independently observed; CI fixture proof is not deployment.
