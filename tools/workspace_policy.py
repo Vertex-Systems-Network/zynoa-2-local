@@ -10,8 +10,10 @@ import ntpath
 import re
 import unicodedata
 from dataclasses import dataclass
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from typing import Literal
+
+from tools.phase_controller import PHASE_ORDER
 
 Operation = Literal["read", "write"]
 
@@ -54,7 +56,7 @@ def _has_symlink_component(path: Path) -> bool:
     """Lexically walk existing components to catch links before resolve()."""
     current = path
     while current != current.parent:
-        if current.is_symlink():
+        if current.is_symlink() or (hasattr(current, 'is_junction') and current.is_junction()):
             return True
         current = current.parent
     return current.is_symlink()
@@ -102,7 +104,7 @@ class WorkspaceScope:
         root = Path(self.root)
         if not root.is_dir() or _has_symlink_component(root):
             raise WorkspaceDenied("worktree root missing or traverses symlinks")
-        if not self.phase.startswith("P") or not self.branch.startswith("phase/"):
+        if self.phase not in PHASE_ORDER or self.phase != "P00" or self.branch != "phase/00-governance":
             raise WorkspaceDenied("phase/branch not constrained")
         normalized = []
         for prefix in self.writable_prefixes:
