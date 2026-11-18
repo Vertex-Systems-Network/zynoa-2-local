@@ -47,3 +47,15 @@ See [P00 DAG](../operations/P00_TASK_DEPENDENCY_GRAPH.md), [ADR-0010](../adr/001
 - **No false green:** a disposable worktree fixture proves Git argv behavior, **not** safety of executing arbitrary repository code, actual worker deployment or product release.
 
 See [worktree security contract](../operations/P00_WORKTREE_POLICY.md), [ADR-0011](../adr/0011-worktree-is-not-sandbox.md), and unresolved [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3).
+
+## P00 durable observer state / host bootstrap threats (2026-11-18)
+
+- **Secrets & user data:** Host's SQLite `phase_events` and `worker_leases` contain sanitized operational records only; no GitHub token, chat history or user attachment copied. Host metadata records role/schema, not credentials. Product vault/backup belongs to P01+ and is **not** implemented by observer backups.
+- **Path escape / symlink or junction:** `HostLayout` refuses relative/overlapping checkout roots, symlinks/junction-like components and mismatched P00 authority. Path validation is not race-free secure filesystem open; operator-owned ACL and no-follow broker remain mandatory for code execution.
+- **SQLite WAL corruption:** Never raw-copy live `.db` without WAL; `Connection.backup()` creates an isolated consistent snapshot, SHA-256 receipt, integrity check and disposable restore drill. Interrupted backup may leave an orphan snapshot requiring independent reconciliation; it cannot be treated as complete without its sidecar.
+- **Windows open handles:** Python sqlite3 context managers COMMIT but do not CLOSE. Changed EventJournal/WorkerLease to explicit `closing(...), db`; verified Windows temporary-file cleanup and recovery tests. A fake passing CI isn't sufficient for actual host deployment.
+- **Windows scheduled task:** Current-user `Interactive` + limited runlevel; at-logon task requires user logged in, is not guaranteed 24/7 or secure service. Tokens must come from operator-managed OS secret store and never exposed to generated code.
+- **Linux systemd:** Templates run dedicated non-root user and restricted write paths, but operator must secure EnvironmentFile credentials or move to encrypted service credential system. No service installed by GitHub CI.
+- **Backup durability:** One local disk, unchecked retention or missing off-host encryption cannot guarantee data survival; actual operator off-host backup and restoration tests are still a release blocker.
+
+Details: [P00 Host Bootstrap](../operations/P00_HOST_BOOTSTRAP.md) and [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3).
