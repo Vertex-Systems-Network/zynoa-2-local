@@ -37,3 +37,13 @@ Document residual risks and platform-specific constraints before release. This d
 - **SQLite limits:** BEGIN IMMEDIATE can encounter SQLITE_BUSY under writer contention; bounded retry/host deployment proof is pending. Independent multi-host SQLite copies are unsupported.
 
 See [P00 DAG](../operations/P00_TASK_DEPENDENCY_GRAPH.md), [ADR-0010](../adr/0010-phase-task-dag.md) and [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3).
+
+## P00 model-facing worktree and path scope boundary (2026-11-18)
+
+- **Git worktree is NOT an execution sandbox.** Git's local hooks/config/filters can invoke programs; only a new disposable trusted repo is used for the P00 Git command integration test. The application must never treat arbitrary downloaded/user-controlled .git metadata as trusted without separate isolated handling.
+- **Path traversal and secret files:** model-facing path scope accepts only relative P00/phase branch paths, forbids Windows drive/UNC/backslash, traversal, invisible Unicode, reserved Windows device names, hidden credential variants, Git metadata and protected controller/security/CI/state files.
+- **Symlink and Windows junction escape:** lexical ancestor checks and resolved-root comparisons reject common escapes. This is a policy *preflight*, not atomic secure file I/O: TOCTOU and reparse-point races must be addressed in OS broker. True Windows ACL/long path/reparse tests remain unverified.
+- **No self-authorization:** policy objects and worktree roots are created by a trusted host, not retrieved content/model text. Git worktree plan is returned but not executed by current runtime. Actual untrusted model code needs OS isolation, restricted network/process identity and durable operation receipts.
+- **No false green:** a disposable worktree fixture proves Git argv behavior, **not** safety of executing arbitrary repository code, actual worker deployment or product release.
+
+See [worktree security contract](../operations/P00_WORKTREE_POLICY.md), [ADR-0011](../adr/0011-worktree-is-not-sandbox.md), and unresolved [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3).
