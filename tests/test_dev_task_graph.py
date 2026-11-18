@@ -115,6 +115,25 @@ class JobGraphTests(unittest.TestCase):
         self.assertEqual("DependencyBlocked", self.queue.inspect("c")["error_class"])
         self.assertTrue(self.graph.dependency_status("c")["blocked"])
 
+    def test_orphaned_dependency_cannot_run_after_corrupt_data(self):
+        self.task("a")
+        self.task("b")
+        self.graph.add_dependencies("b", ["a"])
+        with self.queue._connect() as db:
+            db.execute("DELETE FROM development_jobs WHERE id='a'")
+        info = self.graph.dependency_status("b")
+        self.assertFalse(info["ready"])
+        self.assertTrue(info["blocked"])
+        self.assertEqual("MISSING", info["prerequisites"][0]["status"])
+        self.assertIsNone(self.queue.claim(PHASE, BRANCH, "worker"))
+        self.assertEqual("BLOCKED", self.queue.inspect("b")["state"])
+
+    def test_malformed_nested_id_is_policy_error(self):
+        self.task("a")
+        self.task("b")
+        with self.assertRaises(QueuePolicyError):
+            self.graph.add_dependencies("b", [["a"]])
+
     def test_retrying_parent_prevents_premature_child_execution(self):
         self.task("parent")
         self.task("child", priority=0)
