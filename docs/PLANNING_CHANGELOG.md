@@ -41,3 +41,12 @@
 - Added authenticated read-only CI merge dry-run that asserts zero GitHub mutations, plus GitHub writer refusal/success unit tests.
 - Fixed long retry backoff lease expiration and added virtual-clock regression test.
 - [CI 44214670015](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44214670015) passed **71** tests and read-only merge dry-run. P00 remains draft/partial with unprotected main and no host deployment; nothing is shipped in product changelog.
+
+## P00 autonomous controller queue and rules hardening — 2026-11-18 (UNRELEASED)
+
+- Added `tools/dev_job_queue.py`, a SQLite WAL phase-scoped, owner-token-fenced, crash-recoverable job queue for **read-only** governance checks; added fixed allowlisted `tools/dev_job_runner.py` and CI smoke.
+- Added concurrency, idempotency, retry/failure, stale lease and false-success prevention regression tests.
+- Strengthened GitHub remote evidence and guarded merge to require effective applied PR/status rules pinned to a trusted CI App ID; name-only green checks and hollow branch protection cannot authorize a merge.
+- Expanded the changelog PR gate to include `tools/`, `scripts/` and workflow changes, with existing developer change record retained.
+- Added detailed queue documentation, threat model, AI agent rules, M22 Help/Wiki source and release/predevelopment quality gates.
+- [CI #44216634747](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44216634747) passed 97 tests. This is backend governance development, not a released AI desktop feature; host deployment/protected main/AI sandbox remain blocking.
