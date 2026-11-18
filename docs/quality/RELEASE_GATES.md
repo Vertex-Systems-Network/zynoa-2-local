@@ -72,3 +72,14 @@ See [queue contract](../operations/P00_DURABLE_JOB_QUEUE.md) and [open infrastru
 - P00-DAG-06: Tests/Help/Wiki/ADR/changelog and remote CI are linked. This is a backend-only implementation; no GUI screenshots can be claimed.
 
 Passing these DAG-specific checks **does not** waive P00-Q04/Q05, protected-main ruleset, permanent worker deployment, sandboxed coding execution or actual remote merge verification. Details: [DAG contract](../operations/P00_TASK_DEPENDENCY_GRAPH.md).
+
+## P00 workspace guard/worktree acceptance
+
+- **P00-WSP-01:** P00 phase/branch exactness, path containment, no privileged write scope and no agent-issued scope expansion verified.
+- **P00-WSP-02:** Unit denial for traversal, Windows drive/UNC, symlink/junction, secret files, Git metadata, malicious Unicode and prohibited actions.
+- **P00-WSP-03:** Worktree planner accepts only a trusted ordinary repo, separate controlled root, empty hooks dir, exact commit SHA and safe job ID; no shell, checkout, fetch, push or merge.
+- **P00-WSP-04:** Real *disposable fixture* Git worktree creation and detached SHA readback, test evidence attached to phase PR. No user workspace Git mutation from CI.
+- **P00-WSP-05:** Documentation, Help/Wiki source, security ADR/changelog and limitations are linked with truthful status.
+- **P00-WSP-06 (BLOCKED):** OS sandbox/ACL or fd-based safe writes, isolated tool process, secrets separation, actual model worker, Windows reparse tests, deployment/backup and interrupt-recovery verified before code execution may be enabled.
+
+Passing policy/fixture tests cannot waive branch protection, other P00-Q04/Q05 gates, real GUI screenshot obligations or verified merge. [Worktree contract](../operations/P00_WORKTREE_POLICY.md).
