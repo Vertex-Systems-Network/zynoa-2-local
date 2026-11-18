@@ -243,3 +243,9 @@
 **Lifecycle order:** close only truly resolved **pre-merge** blocker Issues with independent evidence, then make PR non-draft when all other gates pass, then protected GitHub merge, then verify main merge SHA and persist `MERGED_VERIFIED`, and only THEN start P01. The act of merging/verification cannot simultaneously be a prerequisite to closing the pre-merge Issue #3 if the same open issue blocks merge. Track post-merge work separately in status/events without relaxing live protection or CI checks.
 
 If the dedicated developer host is not provisioned, mark P00 `BLOCKED_EXTERNAL_INFRASTRUCTURE` for unattended automation; continue independent safe repository work only during an actively authorized execution session. Do NOT claim ChatGPT messages can run in the background.
+
+## Universal per-phase PR task board contract (2026-11-18)
+
+For **every** phase, the first phase-branch work produces `docs/state/pr-tasks/<PHASE>.json` and primary PR description with exact derived task count, task IDs/names, Done/In Progress/Pending/Blocked statuses, links to test evidence or open blockers, and a versioned managed section. The task list is updated **throughout the phase**, after each material change and before any merge. The trusted main-only PR table synchronizer can refresh the description after passing CI; local host sync requires explicit constrained write capability. Every PR's final acceptance includes manifest/body parity, separate actual tests/security/screenshot Help/Wiki requirements and release gate proof. A 100% count alone never authorizes merge.
+
+See [PR Task Tables](operations/PR_TASK_TABLES.md). P00 currently has 24 tracked tasks, with multiple real external infrastructure blockers; no P01 task manifest/PR may start before actual P00 remote merge.
