@@ -12,7 +12,6 @@ import json
 import os
 import re
 import secrets
-import socket
 import stat
 import subprocess
 import tempfile
@@ -67,6 +66,8 @@ class SyntaxJob:
             docker_binary, "--host", rootless_socket, "run",
             "--pull", "never", "--rm", "--interactive",
             "--name", job_name,
+            "--label", "zynoa.phase=P00",
+            "--label", "zynoa.purpose=syntax-only",
             "--network", "none", "--ipc", "none",
             "--read-only", "--cap-drop", "ALL",
             "--security-opt", "no-new-privileges:true",
@@ -198,6 +199,20 @@ def run_python_syntax(
             isinstance(x, str) and x.lower() in ("name=rootless", "rootless") for x in features
         ):
             raise DockerSyntaxDenied("Docker daemon rootless status is not attested")
+        # Docker's official rootless docs warn that --memory/--cpus/--pids-limit
+        # may be silently ignored without cgroups-v2 + systemd.
+        for fmt, expected in (("{{.CgroupVersion}}", b"2"),
+                              ("{{.CgroupDriver}}", b"systemd")):
+            try:
+                probe = runner(
+                    (binary, "--host", endpoint, "info", "--format", fmt),
+                    data=None, env=env, timeout=8,
+                )
+            except (OSError, subprocess.TimeoutExpired):
+                raise DockerSyntaxDenied("Docker cgroup attestation unavailable") from None
+            probe_status, probe_output = _limited_result(probe)
+            if probe_status != 0 or probe_output != expected:
+                raise DockerSyntaxDenied("required cgroup-v2/systemd enforcement not attested")
         argv = job.argv(docker_binary=binary, rootless_socket=endpoint, job_name=name)
         try:
             result = runner(argv, data=job.data, env=env, timeout=12)
@@ -227,7 +242,7 @@ def run_python_syntax(
         "phase": "P00", "task_id": job.task_id,
         "image_digest": job.image.split("@", 1)[1],
         "candidate_sha256": job.candidate_sha256,
-        "docker_commands_executed": 2,
+        "docker_commands_executed": 4,
         "model_source_executed": False,
         "workspace_files_written": 0, "github_writes": 0,
         "rootless_daemon_status_observed": True,
