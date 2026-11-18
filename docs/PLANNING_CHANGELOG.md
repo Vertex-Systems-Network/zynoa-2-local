@@ -122,3 +122,9 @@
 - [CI #44237855342](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44237855342) passed **233 Linux tests + 73 Windows tests**, including no-GitHub-write merge dry-run, after bounded fixes.
 - Added [P00 staging operator contract](operations/P00_FIXTURE_DRAFT_STAGING.md), [ADR-0014](adr/0014-staging-not-sandbox.md), M22 Help/Wiki *source*, security/release/pre-development rules and unreleased structured change record.
 - Added P00-T25 as an honest newly discovered **scoped** verified task in the same PR; task manifest/PR body now **25 total, 15 DONE, 3 IN_PROGRESS, 7 BLOCKED (60%)**. Full OS sandbox T19 and plan/edit/test/fix T20 are still unverified. No persistent host, app, product release or published Wiki claimed.
+
+## P00 T25 task table regression fixed — 2026-11-18 (UNRELEASED)
+
+- Appending new verified `P00-T25` changed task manifest order. Existing `tests/test_pr_task_board.py` assumed `m["tasks"][-1]` was always BLOCKED, causing genuine GitHub Actions failure even though P00-T24 remained blocked.
+- Corrected assertion to locate stable `P00-T24` by ID; did not alter task status, skip a test or disable CI. [Exact success run #44238887078](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44238887078) passed **233 Linux and 73 Windows** tests, 25-task validation, changelog gate and no-write merge guard.
+- P00-T25 remains DONE (ephemeral fixture preview only); external OS sandbox and actual unattended coding remain UNRELEASED/BLOCKED under [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3).
