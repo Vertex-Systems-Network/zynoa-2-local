@@ -124,7 +124,8 @@ class TaskBoardTests(unittest.TestCase):
         before = summary(m)
         render(m)
         self.assertEqual(before, summary(m))
-        self.assertEqual("BLOCKED", m["tasks"][-1]["status"])
+        still_blocked = next(t for t in m["tasks"] if t["id"] == "P00-T24")
+        self.assertEqual("BLOCKED", still_blocked["status"])
 
     def test_load_manifest_rejects_garbage(self):
         with tempfile.TemporaryDirectory() as td:
