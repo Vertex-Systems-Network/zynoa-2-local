@@ -34,11 +34,41 @@ _PY_FILE = re.compile(r"^tests/fixtures/[A-Za-z0-9][A-Za-z0-9_.-]{0,71}\.py$")
 _OK = b"ZYNOA_SYNTAX_VALID_NOT_EXECUTED"
 _BAD = b"ZYNOA_SYNTAX_INVALID_NOT_EXECUTED"
 
-# This code is trusted host-owned, never supplied by the model. It COMPILES
-# Python source but DOES NOT EXECUTE the returned bytecode; memory/CPU caps
-# and a non-root OCI boundary contain pathological parser cases.
+# Trusted host-defined resource validator. This source is fixed by the repo,
+# NEVER model-supplied. The same function body is tested without a Docker host.
+# Docker may silently ignore --cpus/--memory/--pids-limit in rootless mode.
+_LIMITS_CHECK = (
+    "def _limits_enforced(memory, pids, cpu):\n"
+    " try:\n"
+    "  mem = int(memory)\n"
+    "  pid = int(pids)\n"
+    "  parts = cpu.split()\n"
+    "  if len(parts) != 2: return False\n"
+    "  quota, period = map(int, parts)\n"
+    " except (ValueError, TypeError, OverflowError):\n"
+    "  return False\n"
+    " return 0 < mem <= 134217728 and 0 < pid <= 32 and 0 < quota and 0 < period and quota * 2 <= period\n"
+)
+
+# Trusted syntax-only compiler: enforce *container-visible* cgroup ceilings,
+# root filesystem read-only and loopback-only interface BEFORE model parsing.
+# A missing/ignored controller exits without success/invalid marker. No
+# model bytecode is ever executed; real OS sandbox proof remains independent.
 _COMPILE_CHECK = (
-    "import sys\n"
+    "import os,socket,sys\n"
+    "from pathlib import Path\n"
+    + _LIMITS_CHECK +
+    "try:\n"
+    " root=Path('/sys/fs/cgroup')\n"
+    " mem=(root/'memory.max').read_text(encoding='ascii').strip()\n"
+    " pids=(root/'pids.max').read_text(encoding='ascii').strip()\n"
+    " cpu=(root/'cpu.max').read_text(encoding='ascii').strip()\n"
+    " if any(len(item)>64 for item in (mem,pids,cpu)): sys.exit(7)\n"
+    " if not _limits_enforced(mem,pids,cpu): sys.exit(7)\n"
+    " if {name for _,name in socket.if_nameindex()} != {'lo'}: sys.exit(7)\n"
+    " if not (os.statvfs('/').f_flag & os.ST_RDONLY): sys.exit(7)\n"
+    "except (OSError, UnicodeError, ValueError):\n"
+    " sys.exit(7)\n"
     "source=sys.stdin.buffer.read(8193)\n"
     "if len(source)>8192: sys.exit(3)\n"
     "try:\n"

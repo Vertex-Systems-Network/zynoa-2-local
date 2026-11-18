@@ -58,7 +58,7 @@ The fixed command has no `--privileged`, `--volume`, `--mount`, `--device`, `--p
 ## Model safety, recovery, warnings
 
 - Docker CLI receives an environment containing only `HOME`, `PATH` and a fresh empty `DOCKER_CONFIG`. No GitHub token, user's chat history, workspace folders, SSH keys, model store or provider credentials are forwarded to Docker CLI or container.
-- Before syntax checking, the broker checks Docker security options for an exact `rootless` marker, plus `CgroupVersion=2` and `CgroupDriver=systemd`. This proves only the daemon's **reported configuration**. Operators must separately test real resource-controller delegation and adversarial containment before declaring P00-T19 complete.
+- Before syntax checking, the broker checks Docker security options for an exact `rootless` marker, plus `CgroupVersion=2` and `CgroupDriver=systemd`. **Additionally, the fixed compiler script first reads the effective in-container cgroup-v2 `memory.max`, `pids.max` and `cpu.max`: it rejects `max`, missing, malformed, or ceilings exceeding 128 MiB, 32 PIDs, or 0.5 CPU. It also requires only the loopback interface and a read-only root filesystem.** Failure exits without either syntax marker. This is stronger than trusting daemon flags, but operators must still independently test delegated controllers and adversarial containment on the real host before P00-T19 can pass.
 - Each container name is random and prefixed `zynoa-p00-syntax-`; fixed labels identify P00 syntax-only jobs. Normal `--rm` removes the container. On timeout it attempts `docker rm --force <exact generated name>`; unsuccessful cleanup fails closed and must be investigated. A future supervisor needs independently verified crash-recovery reclamation.
 - Output limits and exact markers prevent stdout/stderr or model-written content being treated as a command or sensitive diagnostic. Python syntax errors are classified without returning raw code snippets.
 - Docker and containers share the host kernel: rootless mode and cgroup controls reduce exposure but **do not make arbitrary generated code safe enough for deployment without host hardening, image/provenance review and an independent test host**.
@@ -72,6 +72,7 @@ The fixed command has no `--privileged`, `--volume`, `--mount`, `--device`, `--p
 | Only digest-pinned image; no implicit pull | Source arg policy | Unit coverage |
 | No rootful/local TCP or unauthenticated Docker execution | Socket/daemon attestation gate | Unit coverage; actual host UNTESTED |
 | cgroup v2 + systemd required or refuse | Daemon info checks | Mock coverage; actual host UNTESTED |
+| In-container enforcement before any untrusted parsing | Runtime guard for memory.max/pids.max/cpu.max, read-only root, loopback interface | Trusted-code unit semantics and mocked Docker output only; **actual container UNTESTED** |
 | Fixed memory/PID/CPU/network/filesystem restrictions | Docker command policy | Unit coverage; actual enforcement UNTESTED |
 | Candidate only compiled, never executed | Fixed compiler source | Mock coverage; no live container observed |
 | Timeout targeted cleanup and sanitized receipts | Policy/tests | Mock coverage |
@@ -84,9 +85,13 @@ The fixed command has no `--privileged`, `--volume`, `--mount`, `--device`, `--p
 1. Provision a dedicated non-admin Linux account on a user-controlled worker machine. Install and verify **rootless** Docker, seccomp, user-namespace support, systemd cgroup v2 delegation and safe Docker socket mode/ownership. Keep Docker daemon/admin credentials outside AI reach.
 2. Scan and independently verify the pinned image, then cache it using an operator-approved process. Do not grant the AI worker image pull/publish capability; execute with `--pull never`.
 3. Check the installed Docker binary and runtime/daemon socket identity on that host. No stage may silently fall back to system-wide rootful Docker.
-4. Use approved fixtures only for the first real smoke; validate no network, no mounts/host file reachability, memory/PID/CPU limits, stale-container cleanup and sanitized receipts. Persist signed execution evidence in the existing PR/handoff.
+4. Run the approved fixed compiler on the actual rootless host with only non-sensitive fixtures; verify the inside-container `memory.max=134217728`, `pids.max=32`, `cpu.max=50000 100000` (or tighter limits), read-only root and loopback-only interface. Exercise a negative fixture with intentionally missing delegated controls **on a disposable test host** and verify it blocks before parsing. Validate no network, no mounts/host file reachability, stale-container cleanup and sanitized receipts. Persist independent OS-level and remote CI evidence in the existing PR/handoff; do not assume the fixed guard alone proves the entire sandbox.
 5. Only after host isolation is actually proved, consider adding scoped `RUN_FIXTURE` and `PATCH_WORKTREE` authorities as **separate interfaces** with new tests. Do not reuse the syntax checker to execute arbitrary test code or perform GitHub actions.
 
 **Phase invariant:** [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3) remains open, P00-T19 is BLOCKED, P00-T20 is IN_PROGRESS, PR #1 remains DRAFT, and P01 cannot start without verified protected P00 merge.
 
 [Workspace policy](P00_WORKTREE_POLICY.md) · [Fixture preview](P00_FIXTURE_DRAFT_STAGING.md) · [Model planner](P00_LOCAL_MODEL_PLANNING.md) · [Host bootstrap](P00_HOST_BOOTSTRAP.md) · [P00 task table](../state/pr-tasks/P00.json).
+
+### Additional primary research (2026-11-18)
+
+Docker's [rootless resource-limits guidance](https://docs.docker.com/engine/security/rootless/tips/) explicitly warns that CPU/memory/PIDs flags can be ignored, while its [runtime metrics documentation](https://docs.docker.com/engine/containers/runmetrics/) describes cgroup v2 controller files inside the container. [Docker run reference](https://docs.docker.com/reference/cli/docker/container/run/) describes the read-only and network isolation flags. The opt-in compiler now checks the effective kernel-visible values before compiling a candidate; a mocked runner can still forge positive output, so live delegated-controller and isolation failure-injection remains a separate blocking acceptance gate.

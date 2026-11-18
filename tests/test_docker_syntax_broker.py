@@ -16,7 +16,7 @@ from unittest.mock import patch
 
 from tools.docker_syntax_broker import (
     DEFAULT_IMAGE, DockerSyntaxDenied, SyntaxJob,
-    _BAD, _OK, _COMPILE_CHECK, plan_python_syntax, run_python_syntax,
+    _BAD, _OK, _COMPILE_CHECK, _LIMITS_CHECK, plan_python_syntax, run_python_syntax,
 )
 from tools.workspace_policy import WorkspaceScope
 
@@ -124,6 +124,40 @@ class DockerSyntaxBrokerTests(unittest.TestCase):
         self.assertIn("compile(source", _COMPILE_CHECK)
         self.assertNotIn("exec(", _COMPILE_CHECK)
         self.assertNotIn("eval(", _COMPILE_CHECK)
+
+    def test_in_container_resource_gate_is_before_python_compile(self):
+        # Only fixed, reviewed host script is compiled in this unit test.
+        compile(_COMPILE_CHECK, "<trusted-container-check>", "exec")
+        for check in ("memory.max", "pids.max", "cpu.max",
+                      "socket.if_nameindex()", "os.statvfs('/')"):
+            self.assertIn(check, _COMPILE_CHECK)
+            self.assertLess(_COMPILE_CHECK.index(check),
+                            _COMPILE_CHECK.index("compile(source"))
+        self.assertIn("sys.exit(7)", _COMPILE_CHECK)
+        self.assertNotIn("exec(", _COMPILE_CHECK)
+        self.assertNotIn("eval(", _COMPILE_CHECK)
+
+    def test_resource_limits_reject_unenforced_or_unbounded_cgroups(self):
+        # This is trusted static code, NOT model-authored Python.
+        gate = {}
+        exec(_LIMITS_CHECK, gate)
+        accepted = gate["_limits_enforced"]
+        self.assertTrue(accepted("134217728", "32", "50000 100000"))
+        self.assertTrue(accepted("67108864", "16", "10000 100000"))
+        for memory, pids, cpu in (
+            ("max", "32", "50000 100000"),
+            ("134217729", "32", "50000 100000"),
+            ("134217728", "max", "50000 100000"),
+            ("134217728", "33", "50000 100000"),
+            ("134217728", "32", "max 100000"),
+            ("134217728", "32", "100000 100000"),
+            ("134217728", "32", "50000 0"),
+            ("134217728", "32", "50000"),
+            ("134217728", "32", "malformed"),
+            ("0", "32", "50000 100000"),
+        ):
+            with self.subTest(memory=memory, pids=pids, cpu=cpu):
+                self.assertFalse(accepted(memory, pids, cpu))
 
     def test_disabled_gate_never_invokes_docker(self):
         stub = StubDocker()
@@ -247,6 +281,19 @@ class DockerSyntaxBrokerTests(unittest.TestCase):
                                   socket_url="unix:///run/user/1234/docker.sock",
                                   runner=stub)
             self.assertFalse(any("run" in x[0] for x in stub.calls))
+
+    @unittest.skipUnless(os.name == "posix", "rootless Unix socket only")
+    def test_container_resource_denial_cannot_be_reported_as_syntax(self):
+        stub = StubDocker(output=done(code=7, stdout=b"", stderr=b"limits absent"))
+        with patch("tools.docker_syntax_broker._docker_binary", return_value="/usr/bin/docker"), \\
+             patch("tools.docker_syntax_broker._rootless_socket", return_value="unix:///run/user/1234/docker.sock"):
+            with self.assertRaises(DockerSyntaxDenied) as cm:
+                run_python_syntax(plan(), SOURCE, self.scope,
+                                  expected_task_id=TASK, enabled=True,
+                                  socket_url="unix:///run/user/1234/docker.sock",
+                                  runner=stub)
+        self.assertNotIn("limits absent", str(cm.exception))
+        self.assertEqual(4, len(stub.calls))
 
     @unittest.skipUnless(os.name == "posix", "rootless Unix socket only")
     def test_unexpected_exit_never_claims_valid_syntax_or_leaks_stderr(self):
