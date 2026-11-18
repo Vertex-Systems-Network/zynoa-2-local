@@ -26,6 +26,7 @@ ELIGIBLE = {
     "mergeable": True,
     "checks_passed": True,
     "branch_protected": True,
+    "rules_policy_verified": True,
     "auto_merge_available": True,
     "open_critical_blockers": 0,
 }
@@ -92,6 +93,13 @@ class GuardedMergeTests(unittest.TestCase):
     def test_unprotected_main_rejected(self):
         merger, reader, transport = self.build()
         reader.current["branch_protected"] = False
+        with self.assertRaises(MergeBlocked):
+            merger.merge_current(STATE)
+        self.assertFalse(transport.calls)
+
+    def test_protection_without_verified_required_policy_rejected(self):
+        merger, reader, transport = self.build()
+        reader.current["rules_policy_verified"] = False
         with self.assertRaises(MergeBlocked):
             merger.merge_current(STATE)
         self.assertFalse(transport.calls)
