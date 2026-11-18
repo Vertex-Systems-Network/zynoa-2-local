@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import json
+from contextlib import closing
+import sqlite3
 import os
 import socket
 import sys
@@ -227,7 +229,16 @@ class PhaseWorkerWatchdogTests(unittest.TestCase):
         self.assertEqual(1, worker.run_loop(max_cycles=1))
         self.assertEqual([], sent)
         self.assertEqual("GitHubEvidenceError", worker.last_error_class)
-        self.assertEqual(0, EventJournal(self.db_path).count())
+        # The worker correctly logs one sanitized observation_blocked event;
+        # rejecting unauthenticated GitHub data must not suppress audit logs.
+        with closing(sqlite3.connect(self.db_path)) as db:
+            rows = db.execute(
+                "SELECT event_type, metadata FROM phase_events"
+            ).fetchall()
+        self.assertEqual(1, len(rows))
+        self.assertEqual("observation_blocked", rows[0][0])
+        self.assertEqual("GitHubEvidenceError", json.loads(rows[0][1])["error_class"])
+        self.assertNotIn("remote error may contain user secrets", rows[0][1])
 
     def test_notify_failure_exits_and_releases_lease_for_supervisor(self):
         def fail():
