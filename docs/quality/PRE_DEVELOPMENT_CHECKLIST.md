@@ -28,3 +28,11 @@
 - Identify changes' category (bugfix/enhancement/feature/security/docs), product version impact and affected modules/options/screens.
 - Before source edit, reserve a change ID and define acceptance tests, docs/Help/Wiki revisions and screenshots (if UI affected).
 - Confirm release/issue privacy audience, known migration needs and how the change maps into upcoming release notes.
+
+
+## DESIGN-IO (P00 research-only gate; P08I implementation)
+
+- Research supported UI design tool formats, legal APIs, permitted plugin pathways, tested official release/version and interoperability fixtures. Compare Figma/Penpot/each OpenPencil independently.
+- Before P08I, disallow unverified conversion code/dependency or UI labels claiming all-format compatibility. P08 may still implement native save and standards-based raster/vector export.
+- At P08I start, fetch and verify P08 **remote merged SHA** and all M11/M12 native core acceptance evidence, real screenshots, help/Wiki and data migration/undo tests.
+- Define target-tool reopen/round-trip tests, fidelity warnings, unsupported-feature labels, malicious file fuzz/security tests, user-selected storage and crash rollback scenarios before implementation.
