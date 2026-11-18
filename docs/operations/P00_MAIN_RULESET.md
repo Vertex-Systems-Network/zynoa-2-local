@@ -1,0 +1,42 @@
+# P00 — Required GitHub Protected Main Ruleset Provisioning
+
+**Status: DECLARATIVE TEMPLATE PREPARED; NOT INSTALLED ON GITHUB.** The repository's actual `main` remains unprotected at last authenticated audit. Related [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3). The ruleset must be provisioned through a repository-admin identity and independently verified before guarded auto-merge may run.
+
+## Desired policy and evidence
+
+Manifest: [deploy/github/main-ruleset.json](../../deploy/github/main-ruleset.json).
+
+- Exactly targets `refs/heads/main` and uses `enforcement=active`.
+- Requires a pull request (no direct pushes).
+- Prevents branch deletion and non-fast-forward pushes.
+- Requires `governance-lint` from GitHub Actions App ID **15368**, pinned to the CI provider (verified via real check-run readback at P00 PR HEAD SHA `50c478659e3c34050635615028c4b19af407c46e` on 2026-11-18).
+- Requires strict status checks on current main.
+- No bypass actors declared in this template.
+- Sets required approving reviews to **0**, consistent with user's authorized no-repetitive-confirmation workflow; required CI and security policies still apply and GitHub-level required reviews (if later set) must never be bypassed.
+- Review discussion resolution is required; unattended PRs with unresolved comments remain blocked.
+
+**Security warning:** With zero human approvals, required CI is a critical trust boundary. Do not grant AI models access to modify GitHub protection, CI expected sources, or merge policy without independent permission. Governance CI code itself can change in PRs; future strengthening may require separate security/owner-controlled workflow source and policy review.
+
+## Provisioning options
+
+1. **Authorized repository admin UI:** Repository → Settings → Rules → Rulesets → New branch ruleset. Select active, target `main`, require PR, disallow deletion and force pushes, require `governance-lint` status from GitHub Actions, enable strict checks. Record actual ruleset ID and effective branch rules after saving.
+2. **GitHub REST Admin API (future delegated operator):** `POST /repos/Vertex-Systems-Network/zynoa-2-local/rulesets` with the JSON manifest, using a separate short-lived token/GitHub App granted repository **Administration: write**. Do not store token in this repository, Actions PR checkout, desktop app or issue. No provisioning call is made by this documentation, CI, or the current assistant connector.
+3. Verify `GET /repos/Vertex-Systems-Network/zynoa-2-local/rules/branches/main` returns the active `pull_request` and pinned `required_status_checks` rules, and `GET /branches/main` returns `protected: true`. Recheck the expected check app ID on live latest PR HEAD and ensure required GitHub CI names match.
+4. Only after real GitHub readback and other P00 acceptance gates (host/worker, tests, no critical blocker, non-draft verified PR) may the separate guarded merge controller evaluate remote merge eligibility. Main branch protection is necessary but alone insufficient.
+
+## Observable current status
+
+- `main` protected: **false** in GitHub API at last audited checkpoint.
+- Repository auto-merge setting: **true**, which does not imply protected branch or allow a safe merge.
+- P00 PR #1: **open draft**. Do not force merge or create P01.
+- Current connector exposes repository read + content/PR/Issue actions but not ruleset administrative writes. Do not claim the manifest was installed.
+- CI static tests validate manifest schema/invariants but do not prove GitHub configuration.
+
+## Official references
+
+- [GitHub REST repository rulesets](https://docs.github.com/en/rest/repos/rules)
+- [Rulesets management](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets)
+- [Branch rules applied REST endpoint](https://docs.github.com/en/rest/repos/rules#get-rules-for-a-branch)
+- [Ruleset rule options](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets)
+
+**P00 exit gate:** Readback of actual protected main, actual trusted check provider, verified CI, functioning supervised worker and authenticated write-controller tests. Documentation does not waive these requirements.
