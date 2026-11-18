@@ -28,3 +28,8 @@ Separate always-on worker with SQLite WAL, durable event queue, Git worktrees, G
 ## Recovery and idempotency
 
 Avoid re-running non-idempotent actions after crashes. Before creating branch/PR/issue, check exact remote existing state and idempotency fingerprint. Event records use sequence, attempt ID, branch SHA, tool hash, result hash and monotonic timestamp. `MERGED_VERIFIED` only after server confirms. Manual modification of protected branch cannot be silently reconciled as 'expected'.
+
+
+## P00 Implementation vs full autonomous loop (2026-11-18)
+
+Current code provides the *observation* and *guarded merge primitive*, not the complete loop: `tools/github_gateway.py`, `tools/phase_worker.py`, `tools/phase_merge_guard.py`, `tools/github_issue_bridge.py`. The merge executor is default-disabled and PR CI exercises only a read-only dry-run. Actual continuous coding needs an installed supervised host, task queue, model/agent execution, worktree permission broker, branch ruleset and end-to-end guarded merge tests. Repository Issue #3 remains open; P00 is not complete and P01 may not start. See [P00 runbook](P00_WORKER_RUNBOOK.md).
