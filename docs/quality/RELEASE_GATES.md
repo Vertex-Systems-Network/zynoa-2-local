@@ -124,3 +124,13 @@ Source: [Host Bootstrap](../operations/P00_HOST_BOOTSTRAP.md). CI-hosted disposa
 - **MODEL-EXEC-01 (still BLOCKED):** An actual deployed local model with measured capability, OS-supervised sandbox, independent restricted file/command broker and bounded CI/debug/fix feedback loop must pass on safe fixture repo. MODEL-PROP-01..03 cannot satisfy this gate, declare T20 DONE, merge P00 or create P01.
 
 See [P00 local model planning](../operations/P00_LOCAL_MODEL_PLANNING.md) and [Infrastructure Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3).
+
+## P00-T25 ephemeral fixture staging gate (2026-11-18)
+
+- **FIXTURE-01:** Require trusted host-supplied `expected_task_id`, exact P00 phase/branch and `WorkspaceScope`; never accept model-provided task ID as independent authority.
+- **FIXTURE-02:** Only bounded exact-inventory, one-level `tests/fixtures` draft targets; deny traversal, symlinks, governance paths, malformed or Unicode control text and content > 8 KiB/file, > 32 KiB total or > 200 lines/file.
+- **FIXTURE-03:** Fresh disposable temp directory only; verify bytes/hash and cleanup; existing repository/user files unchanged. No arbitrary file patch, shell, tool calls, GitHub mutation or model code execution. Do NOT use host AST parsing for untrusted Python.
+- **FIXTURE-04:** Tests pass on Linux and Windows for cleanup, safe receipt, wrong task identity, malformed JSON, source preservation, path denial and no-command behavior; record exact CI SHA and run.
+- **FIXTURE-05:** T25 completing proves *only* fixture preview; independent real OS sandbox/process/file-handle/network protection, live host/model, bounded coding repair loop, protected GitHub main and verified merge gates remain UNMET. PR may not advance to P01 based on this helper.
+
+[Fixture operator contract](../operations/P00_FIXTURE_DRAFT_STAGING.md) · [ADR-0014](../adr/0014-staging-not-sandbox.md).
