@@ -2,7 +2,7 @@
 import unittest
 
 from tools.local_model_probe import (
-    LocalModelUnavailable, probe_local_ollama, validate_local_base
+    LocalModelUnavailable, _read_local_json, probe_local_ollama, validate_local_base
 )
 
 
@@ -83,6 +83,11 @@ class OllamaPreflightTests(unittest.TestCase):
         result = probe_local_ollama(transport=fake)
         self.assertEqual(["model-a:3b", "model-b:7b"], result["model_names"])
         self.assertEqual(3, result["model_count"])
+
+    def test_transport_timeout_is_bounded_before_network_open(self):
+        for timeout in (0, -1, 10.001, float("inf"), True, "4"):
+            with self.subTest(timeout=timeout), self.assertRaises(LocalModelUnavailable):
+                _read_local_json("http://127.0.0.1:11434", "/api/version", timeout)
 
 
 if __name__ == "__main__":

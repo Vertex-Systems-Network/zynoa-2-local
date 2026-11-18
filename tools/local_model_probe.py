@@ -50,6 +50,8 @@ def validate_local_base(url: str) -> str:
 def _read_local_json(base: str, endpoint: str, timeout: float = 4.0) -> dict:
     if endpoint not in ("/api/version", "/api/tags"):
         raise LocalModelUnavailable("local endpoint not allowlisted")
+    if not isinstance(timeout, (int, float)) or isinstance(timeout, bool) or not 0 < timeout <= 10:
+        raise LocalModelUnavailable("local probe timeout is invalid")
     req = urllib.request.Request(
         base + endpoint,
         headers={"Accept": "application/json", "User-Agent": "Zynoa-Local-Probe/1"},
