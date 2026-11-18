@@ -285,7 +285,7 @@ class DockerSyntaxBrokerTests(unittest.TestCase):
     @unittest.skipUnless(os.name == "posix", "rootless Unix socket only")
     def test_container_resource_denial_cannot_be_reported_as_syntax(self):
         stub = StubDocker(output=done(code=7, stdout=b"", stderr=b"limits absent"))
-        with patch("tools.docker_syntax_broker._docker_binary", return_value="/usr/bin/docker"), \\
+        with patch("tools.docker_syntax_broker._docker_binary", return_value="/usr/bin/docker"), \
              patch("tools.docker_syntax_broker._rootless_socket", return_value="unix:///run/user/1234/docker.sock"):
             with self.assertRaises(DockerSyntaxDenied) as cm:
                 run_python_syntax(plan(), SOURCE, self.scope,
