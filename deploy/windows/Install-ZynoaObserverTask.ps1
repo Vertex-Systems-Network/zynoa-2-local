@@ -10,7 +10,7 @@ param(
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
-if (-not $IsWindows -and $PSVersionTable.PSVersion.Major -ge 6) {
+if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) {
     throw "Windows Task Scheduler is required"
 }
 $repo = (Resolve-Path -LiteralPath $RepoRoot -ErrorAction Stop).ProviderPath
@@ -26,8 +26,13 @@ $python = $command.Source
 if (-not $python -or $python.Contains('"')) {
     throw "Invalid Python executable"
 }
-& $python -m tools.host_bootstrap --repo-root $repo --host-root $hostDir inspect
-if ($LASTEXITCODE -ne 0) { throw "Host storage integrity or phase check failed" }
+Push-Location -LiteralPath $repo
+try {
+    & $python -m tools.host_bootstrap --repo-root $repo --host-root $hostDir inspect
+    if ($LASTEXITCODE -ne 0) { throw "Host storage integrity or phase check failed" }
+} finally {
+    Pop-Location
+}
 $user = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 if ([string]::IsNullOrWhiteSpace($user)) {
     throw "Current Windows user identity missing"
