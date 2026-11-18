@@ -58,5 +58,8 @@ jobs:
           assert result["status"] in ("BLOCKED", "ELIGIBLE_FOR_SEPARATELY_AUTHORIZED_MERGE")
           print("MERGE-GUARD DRY-RUN: PASS (zero GitHub mutations)")
           PY
+      - name: Durable development queue smoke (read-only)
+        run: |
+          python -m tools.dev_job_runner --smoke --repo-root . --db "$RUNNER_TEMP/zynoa-job-smoke.db"
       - name: Incident redaction tests
         run: python -m unittest discover -s tests -v
