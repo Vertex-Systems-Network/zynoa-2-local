@@ -147,6 +147,9 @@ class ModelPlannerTests(unittest.TestCase):
             "AGENTS.md", ".github/workflows/governance.yml",
             "docs/state/PHASE.json", "docs/quality/RELEASE_GATES.md",
             ".env", ".git/config", "tools/workspace_policy.py",
+            "tools/dev_model_planner.py", "tools/local_model_probe.py",
+            "tools/host_bootstrap.py", "tools/pr_task_board.py",
+            "tools/pr_task_trusted_sync.py",
             "../escape", "C:/Windows/config", "/etc/passwd",
             "tests/fixtures/../../secret", "tests/fixtures/evil\\file",
         ):
