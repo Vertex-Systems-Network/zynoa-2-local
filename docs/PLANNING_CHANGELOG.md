@@ -103,3 +103,12 @@
 - [CI #44233203055](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44233203055) passed **197 Linux + 21 Windows workspace + 16 Windows host** tests and real disposable SQLite backups/restores on both OS runners.
 - Updated Help/Wiki *source*, security/release/pre-development checks, host operator guide and structured unreleased developer change record. **No product release, actual service installation, model/host inference, GUI screenshot or published Wiki** is claimed.
 - PR #1 task table now **24 total / 14 done / 2 in progress / 1 pending / 7 blocked = 58% scoped completion**. External deployment T17 and [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3) remain unresolved and block merge.
+
+## P00 strict local Ollama proposal-only gateway — 2026-11-18 (UNRELEASED)
+
+- Added `tools/dev_model_planner.py`: bounded localhost-only Ollama `/api/chat` JSON schema request, exact P00 task/branch validation, no proxies/redirects and no model tool calls. Independently revalidates generated proposals against host-controlled `WorkspaceScope`; allows only `DRAFT_ONLY` paths and fixed read-only checks.
+- Added `tests/test_dev_model_planner.py` and Windows CI step; mocked success/error cases, untrusted model formats/IDs, prompt control/Unicode/bidi spoofing, protected repo governance, symlink escapes and no mutation claims.
+- Expanded `tools/workspace_policy.py` authority protection to cover model adapter, local probe, host bootstrap, PR task renderer and trusted PR sync source. Added [P00 local model planning contract](operations/P00_LOCAL_MODEL_PLANNING.md) and [ADR-0013](adr/0013-model-plans-not-execution.md), revised M22 Help/Wiki source and threat/acceptance gates.
+- The first CI failure came from a deliberately unsafe test fixture containing literal escaped text rather than an actual NUL; corrected the fixture and verified clean CI. This did not weaken model input policy.
+- Updated PR #1 managed task table: 24 total / 14 Done / 3 In progress / 0 Pending / 7 Blocked = 58%. T20 now IN_PROGRESS because only planning was built, not full autonomous coding.
+- **Not released/deployed:** No real local coding model inference, OS sandbox, safe patch/test/repair worker, persistent host or protected main has been verified. Entire P00 remains DRAFT and in progress, no P01.
