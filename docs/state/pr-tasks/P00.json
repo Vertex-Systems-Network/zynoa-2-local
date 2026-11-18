@@ -123,7 +123,8 @@
     {
       "id": "P00-T20",
       "title": "Autonomous model-backed plan-edit-test-repair loop",
-      "status": "TODO"
+      "status": "IN_PROGRESS",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1"
     },
     {
       "id": "P00-T21",
