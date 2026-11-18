@@ -277,3 +277,8 @@ P00-T18 is DONE for actual applied branch rules; task board now 28 total / 19 DO
 ## P00 next checkpoint — bounded Docker host output (2026-11-19)
 
 Same branch/PR and T18 protected-main evidence preserved. New source caps stdout/stderr as bytes arrive in the Linux syntax broker and attempts exact-name cleanup if the Docker run overflows. Local focused suite: 25 tests PASS. New source has **no verified CI yet**; get exact HEAD Linux/Windows result, repair failures on this same PR, then update change record evidence. No real host/daemon/model inference or end-to-end autonomous coding has been verified. Keep Issue #3 OPEN, PR draft and P01 unstarted.
+
+
+## P00 host-output bound — exact source CI verified (2026-11-19)
+
+Source commit [`eb3b861dcc37`](https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/eb3b861dcc37a808cd7bf328d65cc0f8fc71a0f4) passed independent GitHub Actions [#44419708348](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44419708348): both `governance-lint` and `workspace-windows` SUCCESS at exact HEAD. The focused local Linux suite passed 25 tests, including bounded stdout/stderr, timeout kill and mocked targeted cleanup. Change record now links source and run; it remains implementing/unmerged/unreleased. This evidence-only checkpoint requires its own latest HEAD CI. Real rootless Docker, delegated cgroups, persistent host, actual model-backed repair and GitHub write/E2E remain unverified. Keep Issue #3 OPEN, PR draft and P01 unstarted.

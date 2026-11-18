@@ -255,3 +255,8 @@ P00-T18 is DONE for actual applied branch rules; task board now 28 total / 19 DO
 ## P00 syntax broker host-output security hardening — 2026-11-19 (CI pending)
 
 On existing draft PR #1 / `phase/00-governance`, `tools/docker_syntax_broker.py` now bounds Linux Docker CLI stdout/stderr *during* read, uses a monotonic timeout, kills an overflowing child and routes an in-flight container through targeted cleanup. Trusted synthetic subprocess and mocked Docker regressions pass locally (25 focused tests); exact HEAD Linux/Windows CI is pending. Change `CHG-P00-M22-BOUNDED-DOCKER-OUTPUT-20261119` remains implementing/unreleased. Active main ruleset #27593065 and T18 DONE are unchanged. No real Docker host, OS isolation, model repair, service deployment or PR merge was demonstrated; Issue #3 stays OPEN, P00-T19 BLOCKED and T20 IN_PROGRESS. Task board remains 28 / 19 DONE / 3 IN_PROGRESS / 6 BLOCKED.
+
+
+## P00 host-output bound — exact source CI verified (2026-11-19)
+
+Source commit [`eb3b861dcc37`](https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/eb3b861dcc37a808cd7bf328d65cc0f8fc71a0f4) passed independent GitHub Actions [#44419708348](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44419708348): both `governance-lint` and `workspace-windows` SUCCESS at exact HEAD. The focused local Linux suite passed 25 tests, including bounded stdout/stderr, timeout kill and mocked targeted cleanup. Change record now links source and run; it remains implementing/unmerged/unreleased. This evidence-only checkpoint requires its own latest HEAD CI. Real rootless Docker, delegated cgroups, persistent host, actual model-backed repair and GitHub write/E2E remain unverified. Keep Issue #3 OPEN, PR draft and P01 unstarted.
