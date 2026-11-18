@@ -7,6 +7,7 @@ Only authenticated caller-provided remote evidence may authorize transitions.
 from __future__ import annotations
 
 import argparse
+from contextlib import closing
 import json
 import re
 import sqlite3
@@ -96,7 +97,7 @@ class EventJournal:
     def __init__(self, db_path: Path):
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        with self._connect() as db:
+        with closing(self._connect()) as db, db:
             db.execute("PRAGMA journal_mode=WAL")
             db.execute(
                 "CREATE TABLE IF NOT EXISTS phase_events ("
@@ -111,7 +112,7 @@ class EventJournal:
         if not event_id or phase not in PHASE_ORDER or not event_type:
             raise PhasePolicyError("event ID, valid phase and event_type required")
         payload = json.dumps(metadata or {}, sort_keys=True)
-        with self._connect() as db:
+        with closing(self._connect()) as db, db:
             result = db.execute(
                 "INSERT OR IGNORE INTO phase_events (id, phase, event_type, metadata) VALUES (?, ?, ?, ?)",
                 (event_id, phase, event_type, payload),
@@ -119,7 +120,7 @@ class EventJournal:
             return result.rowcount == 1
 
     def count(self) -> int:
-        with self._connect() as db:
+        with closing(self._connect()) as db, db:
             return int(db.execute("SELECT COUNT(*) FROM phase_events").fetchone()[0])
 
 
