@@ -80,3 +80,18 @@ Official references:
 - GitHub Checks: https://docs.github.com/en/rest/checks/runs
 - Branch protection: https://docs.github.com/en/rest/branches/branch-protection
 - Actions scheduling: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
+
+
+## Guarded PR merge executor — implemented but DISABLED by default
+
+`tools/phase_merge_guard.py` now adds a separately secured merge entrypoint and independently testable fail-closed policy. It is NOT called by the read-only observer, does not bypass GitHub required review/protection, and does not start the next phase.
+
+Dry-run (read-only, with scoped `ZYNOA_GITHUB_TOKEN`):
+
+```bash
+python -m tools.phase_merge_guard --state docs/state/PHASE.json
+```
+
+The current P00 PR must report BLOCKED because it is draft, main is unprotected and Issue #3 is open. The GitHub Actions governance workflow tests this dry-run with **zero write credentials** and asserts it never merges.
+
+After a dedicated non-bypass GitHub App write identity is securely provisioned, an authorized worker may call `--apply` only with a separate `ZYNOA_GITHUB_WRITE_TOKEN` and `ZYNOA_ENABLE_MERGE=1`. This is an **administrator deployment configuration**, not a repeated per-task user dialog; never set these variables in PR CI or desktop binaries. The write gateway checks fresh PR/head/base SHA, protected main, successful required checks, mergeability, open critical blockers, draft status and readback; GitHub must still independently enforce branch policies. No such live merge has been attempted or verified in this repository. Its implementation needs an external security review and real test-repository integration before P00 exit.
