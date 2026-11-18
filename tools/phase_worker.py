@@ -8,6 +8,7 @@ No AI coding model or autonomous merge executor is implied.
 from __future__ import annotations
 
 import argparse
+from contextlib import closing
 import hashlib
 import json
 import signal
@@ -37,7 +38,7 @@ class WorkerLease:
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self.clock = clock
-        with self._connect() as db:
+        with closing(self._connect()) as db, db:
             db.execute("PRAGMA journal_mode=WAL")
             db.execute(
                 "CREATE TABLE IF NOT EXISTS worker_leases "
@@ -55,7 +56,7 @@ class WorkerLease:
         if not name or not owner or ttl_seconds <= 0:
             raise ValueError("invalid lease arguments")
         now = self.clock()
-        with self._connect() as db:
+        with closing(self._connect()) as db, db:
             db.execute("BEGIN IMMEDIATE")
             row = db.execute(
                 "SELECT owner, expires_at FROM worker_leases WHERE name=?", (name,)
@@ -70,7 +71,7 @@ class WorkerLease:
 
     def heartbeat(self, name: str, owner: str, ttl_seconds: float = 180.0) -> None:
         now = self.clock()
-        with self._connect() as db:
+        with closing(self._connect()) as db, db:
             row = db.execute(
                 "UPDATE worker_leases SET expires_at=? "
                 "WHERE name=? AND owner=? AND expires_at>?",
@@ -80,7 +81,7 @@ class WorkerLease:
                 raise LeaseLost("lease expired or ownership changed")
 
     def release(self, name: str, owner: str) -> None:
-        with self._connect() as db:
+        with closing(self._connect()) as db, db:
             db.execute("DELETE FROM worker_leases WHERE name=? AND owner=?", (name, owner))
 
 
