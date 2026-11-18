@@ -252,7 +252,7 @@ class ModelPlannerTests(unittest.TestCase):
         with self.assertRaises(ModelPlanDenied):
             make_model_request("../secrets", TASK, "safe", self.scope)
         with self.assertRaises(ModelPlanDenied):
-            make_model_request(MODEL, TASK, "secret\\x00", self.scope)
+            make_model_request(MODEL, TASK, "secret" + chr(0), self.scope)
 
 
 if __name__ == "__main__":
