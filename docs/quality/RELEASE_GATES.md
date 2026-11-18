@@ -115,3 +115,12 @@ Source: [PR Task Tables](../operations/PR_TASK_TABLES.md). The trusted workflow 
 - **P00-HOST-05 (BLOCKED externally):** Actually installed supervised host/service identity, secure token store, measured heartbeat/restart proof, real ACL/OS sandbox and stable backup retention/off-host recovery are still required. Passing P00-HOST-01..04 does **not** permit P00 merge or phase advancement.
 
 Source: [Host Bootstrap](../operations/P00_HOST_BOOTSTRAP.md). CI-hosted disposable fixtures do not mean that the user's computer was modified.
+
+## P00 Model Proposal vs Execution acceptance (2026-11-18)
+
+- **MODEL-PROP-01 (fixture):** Model planning request uses explicit loopback-only Ollama `POST /api/chat`, bounded body/output, JSON schema and `stream:false`; proxy/redirect/public endpoint denied.
+- **MODEL-PROP-02 (fixture):** Untrusted response is revalidated independently against exact P00 phase/branch/task, safe 1–8 `DRAFT_ONLY` paths and only fixed read-only checks; extra fields, tool calls, truncated JSON, governance/symlink escapes and duplicates deny.
+- **MODEL-PROP-03 (fixture):** Planner must perform **zero** shell commands, file writes, GitHub writes and phase switches; policy files protecting the planner/host/PR task updater cannot be model-written. Linux and Windows unit tests required.
+- **MODEL-EXEC-01 (still BLOCKED):** An actual deployed local model with measured capability, OS-supervised sandbox, independent restricted file/command broker and bounded CI/debug/fix feedback loop must pass on safe fixture repo. MODEL-PROP-01..03 cannot satisfy this gate, declare T20 DONE, merge P00 or create P01.
+
+See [P00 local model planning](../operations/P00_LOCAL_MODEL_PLANNING.md) and [Infrastructure Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3).
