@@ -84,3 +84,11 @@
 - Send only a short sanitized task brief to explicit local Ollama; no source contents, secrets, private files or user chats. Do not enable model tools or generic shell.
 - Require completed model JSON schema response, independent path/check validation and no execution permissions. Record digest/evidence without dumping raw untrusted text.
 - Keep `P00-T20` IN_PROGRESS until actual model/OS broker/patch/test/fix loop and remote receipts pass; mocked inference is not end-to-end proof.
+
+## Host preflight for disposable model draft staging (2026-11-18)
+
+- Verify active P00 task and actual GitHub branch/PR; create `WorkspaceScope` only from separately trusted host configuration and pass the **expected** task ID independent of model output.
+- Validate model plan's paths/actions before any temp staging; accept only single-level `tests/fixtures`, bounded UTF-8 candidate text, no control/bidi/traversal, no oversized fixture.
+- Stage candidate bytes solely in a newly allocated private temporary folder and verify hash; ensure cleanup and no actual source/user file writes.
+- Do not AST parse, compile, import or run untrusted Python in privileged process; defer syntax/tests to independently verified OS sandbox. A passing preview does not make T19/T20 done.
+- Update same PR task table and structured changelog with exact CI/Linux/Windows evidence; missing security and host gates stay blocked.
