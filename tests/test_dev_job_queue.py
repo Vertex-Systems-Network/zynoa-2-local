@@ -138,6 +138,13 @@ class JobQueueTests(unittest.TestCase):
         with self.assertRaises(QueuePolicyError):
             self.queue.fail(claimed, "agent-a", "password=secret-and-chat-content")
 
+    def test_false_result_cannot_be_marked_successful(self):
+        self.job()
+        claimed = self.queue.claim(PHASE, BRANCH, "agent-a")
+        with self.assertRaises(QueuePolicyError):
+            self.queue.complete(claimed, "agent-a", {"check": "phase-policy", "passed": False})
+        self.assertEqual("RUNNING", self.queue.inspect("task-1")["state"])
+
     def test_invalid_result_rejected(self):
         self.job()
         claimed = self.queue.claim(PHASE, BRANCH, "agent-a")
