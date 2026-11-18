@@ -56,3 +56,11 @@
 - Added declarative `deploy/github/main-ruleset.json` for main branch requiring PR, no bypass, protected history and trusted required `governance-lint` GitHub Actions check (App ID 15368 verified on actual P00 CI).
 - Added static manifest contract tests and operator instructions for authorized GitHub repository admin to apply and independently validate effective rules.
 - **Not applied** to GitHub; remote `main` remains unprotected and Phase P00 cannot merge or advance. Neither this manifest nor passing unit tests is a release.
+
+## P00 phase-scoped dependency DAG — 2026-11-18 (UNRELEASED)
+
+- Added transactional `tools/dev_task_graph.py` prerequisite graph for replay-safe development jobs, with same-phase/branch edges and SQLite recursive cycle prevention.
+- Enforced DAG dependencies in durable queue claims, terminal failure propagation, and explicit BLOCKED status for orphan/corrupt parent records; independent jobs can proceed safely.
+- Updated governance smoke to execute actual `phase-policy → design-spec → docs-integrity` jobs despite inverted priority order; still zero GitHub writes/model tasks.
+- Added direct/indirect cycle, atomic batch rollback, wrong phase, crash persistence, retry/cascade/orphan and malformed input tests, plus ADR-0010, security gates, module Help/Wiki source and design notes.
+- [CI #44220171663](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44220171663) passed **117 tests**. P00 remains a draft backend-only development PR; no user-facing release or published Wiki/screenshot evidence.
