@@ -33,3 +33,11 @@
 - Added operator runbook, service template, hosting alternatives ADR-0009 and checkpointed handoff; CI upgraded to Node24-compatible v6 actions and live authenticated observation.
 - GitHub CI passing evidence recorded in P00_REMOTE_PREFLIGHT.md; change record `CHG-P00-M22-PHASE-OBSERVER-20261118` status IMPLEMENTING.
 - This log records engineering development only. No application release or public changelog entry exists; M22 still partial, P00 draft PR remains open with host/ruleset blockers.
+
+
+## P00 governance continuation — 2026-11-18 (UNRELEASED)
+
+- Added default-disabled guarded GitHub PR merge library/CLI with remote-check authentication, PR head/base SHA fencing, protected branch enforcement and readback verification.
+- Added authenticated read-only CI merge dry-run that asserts zero GitHub mutations, plus GitHub writer refusal/success unit tests.
+- Fixed long retry backoff lease expiration and added virtual-clock regression test.
+- [CI 44214670015](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44214670015) passed **71** tests and read-only merge dry-run. P00 remains draft/partial with unprotected main and no host deployment; nothing is shipped in product changelog.
