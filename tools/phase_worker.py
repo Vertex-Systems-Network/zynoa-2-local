@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Callable, Mapping
 
 from tools.github_gateway import GitHubEvidenceError, GitHubGateway
-from tools.phase_controller import EventJournal, PhasePolicyError, validate_snapshot
+from tools.phase_controller import EventJournal, PhasePolicyError, PHASE_ORDER, validate_snapshot
 
 
 class LeaseBusy(RuntimeError):
@@ -154,6 +154,7 @@ class PhaseWorker:
         self.lease.acquire(self.name, self.owner)
         try:
             while not self.stop_signal.is_set() and (max_cycles is None or cycles < max_cycles):
+                state = {}
                 try:
                     state = json.loads(self.state_file.read_text(encoding="utf-8"))
                     self.observer.run_once(state)
@@ -166,7 +167,8 @@ class PhaseWorker:
                     self.last_error_class = type(exc).__name__
                     self.observer.journal.append(
                         "blocked:" + self.last_error_class + ":" + str(min(failures, 3)),
-                        "P00", "observation_blocked",
+                        (state.get("phase") if isinstance(state, dict) and state.get("phase") in PHASE_ORDER else "P00"),
+                        "observation_blocked",
                         {"error_class": self.last_error_class, "retry": min(failures, 3)},
                     )
                     # Keep the lease fresh during transient GitHub/API failures.
@@ -177,7 +179,17 @@ class PhaseWorker:
                 cycles += 1
                 delay = min(300, self.sleep_interval * 2 ** min(max(failures - 1, 0), 3))
                 if max_cycles is None or cycles < max_cycles:
-                    self.stop_signal.wait(delay)
+                    # Renew lease during long backoff. Otherwise a 300-second
+                    # retry could outlive its 180-second lease and permit a
+                    # second worker to take over while the first is sleeping.
+                    remaining = delay
+                    while remaining > 0 and not self.stop_signal.is_set():
+                        step = min(30.0, remaining)
+                        self.stop_signal.wait(step)
+                        if self.stop_signal.is_set():
+                            break
+                        self.lease.heartbeat(self.name, self.owner)
+                        remaining -= step
         finally:
             self.lease.release(self.name, self.owner)
         return cycles
