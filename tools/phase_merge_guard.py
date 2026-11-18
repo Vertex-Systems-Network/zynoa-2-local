@@ -83,7 +83,8 @@ class GuardedMerger:
             raise MergeBlocked("PR already merged, draft or not open")
         if observed.get("mergeable") is not True:
             raise MergeBlocked("GitHub has not confirmed PR mergeability")
-        if observed.get("checks_passed") is not True or observed.get("branch_protected") is not True:
+        if (observed.get("checks_passed") is not True or observed.get("branch_protected") is not True
+                or observed.get("rules_policy_verified") is not True):
             raise MergeBlocked("CI or branch protection not verified")
         if observed.get("auto_merge_available") is not True:
             raise MergeBlocked("repository auto-merge policy not enabled")
