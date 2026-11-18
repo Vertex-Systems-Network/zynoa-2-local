@@ -93,6 +93,8 @@ def probe_local_ollama(base_url: str = "http://127.0.0.1:11434",
         name = model.get("name")
         if not isinstance(name, str) or not re.fullmatch(r"[a-zA-Z0-9._/+:\-]{1,128}", name):
             raise LocalModelUnavailable("invalid Ollama model identifier")
+        if any(part in ("", ".", "..") for part in name.split("/")):
+            raise LocalModelUnavailable("unsafe local model identifier")
         names.append(name)
     return {
         "status": "LOCAL_MODEL_PRESENT" if names else "OLLAMA_RUNNING_NO_MODELS",
