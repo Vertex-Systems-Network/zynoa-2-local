@@ -265,3 +265,10 @@ P00-T28 DONE means only a **tested P00 service/notification source contract**; c
 Next: exact HEAD evidence CI, maintain one phase/PR, and obtain independent operator-owned host/systemd/credential/remote API/restart proof, rootless sandbox and model repair, plus admin-installed protected main before closing Issue #3 or merging. Do not start P01 before independently verified P00 remote merge SHA.
 
 Next safe task: verify HEAD CI; synchronize managed PR board to 28 total/18 DONE; real operator/admin host and ruleset prerequisites are outside this repository-source CI.
+
+
+## P00-T18 protected main ruleset — live GitHub verification (2026-11-19)
+
+Authenticated repository administrator created active ruleset [#27593065](https://github.com/Vertex-Systems-Network/zynoa-2-local/settings/rules/27593065) targeting exactly `refs/heads/main`, with no bypass actors. Independent GitHub REST readback of the ruleset, effective `/rules/branches/main` and branch metadata confirmed deletion and force-push denial, PR requirement (zero approvals, conversation resolution), strict up-to-date `governance-lint` required check pinned to GitHub Actions App ID 15368, and `main.protected=true`. Main SHA remained `8dcb546828a8fdeef40dfaa250ac8f6b8639025d`; P00 PR #1 remained DRAFT/unmerged at `069276d177aac34e8a0b8ede765471e71d4b6aa2`.
+
+P00-T18 is DONE for actual applied branch rules; task board now 28 total / 19 DONE / 3 IN_PROGRESS / 6 BLOCKED (67% scoped count). Issue #3 stays OPEN: no persistent operator host, rootless sandbox, model-backed edit/test/repair, authenticated write executor, live CI incident proof or end-to-end safe fixture. No merge, P01, app screenshots, Wiki publication or release is claimed. This documentation checkpoint needs its own HEAD CI readback.

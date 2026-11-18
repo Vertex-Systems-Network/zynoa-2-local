@@ -111,8 +111,8 @@
     {
       "id": "P00-T18",
       "title": "Configure and verify protected main ruleset",
-      "status": "BLOCKED",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1"
     },
     {
       "id": "P00-T19",

@@ -1,6 +1,6 @@
 # P00 — Required GitHub Protected Main Ruleset Provisioning
 
-**Status: DECLARATIVE TEMPLATE PREPARED; NOT INSTALLED ON GITHUB.** The repository's actual `main` remains unprotected at last authenticated audit. Related [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3). The ruleset must be provisioned through a repository-admin identity and independently verified before guarded auto-merge may run.
+**Status: APPLIED AND VERIFIED on 2026-11-19 as ruleset #27593065.** Earlier sections below preserve the pre-installation planning record; see the applied-ruleset evidence at the end for current state. Related [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3). The ruleset must be provisioned through a repository-admin identity and independently verified before guarded auto-merge may run.
 
 ## Desired policy and evidence
 
@@ -26,11 +26,11 @@ Manifest: [deploy/github/main-ruleset.json](../../deploy/github/main-ruleset.jso
 
 ## Observable current status
 
-- `main` protected: **false** in GitHub API at last audited checkpoint.
+- `main` protected: **true** in GitHub API on 2026-11-19 after ruleset #27593065 was applied.
 - Repository auto-merge setting: **true**, which does not imply protected branch or allow a safe merge.
 - P00 PR #1: **open draft**. Do not force merge or create P01.
-- Current connector exposes repository read + content/PR/Issue actions but not ruleset administrative writes. Do not claim the manifest was installed.
-- CI static tests validate manifest schema/invariants but do not prove GitHub configuration.
+- The repository-admin GitHub UI applied ruleset #27593065; the connector itself has no ruleset administrative write action.
+- CI static tests validate manifest schema/invariants; live ruleset and effective-branch REST readbacks separately prove current GitHub configuration.
 
 ## Official references
 
@@ -56,3 +56,8 @@ Primary reference: https://docs.github.com/en/rest/repos/rules?apiVersion=2022-1
 GitHub Actions App ID `15368` identifies the application, **not the exact workflow**. A second workflow could produce a same-named check, so the P00 gateway must correlate required `governance-lint` to GitHub's check-run `details_url`, authenticated `GET /actions/runs/{run_id}` and `GET /actions/jobs/{job_id}`. Require consistent run/job IDs, suite ID, completed success, exact PR HEAD SHA, P00 branch, repo/head repo, PR #1 association, workflow name and `.github/workflows/governance.yml` path. Missing `actions:read`, stale or incomplete API evidence fails closed. This verifies **source provenance**, not that a PR-editable workflow's commands have been security reviewed. Actual protected-main ruleset remains absent; no host deployment/merge is implied.
 
 Official references: https://docs.github.com/en/rest/actions/workflow-runs#get-a-workflow-run and https://docs.github.com/en/rest/actions/workflow-jobs#get-a-job-for-a-workflow-run.
+
+
+## Applied ruleset evidence — 2026-11-19
+
+The previously declarative manifest is now applied as GitHub repository ruleset [#27593065](https://github.com/Vertex-Systems-Network/zynoa-2-local/settings/rules/27593065). Authenticated `GET /rulesets/27593065` returned `active`, exact `refs/heads/main`, empty bypass list, PR review-thread resolution, strict required `governance-lint` pinned to integration ID 15368, deletion and non-fast-forward denial. Independent public GitHub REST `GET /rules/branches/main` returned the same four effective rules with ruleset ID 27593065; `GET /branches/main` returned `protected=true`. This establishes the narrow P00-T18 gate only; the draft PR, persistent developer host, model-backed sandbox and remaining premerge Issue #3 criteria are still unfinished.
