@@ -1,0 +1,41 @@
+# TRUST BOUNDARY: This workflow runs ONLY from the trusted default branch.
+# It NEVER checks out pull-request HEAD code. PR commit data is parsed as JSON
+# after exact repo/branch/SHA validation by tools.pr_task_trusted_sync.
+# On this P00 draft branch this workflow is NOT ACTIVE until securely merged.
+name: Trusted PR Task Table Sync
+on:
+  workflow_run:
+    workflows: ["Governance v3.2"]
+    types: [completed]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: zynoa-pr-task-table-writer
+  cancel-in-progress: false
+
+jobs:
+  sync-pr-task-board:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout trusted default branch ONLY
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Install trusted Python runtime
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Reconcile current PR task manifest and description
+        env:
+          ZYNOA_PR_TASK_WRITE_TOKEN: ${{ github.token }}
+          ZYNOA_PR_TASK_WRITE_ENABLED: '1'
+        run: python -m tools.pr_task_trusted_sync --event-file "$GITHUB_EVENT_PATH"
