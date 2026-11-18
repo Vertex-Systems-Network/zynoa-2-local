@@ -10,7 +10,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import signal
 import sqlite3
 import threading
@@ -150,21 +149,37 @@ class PhaseWorker:
             self.lease.release(self.name, self.owner)
 
     def run_loop(self, max_cycles: int | None = None) -> int:
+        """Keep ONE lease for the entire loop, not one lock per observation."""
         cycles, failures = 0, 0
-        while not self.stop_signal.is_set() and (max_cycles is None or cycles < max_cycles):
-            try:
-                self.run_once()
-                failures = 0
-                self.last_error_class = None
-            except (GitHubEvidenceError, PhasePolicyError, LeaseBusy, LeaseLost, OSError, ValueError) as exc:
-                failures += 1
-                # Never log exception string: it may contain workspace secrets.
-                self.last_error_class = type(exc).__name__
-            cycles += 1
-            # Bounded exponential backoff. Stop can interrupt wait immediately.
-            delay = min(300, self.sleep_interval * 2 ** min(max(failures - 1, 0), 3))
-            if max_cycles is None or cycles < max_cycles:
-                self.stop_signal.wait(delay)
+        self.lease.acquire(self.name, self.owner)
+        try:
+            while not self.stop_signal.is_set() and (max_cycles is None or cycles < max_cycles):
+                try:
+                    state = json.loads(self.state_file.read_text(encoding="utf-8"))
+                    self.observer.run_once(state)
+                    self.lease.heartbeat(self.name, self.owner)
+                    failures = 0
+                    self.last_error_class = None
+                except (GitHubEvidenceError, PhasePolicyError, OSError, ValueError) as exc:
+                    failures += 1
+                    # Never log exception strings; persist only a safe error class.
+                    self.last_error_class = type(exc).__name__
+                    self.observer.journal.append(
+                        "blocked:" + self.last_error_class + ":" + str(min(failures, 3)),
+                        "P00", "observation_blocked",
+                        {"error_class": self.last_error_class, "retry": min(failures, 3)},
+                    )
+                    # Keep the lease fresh during transient GitHub/API failures.
+                    self.lease.heartbeat(self.name, self.owner)
+                except LeaseLost:
+                    self.last_error_class = "LeaseLost"
+                    break
+                cycles += 1
+                delay = min(300, self.sleep_interval * 2 ** min(max(failures - 1, 0), 3))
+                if max_cycles is None or cycles < max_cycles:
+                    self.stop_signal.wait(delay)
+        finally:
+            self.lease.release(self.name, self.owner)
         return cycles
 
 
