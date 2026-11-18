@@ -53,3 +53,9 @@ The next M22 slice adds `tools/workspace_policy.py` and `tools/worktree_plan.py`
 **Correct sequence:** Provision an actual always-on developer machine/service and scoped credentials, then deploy safe model-driven job execution with OS isolation and durable receipts. CI remains independent judge; the host must watch it, repair within bounds and continue safe work. Do not use endless retries to evade true blockers. Current Issue #3 is an actual pre-merge blocker; when *its pre-merge requirements* are genuinely resolved, close it with evidence before protected merge, and track resulting merge SHA verification as a separate post-merge checkpoint. Never silently filter a still-unresolved blocker from GitHub policy.
 
 This separates P00's external developer bootstrap from future P04 Coding Studio and P10 in-product autonomy. Full graphical screenshots are recorded when the actual UI exists, not in the backend-only bootstrap. A new prompt alone cannot make this engine persistent.
+
+## PR task status projection after EVERY development task (2026-11-18)
+
+Alongside the durable task DAG, the controller must maintain `docs/state/pr-tasks/<PHASE>.json`, one manifest per primary PR, and a managed task table in its description. After research/code/test/error fix/docs change, reconcile exact job/CI/issue evidence, update statuses in this file and commit on SAME phase branch. A trusted sync action updates the PR's managed table, preserving human-authored sections; if GitHub write unavailable, persist a visible pending-sync blocker and retry with bounded backoff from an actually deployed host. The new `workflow_run` writer only activates after merge to main, and must never execute PR head code with write privileges.
+
+The table is a status projection; it is not a phase transition controller, a 24/7 agent or a replacement for secure merge prerequisites. Details: [PR Task Tables](PR_TASK_TABLES.md).
