@@ -36,3 +36,11 @@
 - Before P08I, disallow unverified conversion code/dependency or UI labels claiming all-format compatibility. P08 may still implement native save and standards-based raster/vector export.
 - At P08I start, fetch and verify P08 **remote merged SHA** and all M11/M12 native core acceptance evidence, real screenshots, help/Wiki and data migration/undo tests.
 - Define target-tool reopen/round-trip tests, fidelity warnings, unsupported-feature labels, malicious file fuzz/security tests, user-selected storage and crash rollback scenarios before implementation.
+
+## P00 durable-task preflight additions
+
+- Re-read actual GitHub `main`, active phase PR, rule checks and open blocker issues; do not treat local JSON or check names as authenticated source.
+- Confirm each queued job is allowlisted, replay-safe, immutable-ID, phase/branch-scoped, and not a privileged mutation.
+- Verify SQLite queue database is on a single trusted host; reject independent replicated DB writers and stale lease tokens.
+- Run real concurrent-claim, expired-lease, retry-budget, no-raw-secrets and job-result integrity tests.
+- Confirm no worker, GUI, Wiki, release or auto-merge is claimed from an Actions smoke; mark unattested requirements BLOCKED.
