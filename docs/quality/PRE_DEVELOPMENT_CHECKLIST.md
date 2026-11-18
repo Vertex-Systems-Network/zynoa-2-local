@@ -92,3 +92,11 @@
 - Stage candidate bytes solely in a newly allocated private temporary folder and verify hash; ensure cleanup and no actual source/user file writes.
 - Do not AST parse, compile, import or run untrusted Python in privileged process; defer syntax/tests to independently verified OS sandbox. A passing preview does not make T19/T20 done.
 - Update same PR task table and structured changelog with exact CI/Linux/Windows evidence; missing security and host gates stay blocked.
+
+## P00 rootless Docker syntax broker preflight (2026-11-18)
+
+- Read official rootless Docker and cgroup v2/systemd limits; never confuse `--memory/--cpus` flags with independently attested enforcement.
+- Only an operator may install/cache/scan an image, configure a dedicated nonroot runtime and protect its rootless Unix socket. Never give Docker daemon/API access to an LLM or untrusted PR code.
+- Validate exact host P00 task, approved scope, 1 Python fixture, digest-pinned image, no mounts/network/credentials, immutable fixed compiler, and disabled-by-default mode.
+- In mocked CI require Linux and Windows positive/negative cases including no Docker call without enable, rootful/cgroup deny, unsafe paths, resource and output bounds, targeted cleanup, no candidate code execution.
+- Mark standalone broker contract scoped task only after passing CI evidence. Keep T19 real sandbox and T20 full autonomous repair unfinished until actual host/isolation/merge proof.
