@@ -26,3 +26,14 @@ Document residual risks and platform-specific constraints before release. This d
 **Threat: arbitrary execution via queue.** Only `phase-policy`, `design-spec` and `docs-integrity` handlers exist. No task payload, command string, dynamic tool import or external code execution is accepted. A future model-backed executor must use OS sandboxing and capability broker with separate GitHub write authority.
 
 **Residual risks:** SQLite queue is not a distributed lease across independent machines; permissions on Windows must use OS ACLs; there is no deployed credential manager, permanent worker, worktree sandbox, E2E autonomous loop or completed security review. Reference [P00 queue spec](../operations/P00_DURABLE_JOB_QUEUE.md).
+
+## P00 dependency graph threats and controls (2026-11-18)
+
+- **Out-of-order execution:** Child jobs cannot claim while any prerequisite lacks committed SUCCESS, regardless of higher priority. Graph edges are phase/branch-scoped and change only before execution begins.
+- **Cycles / stuck scheduler:** Atomic recursive-CTE cycle detection rejects direct and indirect cycles. Rejected multi-edge batch rolls back all inserted edges.
+- **Corrupted graph or orphan prerequisite:** Claim uses a LEFT JOIN to treat missing parent as unsatisfied, and reconciliation marks the downstream job BLOCKED rather than silently running it.
+- **Failure cascade:** Terminal BLOCKED prerequisites propagate to descendants; independent tasks remain eligible.
+- **Scope boundary:** DAG coordinates only fixed read-only checks; it is NOT a sandbox, cannot authorize shell/models/Git writes, and should not store raw prompts, secrets or private paths. A separate broker and OS containment are still required.
+- **SQLite limits:** BEGIN IMMEDIATE can encounter SQLITE_BUSY under writer contention; bounded retry/host deployment proof is pending. Independent multi-host SQLite copies are unsupported.
+
+See [P00 DAG](../operations/P00_TASK_DEPENDENCY_GRAPH.md), [ADR-0010](../adr/0010-phase-task-dag.md) and [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3).
