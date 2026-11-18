@@ -42,7 +42,7 @@ class FixtureStagerTests(unittest.TestCase):
     def preview(self, paths=(ONE_PATH,), contents=None):
         if contents is None:
             contents = {p: "pass\n" for p in paths}
-        return preview_fixture_drafts(proposal(paths), contents, self.scope)
+        return preview_fixture_drafts(proposal(paths), contents, self.scope, expected_task_id=TASK)
 
     def test_stage_static_python_then_remove_all_disposable_files(self):
         before = list(self.root.rglob("*"))
@@ -148,7 +148,7 @@ class FixtureStagerTests(unittest.TestCase):
         data = proposal()
         data["file_proposals"][0]["action"] = "EXECUTE"
         with self.assertRaises(FixtureStageDenied):
-            preview_fixture_drafts(data, {ONE_PATH: "pass"}, self.scope)
+            preview_fixture_drafts(data, {ONE_PATH: "pass"}, self.scope, expected_task_id=TASK)
 
     def test_model_cannot_mutate_phase_or_branch(self):
         for field, value in (("phase", "P01"), ("branch", "main"),
@@ -156,7 +156,7 @@ class FixtureStagerTests(unittest.TestCase):
             data = proposal()
             data[field] = value
             with self.subTest(field=field), self.assertRaises(FixtureStageDenied):
-                preview_fixture_drafts(data, {ONE_PATH: "pass"}, self.scope)
+                preview_fixture_drafts(data, {ONE_PATH: "pass"}, self.scope, expected_task_id=TASK)
 
     def test_protected_existing_file_and_link_escapes_denied(self):
         protected = "AGENTS.md"
@@ -185,7 +185,7 @@ class FixtureStagerTests(unittest.TestCase):
         for candidates in (None, [], {"tests/fixtures/candidate.py": None}):
             with self.subTest(candidate_type=type(candidates).__name__):
                 with self.assertRaises(FixtureStageDenied):
-                    preview_fixture_drafts(proposal(), candidates, self.scope)
+                    preview_fixture_drafts(proposal(), candidates, self.scope, expected_task_id=TASK)
 
 
 if __name__ == "__main__":
