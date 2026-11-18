@@ -73,3 +73,11 @@
 - Added `workspace-windows` GitHub Actions job for Windows-first path and Git fixture verification, alongside Linux governance tests. Fixed Windows short-path / long-path test assertion using canonical paths after failing early Windows CI.
 - Added [ADR-0011](adr/0011-worktree-is-not-sandbox.md), [worktree policy guide](operations/P00_WORKTREE_POLICY.md), additional M22 Help/Wiki source and threat/release/predevelopment rules.
 - [CI #44224444145](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44224444145) passed 138 Linux tests plus 21 Windows tests. This change is **not released**; a production OS sandbox, user worktrees, deployed model worker and P00 merge remain pending.
+
+## P00 continuous-autonomy plan audit and lifecycle correction — 2026-11-18 (UNRELEASED)
+
+- Audited why repeated chat prompts were needed: chat runs are bounded; there is no deployed persistent AI coder; PR CI only validates and ends; the existing queue and GitHub observer cannot implement, test-fix, merge and advance phases autonomously.
+- Recorded the exact problems and staged remedy in [P00 Continuous Autonomy Audit](operations/P00_CONTINUOUS_AUTONOMY_AUDIT.md).
+- Clarified P00 **developer bootstrap** versus later P02 graphical UI, P04 product Coding Studio and P10 advanced in-product autonomy, preserving all quality/security requirements at their appropriate phases.
+- Split pre-merge infrastructure blocker [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3) from [post-merge SHA/phase checkpoint Issue #4](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/4) to prevent circular issue/merge gating. True unresolved blockers still forbid merge.
+- No product release or autonomous host was delivered by this documentation/policy update. Current PR #1 remains OPEN DRAFT.
