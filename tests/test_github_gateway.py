@@ -16,12 +16,13 @@ class FakeTransport:
         self.main_protected = True
         self.main_sha = MERGE
         self.issue_open = False
-        self.checks = [{"name": "governance-lint", "head_sha": SHA, "status": "completed", "conclusion": "success", "app": {"id": 42}}]
+        self.checks = [{"name": "governance-lint", "head_sha": SHA, "status": "completed", "conclusion": "success", "app": {"id": 15368}}]
         self.rules = [
-            {"type": "pull_request", "parameters": {}},
+            {"type": "pull_request", "parameters": {"required_review_thread_resolution": True}},
             {"type": "required_status_checks", "parameters": {
+                "strict_required_status_checks_policy": True,
                 "required_status_checks": [
-                    {"context": "governance-lint", "integration_id": 42}
+                    {"context": "governance-lint", "integration_id": 15368}
                 ]
             }},
         ]
@@ -114,6 +115,32 @@ class GitHubEvidenceTests(unittest.TestCase):
         snap = client.observe(STATE)
         self.assertTrue(snap["checks_passed"])
         self.assertFalse(snap["rules_policy_verified"])
+
+    def test_matching_but_unapproved_check_provider_is_denied(self):
+        client, fake = self.build()
+        # Matching a compromised/misconfigured ruleset ID is not sufficient:
+        # the provider must also be the project-approved GitHub Actions App.
+        fake.rules[1]["parameters"]["required_status_checks"][0]["integration_id"] = 999
+        fake.checks[0]["app"]["id"] = 999
+        snap = client.observe(STATE)
+        self.assertTrue(snap["checks_passed"])
+        self.assertFalse(snap["rules_policy_verified"])
+        self.assertFalse(snap["transition_ready"])
+
+    def test_non_strict_required_check_rule_is_denied(self):
+        client, fake = self.build()
+        fake.rules[1]["parameters"]["strict_required_status_checks_policy"] = False
+        snap = client.observe(STATE)
+        self.assertTrue(snap["checks_passed"])
+        self.assertFalse(snap["rules_policy_verified"])
+        self.assertFalse(snap["transition_ready"])
+
+    def test_missing_review_thread_resolution_rule_is_denied(self):
+        client, fake = self.build()
+        fake.rules[0]["parameters"]["required_review_thread_resolution"] = False
+        snap = client.observe(STATE)
+        self.assertFalse(snap["rules_policy_verified"])
+        self.assertFalse(snap["transition_ready"])
 
     def test_no_required_status_rule_blocks(self):
         client, fake = self.build()

@@ -1,0 +1,39 @@
+{
+  "change_id": "CHG-P00-M22-TRUSTED-CI-PROVIDER-20261119",
+  "module_id": "M22",
+  "kind": "security",
+  "title": "Pin trusted GitHub Actions provider and strict applied PR rules",
+  "summary": "The authenticated P00 merge-readiness observer now rejects substituted status-check provider identities even when the ruleset and check match. It additionally requires strict base status checks and PR review-thread resolution. Mock regressions added; production branch protection and operator-host deployment remain unverified.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1",
+  "docs_paths": [
+    "docs/operations/P00_MAIN_RULESET.md",
+    "docs/state/STATUS.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M22.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M22.md"
+  ],
+  "test_evidence": [],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No released client or data changed. Before any guarded merge, an authorized repository administrator must install the intended ruleset and independently verify effective rules; no auto-merge or worker was enabled.",
+  "created_at": "2026-11-19T00:00:00Z",
+  "updated_at": "2026-11-19T00:00:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}

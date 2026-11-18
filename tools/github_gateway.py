@@ -18,6 +18,9 @@ from typing import Any, Callable, Mapping
 _API = "https://api.github.com"
 _REPO_PATTERN = re.compile(r"^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$")
 _SHA_PATTERN = re.compile(r"^[0-9a-f]{40}$")
+# The accepted app identity is host-owned policy, not something a branch ruleset
+# or PR-authored check can redefine. GitHub Actions App ID is 15368.
+_TRUSTED_CHECK_APPS = {"governance-lint": 15368, "workspace-windows": 15368}
 
 
 class GitHubEvidenceError(RuntimeError):
@@ -131,13 +134,18 @@ class GitHubGateway:
         """Require PR rule + status checks pinned to a trusted GitHub App ID."""
         if not required_checks or not isinstance(rules, list):
             return False
-        has_pr_gate = any(rule.get("type") == "pull_request" for rule in rules)
+        has_pr_gate = any(
+            rule.get("type") == "pull_request"
+            and isinstance(rule.get("parameters"), dict)
+            and rule["parameters"].get("required_review_thread_resolution") is True
+            for rule in rules
+        )
         pinned = {}
         for rule in rules:
             if rule.get("type") != "required_status_checks":
                 continue
             params = rule.get("parameters")
-            if not isinstance(params, dict):
+            if not isinstance(params, dict) or params.get("strict_required_status_checks_policy") is not True:
                 continue
             checks = params.get("required_status_checks")
             if not isinstance(checks, list):
@@ -152,7 +160,7 @@ class GitHubGateway:
         if not has_pr_gate:
             return False
         for name in required_checks:
-            if name not in pinned:
+            if name not in pinned or pinned[name] != _TRUSTED_CHECK_APPS.get(name):
                 return False
             matches = observed_checks.get(name)
             if not isinstance(matches, list) or len(matches) != 1:

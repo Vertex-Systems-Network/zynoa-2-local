@@ -40,3 +40,12 @@ Manifest: [deploy/github/main-ruleset.json](../../deploy/github/main-ruleset.jso
 - [Ruleset rule options](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets)
 
 **P00 exit gate:** Readback of actual protected main, actual trusted check provider, verified CI, functioning supervised worker and authenticated write-controller tests. Documentation does not waive these requirements.
+
+
+## P00 trusted policy readback hardening — 2026-11-19 (pre-merge source)
+
+The read-only GitHub phase observer now compares the effective `main` required-status-check integration to the independently approved **GitHub Actions App ID 15368**, not merely to the check-run's self-consistent provider ID. It also requires the applied rule to specify `strict_required_status_checks_policy=true` and the pull-request rule to specify `required_review_thread_resolution=true`. A missing, substituted, non-strict, or incomplete rule is **NOT merge-ready**, even if an unrelated CI run reports success. Tests use the real approved provider ID and cover an internally matching but unapproved app, disabled strict mode, and missing review-thread resolution.
+
+The actual remote `main` still has `protected=false` and **zero installed rulesets** at this checkpoint. This is fail-closed source verification, **not branch-protection provisioning** and not proof that GitHub ruleset bypass actors or host privileges have been independently audited. A privileged, operator-owned ruleset deployment and live GitHub readback remain required under Issue #3. P00 PR #1 remains draft; no next phase or release is authorized.
+
+Primary reference: https://docs.github.com/en/rest/repos/rules?apiVersion=2022-11-28
