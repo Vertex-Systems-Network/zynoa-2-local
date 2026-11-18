@@ -207,7 +207,9 @@ class HostLayout:
             with closing(sqlite3.connect(self.db, timeout=15)) as source, closing(sqlite3.connect(pending, timeout=15)) as dest:
                 source.backup(dest, pages=128, sleep=0.05)
             _sqlite_integrity(pending)
-            with pending.open("rb") as inp:
+            # Windows CRT _commit may reject read-only descriptors.
+            # Flush the completed snapshot through a read/write handle.
+            with pending.open("r+b") as inp:
                 os.fsync(inp.fileno())
             digest = _sha256_file(pending)
             os.replace(pending, target)
