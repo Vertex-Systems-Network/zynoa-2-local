@@ -251,6 +251,23 @@ class ModelPlannerTests(unittest.TestCase):
         )
         self.assertEqual(1, patched.call_count)
 
+    def test_unicode_bidi_and_noncanonical_text_denied(self):
+        for unsafe in ("Invisible" + chr(0x202E), "x" + chr(0x200D), "Cafe" + chr(0x301)):
+            with self.subTest(value=repr(unsafe)):
+                with self.assertRaises(ModelPlanDenied):
+                    make_model_request(MODEL, TASK, unsafe, self.scope)
+                plan = draft()
+                plan["summary"] = unsafe
+                with self.assertRaises(ModelPlanDenied):
+                    validate_model_plan(plan, TASK, self.scope)
+
+    def test_validator_rechecks_host_task_scope_and_model_name_segments(self):
+        for model_name in ("coder//7b", "coder/../other", "coder/./other"):
+            with self.subTest(model=model_name), self.assertRaises(ModelPlanDenied):
+                make_model_request(model_name, TASK, "safe", self.scope)
+        with self.assertRaises(ModelPlanDenied):
+            validate_model_plan(draft(), "P01-T20", self.scope)
+
     def test_safe_user_text_length_and_model_name_limit(self):
         with self.assertRaises(ModelPlanDenied):
             make_model_request("../secrets", TASK, "safe", self.scope)
