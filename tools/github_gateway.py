@@ -79,7 +79,7 @@ class GitHubGateway:
         self.timeout = timeout
 
     def _get(self, suffix: str, params: Mapping[str, str] | None = None) -> dict:
-        if not suffix.startswith("/") or ".." in suffix or "://" in suffix or "#" in suffix:
+        if (suffix and not suffix.startswith("/")) or ".." in suffix or "://" in suffix or "#" in suffix:
             raise GitHubEvidenceError("unsafe API route")
         query = ("?" + urllib.parse.urlencode(params)) if params else ""
         return self.transport(
