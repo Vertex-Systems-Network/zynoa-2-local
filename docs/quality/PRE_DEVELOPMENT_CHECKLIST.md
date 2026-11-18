@@ -44,3 +44,11 @@
 - Verify SQLite queue database is on a single trusted host; reject independent replicated DB writers and stale lease tokens.
 - Run real concurrent-claim, expired-lease, retry-budget, no-raw-secrets and job-result integrity tests.
 - Confirm no worker, GUI, Wiki, release or auto-merge is claimed from an Actions smoke; mark unattested requirements BLOCKED.
+
+## P00 DAG predevelopment and replay checks
+
+- Verify every dependency target and predecessor already exists as an immutable queued job with matching phase and branch.
+- Plan safe job order from prerequisites; priority may reorder independent jobs but never violate prerequisites.
+- Reject graph cycles, unauthorized scope jumps, missing/corrupt prerequisites and dependency edits after a job starts.
+- Exercise persistent reboot/reload, retries, terminal BLOCKED propagation, nondependent safe work and transaction rollback.
+- Treat read-only SQLite job scheduling separately from potentially destructive model/Git/file operations; latter require independent authorization and OS sandbox.
