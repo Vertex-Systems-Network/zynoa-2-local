@@ -58,6 +58,22 @@ class JobQueueTests(unittest.TestCase):
         self.assertIsNone(JobQueue(self.file, clock=lambda: self.now[0]).claim(PHASE, BRANCH, "agent-b"))
         self.assertEqual("RUNNING", self.queue.inspect("task-1")["state"])
 
+    def test_concurrent_claims_have_only_one_winner(self):
+        import threading
+        from concurrent.futures import ThreadPoolExecutor
+        self.job()
+        barrier = threading.Barrier(2)
+
+        def attempt(owner):
+            other = JobQueue(self.file, clock=lambda: self.now[0])
+            barrier.wait(timeout=5)
+            return other.claim(PHASE, BRANCH, owner)
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            winners = list(pool.map(attempt, ("agent-a", "agent-b")))
+        self.assertEqual(1, sum(claim is not None for claim in winners))
+        self.assertEqual("RUNNING", self.queue.inspect("task-1")["state"])
+
     def test_priority_and_phase_isolation(self):
         self.job("low", priority=90)
         self.job("high", priority=1)
