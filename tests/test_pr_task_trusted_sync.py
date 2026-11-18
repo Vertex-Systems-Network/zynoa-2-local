@@ -49,7 +49,7 @@ class FakeSources:
             return self.state
         if path == "docs/state/pr-tasks/P00.json":
             return self.manifest
-        raise AssertionError("attempted unrelated file access")
+        raise TaskBoardError("unavailable manifest for requested phase")
 
     def transport(self, method, url, payload):
         self.requests.append(method)
