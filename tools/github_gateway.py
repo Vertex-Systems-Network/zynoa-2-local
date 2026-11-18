@@ -21,9 +21,9 @@ _SHA_PATTERN = re.compile(r"^[0-9a-f]{40}$")
 # The accepted app identity is host-owned policy, not something a branch ruleset
 # or PR-authored check can redefine. GitHub Actions App ID is 15368.
 _TRUSTED_CHECK_APPS = {"governance-lint": 15368, "workspace-windows": 15368}
-_TRUSTED_WORKFLOW_PATH = re.compile(r"^\\.github/workflows/governance\\.yml(?:@[A-Za-z0-9._/-]{1,128})?$")
+_TRUSTED_WORKFLOW_PATH = re.compile(r"^[.]github/workflows/governance[.]yml(?:@[A-Za-z0-9._/-]{1,128})?$")
 _TRUSTED_ACTIONS_JOB = re.compile(
-    r"^https://github\\.com/Vertex-Systems-Network/zynoa-2-local/"
+    r"^https://github[.]com/Vertex-Systems-Network/zynoa-2-local/"
     r"actions/runs/([1-9][0-9]*)/job/([1-9][0-9]*)$"
 )
 _APPROVED_REPO = "Vertex-Systems-Network/zynoa-2-local"

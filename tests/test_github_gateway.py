@@ -198,7 +198,7 @@ class GitHubEvidenceTests(unittest.TestCase):
         client, fake = self.build()
         fake.checks[0]["app"]["id"] = 999
         snap = client.observe(STATE)
-        self.assertTrue(snap["checks_passed"])
+        self.assertFalse(snap["checks_passed"])
         self.assertFalse(snap["rules_policy_verified"])
 
     def test_matching_but_unapproved_check_provider_is_denied(self):
@@ -208,7 +208,7 @@ class GitHubEvidenceTests(unittest.TestCase):
         fake.rules[1]["parameters"]["required_status_checks"][0]["integration_id"] = 999
         fake.checks[0]["app"]["id"] = 999
         snap = client.observe(STATE)
-        self.assertTrue(snap["checks_passed"])
+        self.assertFalse(snap["checks_passed"])
         self.assertFalse(snap["rules_policy_verified"])
         self.assertFalse(snap["transition_ready"])
 
