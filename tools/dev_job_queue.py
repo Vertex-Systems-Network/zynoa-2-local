@@ -155,8 +155,8 @@ class JobQueue:
                 " error_class='DependencyBlocked', updated_at=?"
                 " WHERE state IN ('PENDING','RETRY_WAIT')"
                 " AND EXISTS (SELECT 1 FROM job_dependencies d"
-                " JOIN development_jobs parent ON parent.id=d.depends_on_job_id"
-                " WHERE d.job_id=development_jobs.id AND parent.state='BLOCKED')",
+                " LEFT JOIN development_jobs parent ON parent.id=d.depends_on_job_id"
+                " WHERE d.job_id=development_jobs.id AND (parent.id IS NULL OR parent.state='BLOCKED'))",
                 (now,),
             ).rowcount
             if not changed:
@@ -179,8 +179,8 @@ class JobQueue:
                 "WHERE j.phase=? AND j.branch=? AND j.state IN ('PENDING','RETRY_WAIT') "
                 "AND j.not_before<=?"
                 " AND NOT EXISTS (SELECT 1 FROM job_dependencies d"
-                " JOIN development_jobs parent ON parent.id=d.depends_on_job_id"
-                " WHERE d.job_id=j.id AND parent.state!='SUCCEEDED')"
+                " LEFT JOIN development_jobs parent ON parent.id=d.depends_on_job_id"
+                " WHERE d.job_id=j.id AND (parent.id IS NULL OR parent.state!='SUCCEEDED'))"
                 " ORDER BY j.priority ASC, j.created_at ASC, j.id ASC LIMIT 1",
                 (phase, branch, now),
             ).fetchone()
