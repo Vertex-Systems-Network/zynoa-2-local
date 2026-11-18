@@ -29,7 +29,7 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
         raise GitHubEvidenceError("unexpected GitHub API redirect")
 
 
-def http_json(method: str, url: str, headers: Mapping[str, str], data: bytes | None, timeout: float) -> dict:
+def http_json(method: str, url: str, headers: Mapping[str, str], data: bytes | None, timeout: float) -> Any:
     """Minimal stdlib HTTP client; never includes credentials in exceptions."""
     if not url.startswith(_API + "/") or method != "GET" or data is not None:
         raise GitHubEvidenceError("disallowed network destination or method")
@@ -56,7 +56,7 @@ def http_json(method: str, url: str, headers: Mapping[str, str], data: bytes | N
         raise GitHubEvidenceError("GitHub network unavailable") from None
     except (json.JSONDecodeError, UnicodeError, ValueError):
         raise GitHubEvidenceError("invalid GitHub JSON response") from None
-    if not isinstance(result, dict):
+    if not isinstance(result, (dict, list)):
         raise GitHubEvidenceError("unexpected GitHub response shape")
     return result
 
@@ -78,7 +78,7 @@ class GitHubGateway:
         self.transport = transport
         self.timeout = timeout
 
-    def _get(self, suffix: str, params: Mapping[str, str] | None = None) -> dict:
+    def _get(self, suffix: str, params: Mapping[str, str] | None = None) -> Any:
         if (suffix and not suffix.startswith("/")) or ".." in suffix or "://" in suffix or "#" in suffix:
             raise GitHubEvidenceError("unsafe API route")
         query = ("?" + urllib.parse.urlencode(params)) if params else ""
@@ -115,6 +115,52 @@ class GitHubGateway:
 
     def repo_settings(self) -> dict:
         return self._get("")
+
+    def effective_rules(self, branch: str) -> list[dict]:
+        """Read applied GitHub rules, not just a branch.protected boolean."""
+        if not re.fullmatch(r"[A-Za-z0-9/_.-]+", branch) or ".." in branch:
+            raise GitHubEvidenceError("invalid rules branch")
+        rules = self._get("/rules/branches/" + urllib.parse.quote(branch, safe=""))
+        if not isinstance(rules, list) or not all(isinstance(rule, dict) for rule in rules):
+            raise GitHubEvidenceError("effective rules response unavailable")
+        return rules
+
+    @staticmethod
+    def _trusted_required_policy(rules: list[dict], required_checks: tuple[str, ...],
+                                 observed_checks: dict) -> bool:
+        """Require PR rule + status checks pinned to a trusted GitHub App ID."""
+        if not required_checks or not isinstance(rules, list):
+            return False
+        has_pr_gate = any(rule.get("type") == "pull_request" for rule in rules)
+        pinned = {}
+        for rule in rules:
+            if rule.get("type") != "required_status_checks":
+                continue
+            params = rule.get("parameters")
+            if not isinstance(params, dict):
+                continue
+            checks = params.get("required_status_checks")
+            if not isinstance(checks, list):
+                continue
+            for check in checks:
+                if not isinstance(check, dict):
+                    continue
+                context = check.get("context")
+                integration_id = check.get("integration_id")
+                if isinstance(context, str) and type(integration_id) is int and integration_id > 0:
+                    pinned[context] = integration_id
+        if not has_pr_gate:
+            return False
+        for name in required_checks:
+            if name not in pinned:
+                return False
+            matches = observed_checks.get(name)
+            if not isinstance(matches, list) or len(matches) != 1:
+                return False
+            app = matches[0].get("app")
+            if not isinstance(app, dict) or app.get("id") != pinned[name]:
+                return False
+        return True
 
     def observe(self, state: Mapping[str, Any], required_checks: tuple[str, ...] = ("governance-lint",),
                 blocker_numbers: tuple[int, ...] = (3,)) -> dict:
@@ -173,6 +219,20 @@ class GitHubGateway:
         repo_settings = self.repo_settings()
         auto_merge_available = repo_settings.get("allow_auto_merge") is True
         branch_protected = main.get("protected") is True
+        # The protected flag alone is insufficient. A rule may protect only
+        # deletions or pushes without requiring CI or pull requests. Require
+        # applied PR and required-status rules pinned to the expected check app.
+        rules_policy_verified = False
+        if branch_protected and checks_passed:
+            try:
+                rules = self.effective_rules("main")
+                rules_policy_verified = self._trusted_required_policy(
+                    rules, required_checks, observed
+                )
+            except GitHubEvidenceError:
+                # Missing permissions or unsupported rule API: fail closed,
+                # but allow CI's read-only observation to report the blocker.
+                rules_policy_verified = False
         merged = pr.get("merged") is True or pr.get("merged_at") is not None
         merge_sha = pr.get("merge_commit_sha") if merged else None
         if merged and (not isinstance(merge_sha, str) or not _SHA_PATTERN.fullmatch(merge_sha)):
@@ -182,7 +242,7 @@ class GitHubGateway:
         main_matches_merge = bool(merged and main_sha == merge_sha)
         can_proceed = bool(
             merged and main_matches_merge and checks_passed and not open_blockers
-            and branch_protected
+            and branch_protected and rules_policy_verified
         )
         return {
             "authenticated_remote": True,
@@ -200,6 +260,7 @@ class GitHubGateway:
             "open_critical_blockers": len(open_blockers),
             "blocker_issue_numbers": open_blockers,
             "branch_protected": branch_protected,
+            "rules_policy_verified": rules_policy_verified,
             "auto_merge_available": auto_merge_available,
             "draft": pr.get("draft") is True,
             "pr_state": pr.get("state"),
