@@ -68,7 +68,8 @@ def _static_parse(filename: str, value: str) -> str:
 
 
 def preview_fixture_drafts(
-    plan: dict, candidates: Mapping[str, str], scope: WorkspaceScope
+    plan: dict, candidates: Mapping[str, str], scope: WorkspaceScope,
+    *, expected_task_id: str
 ) -> dict:
     """Static preview only. Actual source and user files stay untouched.
 
@@ -78,7 +79,9 @@ def preview_fixture_drafts(
     """
     if not isinstance(plan, dict) or not isinstance(candidates, dict):
         raise FixtureStageDenied("invalid plan or candidates")
-    task_id = plan.get("task_id")
+    # Task identity MUST come from trusted host orchestration, not plan JSON.
+    # Never accept the model's own task ID as proof of authorization.
+    task_id = expected_task_id
     try:
         validated = validate_model_plan(plan, task_id, scope)
     except (ModelPlanDenied, ValueError):
