@@ -193,7 +193,7 @@ class JobQueue:
 
     def complete(self, job: ClaimedJob, owner: str, result: dict):
         """Only a small validated result marker is stored; no raw task output."""
-        if set(result) - {"check", "passed"} or type(result.get("passed")) is not bool:
+        if set(result) - {"check", "passed"} or result.get("passed") is not True:
             raise QueuePolicyError("invalid result schema")
         if result.get("check") != job.kind:
             raise QueuePolicyError("handler result mismatch")
