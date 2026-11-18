@@ -105,3 +105,13 @@ See [continuous-autonomy audit](../operations/P00_CONTINUOUS_AUTONOMY_AUDIT.md).
 - **TASK-06:** PR table and active manifest agree before final merge; merge gate, real protected main, independent CI, deployment, issue blockers and verified remote SHA are checked separately. No task-board bypass of security.
 
 Source: [PR Task Tables](../operations/PR_TASK_TABLES.md). The trusted workflow in current P00 draft remains INACTIVE until securely installed on default main. P00 cannot pass unrelated host/ruleset gates due solely to a passing task-board test.
+
+## P00 Host Bootstrap vs Deployed Worker Gates (2026-11-18)
+
+- **P00-HOST-01 (fixture):** Authorized `tools.host_bootstrap` creates non-overlapping host root, private POSIX dirs, external SQLite DB and sanitized role metadata; repeated initialization does not overwrite existing journal.
+- **P00-HOST-02 (fixture):** SQLite online backup + SHA-256 digest + required-table/PRAGMA integrity validation + copy/restore drill must pass with active WAL state; a corrupt snapshot/digest blocks without overwriting live DB.
+- **P00-HOST-03 (fixture):** Linux systemd observer/backup templates have scope guard; Windows Task Scheduler preview uses current-user limited token with *at-logon* trigger, not privileged SYSTEM and not an always-on service.
+- **P00-HOST-04 (fixture):** Windows handles are explicitly closed (EventJournal and WorkerLease) so temporary DB fixtures can be removed without locked-file errors; Linux/Windows CI must show real test proof.
+- **P00-HOST-05 (BLOCKED externally):** Actually installed supervised host/service identity, secure token store, measured heartbeat/restart proof, real ACL/OS sandbox and stable backup retention/off-host recovery are still required. Passing P00-HOST-01..04 does **not** permit P00 merge or phase advancement.
+
+Source: [Host Bootstrap](../operations/P00_HOST_BOOTSTRAP.md). CI-hosted disposable fixtures do not mean that the user's computer was modified.
