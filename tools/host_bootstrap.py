@@ -9,6 +9,7 @@ operator; GitHub Actions can exercise it only against disposable fixtures.
 from __future__ import annotations
 
 import argparse
+from contextlib import closing
 import hashlib
 import json
 import os
@@ -55,7 +56,7 @@ def _sqlite_integrity(path: Path) -> dict:
     if not path.is_file() or _has_symlink_component(path):
         raise HostBootstrapError("SQLite file missing or linked")
     try:
-        with sqlite3.connect(f"file:{path.as_posix()}?mode=ro", uri=True, timeout=5) as db:
+        with closing(sqlite3.connect(path.as_uri() + "?mode=ro", uri=True, timeout=5)) as db:
             result = db.execute("PRAGMA integrity_check").fetchone()
             if result != ("ok",):
                 raise HostBootstrapError("SQLite integrity failed")
@@ -70,6 +71,14 @@ def _sqlite_integrity(path: Path) -> dict:
             return {"integrity": "PASS", "event_count": events}
     except sqlite3.Error:
         raise HostBootstrapError("SQLite integrity check could not complete") from None
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as inp:
+        for chunk in iter(lambda: inp.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 class HostLayout:
@@ -195,12 +204,12 @@ class HostLayout:
         fd = os.open(pending, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         os.close(fd)
         try:
-            with sqlite3.connect(self.db, timeout=15) as source, sqlite3.connect(pending, timeout=15) as dest:
+            with closing(sqlite3.connect(self.db, timeout=15)) as source, closing(sqlite3.connect(pending, timeout=15)) as dest:
                 source.backup(dest, pages=128, sleep=0.05)
             _sqlite_integrity(pending)
             with pending.open("rb") as inp:
-                os.fsync(inp.fileno()) if False else None
-            digest = hashlib.sha256(pending.read_bytes()).hexdigest()
+                os.fsync(inp.fileno())
+            digest = _sha256_file(pending)
             os.replace(pending, target)
             # Separate metadata cannot contain original credentials or paths.
             receipt_path = self.backups / (name + ".sha256")
@@ -228,7 +237,7 @@ class HostLayout:
         digest = digest_file.read_text(encoding="ascii").strip()
         if not re.fullmatch(r"[a-f0-9]{64}", digest):
             raise HostBootstrapError("backup digest malformed")
-        actual = hashlib.sha256(backup.read_bytes()).hexdigest()
+        actual = _sha256_file(backup)
         if not secrets.compare_digest(digest, actual):
             raise HostBootstrapError("backup digest mismatch")
         _sqlite_integrity(backup)
@@ -236,7 +245,7 @@ class HostLayout:
         fd = os.open(drill, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         os.close(fd)
         try:
-            with sqlite3.connect(backup, timeout=10) as source, sqlite3.connect(drill) as dest:
+            with closing(sqlite3.connect(backup.as_uri() + "?mode=ro", uri=True, timeout=10)) as source, closing(sqlite3.connect(drill)) as dest:
                 source.backup(dest)
             restored = _sqlite_integrity(drill)
             return {"result": "RESTORE_DRILL_PASSED",
