@@ -23,18 +23,20 @@
   "wiki_paths": [
     "docs/wiki/pages/M22.md"
   ],
-  "test_evidence": [],
-  "commit_sha": null,
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44253930931"
+  ],
+  "commit_sha": "e88a89095c85bb1e7fed4563e92d4e64a9dcead6",
   "release": null,
   "verification": {
-    "tests_passed": false,
+    "tests_passed": true,
     "merge_verified": false,
     "release_published": false
   },
   "breaking_change": false,
   "migration_notes": "No released product data migration. Operator must separately install, verify and opt in to the dedicated Linux rootless runtime; command remains deny-by-default.",
   "created_at": "2026-11-18T06:46:29.037Z",
-  "updated_at": "2026-11-18T06:46:29.037Z",
+  "updated_at": "2026-11-18T06:48:33.410Z",
   "version_bump": "none",
   "affected_option_ids": [],
   "docs_impact": true,
