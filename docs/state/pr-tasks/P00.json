@@ -81,18 +81,20 @@
     {
       "id": "P00-T13",
       "title": "Versioned PR task manifest and tracked description",
-      "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44229743878"
     },
     {
       "id": "P00-T14",
       "title": "Trusted automatic PR task board synchronization",
-      "status": "TODO"
+      "status": "IN_PROGRESS",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1"
     },
     {
       "id": "P00-T15",
       "title": "Model provider discovery and local Ollama health preflight",
-      "status": "TODO"
+      "status": "IN_PROGRESS",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1"
     },
     {
       "id": "P00-T16",
