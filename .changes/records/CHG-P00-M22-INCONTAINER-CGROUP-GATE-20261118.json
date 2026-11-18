@@ -22,18 +22,20 @@
   "wiki_paths": [
     "docs/wiki/pages/M22.md"
   ],
-  "test_evidence": [],
-  "commit_sha": null,
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44251880557"
+  ],
+  "commit_sha": "cebe4c841b73cbbce3644ada6d15403abf019bc9",
   "release": null,
   "verification": {
-    "tests_passed": false,
+    "tests_passed": true,
     "merge_verified": false,
     "release_published": false
   },
   "breaking_change": false,
   "migration_notes": "No released app or user data changed. Unprovisioned Docker gate stays disabled. After operator-owned rootless host deployment, the exact limit values must be independently observed and negative-tested before any sandbox readiness claim.",
   "created_at": "2026-11-18T06:28:23.274Z",
-  "updated_at": "2026-11-18T06:28:23.274Z",
+  "updated_at": "2026-11-18T06:32:27.784Z",
   "version_bump": "none",
   "affected_option_ids": [],
   "docs_impact": true,
