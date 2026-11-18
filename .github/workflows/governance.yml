@@ -37,7 +37,7 @@ jobs:
       - name: Validate per-PR task table manifest (read-only)
         env:
           ZYNOA_CI_PR_NUMBER: ${{ github.event.pull_request.number || '' }}
-        run: python scripts/check_pr_task_board.py
+        run: python -m scripts.check_pr_task_board
       - name: Check controller source syntax
         run: python -m compileall -q tools scripts tests
       - name: Remote P00 observation (read-only; cannot merge)
