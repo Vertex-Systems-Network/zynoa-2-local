@@ -64,7 +64,7 @@ def _read_file_at_commit(token: str, sha: str, path: str) -> dict:
     if not isinstance(content, str) or len(content) > 60_000:
         raise TaskBoardError("GitHub contents malformed")
     try:
-        return _json_load(base64.b64decode(content.replace("\\n", "").replace("\\r", ""), validate=True))
+        return _json_load(base64.b64decode(content.replace("\n", "").replace("\r", ""), validate=True))
     except (ValueError, UnicodeError, binascii.Error):
         raise TaskBoardError("GitHub contents malformed") from None
 
