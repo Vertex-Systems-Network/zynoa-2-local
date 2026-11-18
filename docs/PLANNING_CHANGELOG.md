@@ -50,3 +50,9 @@
 - Expanded the changelog PR gate to include `tools/`, `scripts/` and workflow changes, with existing developer change record retained.
 - Added detailed queue documentation, threat model, AI agent rules, M22 Help/Wiki source and release/predevelopment quality gates.
 - [CI #44216634747](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44216634747) passed 97 tests. This is backend governance development, not a released AI desktop feature; host deployment/protected main/AI sandbox remain blocking.
+
+## P00 protected-main policy manifest — 2026-11-18 (UNRELEASED)
+
+- Added declarative `deploy/github/main-ruleset.json` for main branch requiring PR, no bypass, protected history and trusted required `governance-lint` GitHub Actions check (App ID 15368 verified on actual P00 CI).
+- Added static manifest contract tests and operator instructions for authorized GitHub repository admin to apply and independently validate effective rules.
+- **Not applied** to GitHub; remote `main` remains unprotected and Phase P00 cannot merge or advance. Neither this manifest nor passing unit tests is a release.
