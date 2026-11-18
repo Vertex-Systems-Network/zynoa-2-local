@@ -83,3 +83,14 @@ Passing these DAG-specific checks **does not** waive P00-Q04/Q05, protected-main
 - **P00-WSP-06 (BLOCKED):** OS sandbox/ACL or fd-based safe writes, isolated tool process, secrets separation, actual model worker, Windows reparse tests, deployment/backup and interrupt-recovery verified before code execution may be enabled.
 
 Passing policy/fixture tests cannot waive branch protection, other P00-Q04/Q05 gates, real GUI screenshot obligations or verified merge. [Worktree contract](../operations/P00_WORKTREE_POLICY.md).
+
+## P00 audit clarification — no circular premerge and future-phase gates (2026-11-18)
+
+- **BOOTSTRAP-01 (required before P00 merge):** Real persistent developer host/service identity, live heartbeat and restarted durable state; deployed authorized model with independently controlled security broker, resource limits and narrow task scopes. CI mock/fixture tests alone are NOT PASS.
+- **BOOTSTRAP-02 (required before P00 merge):** One safe test-repository end-to-end unattended task: plan, scoped patch, tests, bounded fix, docs/evidence, update same PR; independently verify GitHub head and checks. No live user data or untrusted code execution outside a validated OS sandbox.
+- **BOOTSTRAP-03 (required before P00 merge):** Actual `main` protected ruleset and required trusted CI, non-bypass configured write identity and no unresolved *pre-merge* critical blocker; PR is non-draft. Do not close an unresolved issue as a gate workaround.
+- **BOOTSTRAP-04 (post-merge transition):** GitHub confirms exact P00 PR merge and resulting main commit; persist real `MERGED_VERIFIED` state and only then create P01 branch/PR. This **cannot be used as a prerequisite for the pre-merge blocker issue closure**.
+- **M22 UI screenshots:** Record current P00 headless controller as a partial backend; running-app GUI screenshot gates remain mandatory when M22 graphical surfaces are implemented on the shared UI platform, not before P02 exists. Do not mark entire M22 product feature DONE at P00.
+- **Future product:** P04 product coding studio, P10 in-product advanced agent features, P08I external design interoperability and P11 signed release keep their own full gates. No P00 requirement is satisfied by simply relabeling them future work.
+
+See [continuous-autonomy audit](../operations/P00_CONTINUOUS_AUTONOMY_AUDIT.md). Existing P00-Q04/Q05 still require actual deployment, guarded actions and safe integration; this amendment clarifies **timing**, not bypass.
