@@ -62,3 +62,16 @@ Prior GitHub Action runs on intermediate P00 commits have reported success. Fina
 ## Ruleset provisioning evidence addendum (2026-11-18)
 
 Live GitHub check-runs endpoint for PR commit `50c478659e3c34050635615028c4b19af407c46e` reported `governance-lint` as successful from GitHub Actions App ID **15368**. This ID is recorded in `deploy/github/main-ruleset.json`. Static test suite checks active main match, PR requirement, no bypass, no forced history rewrite/deletion, strict pinned required status. Live main-branch metadata at last readback: `protected=false`; ruleset list empty. The manifest must be provisioned by a separate admin identity and read back before any protected merge. Documentation: [P00_MAIN_RULESET](../operations/P00_MAIN_RULESET.md). No rule write has occurred in this development turn.
+
+## 2026-11-18 P00 continuation — transactional task DAG
+
+Code committed in the same P00 phase branch and PR:
+- `tools/dev_task_graph.py`: SQLite job prerequisite graph, atomic insertion, direct/indirect cycle checks, same-phase/branch constraint, durable readback.
+- `tools/dev_job_queue.py`: dependency-aware claims (all parents must be SUCCEEDED) and transitive terminal-blocker propagation. Missing database parent rows now block instead of allowing accidental execution.
+- `tools/dev_job_runner.py`: actual three-job DAG smoke, enforced `phase-policy -> design-spec -> docs-integrity` despite intentionally inverse numeric priorities.
+- `tests/test_dev_task_graph.py`: correct order, cycles, batch rollback, restart, blocked ancestor, transient retry, independent work, orphan and invalid inputs.
+- [ADR-0010](../adr/0010-phase-task-dag.md), [DAG architecture](../operations/P00_TASK_DEPENDENCY_GRAPH.md), M22 Help/Wiki and security/gates updated.
+- Official research reference rechecked: [SQLite recursive CTE](https://www.sqlite.org/lang_with.html), [BEGIN IMMEDIATE](https://www.sqlite.org/lang_transaction.html). Single SQLite writer and possible SQLITE_BUSY require bounded contention handling and host testing.
+- Verified pre-hardening test [CI #44219522536](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44219522536) passed **115 Python tests**. Later orphan-recovery and smoke changes need latest HEAD CI check. No privileged code execution, live GitHub write, host deployment or phase advancement is claimed.
+
+**P00 remains OPEN/DRAFT, blocked on Issue #3:** main protection/ruleset not configured, permanent worker host absent and sandboxed AI worktree execution not verified. P01 remains not started.
