@@ -100,3 +100,10 @@
 - Validate exact host P00 task, approved scope, 1 Python fixture, digest-pinned image, no mounts/network/credentials, immutable fixed compiler, and disabled-by-default mode.
 - In mocked CI require Linux and Windows positive/negative cases including no Docker call without enable, rootful/cgroup deny, unsafe paths, resource and output bounds, targeted cleanup, no candidate code execution.
 - Mark standalone broker contract scoped task only after passing CI evidence. Keep T19 real sandbox and T20 full autonomous repair unfinished until actual host/isolation/merge proof.
+
+## Operator-only Docker syntax smoke preflight (P00, 2026-11-18)
+
+- Require separately owned Linux non-admin host, approved pre-cached Python digest, rootless Unix socket, audited image provenance, delegated cgroup controllers, kernel patching and secrets kept outside model reach.
+- Run `python -m tools.docker_host_smoke` only after BOTH explicit operator flags are given. Default/Windows/root execution must deny before Docker; fixed host-owned valid/invalid Python cannot mutate checkout or GitHub.
+- Require both correct syntax marker receipts, exact hash/image/task identity and zero writes. A positive operator smoke is **not** independent sandbox attestation, model-based repair, persistent worker, or evidence of protected GitHub merge.
+- Capture separate real-host network/filesystem/resource negative probes, supervisor restart, signed/traceable independent evidence and latest CI before T19/T20 or Issue #3 may advance.

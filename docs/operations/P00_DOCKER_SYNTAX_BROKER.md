@@ -95,3 +95,25 @@ The fixed command has no `--privileged`, `--volume`, `--mount`, `--device`, `--p
 ### Additional primary research (2026-11-18)
 
 Docker's [rootless resource-limits guidance](https://docs.docker.com/engine/security/rootless/tips/) explicitly warns that CPU/memory/PIDs flags can be ignored, while its [runtime metrics documentation](https://docs.docker.com/engine/containers/runmetrics/) describes cgroup v2 controller files inside the container. [Docker run reference](https://docs.docker.com/reference/cli/docker/container/run/) describes the read-only and network isolation flags. The opt-in compiler now checks the effective kernel-visible values before compiling a candidate; a mocked runner can still forge positive output, so live delegated-controller and isolation failure-injection remains a separate blocking acceptance gate.
+
+## Operator-only live syntax smoke — P00-T19 support (2026-11-18)
+
+The new `tools/docker_host_smoke.py` entrypoint exercises the existing default-denied broker with **two fixed harmless host-authored Python fixtures** (one valid and one invalid). It accepts no model-supplied code, Docker image, mount, command, or GitHub authority. Each sanitized receipt must match task, exact digest, SHA-256, expected syntax result, no candidate execution and zero checkout/GitHub writes. It intentionally reports `independent_host_sandbox_verified=false`, `remote_git_branch_verified=false`, and `persistent_worker_deployed=false`.
+
+After independently provisioning a dedicated nonroot Linux operator machine, reviewing the approved pre-cached image and verifying rootless Docker/socket, delegated cgroups, privileges and credentials, run from a trusted P00 checkout:
+
+```bash
+# Safe default: BLOCKED, zero Docker calls
+python -m tools.docker_host_smoke --repo-root "$PWD"
+
+# Explicit operator authorization on the owned rootless host ONLY
+python -m tools.docker_host_smoke --repo-root "$PWD" \
+  --enable-live-smoke \
+  --acknowledge-operator-owned-rootless-host
+```
+
+Both switches are mandatory and validated **before** reading the checkout or invoking Docker. Non-Linux/root identity, wrong P00 branch/PR, malformed/oversized or linked state, failed daemon attestation and invalid receipts are BLOCKED with a sanitized generic error. Only absolute nonlinked Docker CLI and current-user rootless socket can be used via the underlying broker. The runner never installs Docker or initiates a background worker.
+
+Even an actual operator-run success is **only a positive/negative syntax broker smoke on that one host**, NOT independent verification of kernel isolation, image provenance, systemd persistence, adversarial network/file/credential tests, live model patch/test/repair, GitHub branch protection or merge readiness. CI exercises a mock backend, not a live host. Collect non-secret independently verified host negative test and restart receipts before resolving [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3).
+
+Official references: [Docker rootless resource limits](https://docs.docker.com/engine/security/rootless/tips/), [runtime cgroup v2 metrics](https://docs.docker.com/engine/containers/runmetrics/), [none network driver](https://docs.docker.com/engine/network/drivers/none).

@@ -145,3 +145,8 @@ See [P00 local model planning](../operations/P00_LOCAL_MODEL_PLANNING.md) and [I
 - **DOCKER-SYN-06 (UNMET):** Real host rootless Docker, image provenance/vulnerability audit, delegated cgroup resource enforcement, no-network/no-mount escape probes, process supervision, cleanup after hard crash and actual CI receipts must pass BEFORE T19/T20 or P00 exit. Mock tests are not deployment evidence.
 
 [Operator manual](../operations/P00_DOCKER_SYNTAX_BROKER.md) · [ADR-0015](../adr/0015-rootless-syntax-gate.md) · [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3).
+
+## Operator rootless syntax smoke — non-exit contract (2026-11-18)
+
+- **DOCKER-SYN-07:** `tools.docker_host_smoke` refuses by default, requires two explicit operator authorization flags and nonroot Linux identity, exact P00/PR state, fixed valid/invalid harmless syntax fixtures and strict sanitized result/hash/zero-write verification. Linux and Windows CI exercise mocked success/denial only.
+- **DOCKER-SYN-08 (BLOCKED):** The actual operator-owned Linux execution, delegated cgroup negative tests, independent network/filesystem/credential containment, supervisor recovery, verified image provenance and protected-main GitHub identity remain unverified. A successful smoke alone cannot mark T19/T20 complete or approve PR merge.

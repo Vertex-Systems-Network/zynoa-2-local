@@ -56,7 +56,8 @@ class ScopePolicyTests(unittest.TestCase):
             "AGENTS.md", ".git/config", ".github/workflows/ci.yml",
             "docs/state/PHASE.json", "docs/quality/RELEASE_GATES.md",
             "docs/adr/0010-phase-task-dag.md", "deploy/github/main-ruleset.json",
-            "tools/workspace_policy.py", ".env", ".ssh/id_rsa",
+            "tools/workspace_policy.py", "tools/docker_host_smoke.py",
+            ".env", ".ssh/id_rsa",
         ):
             for action in ("read", "write"):
                 with self.subTest(path=path, action=action), self.assertRaises(WorkspaceDenied):

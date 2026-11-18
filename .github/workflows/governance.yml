@@ -112,6 +112,8 @@ jobs:
         run: python -m unittest tests.test_fixture_draft_stager -v
       - name: Windows Docker syntax policy contract (mocked daemon, no container launch)
         run: python -m unittest tests.test_docker_syntax_broker -v
+      - name: Windows operator-only rootless host smoke policy (mocked, no Docker)
+        run: python -m unittest tests.test_docker_host_smoke -v
       - name: Confirm no model or GitHub mutations
         run: |
           python -c "print('WORKSPACE WINDOWS: fixture-only, no model/GitHub writes')"

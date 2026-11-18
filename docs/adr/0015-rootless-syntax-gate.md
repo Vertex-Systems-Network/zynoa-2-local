@@ -30,3 +30,7 @@ Docker's official [rootless resource limit documentation](https://docs.docker.co
 The broker is real source code, with cross-platform unit tests and a clearly fixed command, but **no actual user-owned host has run the container**. Rootless Docker can still have kernel/daemon vulnerabilities, image supply-chain risks, ignored CPU delegation and incomplete timeout cleanup after an external process crash. Docker syntax-only compilation does not test a program's behavior or satisfy autonomous code patch/test/repair. P00-T19 remains BLOCKED, P00-T20 remains IN_PROGRESS, PR #1 remains DRAFT, Issue #3 open, and P01 is forbidden until actual P00 remote merge evidence.
 
 [Detailed operator contract](../operations/P00_DOCKER_SYNTAX_BROKER.md) · [P00 task table](../state/pr-tasks/P00.json) · [Infrastructure blocker](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3).
+
+## P00 decision extension — operator-owned live syntax smoke (2026-11-18)
+
+Provide a **separate, two-flag operator CLI** around the existing compile-only rootless broker, with fixed known-safe valid/invalid fixtures. Rejected alternatives: invoking privileged Docker implicitly from untrusted PR CI, or using arbitrary model-authored programs for a host self-test. Neither was acceptable. The narrow CLI can be run by a verified Linux host operator without creating new file/command authority or claiming a deployed AI coding worker. Mock tests cannot establish real isolation; P00-T19 remains BLOCKED pending independent host and negative-containment evidence.
