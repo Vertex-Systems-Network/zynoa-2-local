@@ -27,12 +27,17 @@ class IncidentPublishError(RuntimeError):
     pass
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise IncidentPublishError("unexpected GitHub issue API redirect")
+
+
 def issue_http(method: str, url: str, headers: Mapping[str, str],
                payload: bytes | None, timeout: float):
     if method not in ("GET", "POST") or not url.startswith(API + "/repos/"):
         raise IncidentPublishError("unexpected issue gateway request")
     request = urllib.request.Request(url, method=method, headers=dict(headers), data=payload)
-    opener = urllib.request.build_opener()
+    opener = urllib.request.build_opener(_NoRedirect)
     try:
         with opener.open(request, timeout=timeout) as response:
             data = response.read(2_000_001)
