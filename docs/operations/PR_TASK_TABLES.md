@@ -6,7 +6,7 @@
 
 Every phase PR description MUST contain a human-readable task table with its **total tasks**, each task ID/title, one of four explicit statuses, supporting evidence or blocker reference, and a calculated completion percentage. The table is created from the version-controlled JSON, not from a model's narrative summary. Nothing may silently mark a task complete when its tests/evidence do not support completion.
 
-**P00 has a real table:** `docs/state/pr-tasks/P00.json` with 24 tracked tasks, shown in PR #1 using managed markers. The current PR description was updated directly through the GitHub connector. Its future automated updater is implemented in this P00 PR, but the default-branch GitHub Actions updater cannot activate **until the workflow is merged into trusted main** and Github permissions allow it. A separately installed trusted worker can sync earlier with explicitly provisioned PR-body write credentials; no such background worker is currently deployed.
+**P00 has a real table:** `docs/state/pr-tasks/P00.json` is the single versioned task source; task counts are calculated dynamically from it, not fixed in this runbook, and rendered on PR #1 using managed markers. The current PR description was updated directly through the GitHub connector. Its future automated updater is implemented in this P00 PR, but the default-branch GitHub Actions updater cannot activate **until the workflow is merged into trusted main** and Github permissions allow it. A separately installed trusted worker can sync earlier with explicitly provisioned PR-body write credentials; no such background worker is currently deployed.
 
 ## Canonical task manifest contract
 

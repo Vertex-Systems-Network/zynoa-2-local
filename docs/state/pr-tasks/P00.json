@@ -165,8 +165,8 @@
     {
       "id": "P00-T27",
       "title": "Owner fenced last successful observer heartbeat and local health probe",
-      "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44405471351"
     }
   ]
 }

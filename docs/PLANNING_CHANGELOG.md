@@ -137,3 +137,11 @@
 - CI initially failed after new cgroup attestation because mock runner returned the old security options for the additional `info` calls; repaired tests to verify cgroup version and driver rather than weakening the security requirement. [CI #44241256704](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44241256704) passed **250 Linux + 90 Windows tests**, 26-task validation and change records.
 - Added [broker documentation](operations/P00_DOCKER_SYNTAX_BROKER.md), [ADR-0015](adr/0015-rootless-syntax-gate.md), security/release/predevelopment rules, M22 Help/Wiki SOURCE and new unreleased change record. **No live Docker host, real OS sandbox attestation, AI code execution, autonomous patch/test/repair or user-facing release has happened.**
 - Added **P00-T26 DONE** strictly for broker contract source + mocked cross-platform tests. Existing T19 OS sandbox BLOCKED and T20 autonomous coding loop IN_PROGRESS. P00 PR #1 task table **26 total / 16 done / 3 in progress / 7 blocked = 61%**, P00 NOT merge-ready.
+
+
+## P00 owner-fenced observer success heartbeat — 2026-11-19 (UNRELEASED)
+
+- Added additive SQLite `worker_observation_health` separate from worker lease and deduplicated journal, plus `tools.worker_health` local read-only last-success freshness/ownership probe, tests, M22 source Help/Wiki/ADR and explicit T27 scope. A refreshed lease during GitHub failure no longer counts as a recent successful observation.
+- CI #44405053946 detected real Linux/Windows mistakes: WAL-mode SQLite read-only readers may create sidecars, and test DB context managers did not close Windows handles. Corrected with SQLite connection `closing()` and no-application-record-mutation assertions; did not suppress tests or use unsafe `immutable=1` for live WAL.
+- [Exact source CI #44405471351](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44405471351) passed **285 Linux tests**, all Windows suites including **10 new heartbeat tests**, change-record gate and no-GitHub-write merge dry-run. P00-T27 DONE means only code/fixture contract: **no actual host deployment or continuous worker service observed**.
+- The same draft PR #1 continues; P00 host/protected-merge blockers Issue #3 remain open. No product app, released UI, screenshots, actual Wiki publication or P01 phase is claimed.
