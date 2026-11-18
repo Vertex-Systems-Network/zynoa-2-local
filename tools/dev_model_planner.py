@@ -14,6 +14,7 @@ import json
 import re
 import urllib.error
 import urllib.request
+import unicodedata
 from pathlib import Path
 from typing import Callable, Mapping
 
@@ -74,7 +75,9 @@ class ModelPlanDenied(ValueError):
 def _safe_text(value: object, max_length: int) -> bool:
     if not isinstance(value, str) or not 1 <= len(value) <= max_length:
         return False
-    if any(ord(ch) < 32 or ord(ch) == 127 for ch in value):
+    if unicodedata.normalize("NFC", value) != value:
+        return False
+    if any(unicodedata.category(ch) in ("Cc", "Cf", "Cs") for ch in value):
         return False
     if any(ch in value for ch in "<>\x00\x1b"):
         return False
@@ -97,7 +100,7 @@ def make_model_request(
     _validate_task(task_id, brief, scope)
     if not isinstance(model, str) or not _MODEL_NAME.fullmatch(model):
         raise ModelPlanDenied("model name invalid")
-    if ".." in model.split("/"):
+    if any(part in ("", ".", "..") for part in model.split("/")):
         raise ModelPlanDenied("model name has unsafe path components")
     request = {
         "model": model, "stream": False, "format": _SCHEMA,
@@ -121,6 +124,10 @@ def validate_model_plan(
     value: object, task_id: str, scope: WorkspaceScope
 ) -> dict:
     """Host-controlled policy gate: validation ONLY; no file opens or writes."""
+    if not isinstance(task_id, str) or not _TASK_ID.fullmatch(task_id):
+        raise ModelPlanDenied("model output task ID outside P00 scope")
+    if scope.phase != "P00" or scope.branch != "phase/00-governance":
+        raise ModelPlanDenied("host-provided phase or branch is invalid")
     if not isinstance(value, dict) or set(value) != set(_SCHEMA["required"]):
         raise ModelPlanDenied("plan root does not match exact schema")
     if (
