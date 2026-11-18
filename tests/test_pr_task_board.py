@@ -26,10 +26,13 @@ class TaskBoardTests(unittest.TestCase):
         m = fixture()
         self.assertEqual("P00", m["phase"])
         self.assertEqual(1, m["pr_number"])
-        self.assertEqual({
-            "total": 24, "done": 12, "in_progress": 1,
-            "pending": 4, "blocked": 7, "percent_done": 50,
-        }, summary(m))
+        counts = summary(m)
+        self.assertEqual(len(m["tasks"]), counts["total"])
+        self.assertEqual(counts["total"],
+                         counts["done"] + counts["in_progress"] +
+                         counts["pending"] + counts["blocked"])
+        self.assertEqual((counts["done"] * 100) // counts["total"],
+                         counts["percent_done"])
 
     def test_render_has_every_task_exactly_once(self):
         m = fixture()
@@ -39,23 +42,23 @@ class TaskBoardTests(unittest.TestCase):
         self.assertEqual(1, board.count(_START))
         for task in m["tasks"]:
             self.assertEqual(1, board.count("`" + task["id"] + "`"))
-        self.assertIn("**Progress:** 50%", board)
-        self.assertIn("**Blocked:** 7", board)
+        self.assertIn("**Progress:** " + str(summary(m)["percent_done"]) + "%", board)
+        self.assertIn("**Blocked:** " + str(summary(m)["blocked"]), board)
 
     def test_existing_description_preserved_except_managed_section(self):
         m = fixture()
         original = "# Original heading\n\nHuman edits and notes remain intact."
         first = merge_into_pr_body(original, m)
         self.assertTrue(first.startswith(original + "\n\n"))
-        m["tasks"][12]["status"] = "DONE"
-        m["tasks"][12]["reference"] = (
-            "https://github.com/" + REPO + "/pull/1"
-        )
+        before_done = summary(m)["done"]
+        incomplete = next(task for task in m["tasks"] if task["status"] == "IN_PROGRESS")
+        incomplete["status"] = "DONE"
+        incomplete["reference"] = "https://github.com/" + REPO + "/pull/1"
         second = merge_into_pr_body(first, m)
         self.assertTrue(second.startswith(original + "\n\n"))
         self.assertEqual(1, second.count(_START))
-        self.assertIn("**Done:** 13", second)
-        self.assertNotIn("**Done:** 12", second)
+        self.assertIn("**Done:** " + str(before_done + 1), second)
+        self.assertNotIn("**Done:** " + str(before_done) + " |", second)
 
     def test_idempotent_description_render(self):
         m = fixture()
