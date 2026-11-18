@@ -149,6 +149,7 @@ class ModelPlannerTests(unittest.TestCase):
             ".env", ".git/config", "tools/workspace_policy.py",
             "tools/dev_model_planner.py", "tools/local_model_probe.py",
             "tools/host_bootstrap.py", "tools/fixture_draft_stager.py",
+            "tools/docker_syntax_broker.py",
             "tools/pr_task_board.py",
             "tools/pr_task_trusted_sync.py",
             "../escape", "C:/Windows/config", "/etc/passwd",
