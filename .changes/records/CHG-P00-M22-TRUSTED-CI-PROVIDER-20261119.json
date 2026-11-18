@@ -20,11 +20,13 @@
   "wiki_paths": [
     "docs/wiki/pages/M22.md"
   ],
-  "test_evidence": [],
-  "commit_sha": null,
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44397867888"
+  ],
+  "commit_sha": "7160aa806da620713fd6e9c6ab97890f64787414",
   "release": null,
   "verification": {
-    "tests_passed": false,
+    "tests_passed": true,
     "merge_verified": false,
     "release_published": false
   },
