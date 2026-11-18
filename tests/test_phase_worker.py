@@ -127,6 +127,27 @@ class ObserverTests(unittest.TestCase):
             self.assertEqual("GitHubEvidenceError", worker.last_error_class)
             self.assertEqual(2, gateway.calls)
 
+
+    def test_lease_renews_during_long_backoff(self):
+        with tempfile.TemporaryDirectory() as d:
+            gateway = StubGateway()
+            worker, _ = self.make_worker(Path(d), gateway)
+            clock = [0.0]
+            worker.lease.clock = lambda: clock[0]
+            worker.sleep_interval = 250.0
+            seen_competitor = []
+            def virtual_wait(seconds):
+                clock[0] += seconds
+                if clock[0] >= 210.0 and not seen_competitor:
+                    competitor = WorkerLease(worker.lease.db_path, clock=lambda: clock[0])
+                    with self.assertRaises(LeaseBusy):
+                        competitor.acquire("active-phase", "competitor", 180)
+                    seen_competitor.append(True)
+            worker.stop_signal.wait = virtual_wait
+            self.assertEqual(2, worker.run_loop(max_cycles=2))
+            self.assertTrue(seen_competitor)
+            self.assertEqual(2, gateway.calls)
+
     def test_unexpected_corrupt_local_state_rejected(self):
         with tempfile.TemporaryDirectory() as d:
             worker, _ = self.make_worker(Path(d), StubGateway())
