@@ -112,3 +112,13 @@
 - The first CI failure came from a deliberately unsafe test fixture containing literal escaped text rather than an actual NUL; corrected the fixture and verified clean CI. This did not weaken model input policy.
 - Updated PR #1 managed task table: 24 total / 14 Done / 3 In progress / 0 Pending / 7 Blocked = 58%. T20 now IN_PROGRESS because only planning was built, not full autonomous coding.
 - **Not released/deployed:** No real local coding model inference, OS sandbox, safe patch/test/repair worker, persistent host or protected main has been verified. Entire P00 remains DRAFT and in progress, no P01.
+
+## P00 ephemeral AI fixture draft staging and 25-task progress — 2026-11-18 (UNRELEASED)
+
+- Created `tools/fixture_draft_stager.py` to turn validated `DRAFT_ONLY` model file proposals plus separately trusted host task ID into bounded disposable fixture previews, SHA-256 receipts and cleanup. It writes only to a new temporary OS directory, never source/user files or GitHub.
+- Added `tests/test_fixture_draft_stager.py` with real temporary-file lifecycle, deterministic digests, mismatched host task ID, path/control/Unicode size/format denial, malformed JSON, preserved actual fixture contents and no subprocess/code execution; included dedicated Windows CI tests.
+- Security correction: requiring an independent host task ID initially caused fixture tests to fail due to stale test call sites; updated test invocations, retained the strict authority gate and reverified.
+- Further risk review from official Python docs resulted in **removing host-side `ast.parse` for untrusted Python** because complex inputs can exhaust parser resources; Python staging is now text-only, with actual syntax/runtime work deferred to a real OS sandbox.
+- [CI #44237855342](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44237855342) passed **233 Linux tests + 73 Windows tests**, including no-GitHub-write merge dry-run, after bounded fixes.
+- Added [P00 staging operator contract](operations/P00_FIXTURE_DRAFT_STAGING.md), [ADR-0014](adr/0014-staging-not-sandbox.md), M22 Help/Wiki *source*, security/release/pre-development rules and unreleased structured change record.
+- Added P00-T25 as an honest newly discovered **scoped** verified task in the same PR; task manifest/PR body now **25 total, 15 DONE, 3 IN_PROGRESS, 7 BLOCKED (60%)**. Full OS sandbox T19 and plan/edit/test/fix T20 are still unverified. No persistent host, app, product release or published Wiki claimed.
