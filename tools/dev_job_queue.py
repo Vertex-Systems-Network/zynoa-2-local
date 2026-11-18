@@ -70,6 +70,17 @@ class JobQueue:
                 "CREATE INDEX IF NOT EXISTS jobs_claim_idx "
                 "ON development_jobs (state, phase, branch, not_before, priority, created_at)"
             )
+            db.execute("""
+                CREATE TABLE IF NOT EXISTS job_dependencies (
+                    job_id TEXT NOT NULL,
+                    depends_on_job_id TEXT NOT NULL,
+                    PRIMARY KEY(job_id, depends_on_job_id)
+                )
+            """)
+            db.execute(
+                "CREATE INDEX IF NOT EXISTS jobs_dependency_reverse_idx "
+                "ON job_dependencies (depends_on_job_id, job_id)"
+            )
         try:
             self.db_path.chmod(0o600)
         except OSError:
@@ -136,6 +147,20 @@ class JobQueue:
             "WHERE state='RUNNING' AND lease_expires<=? AND attempts<max_attempts",
             (now, now, now),
         )
+        # A permanently blocked prerequisite cannot be retried into success.
+        # Propagate this terminal state transitively in the same transaction.
+        while True:
+            changed = db.execute(
+                "UPDATE development_jobs SET state='BLOCKED',"
+                " error_class='DependencyBlocked', updated_at=?"
+                " WHERE state IN ('PENDING','RETRY_WAIT')"
+                " AND EXISTS (SELECT 1 FROM job_dependencies d"
+                " JOIN development_jobs parent ON parent.id=d.depends_on_job_id"
+                " WHERE d.job_id=development_jobs.id AND parent.state='BLOCKED')",
+                (now,),
+            ).rowcount
+            if not changed:
+                break
 
     def claim(self, phase: str, branch: str, owner: str,
               lease_seconds: float = 120.0) -> ClaimedJob | None:
@@ -150,9 +175,13 @@ class JobQueue:
             db.execute("BEGIN IMMEDIATE")
             self._recover_expired(db, now)
             row = db.execute(
-                "SELECT id,kind,attempts FROM development_jobs "
-                "WHERE phase=? AND branch=? AND state IN ('PENDING','RETRY_WAIT') "
-                "AND not_before<=? ORDER BY priority ASC, created_at ASC, id ASC LIMIT 1",
+                "SELECT j.id,j.kind,j.attempts FROM development_jobs j "
+                "WHERE j.phase=? AND j.branch=? AND j.state IN ('PENDING','RETRY_WAIT') "
+                "AND j.not_before<=?"
+                " AND NOT EXISTS (SELECT 1 FROM job_dependencies d"
+                " JOIN development_jobs parent ON parent.id=d.depends_on_job_id"
+                " WHERE d.job_id=j.id AND parent.state!='SUCCEEDED')"
+                " ORDER BY j.priority ASC, j.created_at ASC, j.id ASC LIMIT 1",
                 (phase, branch, now),
             ).fetchone()
             if row is None:
