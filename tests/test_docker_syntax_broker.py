@@ -57,6 +57,10 @@ class StubDocker:
     def __call__(self, argv, *, data, env, timeout):
         self.calls.append((argv, data, env, timeout))
         if "info" in argv:
+            if argv[-1] == "{{.CgroupVersion}}":
+                return done(stdout=b"2")
+            if argv[-1] == "{{.CgroupDriver}}":
+                return done(stdout=b"systemd")
             return done(stdout=json.dumps(self.features).encode("utf-8"))
         if "rm" in argv:
             return done(code=self.cleanup_code, stdout=b"ok")
@@ -173,12 +177,12 @@ class DockerSyntaxBrokerTests(unittest.TestCase):
                 runner=stub,
             )
         self.assertEqual("PYTHON_SYNTAX_VALID_NO_CODE_EXECUTION", result["status"])
-        self.assertEqual(2, len(stub.calls))
+        self.assertEqual(4, len(stub.calls))
         self.assertEqual("info", stub.calls[0][0][3])
-        self.assertIn("run", stub.calls[1][0])
-        self.assertEqual(SOURCE.encode(), stub.calls[1][1])
+        self.assertIn("run", stub.calls[3][0])
+        self.assertEqual(SOURCE.encode(), stub.calls[3][1])
         self.assertEqual({"PATH", "HOME", "DOCKER_CONFIG"},
-                         set(stub.calls[1][2]))
+                         set(stub.calls[3][2]))
         self.assertEqual(0, result["workspace_files_written"])
         self.assertEqual(0, result["github_writes"])
         self.assertFalse(result["model_source_executed"])
@@ -214,6 +218,26 @@ class DockerSyntaxBrokerTests(unittest.TestCase):
             self.assertEqual(1, len(stub.calls))
 
     @unittest.skipUnless(os.name == "posix", "rootless Unix socket only")
+    def test_cgroups_v1_or_missing_systemd_driver_refused(self):
+        for key, bad_value in (("{{.CgroupVersion}}", b"1"),
+                               ("{{.CgroupDriver}}", b"none")):
+            class NoResourcesDocker(StubDocker):
+                def __call__(self, argv, *, data, env, timeout):
+                    if "info" in argv and argv[-1] == key:
+                        self.calls.append((argv, data, env, timeout))
+                        return done(stdout=bad_value)
+                    return super().__call__(argv, data=data, env=env, timeout=timeout)
+            stub = NoResourcesDocker()
+            with patch("tools.docker_syntax_broker._docker_binary", return_value="/usr/bin/docker"), \
+                 patch("tools.docker_syntax_broker._rootless_socket", return_value="unix:///run/user/1234/docker.sock"), \
+                 self.subTest(key=key), self.assertRaises(DockerSyntaxDenied):
+                run_python_syntax(plan(), SOURCE, self.scope,
+                                  expected_task_id=TASK, enabled=True,
+                                  socket_url="unix:///run/user/1234/docker.sock",
+                                  runner=stub)
+            self.assertFalse(any("run" in x[0] for x in stub.calls))
+
+    @unittest.skipUnless(os.name == "posix", "rootless Unix socket only")
     def test_unexpected_exit_never_claims_valid_syntax_or_leaks_stderr(self):
         stub = StubDocker(output=done(code=5, stdout=b"NO", stderr=b"PRIVATE SECRET"))
         with patch("tools.docker_syntax_broker._docker_binary", return_value="/usr/bin/docker"), \
@@ -235,10 +259,10 @@ class DockerSyntaxBrokerTests(unittest.TestCase):
                                   expected_task_id=TASK, enabled=True,
                                   socket_url="unix:///run/user/1234/docker.sock",
                                   runner=stub)
-        self.assertEqual(3, len(stub.calls))
+        self.assertEqual(5, len(stub.calls))
         self.assertEqual("rm", stub.calls[-1][0][3])
         self.assertEqual("--force", stub.calls[-1][0][4])
-        self.assertEqual(stub.calls[1][0][stub.calls[1][0].index("--name") + 1],
+        self.assertEqual(stub.calls[3][0][stub.calls[3][0].index("--name") + 1],
                          stub.calls[-1][0][-1])
 
     @unittest.skipUnless(os.name == "posix", "rootless Unix socket only")
