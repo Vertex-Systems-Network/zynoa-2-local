@@ -115,3 +115,11 @@
 - Verify additive `worker_observation_health` schema, same-owner unexpired lease, valid remote SHA format, and bounded last-success age in a separate read-only host probe.
 - Test successful loop recording, failed observation non-refresh, stale/replaced owner, expired lease, one-shot released lease, corrupted/missing schema, Windows disposable SQLite cleanup and no source/GitHub writes.
 - Treat all local DB/supervisor reports as **host-local diagnostic hints** until an authorized operator independently verifies real systemd status, remote GitHub API and restart behavior. Do not mark T17/T19/T20 or Issue #3 done based on CI mocks.
+
+
+## P00 systemd notify/remote-success preflight (2026-11-19)
+
+- Require Linux and operator opt-in before reading `NOTIFY_SOCKET`, `WATCHDOG_USEC`, and optional matching `WATCHDOG_PID`. Refuse malformed/foreign PID, absent environment, Windows and one-shot service mode.
+- Emit no readiness until authenticated GitHub response, durable owner-fenced success timestamp, and valid Git SHAs. During GitHub/API/state/lease failure, never send watchdog keepalive merely for process liveness.
+- Exercise notification failures, repeated success, outage after readiness, unauthenticated remote result, Windows policy mocks and actual fixed AF_UNIX datagram on Linux.
+- Real host/operator must separately verify systemd `MainPID`, restricted UID, service state/restart/WatchdogUSec, GitHub remote readback, backup/restore, no write token/model exposure, and outage-induced stop/restart. CI is not deployment evidence.

@@ -130,3 +130,8 @@ The Windows path/SQLite backup failures found during development were **not hidd
 - [systemd credentials](https://systemd.io/CREDENTIALS/) and [systemd.exec](https://www.freedesktop.org/software/systemd/man/latest/systemd.exec) — credentials and process isolation.
 - [Windows Task Scheduler security contexts](https://learn.microsoft.com/en-us/windows/win32/taskschd/security-contexts-for-running-tasks) — least-privileged principals.
 - [Windows logon trigger](https://learn.microsoft.com/en-us/windows/win32/taskschd/logontrigger) — requires user logon; not a persistent system service.
+
+
+## P00 systemd watchdog deployment supplement (2026-11-19, template only)
+
+The service template now uses `Type=notify` instead of `Type=simple`, `NotifyAccess=main` and `WatchdogSec=300`. It starts the read-only observer with `--systemd-watchdog`. Readiness is sent only after an independently authenticated GitHub observation and durable owner-fenced last-success commit. The host operator must validate real service `MainPID`/UID, active state, credential permissions, watchdog expiry and restart behavior; SQLite/CI evidence alone does not satisfy P00-T17. On GitHub outage no keepalive is sent, so the supervisor may rate-limit restart attempts; that is a visible blocker, not an auto-repair success. [Exact operator runbook](P00_SYSTEMD_NOTIFY_WATCHDOG.md).

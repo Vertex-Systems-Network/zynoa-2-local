@@ -34,6 +34,7 @@ class FakeGateway:
         if self.fail:
             raise GitHubEvidenceError("untrusted api error: never record this")
         return {
+            "authenticated_remote": True,
             "head_branch": "phase/00-governance", "pr_number": 1,
             "pr_head_sha": HEAD, "main_sha": MAIN,
             "checks_passed": False, "merged": False,

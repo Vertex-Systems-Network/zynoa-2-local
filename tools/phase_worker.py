@@ -22,6 +22,7 @@ from typing import Callable, Mapping
 
 from tools.github_gateway import GitHubEvidenceError, GitHubGateway
 from tools.phase_controller import EventJournal, PhasePolicyError, PHASE_ORDER, validate_snapshot
+from tools.systemd_watchdog import SystemdWatchdog, SystemdWatchdogDenied
 
 
 class LeaseBusy(RuntimeError):
@@ -134,6 +135,8 @@ class PhaseObserver:
         if errors:
             raise PhasePolicyError("; ".join(errors))
         observation = self.gateway.observe(state)
+        if observation.get("authenticated_remote") is not True:
+            raise GitHubEvidenceError("GitHub observer response is not authenticated")
         # An observed merge is NOT a transition: remote SHA, phase state and
         # required gates still require separate independent verification.
         view = {
@@ -164,7 +167,8 @@ class PhaseWorker:
     """Reusable loop with bounded retry delay and safe issue-free failure log."""
 
     def __init__(self, observer: PhaseObserver, lease: WorkerLease, state_file: Path,
-                 sleep_interval: float = 30.0, owner: str | None = None):
+                 sleep_interval: float = 30.0, owner: str | None = None,
+                 notify_success: Callable[[], None] | None = None):
         if sleep_interval <= 0:
             raise ValueError("polling interval must be positive")
         self.observer = observer
@@ -175,6 +179,7 @@ class PhaseWorker:
         self.name = "active-phase"
         self.stop_signal = threading.Event()
         self.last_error_class: str | None = None
+        self.notify_success = notify_success
 
     def run_once(self) -> dict:
         self.lease.acquire(self.name, self.owner)
@@ -203,6 +208,11 @@ class PhaseWorker:
                     self.lease.record_observation(
                         self.name, self.owner, result["head_sha"], result["main_sha"]
                     )
+                    # One and only one authority path: a verified remote
+                    # observation and durable owner-fenced success record
+                    # before the main service process notifies systemd.
+                    if self.notify_success is not None:
+                        self.notify_success()
                     failures = 0
                     self.last_error_class = None
                 except (GitHubEvidenceError, PhasePolicyError, sqlite3.Error, OSError, ValueError) as exc:
@@ -247,14 +257,20 @@ def main() -> int:
     parser.add_argument("--interval", type=float, default=30.0)
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--cycles", type=int, help="bounded test cycles; omission runs continuously")
+    parser.add_argument("--systemd-watchdog", action="store_true",
+                        help="operator-only systemd Type=notify readiness after verified GitHub observations")
     args = parser.parse_args()
     if args.interval <= 0 or (args.cycles is not None and args.cycles < 1):
         parser.error("interval and cycles must be positive")
+    if args.systemd_watchdog and (args.once or args.cycles is not None):
+        parser.error("systemd watchdog requires an unbounded service loop")
     try:
+        notifier = SystemdWatchdog.from_environment() if args.systemd_watchdog else None
         client = GitHubGateway(args.repo)
         lease = WorkerLease(args.db)
         worker = PhaseWorker(PhaseObserver(client, EventJournal(args.db)), lease, args.state,
-                             sleep_interval=args.interval)
+                             sleep_interval=args.interval,
+                             notify_success=(notifier.on_successful_observation if notifier else None))
         for sig in (signal.SIGINT, signal.SIGTERM):
             signal.signal(sig, lambda _signum, _frame: worker.stop_signal.set())
         if args.once:
@@ -267,7 +283,8 @@ def main() -> int:
             "github_mutations": 0, "worker_deployed_by_this_command": False,
         }))
         return 1 if worker.last_error_class else 0
-    except (GitHubEvidenceError, PhasePolicyError, LeaseBusy, LeaseLost, OSError, ValueError) as exc:
+    except (GitHubEvidenceError, PhasePolicyError, LeaseBusy, LeaseLost, SystemdWatchdogDenied,
+            OSError, ValueError) as exc:
         print(json.dumps({"status": "BLOCKED", "error_class": type(exc).__name__,
                           "credentials_echoed": False, "github_mutations": 0}))
         return 2

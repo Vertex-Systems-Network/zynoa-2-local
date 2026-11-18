@@ -167,6 +167,12 @@
       "title": "Owner fenced last successful observer heartbeat and local health probe",
       "status": "DONE",
       "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44405471351"
+    },
+    {
+      "id": "P00-T28",
+      "title": "Opt-in Linux systemd service watchdog and authenticated observer readiness contract",
+      "status": "IN_PROGRESS",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1"
     }
   ]
 }

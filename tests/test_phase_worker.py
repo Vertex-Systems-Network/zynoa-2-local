@@ -29,6 +29,7 @@ class StubGateway:
         if self.should_fail:
             raise GitHubEvidenceError("unavailable")
         return {
+            "authenticated_remote": True,
             "head_branch": "phase/00-governance",
             "pr_number": 1,
             "pr_head_sha": "c" * 40,

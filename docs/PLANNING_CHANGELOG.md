@@ -145,3 +145,10 @@
 - CI #44405053946 detected real Linux/Windows mistakes: WAL-mode SQLite read-only readers may create sidecars, and test DB context managers did not close Windows handles. Corrected with SQLite connection `closing()` and no-application-record-mutation assertions; did not suppress tests or use unsafe `immutable=1` for live WAL.
 - [Exact source CI #44405471351](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44405471351) passed **285 Linux tests**, all Windows suites including **10 new heartbeat tests**, change-record gate and no-GitHub-write merge dry-run. P00-T27 DONE means only code/fixture contract: **no actual host deployment or continuous worker service observed**.
 - The same draft PR #1 continues; P00 host/protected-merge blockers Issue #3 remain open. No product app, released UI, screenshots, actual Wiki publication or P01 phase is claimed.
+
+
+## P00 Linux systemd remote-work watchdog (2026-11-19 — UNRELEASED, SOURCE)
+
+- Added `tools/systemd_watchdog.py`: opt-in Linux AF_UNIX main-service `READY=1/WATCHDOG=1` with strict environment validation. `tools.phase_worker --systemd-watchdog` notifies only after authenticated GitHub remote reconciliation and owner-fenced SQLite success commit, and denies one-shot or finite worker runs.
+- Changed the **uninstalled template** `deploy/systemd/zynoa-phase-observer.service` to `Type=notify`, `NotifyAccess=main`, `WatchdogSec=300`, `TimeoutStartSec=150`, bounded automatic restart; retained non-root and systemd isolation restrictions.
+- Added Linux socket-level and cross-platform synthetic outage/identity/test-denial coverage; M22 Help/unpublished Wiki, ADR-0017 and operator guide. **Not a deployed service, local model inference or real sandbox.** Issue #3 and P00-T17 remain open; do not merge PR #1 or start P01.

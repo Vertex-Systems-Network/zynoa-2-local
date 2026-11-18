@@ -137,3 +137,8 @@ Operator command after authorized deployment: `python -m tools.worker_health --r
 
 
 **WAL sidecar warning:** The read-only worker health query uses SQLite `mode=ro` for application tables, but the SQLite engine may create `-wal`/`-shm` coordination files as part of WAL-mode reads. This is not equivalent to `immutable=1`, which would risk missing the live WAL. Check protected directory ownership and correct connection closing (especially Windows). [Official SQLite WAL contract](https://www.sqlite.org/wal.html#read_only_databases) and [heartbeat operator guide](P00_OBSERVER_HEARTBEAT.md).
+
+
+## P00 Linux supervisor readiness & watchdog (new source contract — 2026-11-19)
+
+The Linux unit no longer relies on `Type=simple` process existence: the versioned **uninstalled** template uses `Type=notify`, `NotifyAccess=main`, `WatchdogSec=300`, bounded restarts and explicit `--systemd-watchdog` flag. Only after authenticated GitHub observation plus owner-fenced SQLite last-success commit does the main Python worker emit `READY=1` / `WATCHDOG=1`; remote failure does **not** trigger systemd keepalives. The flag is Linux-only, disabled for one-shot/finite loops, and fails closed if systemd environment or datagram delivery is missing. A service can restart repeatedly on a prolonged GitHub outage; start rate limits prevent unbounded restart storms. **This is not independent proof that the host is deployed**, model code runs, or GitHub may merge. [Operator acceptance and incident recovery](P00_SYSTEMD_NOTIFY_WATCHDOG.md) · [ADR-0017](../adr/0017-trusted-remote-systemd-watchdog.md).
