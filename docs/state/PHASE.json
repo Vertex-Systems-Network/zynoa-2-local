@@ -1,15 +1,16 @@
 {
   "schema_version": 3,
   "phase": "P00",
-  "phase_status": "PLANNED_NOT_STARTED",
-  "active_branch": null,
-  "primary_pr": null,
-  "last_verified_remote_sha": null,
+  "phase_status": "IN_PROGRESS",
+  "active_branch": "phase/00-governance",
+  "primary_pr": 1,
+  "last_verified_remote_sha": "8dcb546828a8fdeef40dfaa250ac8f6b8639025d",
   "worker_running": false,
   "required_documents": [
-    "docs/MASTER_PLAN_V3.md",
+    "docs/MASTER_PLAN_V3_2.md",
     "AGENTS.md",
-    "docs/quality/PRE_DEVELOPMENT_CHECKLIST.md"
+    "docs/quality/PRE_DEVELOPMENT_CHECKLIST.md",
+    "docs/operations/DESIGN_INTEROPERABILITY.md"
   ],
   "next_phase": "P01"
 }
