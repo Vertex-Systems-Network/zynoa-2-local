@@ -59,3 +59,7 @@ See [worktree security contract](../operations/P00_WORKTREE_POLICY.md), [ADR-001
 - **Backup durability:** One local disk, unchecked retention or missing off-host encryption cannot guarantee data survival; actual operator off-host backup and restoration tests are still a release blocker.
 
 Details: [P00 Host Bootstrap](../operations/P00_HOST_BOOTSTRAP.md) and [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3).
+
+## Untrusted Ollama proposal boundary (P00-T20 slice, 2026-11-18)
+
+`tools.dev_model_planner` sends only host-supplied task metadata and literal approved prefixes to explicit loopback Ollama. It disables proxies and redirects and never passes a tool-call schema, source files, private user chats or repository/host credentials. A structured schema is a format hint, **not a permission grant**: the trusted host revalidates model identity, final response, exact keys, task ID, draft-only path and fixed allowed checks under `WorkspaceScope`. Protected authority sources include planner, local probe, host bootstrap and PR synchronizer. Model output cannot execute a shell, open GitHub, patch the checkout or merge. This validator alone does not defeat local model compromise, prompt injection, TOCTOU path races, unsafe OS process execution or malicious downstream consumers; those require independent sandbox/identity and broker controls still tracked by [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3).
