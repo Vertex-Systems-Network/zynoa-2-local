@@ -153,12 +153,23 @@ class DockerSyntaxBrokerTests(unittest.TestCase):
         for image in (
             "python:3.12", "python:latest",
             "evilcorp/python@sha256:" + "a" * 64,
+            "docker.io/library/python@sha256:" + "a" * 64,  # valid shape, NOT approved
             "docker.io/library/python@sha256:" + "a" * 63,
             "docker.io/library/python@sha256:" + "Z" * 64,
             "docker.io/library/python@sha256:" + "a" * 64 + " --privileged",
         ):
             with self.subTest(image=image), self.assertRaises(DockerSyntaxDenied):
                 self.make(image=image)
+
+    def test_unapproved_well_formed_digest_never_reaches_docker(self):
+        alternate = "docker.io/library/python@sha256:" + "a" * 64
+        stub = StubDocker()
+        with self.assertRaises(DockerSyntaxDenied):
+            run_python_syntax(
+                plan(), SOURCE, self.scope, expected_task_id=TASK,
+                image=alternate, enabled=True, runner=stub,
+            )
+        self.assertEqual([], stub.calls)
 
     def test_text_and_size_budget_enforced_before_docker(self):
         for content in ("", "x" * 8193, "no" + chr(0), "x" + chr(0x202e),

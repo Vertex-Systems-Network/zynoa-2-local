@@ -29,7 +29,7 @@ DEFAULT_IMAGE = (
     "docker.io/library/python@sha256:"
     "e064671ca452259bab50e8e2c7bd896e39e9a343bb06ca25234adf6fe18d0fc7"
 )
-_IMAGE = re.compile(r"^docker\.io/library/python@sha256:[a-f0-9]{64}$")
+_APPROVED_IMAGES = frozenset((DEFAULT_IMAGE,))  # audited, exact image references only
 _PY_FILE = re.compile(r"^tests/fixtures/[A-Za-z0-9][A-Za-z0-9_.-]{0,71}\.py$")
 _OK = b"ZYNOA_SYNTAX_VALID_NOT_EXECUTED"
 _BAD = b"ZYNOA_SYNTAX_INVALID_NOT_EXECUTED"
@@ -89,8 +89,8 @@ def plan_python_syntax(
     """Policy checks only: no Docker calls, file writes or host code parsing."""
     if not isinstance(plan, dict) or not isinstance(expected_task_id, str):
         raise DockerSyntaxDenied("invalid trusted task context")
-    if not isinstance(image, str) or not _IMAGE.fullmatch(image):
-        raise DockerSyntaxDenied("Docker image must be approved digest-pinned official Python")
+    if not isinstance(image, str) or image not in _APPROVED_IMAGES:
+        raise DockerSyntaxDenied("Docker image is not in the exact reviewed digest allowlist")
     try:
         verified = validate_model_plan(plan, expected_task_id, scope)
     except (ModelPlanDenied, ValueError, OSError):
