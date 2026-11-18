@@ -11,10 +11,12 @@ import hashlib
 import json
 import os
 import re
+import selectors
 import secrets
 import stat
 import subprocess
 import tempfile
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
@@ -167,10 +169,62 @@ def _docker_binary(path: str) -> str:
 
 
 def _invoker(argv: tuple[str, ...], *, data: bytes | None, env: dict, timeout: int):
-    return subprocess.run(
-        argv, input=data, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        env=env, shell=False, timeout=timeout, check=False,
-    )
+    """Bound Docker CLI output while reading, before it can exhaust host memory.
+
+    This runner is Linux-only (the rootless socket gate denies Windows). The
+    model never controls argv or environment. Drain both pipes concurrently so
+    a noisy daemon cannot block the other pipe while we enforce size limits.
+    """
+    deadline = time.monotonic() + timeout
+    with subprocess.Popen(
+        argv, stdin=subprocess.PIPE if data is not None else subprocess.DEVNULL,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, shell=False,
+    ) as proc:
+        output = {"stdout": bytearray(), "stderr": bytearray()}
+        limits = {"stdout": 2048, "stderr": 16384}
+        try:
+            with selectors.DefaultSelector() as selector:
+                for stream in ("stdout", "stderr"):
+                    pipe = getattr(proc, stream)
+                    os.set_blocking(pipe.fileno(), False)
+                    selector.register(pipe, selectors.EVENT_READ, stream)
+                if data is not None:
+                    os.set_blocking(proc.stdin.fileno(), False)
+                    selector.register(proc.stdin, selectors.EVENT_WRITE, "stdin")
+                sent = 0
+                while selector.get_map():
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise subprocess.TimeoutExpired(argv, timeout)
+                    for key, _ in selector.select(remaining):
+                        stream = key.data
+                        if stream == "stdin":
+                            try:
+                                sent += os.write(key.fileobj.fileno(), data[sent:sent + 4096])
+                            except BrokenPipeError:
+                                sent = len(data)
+                            if sent >= len(data) or proc.poll() is not None:
+                                selector.unregister(key.fileobj)
+                                key.fileobj.close()
+                            continue
+                        chunk = os.read(key.fileobj.fileno(), 4096)
+                        if not chunk:
+                            selector.unregister(key.fileobj)
+                            continue
+                        if len(output[stream]) + len(chunk) > limits[stream]:
+                            raise DockerSyntaxDenied("Docker process emitted excessive output")
+                        output[stream].extend(chunk)
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise subprocess.TimeoutExpired(argv, timeout)
+            proc.wait(timeout=remaining)
+            return subprocess.CompletedProcess(
+                argv, proc.returncode, bytes(output["stdout"]), bytes(output["stderr"])
+            )
+        finally:
+            if proc.poll() is None:
+                proc.kill()
+                proc.wait()
 
 
 def _limited_result(result: object) -> tuple[int, bytes]:
@@ -246,7 +300,7 @@ def run_python_syntax(
         argv = job.argv(docker_binary=binary, rootless_socket=endpoint, job_name=name)
         try:
             result = runner(argv, data=job.data, env=env, timeout=12)
-        except (OSError, subprocess.TimeoutExpired):
+        except (OSError, subprocess.TimeoutExpired, DockerSyntaxDenied):
             # Cleanup attempt is scoped to the unpredictable job name only.
             # If cleanup fails, the host operator must investigate before retry.
             try:

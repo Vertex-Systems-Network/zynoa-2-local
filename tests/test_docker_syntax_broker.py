@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -17,6 +18,7 @@ from unittest.mock import patch
 from tools.docker_syntax_broker import (
     DEFAULT_IMAGE, DockerSyntaxDenied, SyntaxJob,
     _BAD, _OK, _COMPILE_CHECK, _LIMITS_CHECK, plan_python_syntax, run_python_syntax,
+    _invoker,
 )
 from tools.workspace_policy import WorkspaceScope
 
@@ -78,6 +80,50 @@ class DockerSyntaxBrokerTests(unittest.TestCase):
         self.root = Path(self.tmp.name).resolve()
         (self.root / "tests" / "fixtures").mkdir(parents=True)
         self.scope = WorkspaceScope(self.root, "P00", "phase/00-governance")
+
+    @unittest.skipUnless(os.name == "posix", "bounded host runner is Linux-only")
+    def test_host_invoker_drains_both_pipes_and_sends_bounded_input(self):
+        argv = (sys.executable, "-c", "import sys; d=sys.stdin.buffer.read(); "
+                "sys.stderr.buffer.write(b'warning'); sys.stdout.buffer.write(d)")
+        result = _invoker(argv, data=b"safe-fixture", env=os.environ.copy(), timeout=5)
+        self.assertEqual(0, result.returncode)
+        self.assertEqual(b"safe-fixture", result.stdout)
+        self.assertEqual(b"warning", result.stderr)
+
+    @unittest.skipUnless(os.name == "posix", "bounded host runner is Linux-only")
+    def test_host_invoker_rejects_output_during_read_not_after_collection(self):
+        for stream in ("stdout", "stderr"):
+            script = ("import sys; sys.%s.buffer.write(b'x'*1000000); "
+                      "sys.%s.buffer.flush()") % (stream, stream)
+            with self.subTest(stream=stream), self.assertRaises(DockerSyntaxDenied):
+                _invoker((sys.executable, "-c", script), data=None,
+                         env=os.environ.copy(), timeout=5)
+
+    @unittest.skipUnless(os.name == "posix", "bounded host runner is Linux-only")
+    def test_host_invoker_timeout_kills_silent_child(self):
+        with self.assertRaises(subprocess.TimeoutExpired):
+            _invoker((sys.executable, "-c", "import time; time.sleep(30)"),
+                     data=None, env=os.environ.copy(), timeout=1)
+
+    @unittest.skipUnless(os.name == "posix", "rootless Unix socket only")
+    def test_output_overflow_attempts_targeted_container_cleanup(self):
+        class OverflowDocker(StubDocker):
+            def __call__(self, argv, *, data, env, timeout):
+                if "run" in argv:
+                    self.calls.append((argv, data, env, timeout))
+                    raise DockerSyntaxDenied("Docker process emitted excessive output")
+                return super().__call__(argv, data=data, env=env, timeout=timeout)
+        stub = OverflowDocker()
+        with patch("tools.docker_syntax_broker._docker_binary", return_value="/usr/bin/docker"), \
+             patch("tools.docker_syntax_broker._rootless_socket", return_value="unix:///run/user/1234/docker.sock"):
+            with self.assertRaises(DockerSyntaxDenied):
+                run_python_syntax(plan(), SOURCE, self.scope, expected_task_id=TASK,
+                                  enabled=True, socket_url="unix:///run/user/1234/docker.sock",
+                                  runner=stub)
+        self.assertEqual(5, len(stub.calls))
+        self.assertEqual("rm", stub.calls[-1][0][3])
+        self.assertEqual(stub.calls[3][0][stub.calls[3][0].index("--name") + 1],
+                         stub.calls[-1][0][-1])
 
     def make(self, *, source=SOURCE, paths=(FILE,), task=TASK, image=DEFAULT_IMAGE):
         return plan_python_syntax(

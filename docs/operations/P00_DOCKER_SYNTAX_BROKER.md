@@ -119,3 +119,8 @@ Even an actual operator-run success is **only a positive/negative syntax broker 
 Official references: [Docker rootless resource limits](https://docs.docker.com/engine/security/rootless/tips/), [runtime cgroup v2 metrics](https://docs.docker.com/engine/containers/runmetrics/), [none network driver](https://docs.docker.com/engine/network/drivers/none).
 
 **Host lifecycle distinction (2026-11-18):** `PHASE.json.worker_running` is required to be a Boolean but may be either value; `true` is *not* accepted as independent supervisor evidence, and the smoke CLI must remain usable after a legitimate separate worker deployment. Its own receipt still reports host deployment and independent sandbox attestation as **unverified**.
+
+
+## Host Docker CLI output bound (2026-11-19)
+
+The default Linux invoker uses nonblocking POSIX pipe reads and a monotonic deadline. It limits stdout to 2 KiB and stderr to 16 KiB **while reading**, kills the child on overflow/timeout and attempts `docker rm --force` for only the generated container name if `run` was in progress. This closes the prior gap where `subprocess.run(..., capture_output=True)` accumulated unlimited bytes before `_limited_result` checked size. The fixed host-owned command still cannot execute model source. The proof is a trusted local synthetic subprocess and mocked Docker cleanup, not a real rootless daemon or isolation attestation. Python's [subprocess documentation](https://docs.python.org/3/library/subprocess.html) warns that `communicate()` buffers output in memory; [selectors](https://docs.python.org/3/library/selectors.html) supports Unix pipe multiplexing but not Windows pipes. Actual operator-host failure injection and cgroup delegation remain required for T19/T20.
