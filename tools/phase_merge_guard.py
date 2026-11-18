@@ -131,3 +131,43 @@ class GuardedMerger:
             "phase": state["phase"],
             "pr_number": state["primary_pr"],
         }
+
+
+def main() -> int:
+    """Operator entrypoint; default inspection never mutates GitHub."""
+    import argparse
+    from pathlib import Path
+
+    parser = argparse.ArgumentParser(description="Guarded GitHub phase merge (default dry-run)")
+    parser.add_argument("--repo", default="Vertex-Systems-Network/zynoa-2-local")
+    parser.add_argument("--state", type=Path, default=Path("docs/state/PHASE.json"))
+    parser.add_argument("--apply", action="store_true")
+    args = parser.parse_args()
+    try:
+        state = json.loads(args.state.read_text(encoding="utf-8"))
+        reader = GitHubGateway(args.repo)
+        if args.apply:
+            enabled = os.environ.get("ZYNOA_ENABLE_MERGE") == "1"
+            result = GuardedMerger(reader, enabled=enabled).merge_current(state)
+        else:
+            observed = reader.observe(state)
+            GuardedMerger.verify_premerge(state, observed)
+            result = {
+                "status": "ELIGIBLE_FOR_SEPARATELY_AUTHORIZED_MERGE",
+                "pr_number": observed["pr_number"],
+                "branch": observed["head_branch"],
+                "commit": observed["pr_head_sha"],
+                "merge_performed": False,
+            }
+        print(json.dumps(result, indent=2))
+        return 0
+    except (MergeBlocked, GitHubEvidenceError, OSError, ValueError) as exc:
+        print(json.dumps({
+            "status": "BLOCKED", "error_class": type(exc).__name__,
+            "merge_performed": False, "credentials_echoed": False,
+        }))
+        return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
