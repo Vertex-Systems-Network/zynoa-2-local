@@ -106,6 +106,8 @@ jobs:
           if (-not (($preview | Out-String) -match 'PREVIEW_ONLY')) { throw 'Windows least-privilege logon preview failed' }
       - name: Windows independent host recovery tests
         run: python -m unittest tests.test_host_bootstrap -v
+      - name: Windows local model proposal policy tests (mocked inference only)
+        run: python -m unittest tests.test_dev_model_planner -v
       - name: Confirm no model or GitHub mutations
         run: |
           python -c "print('WORKSPACE WINDOWS: fixture-only, no model/GitHub writes')"
