@@ -155,6 +155,12 @@
       "title": "Ephemeral model fixture staging and no-execution receipt tests",
       "status": "DONE",
       "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44237855342"
+    },
+    {
+      "id": "P00-T26",
+      "title": "Default-disabled rootless Docker Python syntax broker policy and mocked security tests",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44240644251"
     }
   ]
 }
