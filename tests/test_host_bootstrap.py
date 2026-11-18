@@ -169,11 +169,16 @@ class HostStorageTests(unittest.TestCase):
         with self.assertRaises(HostBootstrapError):
             self.host.verify()
 
-    def test_corrupt_sqlite_db_does_not_fake_healthy_backup(self):
+    def test_required_table_corruption_does_not_fake_healthy_backup(self):
         self.init()
-        self.host.db.write_bytes(b"invalid SQLite DB")
-        with self.assertRaises((HostBootstrapError, sqlite3.DatabaseError)):
+        # WAL can recover data after rewriting only the main DB file.
+        # Deleting the required schema within a committed SQLite transaction
+        # is a deterministic incomplete/invalid host-state fixture.
+        with sqlite3.connect(self.host.db) as db:
+            db.execute("DROP TABLE phase_events")
+        with self.assertRaises(HostBootstrapError):
             self.host.backup()
+        self.assertEqual([], list(self.host.backups.iterdir()))
 
     def test_sha256_streaming_matches_stdlib(self):
         import hashlib
