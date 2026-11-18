@@ -1,0 +1,40 @@
+{
+  "change_id": "CHG-P00-M22-DURABLE-SUCCESS-HEARTBEAT-20261119",
+  "module_id": "M22",
+  "kind": "enhancement",
+  "title": "Track last successful remote observation separately from worker lease",
+  "summary": "Add a fenced SQLite last-success heartbeat for read-only GitHub observer and a host-local read-only freshness probe. A fresh lease with stale or failed remote observations no longer qualifies as recent local evidence. No persistent host was deployed.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1",
+  "docs_paths": [
+    "docs/operations/P00_OBSERVER_HEARTBEAT.md",
+    "docs/operations/P00_WORKER_RUNBOOK.md",
+    "docs/adr/0016-success-heartbeat-not-lease.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M22.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M22.md"
+  ],
+  "test_evidence": [],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "Additive worker_observation_health SQLite table only, created by existing WorkerLease initialization. No destructive migration, existing journal intact. Existing deployed worker host is not independently verified.",
+  "created_at": "2026-11-19T00:00:00Z",
+  "updated_at": "2026-11-19T00:00:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}

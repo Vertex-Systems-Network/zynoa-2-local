@@ -33,6 +33,7 @@ _PROTECTED_PATHS = (
     "tools/dev_model_planner.py", "tools/local_model_probe.py",
     "tools/host_bootstrap.py", "tools/fixture_draft_stager.py",
     "tools/docker_syntax_broker.py", "tools/docker_host_smoke.py",
+    "tools/worker_health.py",
     "tools/pr_task_board.py",
     "tools/pr_task_trusted_sync.py",
 )

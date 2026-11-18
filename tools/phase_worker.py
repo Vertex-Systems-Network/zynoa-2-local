@@ -11,6 +11,7 @@ import argparse
 from contextlib import closing
 import hashlib
 import json
+import re
 import signal
 import sqlite3
 import threading
@@ -43,6 +44,14 @@ class WorkerLease:
             db.execute(
                 "CREATE TABLE IF NOT EXISTS worker_leases "
                 "(name TEXT PRIMARY KEY, owner TEXT NOT NULL, expires_at REAL NOT NULL)"
+            )
+            # Separate from the deduplicated event journal. A successful
+            # observation must advance its timestamp every polling cycle;
+            # a renewed lease without GitHub success is insufficient.
+            db.execute(
+                "CREATE TABLE IF NOT EXISTS worker_observation_health "
+                "(name TEXT PRIMARY KEY, owner TEXT NOT NULL, observed_at REAL NOT NULL, "
+                "head_sha TEXT NOT NULL, main_sha TEXT NOT NULL)"
             )
         try:
             self.db_path.chmod(0o600)
@@ -79,6 +88,34 @@ class WorkerLease:
             )
             if row.rowcount != 1:
                 raise LeaseLost("lease expired or ownership changed")
+
+    def record_observation(self, name: str, owner: str, head_sha: str, main_sha: str) -> None:
+        """Persist only successfully observed remote SHAs for the live lease owner.
+
+        Never records raw GitHub responses, credentials, error messages or
+        model/user content. Old workers cannot update a stolen/expired lease.
+        """
+        if not name or not owner or not all(
+            isinstance(s, str) and re.fullmatch(r"[a-f0-9]{40}", s)
+            for s in (head_sha, main_sha)
+        ):
+            raise ValueError("remote observation SHA invalid")
+        now = self.clock()
+        with closing(self._connect()) as db, db:
+            db.execute("BEGIN IMMEDIATE")
+            lease = db.execute(
+                "SELECT owner, expires_at FROM worker_leases WHERE name=?", (name,)
+            ).fetchone()
+            if lease is None or lease[0] != owner or lease[1] <= now:
+                raise LeaseLost("cannot record observation without live lease")
+            db.execute(
+                "INSERT INTO worker_observation_health "
+                "(name,owner,observed_at,head_sha,main_sha) VALUES (?,?,?,?,?) "
+                "ON CONFLICT(name) DO UPDATE SET owner=excluded.owner, "
+                "observed_at=excluded.observed_at, head_sha=excluded.head_sha, "
+                "main_sha=excluded.main_sha",
+                (name, owner, now, head_sha, main_sha),
+            )
 
     def release(self, name: str, owner: str) -> None:
         with closing(self._connect()) as db, db:
@@ -145,6 +182,9 @@ class PhaseWorker:
             state = json.loads(self.state_file.read_text(encoding="utf-8"))
             result = self.observer.run_once(state)
             self.lease.heartbeat(self.name, self.owner)
+            self.lease.record_observation(
+                self.name, self.owner, result["head_sha"], result["main_sha"]
+            )
             return result
         finally:
             self.lease.release(self.name, self.owner)
@@ -158,11 +198,14 @@ class PhaseWorker:
                 state = {}
                 try:
                     state = json.loads(self.state_file.read_text(encoding="utf-8"))
-                    self.observer.run_once(state)
+                    result = self.observer.run_once(state)
                     self.lease.heartbeat(self.name, self.owner)
+                    self.lease.record_observation(
+                        self.name, self.owner, result["head_sha"], result["main_sha"]
+                    )
                     failures = 0
                     self.last_error_class = None
-                except (GitHubEvidenceError, PhasePolicyError, OSError, ValueError) as exc:
+                except (GitHubEvidenceError, PhasePolicyError, sqlite3.Error, OSError, ValueError) as exc:
                     failures += 1
                     # Never log exception strings; persist only a safe error class.
                     self.last_error_class = type(exc).__name__

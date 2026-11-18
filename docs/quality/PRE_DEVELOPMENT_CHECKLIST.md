@@ -107,3 +107,11 @@
 - Run `python -m tools.docker_host_smoke` only after BOTH explicit operator flags are given. Default/Windows/root execution must deny before Docker; fixed host-owned valid/invalid Python cannot mutate checkout or GitHub.
 - Require both correct syntax marker receipts, exact hash/image/task identity and zero writes. A positive operator smoke is **not** independent sandbox attestation, model-based repair, persistent worker, or evidence of protected GitHub merge.
 - Capture separate real-host network/filesystem/resource negative probes, supervisor restart, signed/traceable independent evidence and latest CI before T19/T20 or Issue #3 may advance.
+
+
+## P00 persisted observer-success freshness preflight (2026-11-19)
+
+- Distinguish an active SQLite lease from completed GitHub reconciliation; a lease renewed during network failure cannot certify freshness.
+- Verify additive `worker_observation_health` schema, same-owner unexpired lease, valid remote SHA format, and bounded last-success age in a separate read-only host probe.
+- Test successful loop recording, failed observation non-refresh, stale/replaced owner, expired lease, one-shot released lease, corrupted/missing schema, Windows disposable SQLite cleanup and no source/GitHub writes.
+- Treat all local DB/supervisor reports as **host-local diagnostic hints** until an authorized operator independently verifies real systemd status, remote GitHub API and restart behavior. Do not mark T17/T19/T20 or Issue #3 done based on CI mocks.

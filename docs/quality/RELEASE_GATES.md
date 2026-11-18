@@ -155,3 +155,8 @@ See [P00 local model planning](../operations/P00_LOCAL_MODEL_PLANNING.md) and [I
 ### P00 required check workflow provenance gate (2026-11-19)
 
 P00-Q02 requires GitHub required check name, pinned Actions App and authenticated Actions run/job identity bound to current PR, SHA, check suite and expected workflow path. Same-name successful checks from another workflow fail closed. Passing code-level provenance does not attest hosted worker, GitHub ruleset installation, rootless isolation, CI workflow integrity or actual merge; Issue #3 remains open.
+
+
+## P00 observer local heartbeat vs real deployment gate (2026-11-19)
+
+P00-Q04 distinguishes **fresh owner-matched last-successful remote observation** from mere lease renewal. CI must test the additive WAL-table contract and read-only freshness probe. Even a positive local response is **not** a systemd process, live model executor, independent GitHub credential verification, rootless sandbox, signed deployment or merge attestation. Keep P00-T17 BLOCKED until real operator-owned host lifecycle/restart and scoped identity evidence is collected.

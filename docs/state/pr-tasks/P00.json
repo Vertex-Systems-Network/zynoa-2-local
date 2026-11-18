@@ -161,6 +161,12 @@
       "title": "Default-disabled rootless Docker Python syntax broker policy and mocked security tests",
       "status": "DONE",
       "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44240644251"
+    },
+    {
+      "id": "P00-T27",
+      "title": "Owner fenced last successful observer heartbeat and local health probe",
+      "status": "IN_PROGRESS",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1"
     }
   ]
 }

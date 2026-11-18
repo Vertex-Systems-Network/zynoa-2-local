@@ -221,3 +221,14 @@ The first [CI #44401454985](https://github.com/Vertex-Systems-Network/zynoa-2-lo
 Crucial limitations unchanged: authenticated workflow provenance does NOT attest the integrity of PR-editable workflow code, real applied branch rules/bypass actors, privileged service identity, a persistent model-backed coding host, true OS sandbox or a protected merge. Remote main remains unprotected with zero rulesets and Issue #3 OPEN. PR #1 DRAFT/UNMERGED. P00-T14/T15/T20 IN_PROGRESS; seven existing blockers still BLOCKED; P01 not started. No app GUI/screenshots, GitHub Wiki publication, signed release or long-running agent has been verified.
 
 Next: verify newest evidence commit CI, then operator-owned host+GitHub admin must provide independent supervisor heartbeat, rootless OS containment, real model repair, protected main and scoped write/merge receipts. Do not close premerge Issue #3 until actually resolved; do not start P01 before separately verified remote merge.
+
+
+## P00 durable last-success observer heartbeat and read-only host-local probe — 2026-11-19 (CI pending)
+
+**Pre-change GitHub truth:** P00 `IN_PROGRESS`, existing `phase/00-governance`, draft/unmerged PR #1, remote `main=8dcb546828a8fdeef40dfaa250ac8f6b8639025d` unprotected, zero rulesets and Issue #3 OPEN. Latest verified HEAD `8e1eb79013d19dcf7852d004be9cd25c4abf5df3` passed [Actions #44402282110](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44402282110).
+
+**Scoped P00-T27 underway:** add owner-fenced SQLite `worker_observation_health` timestamp and Git SHAs after *successful* remote observation only. A still-valid lease renewed during GitHub failure is insufficient. Add `tools/worker_health.py` to read existing operator-owned SQLite host data without creating or changing it; require current lease and recent same-owner successful observation. A one-shot invocation that releases its lease cannot be certified as persistent. Add disposable Linux/Windows tests for real SQLite, stale/replaced lease, failures, missing schema, privacy and loop timing; preserve worktree guardrails, CI and M22 Help/unpublished Wiki. [ADR-0016](../adr/0016-success-heartbeat-not-lease.md) records why lease/journal timestamps are not success evidence. **New code CI not yet verified; do not mark T27 DONE.**
+
+This feature only supports a later independent host attestation; `persistent_worker_deployment_verified=false` is explicit. The actual supervised service, real Ollama-backed coding, OS containment, protected `main`, authenticated write tests, merge and P01 remain UNVERIFIED/BLOCKED. No app GUI/screenshots or published Wiki. Keep Issue #3 OPEN, PR #1 DRAFT.
+
+Next: exact source HEAD CI, fix any Linux/Windows test failure on current P00 PR; only then record evidence, update T27 to DONE and synchronize managed PR task table. Real operator host/systemd/remote checks remain separate blockers.
