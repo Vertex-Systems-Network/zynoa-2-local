@@ -18,6 +18,7 @@ class FakeTransport:
         self.issue_open = False
         self.checks = [{"name": "governance-lint", "head_sha": SHA, "status": "completed", "conclusion": "success"}]
         self.head = SHA
+        self.head_ref = BRANCH
         self.request_count = 0
 
     def __call__(self, method, url, headers, body, timeout):
@@ -29,7 +30,7 @@ class FakeTransport:
         path = urlparse(url).path
         if path.endswith("/pulls/1"):
             return {
-                "number": 1, "head": {"ref": BRANCH, "sha": self.head},
+                "number": 1, "head": {"ref": self.head_ref, "sha": self.head},
                 "base": {"ref": "main"}, "merged": self.pr_merged,
                 "merged_at": "2026-11-18T00:00:00Z" if self.pr_merged else None,
                 "merge_commit_sha": MERGE, "draft": self.pr_draft,
@@ -103,7 +104,7 @@ class GitHubEvidenceTests(unittest.TestCase):
 
     def test_remote_mismatch_is_hard_error(self):
         client, fake = self.build()
-        fake.head = "a" * 40
+        fake.head_ref = "phase/99-unauthorized"
         with self.assertRaises(GitHubEvidenceError):
             client.observe(STATE)
 
