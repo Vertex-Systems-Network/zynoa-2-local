@@ -23,18 +23,20 @@
   "wiki_paths": [
     "docs/wiki/pages/M22.md"
   ],
-  "test_evidence": [],
-  "commit_sha": null,
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44412717005"
+  ],
+  "commit_sha": "1f8d0b28482681525a8b67aa2384e40923f705f9",
   "release": null,
   "verification": {
-    "tests_passed": false,
+    "tests_passed": true,
     "merge_verified": false,
     "release_published": false
   },
   "breaking_change": false,
   "migration_notes": "No deployed service or end-user migration. Existing read-only Linux service template changes to Type=notify and must be reviewed/installed only by an authorized operator; it is not yet installed. Observer SQLite schema remains unchanged.",
   "created_at": "2026-11-19T00:00:00Z",
-  "updated_at": "2026-11-19T00:00:00Z",
+  "updated_at": "2026-11-18T22:34:10Z",
   "version_bump": "none",
   "affected_option_ids": [],
   "docs_impact": true,
