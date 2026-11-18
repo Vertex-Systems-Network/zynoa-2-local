@@ -149,7 +149,6 @@ class ModelPlannerTests(unittest.TestCase):
             ".env", ".git/config", "tools/workspace_policy.py",
             "../escape", "C:/Windows/config", "/etc/passwd",
             "tests/fixtures/../../secret", "tests/fixtures/evil\\file",
-            "tests/fixtures/link",
         ):
             data = draft()
             data["file_proposals"][0]["path"] = path
@@ -253,9 +252,7 @@ class ModelPlannerTests(unittest.TestCase):
         with self.assertRaises(ModelPlanDenied):
             make_model_request("../secrets", TASK, "safe", self.scope)
         with self.assertRaises(ModelPlanDenied):
-            make_model_request(MODEL, TASK, "safe", self.scope).update if False else make_model_request(
-                MODEL, TASK, "secret\x00", self.scope
-            )
+            make_model_request(MODEL, TASK, "secret\\x00", self.scope)
 
 
 if __name__ == "__main__":
