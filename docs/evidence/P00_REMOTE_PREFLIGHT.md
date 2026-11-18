@@ -40,3 +40,12 @@ Prior GitHub Action runs on intermediate P00 commits have reported success. Fina
 3. Research bank with pinned verified source/license comparisons and security review.
 4. Automated CI acceptance gate and reproducible logs; truthful screenshot/docs status.
 5. Verified merge of PR #1 into main and durable state checkpoint. **Do not create P01 branch before this.**
+
+
+## Remote continuation audit and CI evidence (2026-11-18)
+
+- Latest repository settings checked: `allow_auto_merge=true` (changed since initial preflight); `main` GET branch metadata reported `protected=false`. GitHub branch-protection endpoint returned permission-denied 403 through connector, and repo rulesets listing returned empty. This is a known **P00 merge blocker**, not automatic permission to merge.
+- [CI run 44213446505](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44213446505) on P00 SHA `48eee371a592fdef1a29961658a2bedb7026c550` passed 59 tests, syntax, static policy and **authenticated GitHub API observation** with read-only token; observed `transition_ready=false` and `branch_protected=false`.
+- actions/checkout and setup-python upgraded to Node24-compatible v6; no deprecation warning in the reviewed CI log.
+- Worker observer and issue router remain code deployed only in the PR, not an always-on host; trusted failure-to-Issue workflow is inactive on unmerged branch. Test results establish the Python code slice, not autonomous end-to-end development.
+- Research comparison: [hosting options](../research/P00_WORKER_HOSTING_RESEARCH.md); architecture: [ADR-0009](../adr/0009-phase-observer-boundary.md); operator [runbook](../operations/P00_WORKER_RUNBOOK.md).
