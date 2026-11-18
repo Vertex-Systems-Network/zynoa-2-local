@@ -30,3 +30,10 @@ Actual code added on [draft PR #1](https://github.com/Vertex-Systems-Network/zyn
 **Added actual code:** authenticated read-only GitHub evidence gateway, durable single-lease observer with SQLite WAL, safe developer-ci Issue bridge and trusted default-branch failure workflow, 59 passing Python unit/governance tests and authenticated CI observation. Last verified passing CI evidence at [run 44213446505](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44213446505) (commit `48eee371a592fdef1a29961658a2bedb7026c550`). Later commits require new CI evidence. Local worker remains **NOT DEPLOYED**; M22 not complete; Wiki source updated, published Wiki and actual screenshots pending.
 
 **Remaining:** [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3) dedicated host+secret store, independent guarded write/merge controller, verified ruleset and live end-to-end issue/recovery proof. [Issue #2](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/2) P08I deferred Designer import/export unchanged.
+
+
+## P00 resumed implementation slice 3 — 2026-11-18
+
+Guarded merge executor `tools/phase_merge_guard.py` has been added with default-off write permission, fresh authenticated PR/CI/branch-protection/blocker checks, stale-head/stale-base defense, GitHub merge SHA readback and 11 mocked refusal/success tests. CI also runs its **live dry-run with zero GitHub writes**. Long retry sleeps now heartbeat the SQLite lease so no second worker can steal an active lease; regression test included. [Verified GitHub Actions 44214670015](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44214670015), code SHA `2a8f0f67b4846603d5d11c02cc029af1c3ab9a66`: **71 Python tests PASS**, guard dry-run PASS, source syntax/spec checks PASS. This is not a real PR merge, deployment or user app test.
+
+**P00 remains IN_PROGRESS / PR #1 DRAFT**. GitHub `main` still unprotected during live observation; issue #3 open; no service host deployed or live trusted write-token workflow exercised. No P01 branch exists. M22 UI/screenshots and published Wiki remain pending.
