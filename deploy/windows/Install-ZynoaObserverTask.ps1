@@ -21,7 +21,7 @@ if (-not (Test-Path -LiteralPath (Join-Path $repo "docs/state/PHASE.json") -Path
 if ($repo.Contains('"') -or $hostDir.Contains('"')) {
     throw "Ambiguous path quoting is prohibited"
 }
-$command = Get-Command -Name $PythonExe -CommandType Application -ErrorAction Stop
+$command = Get-Command -Name $PythonExe -CommandType Application -ErrorAction Stop | Select-Object -First 1
 $python = $command.Source
 if (-not $python -or $python.Contains('"')) {
     throw "Invalid Python executable"
