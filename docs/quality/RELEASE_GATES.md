@@ -94,3 +94,14 @@ Passing policy/fixture tests cannot waive branch protection, other P00-Q04/Q05 g
 - **Future product:** P04 product coding studio, P10 in-product advanced agent features, P08I external design interoperability and P11 signed release keep their own full gates. No P00 requirement is satisfied by simply relabeling them future work.
 
 See [continuous-autonomy audit](../operations/P00_CONTINUOUS_AUTONOMY_AUDIT.md). Existing P00-Q04/Q05 still require actual deployment, guarded actions and safe integration; this amendment clarifies **timing**, not bypass.
+
+## Mandatory TASK tracking gates for each phase PR (2026-11-18)
+
+- **TASK-01:** One canonical `docs/state/pr-tasks/<PHASE>.json` matches the actual phase, branch and primary PR number. CI validates all stable task IDs and count (1–120).
+- **TASK-02:** GitHub PR body contains exactly one managed table with every task/actual status and calculated totals. Source remains version-controlled JSON, not a hand-edited percent.
+- **TASK-03:** DONE and BLOCKED statuses link to relevant real repository evidence/issues. No CI-only inference of task completion; if evidence is stale or a regression occurs, mark IN_PROGRESS/BLOCKED truthfully.
+- **TASK-04:** Each newly discovered in-scope task is added to manifest and tracked on the SAME PR. Docs/help/wiki/screenshot and change records updated where the task actually affects them.
+- **TASK-05:** Automatic PR body writers must run from trusted main/host only, with narrow `pull-requests:write`; untrusted PR HEAD is read as limited schema-validated JSON, **never executed** with write authority.
+- **TASK-06:** PR table and active manifest agree before final merge; merge gate, real protected main, independent CI, deployment, issue blockers and verified remote SHA are checked separately. No task-board bypass of security.
+
+Source: [PR Task Tables](../operations/PR_TASK_TABLES.md). The trusted workflow in current P00 draft remains INACTIVE until securely installed on default main. P00 cannot pass unrelated host/ruleset gates due solely to a passing task-board test.
