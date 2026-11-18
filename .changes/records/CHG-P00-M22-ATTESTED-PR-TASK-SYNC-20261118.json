@@ -1,0 +1,40 @@
+{
+  "change_id": "CHG-P00-M22-ATTESTED-PR-TASK-SYNC-20261118",
+  "module_id": "M22",
+  "kind": "security",
+  "title": "Authenticate Governance workflow runs before trusted PR task table writes",
+  "summary": "PR-body updater now independently reads the completed GitHub Actions run to verify workflow identity, successful conclusion, SHA, repository, branch and linked PR before any privileged synchronization. Regression and transport tests added; future trusted default-branch workflow remains undeployed.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1",
+  "docs_paths": [
+    "docs/operations/PR_TASK_TABLES.md",
+    "docs/modules/M22.md",
+    "docs/quality/RELEASE_GATES.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M22.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M22.md"
+  ],
+  "test_evidence": [],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No released product or data migration. Future trusted default-main workflow needs Actions(read) to authenticate its triggering workflow run.",
+  "created_at": "2026-11-18T06:14:45.408Z",
+  "updated_at": "2026-11-18T06:14:45.408Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}

@@ -8,6 +8,7 @@ from tools.pr_task_trusted_sync import run_trusted_sync
 
 REPO = "Vertex-Systems-Network/zynoa-2-local"
 SHA = "a" * 40
+RUN_ID = 44245538679
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "docs/state/pr-tasks/P00.json"
 STATE = {
@@ -19,6 +20,7 @@ STATE = {
 def event():
     return {
         "workflow_run": {
+            "id": RUN_ID,
             "event": "pull_request",
             "conclusion": "success",
             "head_sha": SHA,
@@ -32,6 +34,17 @@ class FakeSources:
     def __init__(self):
         self.event = event()
         self.state = copy.deepcopy(STATE)
+        self.run_reads = []
+        self.remote_run = {
+            "id": RUN_ID, "name": "Governance v3.2",
+            "path": ".github/workflows/governance.yml",
+            "event": "pull_request", "status": "completed",
+            "conclusion": "success", "head_sha": SHA,
+            "head_branch": "phase/00-governance",
+            "head_repository": {"full_name": REPO},
+            "repository": {"full_name": REPO},
+            "pull_requests": [{"number": 1}],
+        }
         self.manifest = load_manifest(MANIFEST)
         self.body = "Human-authored PR body."
         self.current_sha = SHA
@@ -40,6 +53,12 @@ class FakeSources:
         self.requests = []
         self.files_read = []
         self.write_calls = []
+
+    def run_reader(self, token, run_id):
+        self.run_reads.append(run_id)
+        if run_id != RUN_ID:
+            raise AssertionError("unexpected run identifier")
+        return self.remote_run
 
     def file_loader(self, token, sha, path):
         self.files_read.append((sha, path))
@@ -77,6 +96,7 @@ class FakeSources:
             file_loader=self.file_loader,
             pr_transport=self.transport,
             writer=self.writer,
+            run_reader=self.run_reader,
         )
 
 
@@ -86,6 +106,7 @@ class TrustedSyncTests(unittest.TestCase):
         result = f.run()
         self.assertEqual("SYNCED_VERIFIED", result["status"])
         self.assertEqual(["GET"], f.requests)
+        self.assertEqual([RUN_ID], f.run_reads)
         self.assertEqual([
             (SHA, "docs/state/PHASE.json"),
             (SHA, "docs/state/pr-tasks/P00.json"),
@@ -166,6 +187,44 @@ class TrustedSyncTests(unittest.TestCase):
         with self.assertRaises(TaskBoardError):
             f.run()
         self.assertFalse(f.requests)
+
+    def test_invalid_run_id_blocks_before_any_remote_or_pr_call(self):
+        for bad in (None, True, -1, "44245538679", 2**63):
+            f = FakeSources()
+            f.event["workflow_run"]["id"] = bad
+            with self.subTest(bad=bad), self.assertRaises(TaskBoardError):
+                f.run()
+            self.assertFalse(f.run_reads)
+            self.assertFalse(f.requests)
+            self.assertFalse(f.write_calls)
+
+    def test_remote_workflow_run_tampering_blocks_write(self):
+        for key, value in (
+            ("id", RUN_ID + 1), ("name", "Other workflow"),
+            ("path", ".github/workflows/other.yml"), ("event", "push"),
+            ("status", "in_progress"), ("conclusion", "failure"),
+            ("head_sha", "b" * 40), ("head_branch", "main"),
+            ("repository", {"full_name": "wrong/repo"}),
+            ("head_repository", {"full_name": "wrong/repo"}),
+            ("pull_requests", []), ("pull_requests", [{"number": 999}]),
+        ):
+            f = FakeSources()
+            f.remote_run[key] = value
+            with self.subTest(field=key, value=value), self.assertRaises(TaskBoardError):
+                f.run()
+            self.assertFalse(f.files_read)
+            self.assertFalse(f.write_calls)
+
+    def test_actions_read_failure_blocks_write(self):
+        f = FakeSources()
+        def offline(token, run_id):
+            raise TaskBoardError("workflow run read failed")
+        with self.assertRaises(TaskBoardError):
+            run_trusted_sync(f.event, "token", enabled=True,
+                             run_reader=offline, file_loader=f.file_loader,
+                             pr_transport=f.transport, writer=f.writer)
+        self.assertFalse(f.requests)
+        self.assertFalse(f.write_calls)
 
     def test_missing_read_token_refused(self):
         f = FakeSources()

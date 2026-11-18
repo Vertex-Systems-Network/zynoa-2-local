@@ -9,7 +9,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from tools.pr_task_board import TaskBoardError
-from tools.pr_task_trusted_sync import _read_file_at_commit
+from tools.pr_task_trusted_sync import _read_file_at_commit, _read_workflow_run
 
 ROOT = Path(__file__).resolve().parents[1]
 SHA = "a" * 40
@@ -72,6 +72,26 @@ class ContentsAPITests(unittest.TestCase):
                     _read_file_at_commit("token", SHA, "docs/state/PHASE.json")
 
 
+class WorkflowRunAPITests(unittest.TestCase):
+    def test_bounded_authenticated_get_workflow_run(self):
+        fake = _Opener(json.dumps({"id": 42, "name": "Governance v3.2"}).encode())
+        with patch("tools.pr_task_trusted_sync.urllib.request.build_opener", return_value=fake):
+            data = _read_workflow_run("test-token", 42)
+        self.assertEqual(42, data["id"])
+        self.assertEqual(1, len(fake.requests))
+        self.assertTrue(fake.requests[0][0].endswith("/actions/runs/42"))
+        self.assertEqual("GET", fake.requests[0][1])
+
+    def test_invalid_id_and_oversize_response_denied(self):
+        for bad in (-1, 0, True, "42", 2**63):
+            with self.subTest(bad=bad), self.assertRaises(TaskBoardError):
+                _read_workflow_run("token", bad)
+        fake = _Opener(b"{" + b"x" * 65_536)
+        with patch("tools.pr_task_trusted_sync.urllib.request.build_opener", return_value=fake):
+            with self.assertRaises(TaskBoardError):
+                _read_workflow_run("token", 42)
+
+
 class WorkflowSafetyTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -91,6 +111,7 @@ class WorkflowSafetyTests(unittest.TestCase):
         s = self.workflow
         self.assertIn("pull-requests: write", s)
         self.assertIn("contents: read", s)
+        self.assertIn("actions: read", s)
         self.assertNotIn("contents: write", s)
         self.assertNotIn("issues: write", s)
         self.assertIn("persist-credentials: false", s)
