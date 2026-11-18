@@ -21,18 +21,20 @@
   "wiki_paths": [
     "docs/wiki/pages/M22.md"
   ],
-  "test_evidence": [],
-  "commit_sha": null,
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44245275881"
+  ],
+  "commit_sha": "edd8182c35bb2847f91e4879098ae6d82526d3c6",
   "release": null,
   "verification": {
-    "tests_passed": false,
+    "tests_passed": true,
     "merge_verified": false,
     "release_published": false
   },
   "breaking_change": false,
   "migration_notes": "No released user data or installed host migration. An approved base-image rotation requires reviewed allowlist update, independent image provenance review and new CI evidence.",
   "created_at": "2026-11-18T05:34:44.086Z",
-  "updated_at": "2026-11-18T05:34:44.086Z",
+  "updated_at": "2026-11-18T05:37:13.319Z",
   "version_bump": "none",
   "affected_option_ids": [],
   "docs_impact": true,
