@@ -52,3 +52,11 @@
 - Reject graph cycles, unauthorized scope jumps, missing/corrupt prerequisites and dependency edits after a job starts.
 - Exercise persistent reboot/reload, retries, terminal BLOCKED propagation, nondependent safe work and transaction rollback.
 - Treat read-only SQLite job scheduling separately from potentially destructive model/Git/file operations; latter require independent authorization and OS sandbox.
+
+## P00 worktree execution-broker preflight
+
+- Verify actual GitHub active P00 PR/branch/CI and separately authenticated SHA; agent-supplied phase/branch or SHA is not authoritative.
+- Validate trusted repository metadata, non-overlapping operator-managed worktree root and independent empty hooks directory; never auto-run Git commands on untrusted .git directories.
+- Deny model access to protected governance/CI/state/secrets; deny traversal, symlink/junction escapes, Windows path ambiguity and invisible Unicode. Record permission denials with sanitized codes.
+- Plan detached no-checkout worktree using exact commit and immutable job ID; validate only via disposable trusted fixture until host authorization broker and OS sandbox are deployed.
+- Require real Windows/Linux executor, file handle/race, network/process, quota, credential separation, failure cleanup/receipt and restart testing before claiming automated coding works.
