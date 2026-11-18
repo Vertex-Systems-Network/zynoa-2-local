@@ -90,3 +90,9 @@ P00-WSP-06 CI, threat model, Help/Wiki source, and unreleased change record link
 P00-WSP-07 **NOT YET PASSED:** Actual OS sandbox, real Windows and Linux hardening, secure filesystem write system calls, host-issued grants, runnable AI test loop, terminated-process cleanup, token protection and deployment proof.
 
 Full P00 release remains BLOCKED by [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3); no P01 branch before P00 PR remote merge verified. Real app screenshots and published Wiki remain pending.
+
+## Verified cross-platform CI checkpoint — 2026-11-18
+
+[GitHub Actions run #44224444145](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44224444145) passed **138 Linux governance/unit tests** and **21 Windows worktree/path-scope tests**. Both `governance-lint` and `workspace-windows` jobs succeeded. The Windows tests exercised a real disposable fixture Git worktree on Git for Windows, but **not** untrusted user repositories, permanent host deployment, OS ACL isolation or hostile reparse-point races.
+
+Earlier Windows CI failed because the test compared a short DOS 8.3 temporary path and its canonical long-path spelling literally. The regression assertion was fixed to compare `Path.resolve()` on both expected and returned paths; the production policy already canonicalized. The same Windows job subsequently passed. This is a legitimate cross-platform test fix, **not proof of an installed AI worktree executor**.
