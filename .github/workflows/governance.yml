@@ -65,3 +65,22 @@ jobs:
         run: python -m unittest tests.test_workspace_policy -v
       - name: Incident redaction tests
         run: python -m unittest discover -s tests -v
+
+  workspace-windows:
+    name: workspace-windows
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Windows path guard and trusted worktree fixture
+        run: python -m unittest tests.test_workspace_policy -v
+      - name: Confirm no model or GitHub mutations
+        run: |
+          python -c "print('WORKSPACE WINDOWS: fixture-only, no model/GitHub writes')"
