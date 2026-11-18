@@ -11,3 +11,8 @@ Read `docs/operations/DATA_VAULT_BACKUP_RECOVERY.md`, `docs/operations/STORAGE_D
 ## v3.2 handoff
 
 Read `docs/MASTER_PLAN_V3_2.md`, `docs/operations/CHANGE_INTELLIGENCE_CHANGELOG.md`, `docs/modules/M26.md`, `docs/PLANNING_CHANGELOG.md`, and `AGENTS.md`. Every future agent must log issues immediately, link meaningful code changes to a structured change record and update affected docs. Only release publisher may promote verified changes to user-visible released changelog. Current local state P00 planned, remote not verified.
+
+
+## Actual GitHub handoff — 2026-11-18
+
+Repo: `Vertex-Systems-Network/zynoa-2-local` · phase `P00` · branch `phase/00-governance` · primary [draft PR #1](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1) · baseline `main` SHA `8dcb546828a8fdeef40dfaa250ac8f6b8639025d`. P00 must continue on this PR, with verified CI/security/docs/controller gates before any merge or next-phase branch. New future requirement [DESIGN-IO](../operations/DESIGN_INTEROPERABILITY.md): cross-tool editable import/export ONLY **P08I** following fully verified and merged P08 Designer core. No importer/exporter has been implemented, no product screenshots have been captured, and no persistent worker deployed. Next safe step: complete P00 controller, preflight evidence, CI and research contracts; reconcile PR and blockers.
