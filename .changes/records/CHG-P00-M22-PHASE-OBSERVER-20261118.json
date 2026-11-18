@@ -2,8 +2,8 @@
   "change_id": "CHG-P00-M22-PHASE-OBSERVER-20261118",
   "module_id": "M22",
   "kind": "enhancement",
-  "title": "Add durable read-only job execution and trusted GitHub ruleset governance",
-  "summary": "Added persistent lease-fenced development queue, restricted CI task runner, pinned CI-App merge attestation and protected-main ruleset template; production AI execution/host still incomplete.",
+  "title": "P00 autonomous controller: durable queue, dependency DAG and trusted GitHub policies",
+  "summary": "Implemented read-only SQLite DAG planning, cycle checks, ordered governance tasks, retry/blocker propagation and orphan-data refusal atop earlier authenticated observer and protected-merge design. Actual autonomous coding host and permissions remain incomplete.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [
@@ -19,7 +19,9 @@
     "docs/security/THREAT_MODEL.md",
     "docs/quality/RELEASE_GATES.md",
     "docs/operations/P00_MAIN_RULESET.md",
-    "docs/evidence/P00_REMOTE_PREFLIGHT.md"
+    "docs/evidence/P00_REMOTE_PREFLIGHT.md",
+    "docs/operations/P00_TASK_DEPENDENCY_GRAPH.md",
+    "docs/adr/0010-phase-task-dag.md"
   ],
   "help_paths": [
     "docs/help/articles/M22.md"
@@ -28,9 +30,9 @@
     "docs/wiki/pages/M22.md"
   ],
   "test_evidence": [
-    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44217456133"
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44220171663"
   ],
-  "commit_sha": "3cce0ddf890e4642ffd88489a5731db40cddb2bc",
+  "commit_sha": "10f603260c148195bbc5b657e8e868686c600fa6",
   "release": null,
   "verification": {
     "tests_passed": true,
@@ -40,7 +42,7 @@
   "breaking_change": false,
   "migration_notes": "No product database migration; local worker SQLite records are development-only.",
   "created_at": "2026-11-18T00:50:00Z",
-  "updated_at": "2026-11-18T01:38:00Z",
+  "updated_at": "2026-11-18T02:03:00Z",
   "version_bump": "none",
   "affected_option_ids": [],
   "docs_impact": true,
