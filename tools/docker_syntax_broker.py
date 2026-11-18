@@ -154,7 +154,8 @@ def _limited_result(result: object) -> tuple[int, bytes]:
 
 
 def run_python_syntax(
-    job: SyntaxJob, *,
+    plan: dict, candidate: str, scope: WorkspaceScope, *,
+    expected_task_id: str, image: str = DEFAULT_IMAGE,
     enabled: bool = False,
     docker_binary: str = "/usr/bin/docker",
     socket_url: str | None = None,
@@ -168,8 +169,11 @@ def run_python_syntax(
     """
     if not enabled:
         raise DockerSyntaxDenied("Docker syntax gate disabled without host authorization")
-    if not isinstance(job, SyntaxJob) or not _IMAGE.fullmatch(job.image):
-        raise DockerSyntaxDenied("invalid immutable syntax job")
+    # Rebuild from the independently trusted scope and expected task. Callers
+    # cannot bypass file policy by forging a SyntaxJob dataclass instance.
+    job = plan_python_syntax(
+        plan, candidate, scope, expected_task_id=expected_task_id, image=image
+    )
     if hashlib.sha256(job.data).hexdigest() != job.candidate_sha256:
         raise DockerSyntaxDenied("job payload was changed after planning")
     binary = _docker_binary(docker_binary)
@@ -191,7 +195,7 @@ def run_python_syntax(
         except (ValueError, UnicodeError):
             features = None
         if not isinstance(features, list) or not any(
-            isinstance(x, str) and "rootless" in x.lower() for x in features
+            isinstance(x, str) and x.lower() in ("name=rootless", "rootless") for x in features
         ):
             raise DockerSyntaxDenied("Docker daemon rootless status is not attested")
         argv = job.argv(docker_binary=binary, rootless_socket=endpoint, job_name=name)
