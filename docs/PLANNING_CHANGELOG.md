@@ -81,3 +81,14 @@
 - Clarified P00 **developer bootstrap** versus later P02 graphical UI, P04 product Coding Studio and P10 advanced in-product autonomy, preserving all quality/security requirements at their appropriate phases.
 - Split pre-merge infrastructure blocker [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3) from [post-merge SHA/phase checkpoint Issue #4](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/4) to prevent circular issue/merge gating. True unresolved blockers still forbid merge.
 - No product release or autonomous host was delivered by this documentation/policy update. Current PR #1 remains OPEN DRAFT.
+
+## P00 per-PR task tracking and local Ollama readiness — 2026-11-18 (UNRELEASED)
+
+- Created `docs/state/pr-tasks/P00.json` with 24 evidence-backed, stable P00 task IDs, DONE/IN_PROGRESS/TODO/BLOCKED statuses; PR #1 GitHub description now contains a generated table showing totals, status, evidence links and derived 54% task count completion (P00 remains blocked).
+- Implemented `tools/pr_task_board.py` to validate and render managed PR table, reject unsafe Markdown/external references and support separately authorized body-only sync with race/head/readback checking; default is read-only.
+- Implemented `tools/pr_task_trusted_sync.py` with JSON-only PR-head inspection, exact CI event/PR/phase/SHA checks and future trusted-main `workflow_run` GitHub Action; the workflow is NOT active while P00 is unmerged.
+- Added `scripts/check_pr_task_board.py` to governance CI and changed PR template/agent/plan to require the table for EVERY subsequent phase PR; tests use dynamically derived counts, not brittle hardcoded values.
+- Added `tools/local_model_probe.py` with loopback-only Ollama version/model-list discovery, no proxies/inference, unsafe model ID rejection and negative unit tests; actual development host not inspected.
+- Added detailed [PR Task Tables](operations/PR_TASK_TABLES.md), [ADR-0012](adr/0012-pr-task-table-trust.md), [Local Model Preflight](operations/P00_LOCAL_MODEL_PREFLIGHT.md), M22 Help/Wiki source and 2 distinct unreleased change records.
+- A transient CI failure caused by importing a script as a file was fixed by module invocation; a later failure caused by hardcoded 50% test assertions was fixed to compute counts dynamically. [CI #44230241651](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44230241651) passed **181 Linux + 21 Windows tests** and all task manifest checks.
+- **NOT RELEASED:** No persistent AI developer host, protected GitHub main, deployed trusted workflow, model-backed code executor, sandbox, GUI, screenshot or public product changelog is claimed.
