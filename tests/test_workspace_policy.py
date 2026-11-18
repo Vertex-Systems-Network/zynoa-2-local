@@ -34,11 +34,11 @@ class ScopePolicyTests(unittest.TestCase):
 
     def test_read_and_write_scopes(self):
         self.assertEqual(
-            self.root / "docs" / "help" / "article.md",
+            (self.root / "docs" / "help" / "article.md").resolve(),
             self.scope.check("docs/help/article.md", "read"),
         )
         self.assertEqual(
-            self.root / "docs" / "help" / "new.md",
+            (self.root / "docs" / "help" / "new.md").resolve(),
             self.scope.check("docs/help/new.md", "write"),
         )
         self.assertTrue(self.scope.evaluate("docs/help/new.md", "write")["allowed"])
