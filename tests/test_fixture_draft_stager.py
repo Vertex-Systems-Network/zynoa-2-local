@@ -181,6 +181,27 @@ class FixtureStagerTests(unittest.TestCase):
         self.preview((path,), {path: "REPLACEMENT"})
         self.assertEqual("ORIGINAL", source.read_text(encoding="utf-8"))
 
+    def test_real_temporary_directory_is_deleted_after_preview(self):
+        original = tempfile.TemporaryDirectory
+        created = []
+        def record_factory(*args, **kwargs):
+            instance = original(*args, **kwargs)
+            created.append(instance.name)
+            return instance
+        with patch("tools.fixture_draft_stager.tempfile.TemporaryDirectory",
+                   side_effect=record_factory):
+            result = self.preview()
+        self.assertEqual(1, len(created))
+        self.assertEqual("EPHEMERAL_FIXTURE_PREVIEW_ONLY", result["status"])
+        self.assertFalse(Path(created[0]).exists())
+
+    def test_host_task_id_must_differ_from_model_controlled_task(self):
+        with self.assertRaises(FixtureStageDenied):
+            preview_fixture_drafts(
+                proposal(), {ONE_PATH: "pass"}, self.scope,
+                expected_task_id="P00-T19"
+            )
+
     def test_invalid_input_types_refused(self):
         for candidates in (None, [], {"tests/fixtures/candidate.py": None}):
             with self.subTest(candidate_type=type(candidates).__name__):
