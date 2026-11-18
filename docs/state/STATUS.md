@@ -16,3 +16,8 @@ M26 change intelligence, versioned Changelog UI, event/PR audit and documentatio
 ## P00 repository checkpoint — 2026-11-18
 
 GitHub audit: `Vertex-Systems-Network/zynoa-2-local`, `main` baseline `8dcb546828a8fdeef40dfaa250ac8f6b8639025d`. Created `phase/00-governance` and [draft PR #1](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1). **P00 IN_PROGRESS**, not completed. No desktop client, background worker or live Designer import/export is running. Added future P08I DESIGN-IO contract/ADR-0008; execution deferred until P08 core is finished and its merge verified. Repo auto-merge was disabled on initial audit; do not claim automation or merge success absent confirmation.
+
+
+## P00 implementation slice 1 — 2026-11-18
+
+Actual code added on [draft PR #1](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1): `tools/phase_controller.py` pure phase transition/SQLite event journal, unit tests, and DESIGN-IO policy gate. Registered future P08I after native P08 in `docs/state/PHASES.json`; this is **planned interoperability only**. See [P00 preflight evidence](../evidence/P00_REMOTE_PREFLIGHT.md). Worker still NOT DEPLOYED, auto-merge disabled on initial audit, so P00 is **IN_PROGRESS**, not verified complete. [Issue #2](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/2) tracks future import/export; [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3) tracks automation infrastructure.
