@@ -50,3 +50,14 @@
 - **DESIGN-IO-01:** P08 native Designer core must be **remotely verified merged** with M11/M12 evidence before any P08I branch/implementation.
 - **DESIGN-IO-02..10:** Proven editable imports, target-verified exports, fidelity reports, undo/backup/recovery, safe parsing and permissions, illustrated Help/Wiki with real screenshots, truthful per-version compatibility matrix, verified artifact hashes and measured performance. Full normative contract: [DESIGN_INTEROPERABILITY](../operations/DESIGN_INTEROPERABILITY.md).
 - P00–P08 are research/specification only for external-tool conversion. Native P08 basic raster/vector exports remain in scope. No premature claims of native .fig/.sketch support or all-format compatibility.
+
+## P00 M22 queue/governance security acceptance (not yet completed)
+
+- P00-Q01: SQLite queue unique jobs, exact active phase/branch, concurrent single winner, fenced attempt token, crash replay of read-only work and bounded retries pass tests.
+- P00-Q02: Actual GitHub required PR rules and required check pinned to trusted app are fetched and verified. A protected branch with no required checks must not authorize merge.
+- P00-Q03: Queue does not accept or execute arbitrary shell/model/Git-write jobs. Future mutable task executor must have independent authorization and sandbox.
+- P00-Q04: Repository `main` has externally verified active protection/ruleset; P00 host is actually deployed with durable state/credential store, live heartbeat and failover exercises.
+- P00-Q05: End-to-end guarded GitHub write/merge, issue reporter, security and recovery proofs complete. Current smoke is read-only and **does not pass P00-Q04 or P00-Q05**.
+- P00-Q06: All actual module Help/Wiki/screenshots validated when running UI exists; no documentation placeholder represented as real screenshot or published Wiki.
+
+See [queue contract](../operations/P00_DURABLE_JOB_QUEUE.md) and [open infrastructure Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3). These non-waivable requirements block P00 finalization and next-phase creation.
