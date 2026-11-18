@@ -29,5 +29,7 @@ jobs:
         env:
           GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: python scripts/check_changelog_pr.py
+      - name: Deferred Designer interoperability policy (spec only)
+        run: python scripts/check_design_interop_policy.py
       - name: Incident redaction tests
         run: python -m unittest discover -s tests -v
