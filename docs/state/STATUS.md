@@ -21,3 +21,12 @@ GitHub audit: `Vertex-Systems-Network/zynoa-2-local`, `main` baseline `8dcb54682
 ## P00 implementation slice 1 — 2026-11-18
 
 Actual code added on [draft PR #1](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1): `tools/phase_controller.py` pure phase transition/SQLite event journal, unit tests, and DESIGN-IO policy gate. Registered future P08I after native P08 in `docs/state/PHASES.json`; this is **planned interoperability only**. See [P00 preflight evidence](../evidence/P00_REMOTE_PREFLIGHT.md). Worker still NOT DEPLOYED, auto-merge disabled on initial audit, so P00 is **IN_PROGRESS**, not verified complete. [Issue #2](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/2) tracks future import/export; [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3) tracks automation infrastructure.
+
+
+## P00 resumed implementation slice 2 — 2026-11-18
+
+**Remote truth:** current phase P00, branch `phase/00-governance`, draft PR [#1](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1); `main` initial SHA `8dcb546828a8fdeef40dfaa250ac8f6b8639025d`. GitHub repository auto-merge now **enabled**, but `main` reported **unprotected** during live readback; new branch ruleset required. No verified P00 merge, P01 branch or app release.
+
+**Added actual code:** authenticated read-only GitHub evidence gateway, durable single-lease observer with SQLite WAL, safe developer-ci Issue bridge and trusted default-branch failure workflow, 59 passing Python unit/governance tests and authenticated CI observation. Last verified passing CI evidence at [run 44213446505](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44213446505) (commit `48eee371a592fdef1a29961658a2bedb7026c550`). Later commits require new CI evidence. Local worker remains **NOT DEPLOYED**; M22 not complete; Wiki source updated, published Wiki and actual screenshots pending.
+
+**Remaining:** [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3) dedicated host+secret store, independent guarded write/merge controller, verified ruleset and live end-to-end issue/recovery proof. [Issue #2](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/2) P08I deferred Designer import/export unchanged.
