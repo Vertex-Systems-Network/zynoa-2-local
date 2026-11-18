@@ -95,3 +95,13 @@ python -m tools.phase_merge_guard --state docs/state/PHASE.json
 The current P00 PR must report BLOCKED because it is draft, main is unprotected and Issue #3 is open. The GitHub Actions governance workflow tests this dry-run with **zero write credentials** and asserts it never merges.
 
 After a dedicated non-bypass GitHub App write identity is securely provisioned, an authorized worker may call `--apply` only with a separate `ZYNOA_GITHUB_WRITE_TOKEN` and `ZYNOA_ENABLE_MERGE=1`. This is an **administrator deployment configuration**, not a repeated per-task user dialog; never set these variables in PR CI or desktop binaries. The write gateway checks fresh PR/head/base SHA, protected main, successful required checks, mergeability, open critical blockers, draft status and readback; GitHub must still independently enforce branch policies. No such live merge has been attempted or verified in this repository. Its implementation needs an external security review and real test-repository integration before P00 exit.
+
+## Queued governance checks and merge policy verification (P00 next slice)
+
+```sh
+python -m tools.dev_job_runner --smoke --repo-root . --db /tmp/zynoa-p00-job-smoke.db
+```
+
+Uses only `phase-policy`, `design-spec`, and `docs-integrity` handlers. Stores progress/digest in a temporary SQLite DB; no shell commands, GitHub writes or model tasks. For production host choose a restricted persistent database path rather than temporary file; this is not a deployed development worker. See [queue contract](P00_DURABLE_JOB_QUEUE.md).
+
+**Effective rules requirement:** Before auto-merge can be allowed, remote `main` must report protected and the applied GitHub rules must include a PR requirement plus a required status check whose source GitHub App ID is pinned to and matches the observed successful check. An inaccessible or empty rules response means `rules_policy_verified=false`; do not treat a name-only status success or UI auto-merge toggle as permission. The current repository has no applied rules and therefore remains blocked. References: [GitHub effective rules REST](https://docs.github.com/en/rest/repos/rules), [Rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets).
