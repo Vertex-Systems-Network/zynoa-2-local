@@ -71,6 +71,10 @@ class FakeTransport:
                 "head_sha": SHA, "status": "completed", "conclusion": "success",
             }
             return {**data, **self.job_overrides}
+        if "/actions/jobs/" in path:
+            # Real GitHub returns a missing-job API error, not a test fixture
+            # AssertionError; missing or forged job IDs must fail closed.
+            raise GitHubEvidenceError("workflow job not found")
         if path.endswith("/rules/branches/main"):
             return self.rules
         if path.endswith("/branches/main"):
