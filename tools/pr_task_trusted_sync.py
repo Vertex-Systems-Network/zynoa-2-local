@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import binascii
 import json
 import os
 import re
@@ -63,8 +64,8 @@ def _read_file_at_commit(token: str, sha: str, path: str) -> dict:
     if not isinstance(content, str) or len(content) > 60_000:
         raise TaskBoardError("GitHub contents malformed")
     try:
-        return _json_load(base64.b64decode(content, validate=False))
-    except (ValueError, UnicodeError):
+        return _json_load(base64.b64decode(content.replace("\\n", "").replace("\\r", ""), validate=True))
+    except (ValueError, UnicodeError, binascii.Error):
         raise TaskBoardError("GitHub contents malformed") from None
 
 
@@ -150,7 +151,7 @@ def main() -> int:
     try:
         if args.event_file.stat().st_size > 128_000:
             raise TaskBoardError("workflow event too large")
-        event = _json_load(args.event_file.read_bytes())
+        event = json.loads(args.event_file.read_text(encoding="utf-8"))
         result = run_trusted_sync(
             event,
             token=os.environ.get("ZYNOA_PR_TASK_WRITE_TOKEN", ""),
