@@ -77,3 +77,10 @@
 - Exercise Windows database handle close and temporary-file cleanup in CI; never suppress locked-file warnings.
 - Verify Linux systemd unit and backup timer only after operator install; a Windows at-logon task is not an unattended service.
 - Record actual host heartbeat/restart/service status and model+OS sandbox only if independently observed; CI fixture proof is not deployment.
+
+## Model-backed P00 task proposal preflight (2026-11-18)
+
+- Confirm exact active P00 task ID and trusted host-origin `WorkspaceScope`; never derive the writable prefixes or phase identity from model output.
+- Send only a short sanitized task brief to explicit local Ollama; no source contents, secrets, private files or user chats. Do not enable model tools or generic shell.
+- Require completed model JSON schema response, independent path/check validation and no execution permissions. Record digest/evidence without dumping raw untrusted text.
+- Keep `P00-T20` IN_PROGRESS until actual model/OS broker/patch/test/fix loop and remote receipts pass; mocked inference is not end-to-end proof.
