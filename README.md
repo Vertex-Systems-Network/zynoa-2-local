@@ -20,3 +20,8 @@ python -m unittest discover -s tests -v
 ```
 
 Sample change records live under tests/fixtures only and must never be represented as real app releases. No GitHub repository was modified by this package creation.
+
+
+## P00 GitHub work and future Design Interoperability
+
+Active P00 governance branch: `phase/00-governance`, [draft PR #1](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1). **The application and persistent developer worker are not implemented.** New [DESIGN-IO specification](docs/operations/DESIGN_INTEROPERABILITY.md) establishes external designer import/export requirements for Figma, Penpot, both OpenPencils and extensible future formats, strictly **after** native Designer phase P08 passes testing/docs and is remotely merged. P08I is a separate phase/branch/PR. P00 static validation: `python scripts/check_design_interop_policy.py`. Do not mistake this for a functional design importer/exporter.
