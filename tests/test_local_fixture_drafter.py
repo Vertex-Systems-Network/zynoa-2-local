@@ -65,7 +65,7 @@ class FixtureModelTests(unittest.TestCase):
         self.calls.append((base, request))
         return self.answer()
 
-    def run(self, **kwargs):
+    def generate(self, **kwargs):
         return draft_local_fixture(
             MODEL, self.plan(), self.scope, expected_task_id=TASK,
             transport=self.transport, **kwargs
@@ -92,7 +92,7 @@ class FixtureModelTests(unittest.TestCase):
     def test_successful_generated_content_is_in_memory_only(self):
         before = {p.relative_to(self.root): p.read_bytes()
                   for p in self.root.rglob("*") if p.is_file()}
-        draft = self.run()
+        draft = self.generate()
         receipt = draft.safe_receipt()
         self.assertIsInstance(draft, LocalFixtureDraft)
         self.assertEqual(SOURCE, draft.source)
@@ -143,7 +143,7 @@ class FixtureModelTests(unittest.TestCase):
             "http://user:pass@127.0.0.1:11434",
         ):
             with self.subTest(url=url), self.assertRaises(LocalFixtureDenied):
-                self.run(endpoint=url)
+                self.generate(endpoint=url)
         self.assertEqual([], self.calls)
 
     def test_model_and_plan_preconditions_fail_before_network(self):
@@ -268,7 +268,7 @@ class FixtureModelTests(unittest.TestCase):
         except (NotImplementedError, OSError):
             self.skipTest("symlinks unavailable")
         with self.assertRaises(LocalFixtureDenied):
-            self.run()
+            self.generate()
         self.assertEqual([], self.calls)
 
     def test_transport_failure_never_leaks_exception_or_creates_file(self):
