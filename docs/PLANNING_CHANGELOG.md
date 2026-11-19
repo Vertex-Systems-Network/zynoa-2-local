@@ -163,3 +163,10 @@ Exact source commit [`1f8d0b284826`](https://github.com/Vertex-Systems-Network/z
 P00-T28 DONE means only a **tested P00 service/notification source contract**; change record `CHG-P00-M22-SYSTEMD-REMOTE-WATCHDOG-20261119` remains `implementing`, unmerged and unreleased, source SHA/run stored. Canonical task board is **28 total / 18 DONE / 3 IN_PROGRESS / 0 TODO / 7 BLOCKED = 64% scoped task count**, not evidence of P00 completion. The evidence-only checkpoint commit itself needs exact-HEAD CI verification. No real service/systemd, user-owned host, live model-backed edit/test/repair, OS sandbox, protected GitHub main, privileged PR writes, published Wiki/GUI, remote merge or P01 has been verified. Issue #3 remains OPEN; PR #1 DRAFT.
 
 Next: exact HEAD evidence CI, maintain one phase/PR, and obtain independent operator-owned host/systemd/credential/remote API/restart proof, rootless sandbox and model repair, plus admin-installed protected main before closing Issue #3 or merging. Do not start P01 before independently verified P00 remote merge SHA.
+
+
+## P00-T20 one-file local model content drafting (2026-11-20 — UNRELEASED)
+
+- Added `tools/local_fixture_drafter.py`: request **one** bounded Python `tests/fixtures` draft from a local Ollama model using exact host-approved P00-T20 plan/branch/path/digest. Reuses existing loopback schema/transport, independent validation, UTF-8 limits and disposable fixture staging; holds raw source in a hidden-repr in-memory object while returning a sanitized SHA-256-only receipt.
+- Added negative cross-platform tests, CI, workspace protected authority source, ADR-0018, operator guide and M22 Help/unpublished Wiki. Model output cannot grant tool calls or cause host Python execution, checkout edits or GitHub writes.
+- **Partial P00-T20 work only.** Actual Ollama inference, rootless host, full plan→edit→test→repair loop, PR updates/merge and release remain unverified; Issue #3 stays open and P00 PR #1 draft.

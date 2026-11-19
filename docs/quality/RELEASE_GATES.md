@@ -165,3 +165,8 @@ P00-Q04 distinguishes **fresh owner-matched last-successful remote observation**
 ## P00 operator-supervised remote-work watchdog (2026-11-19)
 
 P00-Q04 adds `READY=1` only after a successfully authenticated remote P00 observation and committed last-success SQLite row; subsequent `WATCHDOG=1` only after each successful observation. Process existence or renewing the lease during failures cannot advertise readiness. The Linux systemd `Type=notify` unit has bounded startup, watchdog and restart limits. Tests and an uninstalled unit do **not** mark T17 deployed; independent host process/identity, outage/restart and remote receipts remain mandatory before unblocking infrastructure Issue #3.
+
+
+## P00 local model fixture-content boundary (2026-11-20)
+
+Source acceptance: validate the host-issued P00-T20 plan before a local Ollama request, require one scoped Python fixture path and exact plan fingerprint, reject tool calls/duplicate JSON/oversize and verify disposable preview SHA before returning untrusted in-memory code. No actual worktree write or model source execution. All UI screenshot, release, Wiki publication, model runtime, sandboxed code run and autonomous repair/merge claims remain **NOT VERIFIED** until independent host/E2E evidence exists.

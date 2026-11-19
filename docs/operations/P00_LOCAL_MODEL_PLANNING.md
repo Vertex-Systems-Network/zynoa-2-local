@@ -78,3 +78,8 @@ There is deliberately **no CLI** that fetches a model and writes generated files
 | P00-T23 | Unattended end-to-end safe test-repo task | BLOCKED (Issue #3) |
 
 **Do not merge P00 PR #1**, mark P00 complete, turn on automatic execution, report a GUI screenshot, or begin P01 until actual remote merge/security evidence exists. Preserve [P00 task manifest](../state/pr-tasks/P00.json), [P00 Host Bootstrap](P00_HOST_BOOTSTRAP.md), [worktree policy](P00_WORKTREE_POLICY.md), [continuous autonomy audit](P00_CONTINUOUS_AUTONOMY_AUDIT.md) and [Infrastructure Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3).
+
+
+## P00-T20 separate fixture *content* drafting (2026-11-20)
+
+The planner above deliberately returns only DRAFT_ONLY paths. [Local Fixture Drafting](P00_LOCAL_FIXTURE_DRAFTING.md) adds a **separate**, bounded structured-output Ollama request for *one* Python fixture's text after the plan has been validated and fingerprinted by the trusted host. The adapter refuses tool calls and keeps all source code unexecuted and out of GitHub/receipt logs. The existing `fixture_draft_stager` independently previews/hashes that candidate in disposable storage; the separate Docker syntax broker remains default-disabled and cannot execute the candidate. Tests use mocked Ollama, so no real local model readiness, trusted host deployment, code repair or P00 exit is claimed.

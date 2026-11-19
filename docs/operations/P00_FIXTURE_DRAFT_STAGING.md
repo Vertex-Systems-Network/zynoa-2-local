@@ -94,3 +94,8 @@ This operation does not deliver the app's persistent user files, chat backup, mo
 ## Related contracts
 
 [Model planner](P00_LOCAL_MODEL_PLANNING.md) · [Workspace scope](P00_WORKTREE_POLICY.md) · [Continuous autonomy audit](P00_CONTINUOUS_AUTONOMY_AUDIT.md) · [Host bootstrap](P00_HOST_BOOTSTRAP.md) · [M22 module](../modules/M22.md) · [P00 task table](../state/pr-tasks/P00.json) · [Infrastructure Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3).
+
+
+## Model-provided source arrives as data only (2026-11-20)
+
+The new [local fixture-content adapter](P00_LOCAL_FIXTURE_DRAFTING.md) can produce a single P00-T20 Python fixture candidate as untrusted UTF-8 text, tied to a separately validated plan SHA and exact scoped path. The existing ephemeral stager remains the **only** preview implementation, and does not gain source checkout writes, code parsing, tool execution or any Docker permissions. The adapter checks preview receipt path, bytes, SHA and no-execution fields before providing its source-free safe receipt. A mock model-generated draft does not establish an actual deployed local model, OS sandbox or autonomous repair.

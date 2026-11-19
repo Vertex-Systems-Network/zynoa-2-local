@@ -123,3 +123,12 @@
 - Emit no readiness until authenticated GitHub response, durable owner-fenced success timestamp, and valid Git SHAs. During GitHub/API/state/lease failure, never send watchdog keepalive merely for process liveness.
 - Exercise notification failures, repeated success, outage after readiness, unauthenticated remote result, Windows policy mocks and actual fixed AF_UNIX datagram on Linux.
 - Real host/operator must separately verify systemd `MainPID`, restricted UID, service state/restart/WatchdogUSec, GitHub remote readback, backup/restore, no write token/model exposure, and outage-induced stop/restart. CI is not deployment evidence.
+
+
+## P00 local model-authored fixture preflight (2026-11-20)
+
+- Confirm current GitHub P00 branch, draft PR #1, latest-HEAD CI and independently verified protected main; keep Issue #3 open while external worker/runtime/sandbox is unavailable.
+- Only P00-T20 host-approved plan with one flat `tests/fixtures/*.py` DRAFT_ONLY path may enter fixture-content generation; independently hash canonical validated plan and enforce matching response identity/plan SHA.
+- Reuse only explicit loopback Ollama with proxies/redirects disabled, structured bounded response and no model tools; refuse model drift, duplicate keys, text/UTF-8/NFC controls, extra fields and truncation.
+- Never host-parse/import/execute the generated Python, write the actual checkout, expose raw source in safe receipts/logs or treat disposable staging as isolation proof.
+- Require Linux+Windows mock negative tests and real disposable receipt-integrity tests; real model inference and rootless execution remain distinct external gates. P00-T20/Issue #3 cannot be closed from mocked model output.
