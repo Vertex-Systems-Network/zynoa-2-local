@@ -34,7 +34,7 @@ _PROTECTED_PATHS = (
     "tools/host_bootstrap.py", "tools/fixture_draft_stager.py",
     "tools/docker_syntax_broker.py", "tools/docker_host_smoke.py",
     "tools/worker_health.py", "tools/systemd_watchdog.py",
-    "tools/local_fixture_drafter.py",
+    "tools/local_fixture_drafter.py", "tools/dev_fixture_repair_loop.py",
     "tools/pr_task_board.py",
     "tools/pr_task_trusted_sync.py",
 )

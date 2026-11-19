@@ -132,3 +132,11 @@
 - Reuse only explicit loopback Ollama with proxies/redirects disabled, structured bounded response and no model tools; refuse model drift, duplicate keys, text/UTF-8/NFC controls, extra fields and truncation.
 - Never host-parse/import/execute the generated Python, write the actual checkout, expose raw source in safe receipts/logs or treat disposable staging as isolation proof.
 - Require Linux+Windows mock negative tests and real disposable receipt-integrity tests; real model inference and rootless execution remain distinct external gates. P00-T20/Issue #3 cannot be closed from mocked model output.
+
+
+## P00 bounded local-model syntax correction (2026-11-20)
+
+- Confirm exact HEAD CI, active P00/PR #1, protected main and Issue #3 before changing model-execution code; validate existing P00-T20 draft-only fixture plan.
+- Require all three independent trusted host opt-ins and a current-user-owned rootless Docker socket before real inference. No model-selected image, broker callable, code execution, shell arguments, task identity or GitHub write token.
+- Limit candidate attempts to two. Syntax-invalid may trigger a repair request to the same loopback model with only the model's prior candidate and a **fixed generic** invalid-syntax marker; any other broker/transport failure stops. Reject identical candidate digest.
+- Check independent plan/source/preview SHA and validated syntax-broker receipt for *each* attempt. Never host-parse/execute generated Python, patch real workspace files or report mock inference as deployed. Linux/Windows mock suites required.

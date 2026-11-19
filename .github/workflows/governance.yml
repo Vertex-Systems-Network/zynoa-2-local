@@ -121,6 +121,8 @@ jobs:
         run: python -m unittest tests.test_systemd_watchdog -v
       - name: Windows P00 model fixture content generation policy (mocked local model, no execution)
         run: python -m unittest tests.test_local_fixture_drafter -v
+      - name: Windows bounded local-model syntax repair coordinator policy (mocked Docker, no execution)
+        run: python -m unittest tests.test_dev_fixture_repair_loop -v
       - name: Confirm no model or GitHub mutations
         run: |
           python -c "print('WORKSPACE WINDOWS: fixture-only, no model/GitHub writes')"

@@ -170,3 +170,8 @@ P00-Q04 adds `READY=1` only after a successfully authenticated remote P00 observ
 ## P00 local model fixture-content boundary (2026-11-20)
 
 Source acceptance: validate the host-issued P00-T20 plan before a local Ollama request, require one scoped Python fixture path and exact plan fingerprint, reject tool calls/duplicate JSON/oversize and verify disposable preview SHA before returning untrusted in-memory code. No actual worktree write or model source execution. All UI screenshot, release, Wiki publication, model runtime, sandboxed code run and autonomous repair/merge claims remain **NOT VERIFIED** until independent host/E2E evidence exists.
+
+
+## P00-T20 syntax-only repair orchestration (2026-11-20)
+
+A two-attempt, default-disabled local-model fixture syntax coordinator is **source-only**: requires exact P00-T20 host-owned plan, loopback Ollama, opt-in rootless syntax broker, valid candidate/broker digests and no code execution or checkout writes. Test simulations are not actual model deployment, OS sandbox attestation or autonomous plan→patch→test→fix acceptance. Do not close Issue #3 or merge/P01 for this feature alone; real host/service, execution isolation, API write identity and full unattended E2E remain hard gates.

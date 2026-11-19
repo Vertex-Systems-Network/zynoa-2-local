@@ -93,8 +93,12 @@ def _canonical_plan(plan: dict, expected_task_id: str, scope: WorkspaceScope) ->
 def make_fixture_request(
     model: str, plan: dict, scope: WorkspaceScope, *,
     expected_task_id: str,
+    repair_source: str | None = None,
 ) -> tuple[dict, dict, str, str]:
-    """Trusted-only request composition. No raw workspace/source content sent."""
+    """Trusted-only request. Optional repair text is prior model output only.
+
+    Source stays inside localhost Ollama. No privileged host parser or commands.
+    """
     valid, path, plan_sha = _canonical_plan(plan, expected_task_id, scope)
     # Reuse the existing model-ID and phase/task authorizer; do not duplicate
     # a subtly different model naming, task or endpoint policy.
@@ -117,22 +121,38 @@ def make_fixture_request(
             "source": {"type": "string", "minLength": 1, "maxLength": 8192},
         },
     }
+    user_context = {
+        "phase": "P00", "branch": "phase/00-governance",
+        "task_id": _TASK, "plan_sha256": plan_sha, "path": path,
+        "summary": valid["summary"],
+        "reason": valid["file_proposals"][0]["reason"],
+    }
+    if repair_source is not None:
+        try:
+            # A previous candidate must pass the same text limits as a fresh
+            # model response. No model-generated command or error log is used.
+            _text_bytes(repair_source)
+        except FixtureStageDenied:
+            raise LocalFixtureDenied("previous model fixture is invalid") from None
+        user_context["previous_candidate"] = repair_source
+        user_context["prior_result"] = "PYTHON_SYNTAX_INVALID_NO_CODE_EXECUTION"
+        user_context["request"] = (
+            "Correct Python syntax only; return the same fixture path and "
+            "plan digest with complete corrected source. Do not add tools."
+        )
     payload = {
         "model": model,
         "stream": False,
         "format": schema,
         "messages": [
             {"role": "system", "content": _INSTRUCTIONS},
-            {"role": "user", "content": json.dumps({
-                "phase": "P00", "branch": "phase/00-governance",
-                "task_id": _TASK, "plan_sha256": plan_sha, "path": path,
-                "summary": valid["summary"],
-                "reason": valid["file_proposals"][0]["reason"],
-            }, ensure_ascii=True, separators=(",", ":"))},
+            {"role": "user", "content": json.dumps(
+                user_context, ensure_ascii=True, separators=(",", ":")
+            )},
         ],
         "options": {"temperature": 0, "num_predict": 4096},
     }
-    if len(json.dumps(payload, separators=(",", ":")).encode("utf-8")) > 8000:
+    if len(json.dumps(payload, separators=(",", ":")).encode("utf-8")) > 24576:
         raise LocalFixtureDenied("fixture model request exceeds size budget")
     return payload, valid, path, plan_sha
 
@@ -151,6 +171,7 @@ def draft_local_fixture(
     expected_task_id: str,
     endpoint: str = "http://127.0.0.1:11434",
     transport: Callable | None = None,
+    repair_source: str | None = None,
 ) -> LocalFixtureDraft:
     """Generate bounded untrusted text, then preview in disposable temp storage.
 
@@ -164,7 +185,8 @@ def draft_local_fixture(
     except LocalModelUnavailable:
         raise LocalFixtureDenied("only an explicit loopback Ollama URL is eligible") from None
     payload, valid, path, plan_sha = make_fixture_request(
-        model, plan, scope, expected_task_id=expected_task_id
+        model, plan, scope, expected_task_id=expected_task_id,
+        repair_source=repair_source,
     )
     try:
         envelope = (transport or _request_local_json)(base, payload)

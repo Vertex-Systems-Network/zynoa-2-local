@@ -1,0 +1,42 @@
+{
+  "change_id": "CHG-P00-M22-BOUNDED-FIXTURE-SYNTAX-REPAIR-20261120",
+  "module_id": "M22",
+  "kind": "enhancement",
+  "title": "Bound model-generated fixture syntax repair to two isolated, non-executing attempts",
+  "summary": "A default-disabled P00-T20 operator-only coordinator composes the existing structured loopback model fixture drafter, disposable preview and digest-pinned rootless Docker syntax broker. On exact invalid syntax it asks the same model for at most one correction, refusing repeat candidates or forged receipts. It never runs model code, applies source changes or writes GitHub; real host/sandbox remains unverified.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1",
+  "docs_paths": [
+    "docs/operations/P00_BOUNDED_FIXTURE_REPAIR.md",
+    "docs/operations/P00_LOCAL_FIXTURE_DRAFTING.md",
+    "docs/operations/P00_DOCKER_SYNTAX_BROKER.md",
+    "docs/adr/0019-bounded-fixture-syntax-repair.md",
+    "docs/modules/M22.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M22.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M22.md"
+  ],
+  "test_evidence": [],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No released feature, durable state migration or user-host deployment. Model-generated source is syntax-checked only, not run or written to the checkout; P00-T20 full edit/test/repair remains IN_PROGRESS.",
+  "created_at": "2026-11-20T00:00:00Z",
+  "updated_at": "2026-11-20T00:00:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}
