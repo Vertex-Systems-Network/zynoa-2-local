@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
   issues: write
 
 concurrency:
@@ -35,6 +36,8 @@ jobs:
           ZYNOA_ISSUE_TOKEN: ${{ github.token }}
           ZYNOA_ISSUE_PUBLISH_ENABLED: '1'
           ZYNOA_REPOSITORY: ${{ github.repository }}
+          ZYNOA_FAILED_RUN_ID: ${{ github.event.workflow_run.id }}
+          ZYNOA_FAILED_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           python - <<'PY'
           import json
@@ -52,6 +55,10 @@ jobs:
               os.environ["ZYNOA_REPOSITORY"],
               publish_enabled=os.environ.get("ZYNOA_ISSUE_PUBLISH_ENABLED") == "1",
           )
-          result = bridge.publish(event)
+          result = bridge.publish(
+              event,
+              run_id=int(os.environ["ZYNOA_FAILED_RUN_ID"]),
+              commit_sha=os.environ["ZYNOA_FAILED_HEAD_SHA"],
+          )
           print(json.dumps(result, sort_keys=True))
           PY

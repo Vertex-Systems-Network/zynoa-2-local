@@ -57,7 +57,9 @@ class DeveloperIssueBridgeTests(unittest.TestCase):
         record = DeveloperIssueBridge.safe_record(SAFE_EVENT)
         marker = "<!-- zynoa-incident:" + record["fingerprint"] + " -->"
         fake.existing = [{"number": 23, "html_url": "https://github.com/" + REPO + "/issues/23",
-                          "body": "previous event\n" + marker}]
+                          "body": "previous event\n" + marker,
+                          "title": bridge.format_issue(record)["title"],
+                          "user": {"login": "github-actions[bot]"}}]
         result = bridge.publish(SAFE_EVENT)
         self.assertEqual("EXISTING", result["status"])
         self.assertEqual(1, len(fake.events))

@@ -166,3 +166,12 @@
 - For each of at most TWO candidates, verify SHA and plan/path identity from Ollama, disposable preview, syntax broker and functional broker independently, then pass **identical source and SHA** to the no-overwrite writer ONLY on exact functional PASS. No rehydrated source from untrusted receipts.
 - Deny forged/mismatched candidate SHA, changed file/task or Git commit, repeat failed candidate, unsafe socket/host, bad Docker status/transport, existing target and all missing grants. Check a failed/denied test makes NO new file; check a single repair writes only corrected candidate.
 - Linux CI must actually create a new file in its private detached Git worktree; Windows must fail closed. Both CI model and Docker responses are mocks, **not independent sandbox or production host attestation**. Never authorize GitHub write/merge or P01 on this proof alone.
+
+
+## P00 T22 real CI failure → Issue authorization gate (2026-11-20)
+
+- Verify remote default branch contains the reviewed `workflow_run` reporter before claiming it can trigger; source-only PR checks cannot prove listener activation. Never merge a blocked PR just to enable writeback.
+- Keep Governance PR workflow token read-only. Privileged publisher has `actions:read`, `issues:write`, `contents:read` only and checks out **trusted default branch only**, never failed PR head/merge commit or build artifacts.
+- Independent `GET /actions/runs/<id>` must confirm completed failed Governance workflow, identical full SHA/run ID/repo/event. Only allow safe P2 `developer-ci` fixed error class/version and fingerprint. P0/user telemetry goes private or denies.
+- Reusing a fingerprint updates only a canonical existing bot-owned Issue, not spoofed user Issue. Preserve only max five strict run markers, no raw old issue text. Bound listing to four pages, restrict all HTTP methods/paths, reject uncertain POST/PATCH readback as failed delivery.
+- CI negative tests may mock GET/POST/PATCH; only actual postmerge workflow run and verified GitHub Issue response establish real automatic delivery (T22). Keep T22 blocked until proof.

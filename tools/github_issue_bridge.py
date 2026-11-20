@@ -21,6 +21,11 @@ from tools.incident_router import sanitize
 API = "https://api.github.com"
 _REPO = re.compile(r"^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$")
 _FP = re.compile(r"^[a-f0-9]{32}$")
+_FULL_SHA = re.compile(r"^[a-f0-9]{40}$")
+_RUN_ROUTE = re.compile(r"^/actions/runs/[1-9][0-9]{0,15}$")
+_ISSUE_ROUTE = re.compile(r"^/issues/[1-9][0-9]{0,11}$")
+_ALLOWED_CI_EVENT = frozenset(("pull_request", "push"))
+_MAX_RUN_EVIDENCE = 5
 
 
 class IncidentPublishError(RuntimeError):
@@ -34,7 +39,7 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
 
 def issue_http(method: str, url: str, headers: Mapping[str, str],
                payload: bytes | None, timeout: float):
-    if method not in ("GET", "POST") or not url.startswith(API + "/repos/"):
+    if method not in ("GET", "POST", "PATCH") or not url.startswith(API + "/repos/"):
         raise IncidentPublishError("unexpected issue gateway request")
     request = urllib.request.Request(url, method=method, headers=dict(headers), data=payload)
     opener = urllib.request.build_opener(_NoRedirect)
@@ -64,10 +69,19 @@ class DeveloperIssueBridge:
     def _request(self, method: str, route: str, payload: dict | None = None):
         if not self.publish_enabled or not self.token:
             raise IncidentPublishError("developer issue publishing is not authorized")
-        if route not in ("/issues?state=all&per_page=100&page=1",
-                         "/issues?state=all&per_page=100&page=2",
-                         "/issues?state=all&per_page=100&page=3",
-                         "/issues?state=all&per_page=100&page=4", "/issues"):
+        issue_list = (
+            "/issues?state=all&per_page=100&page=1",
+            "/issues?state=all&per_page=100&page=2",
+            "/issues?state=all&per_page=100&page=3",
+            "/issues?state=all&per_page=100&page=4",
+        )
+        allowed = (
+            (method == "GET" and
+             (route in issue_list or _RUN_ROUTE.fullmatch(route) is not None))
+            or (method == "POST" and route == "/issues")
+            or (method == "PATCH" and _ISSUE_ROUTE.fullmatch(route) is not None)
+        )
+        if not allowed:
             raise IncidentPublishError("disallowed issue API route")
         headers = {
             "Authorization": "Bearer " + self.token,
@@ -78,6 +92,71 @@ class DeveloperIssueBridge:
         }
         body = json.dumps(payload, separators=(",", ":")).encode() if payload is not None else None
         return self.transport(method, API + "/repos/" + self.repo + route, headers, body, 12.0)
+
+    def _verified_ci_run(self, run_id: int | None, commit_sha: str | None) -> dict | None:
+        """Read back a failed GitHub Actions governance run before issue write.
+
+        Never trust a PR-controlled issue body, run URL, job logs or user-supplied
+        reporter fields as evidence. Only a trusted workflow_run event or an
+        independently authorized maintainer can provide run_id and head SHA.
+        """
+        if run_id is None and commit_sha is None:
+            return None  # Backwards compatible legacy bridge; no CI proof
+        if type(run_id) is not int or not 0 < run_id <= 9999999999999999:
+            raise IncidentPublishError("invalid CI run identifier")
+        if not isinstance(commit_sha, str) or not _FULL_SHA.fullmatch(commit_sha):
+            raise IncidentPublishError("invalid CI commit SHA")
+        data = self._request("GET", "/actions/runs/" + str(run_id))
+        if not isinstance(data, dict):
+            raise IncidentPublishError("CI run readback invalid")
+        repo = data.get("head_repository")
+        if (
+            type(data.get("id")) is not int or data["id"] != run_id
+            or data.get("head_sha") != commit_sha
+            or data.get("status") != "completed"
+            or data.get("conclusion") != "failure"
+            or data.get("name") != "Governance v3.2"
+            or data.get("event") not in _ALLOWED_CI_EVENT
+            or not isinstance(repo, dict)
+            or repo.get("full_name") != self.repo
+        ):
+            raise IncidentPublishError("CI run identity/conclusion not verified")
+        return {
+            "id": run_id, "sha": commit_sha,
+            "url": "https://github.com/" + self.repo +
+                   "/actions/runs/" + str(run_id),
+        }
+
+    @staticmethod
+    def _safe_existing_runs(text: object, repo: str) -> list[tuple[int, str]]:
+        """Preserve only strict canonical run markers, not arbitrary issue text."""
+        if not isinstance(text, str):
+            return []
+        marker = re.compile(
+            r"<!-- zynoa-ci-run:([1-9][0-9]{0,15}):([a-f0-9]{40}) -->"
+        )
+        found = []
+        for hit in marker.finditer(text[:16000]):
+            ident, sha = int(hit.group(1)), hit.group(2)
+            if (ident, sha) not in found:
+                found.append((ident, sha))
+        return found[-_MAX_RUN_EVIDENCE:]
+
+    @classmethod
+    def _evidence_body(cls, safe: dict, repo: str, history: list[tuple[int, str]]) -> dict:
+        issue = cls.format_issue(safe)
+        if not history:
+            return issue
+        rows = []
+        for ident, sha in history[-_MAX_RUN_EVIDENCE:]:
+            rows.append(
+                "- [GitHub Actions run " + str(ident) + "](" +
+                "https://github.com/" + repo + "/actions/runs/" +
+                str(ident) + "), commit `" + sha + "`" +
+                " <!-- zynoa-ci-run:" + str(ident) + ":" + sha + " -->"
+            )
+        issue["body"] += "\n\n## Verified GitHub CI failure run(s)\n\n" + "\n".join(rows)
+        return issue
 
     @staticmethod
     def safe_record(event: dict) -> dict:
@@ -107,37 +186,97 @@ class DeveloperIssueBridge:
         )
         return {"title": title[:200], "body": body}
 
-    def publish(self, event: dict) -> dict:
+    def publish(self, event: dict, *,
+                run_id: int | None = None,
+                commit_sha: str | None = None) -> dict:
         record = self.safe_record(event)
         if not self.publish_enabled or not self.token:
             raise IncidentPublishError("publishing disabled")
+        # Fail-closed independent readback happens BEFORE issue scanning/POST.
+        run = self._verified_ci_run(run_id, commit_sha)
         marker = "<!-- zynoa-incident:" + record["fingerprint"] + " -->"
         for page in range(1, 5):
-            result = self._request("GET", "/issues?state=all&per_page=100&page=" + str(page))
+            result = self._request(
+                "GET", "/issues?state=all&per_page=100&page=" + str(page)
+            )
             if not isinstance(result, list):
                 raise IncidentPublishError("invalid issues list; no issue created")
             for item in result:
                 if not isinstance(item, dict) or "pull_request" in item:
                     continue
-                if marker in str(item.get("body") or ""):
+                if marker not in str(item.get("body") or ""):
+                    continue
+                # The privileged default-branch workflow may update only
+                # its own bot-authored issues. A public user can copy markers.
+                identity = item.get("user")
+                if (not isinstance(identity, dict) or
+                        identity.get("login") != "github-actions[bot]" or
+                        item.get("title") != self.format_issue(record)["title"]):
+                    raise IncidentPublishError(
+                        "incident marker matched an untrusted issue"
+                    )
+                number, url = item.get("number"), item.get("html_url")
+                if (type(number) is not int or not 0 < number <= 999999999999
+                    or url != "https://github.com/" + self.repo +
+                       "/issues/" + str(number)):
+                    raise IncidentPublishError("matching incident has invalid issue identity")
+                if run is None:
                     return {
                         "status": "EXISTING", "fingerprint": record["fingerprint"],
-                        "issue_number": item.get("number"),
-                        "issue_url": item.get("html_url"),
+                        "issue_number": number, "issue_url": url,
                     }
+                history = self._safe_existing_runs(item.get("body"), self.repo)
+                if (run["id"], run["sha"]) in history:
+                    return {
+                        "status": "EXISTING", "fingerprint": record["fingerprint"],
+                        "issue_number": number, "issue_url": url,
+                        "ci_run_verified": True, "run_id": run["id"],
+                    }
+                history.append((run["id"], run["sha"]))
+                payload = self._evidence_body(record, self.repo, history)
+                updated = self._request("PATCH", "/issues/" + str(number), payload)
+                if (not isinstance(updated, dict)
+                    or updated.get("number") != number
+                    or updated.get("html_url") != url
+                    or payload["body"] != updated.get("body")):
+                    raise IncidentPublishError(
+                        "issue update response unverified; inspect remote before retry"
+                    )
+                return {
+                    "status": "UPDATED", "fingerprint": record["fingerprint"],
+                    "issue_number": number, "issue_url": url,
+                    "ci_run_verified": True, "run_id": run["id"],
+                }
             if len(result) < 100:
                 break
         else:
-            # Do not create duplicates if search exhausted; route to manual triage.
             raise IncidentPublishError("issue deduplication scan incomplete")
-        created = self._request("POST", "/issues", self.format_issue(record))
+        payload = self._evidence_body(
+            record, self.repo,
+            [] if run is None else [(run["id"], run["sha"])]
+        )
+        created = self._request("POST", "/issues", payload)
+        if not isinstance(created, dict):
+            raise IncidentPublishError("issue creation response invalid")
         number, url = created.get("number"), created.get("html_url")
-        if type(number) is not int or not isinstance(url, str) or not url.startswith(
-            "https://github.com/" + self.repo + "/issues/"
-        ):
-            raise IncidentPublishError("issue created but response cannot be verified; recheck remote before retry")
-        return {"status": "CREATED", "fingerprint": record["fingerprint"],
-                "issue_number": number, "issue_url": url}
+        if (type(number) is not int or number <= 0 or
+                url != "https://github.com/" + self.repo + "/issues/" + str(number)):
+            raise IncidentPublishError(
+                "issue created but response cannot be verified; recheck remote"
+            )
+        if run is not None and payload["body"] != created.get("body"):
+            raise IncidentPublishError(
+                "issue created but evidence was not verified in response"
+            )
+        result = {
+            "status": "CREATED", "fingerprint": record["fingerprint"],
+            "issue_number": number, "issue_url": url,
+        }
+        if run is not None:
+            result["ci_run_verified"] = True
+            result["run_id"] = run["id"]
+        return result
+
 
 def main() -> int:
     cli = argparse.ArgumentParser(description="Sanitized developer incident preview or scoped issue publish")
