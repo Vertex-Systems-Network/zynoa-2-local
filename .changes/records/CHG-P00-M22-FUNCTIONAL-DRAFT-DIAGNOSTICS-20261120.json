@@ -1,7 +1,7 @@
 {
   "change_id": "CHG-P00-M22-FUNCTIONAL-DRAFT-DIAGNOSTICS-20261120",
   "module_id": "M22",
-  "kind": "fix",
+  "kind": "bugfix",
   "title": "Sanitized model draft rejection category for functional fixture operator",
   "summary": "Expose only the existing sanitized LocalFixtureDenied category when the fixed P00 functional fixture model draft is rejected. Preserve default denial, no retry, no model source or transport exception leakage; regression confirms redaction.",
   "status": "implementing",
