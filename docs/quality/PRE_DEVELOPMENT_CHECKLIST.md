@@ -158,3 +158,11 @@
 - Non-root Linux only; require directory FD support, no-follow opens, same-owner non-group-writable parent directories, bounded UTF-8 source, temp inode fsync, hardlink no-replace publication and reread SHA. Windows must fail closed; a Path/ACL fallback is not approved.
 - A partial crash or unusual filesystem error after hardlink requires trusted reconciliation, not automatic blind deletion or an assertion that no file was written. Same-UID attackers, lease fencing, sandbox resource proof and worktree cleanup remain outstanding host security gates.
 - Linux test must **actually write** to an isolated fixture Git worktree and verify source checkout untouched, plus deny symlink escapes, existing files, forged SHA/task and malicious draft content; Windows test must deny.
+
+
+## P00 tested-candidate no-replace Git write acceptance (2026-11-20)
+
+- Before any model inference: check P00/T20 host task, fixed one-file `DRAFT_ONLY` plan, source repo pinned SHA, detached no-checkout worktree ownership, Linux nonroot fd/no-follow support, and FIVE exact opt-ins for model, syntax, runtime and file publication. The model/CI receipt cannot choose the trusted target or approve itself.
+- For each of at most TWO candidates, verify SHA and plan/path identity from Ollama, disposable preview, syntax broker and functional broker independently, then pass **identical source and SHA** to the no-overwrite writer ONLY on exact functional PASS. No rehydrated source from untrusted receipts.
+- Deny forged/mismatched candidate SHA, changed file/task or Git commit, repeat failed candidate, unsafe socket/host, bad Docker status/transport, existing target and all missing grants. Check a failed/denied test makes NO new file; check a single repair writes only corrected candidate.
+- Linux CI must actually create a new file in its private detached Git worktree; Windows must fail closed. Both CI model and Docker responses are mocks, **not independent sandbox or production host attestation**. Never authorize GitHub write/merge or P01 on this proof alone.

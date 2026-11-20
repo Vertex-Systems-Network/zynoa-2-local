@@ -38,6 +38,7 @@ _PROTECTED_PATHS = (
     "tools/docker_fixture_runtime_broker.py",
     "tools/dev_fixture_functional_repair_loop.py",
     "tools/scoped_worktree_fixture_writer.py",
+    "tools/verified_fixture_worktree_flow.py",
     "tools/pr_task_board.py",
     "tools/pr_task_trusted_sync.py",
 )

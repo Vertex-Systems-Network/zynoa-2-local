@@ -38,3 +38,8 @@ Linux CI **actually creates a brand-new private Git test repository**, commits a
 The next independent step is operator-hosted lease-guarded job creation, authenticated Ollama + rootless Docker code-execution checks, and a trusted broker that binds the **exact passing candidate digest** from an independently attested sandbox to this host-owned write grant. A disposable fixture write alone is **not** a tested model source patch/repair, not a CI-based GitHub write/PR proof, and not continuous autonomous development.
 
 **Truthful gates:** Issue [#3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3) OPEN, P00-T20 IN_PROGRESS; real persistent host T17, independent OS sandbox T19, trusted GitHub writes T21, verified issue delivery T22, unattended E2E T23 and P00 protected merge T24 blocked. PR #1 remains draft; `PHASE.json.worker_running=false`, P01 NOT STARTED, no GUI screenshots or published Wiki. See [ADR-0021](../adr/0021-no-replace-fd-scoped-disposable-writes.md).
+
+
+## Tested-source binding extension (2026-11-20)
+
+A new **separate** [verified fixture worktree flow](P00_VERIFIED_FIXTURE_WORKTREE_FLOW.md) now calls this same no-replace writer **only after** independent model candidate SHA, syntax receipt and fixed functional test receipt all match the same in-memory source. It retries once on fixed syntax/functional failures, but no test failures can authorize an arbitrary file or overwrite an existing fixture. CI tests a real disposable Git write with mocked model/Docker; real operator host authentication and sandbox isolation remain unverified. No general patching or GitHub writes are enabled.

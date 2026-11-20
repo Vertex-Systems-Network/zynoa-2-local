@@ -1,0 +1,42 @@
+{
+  "change_id": "CHG-P00-M22-TESTED-CANDIDATE-WORKTREE-BINDING-20261120",
+  "module_id": "M22",
+  "kind": "enhancement",
+  "title": "Bind same model candidate SHA through isolated checks and detached-worktree fixture creation",
+  "summary": "A default-disabled, host-only P00-T20 coordinator independently checks the same model-authored Python fixture source/plan SHA through optional rootless syntax and fixed functional verdict receipts, then creates exactly those source bytes in a non-overwriting, pinned detached Git worktree only after exact passing test evidence. CI mocks model/Docker yet uses real private Git fixture file writes, not a deployed host or general app patcher.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1",
+  "docs_paths": [
+    "docs/operations/P00_VERIFIED_FIXTURE_WORKTREE_FLOW.md",
+    "docs/adr/0022-tested-candidate-exact-source-worktree-binding.md",
+    "docs/operations/P00_SCOPED_WORKTREE_WRITER.md",
+    "docs/modules/M22.md",
+    "docs/MASTER_PLAN_V3_2.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M22.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M22.md"
+  ],
+  "test_evidence": [],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No persistent worker, live Ollama/Docker attestation, user checkout or remote PR write. Operator-approved disposable Git fixture new file only; full P00-T20 and Issue #3 remain unfinished.",
+  "created_at": "2026-11-20T00:00:00Z",
+  "updated_at": "2026-11-20T00:00:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}
