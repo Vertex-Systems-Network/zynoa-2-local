@@ -1,0 +1,42 @@
+{
+  "change_id": "CHG-P00-M22-SCOPED-GIT-WORKTREE-WRITE-20261120",
+  "module_id": "M22",
+  "kind": "enhancement",
+  "title": "Create authorized new Python fixture in detached no-checkout Git worktree via fd-scoped no-replace write",
+  "summary": "Adds Linux nonroot operator-granted single-file worktree draft writer requiring exact trusted P00 task, candidate SHA-256, detached Git SHA and independently owned root, with O_NOFOLLOW directory fd traversal, fsync, atomic hardlink no-replace and readback. Real private Git worktree IO is regression-tested; existing user checkout/GitHub remain untouched. Not a deployed model worker or full production patch pipeline.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1",
+  "docs_paths": [
+    "docs/operations/P00_SCOPED_WORKTREE_WRITER.md",
+    "docs/operations/P00_WORKTREE_POLICY.md",
+    "docs/adr/0021-no-replace-fd-scoped-disposable-writes.md",
+    "docs/modules/M22.md",
+    "docs/MASTER_PLAN_V3_2.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M22.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M22.md"
+  ],
+  "test_evidence": [],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No real host/model installation, user checkout mutation, durable user data migration or release. Tests may create disposable Git fixture worktree files only; no source execution, GitHub mutation or phase promotion. P00-T20 still IN_PROGRESS.",
+  "created_at": "2026-11-20T00:00:00Z",
+  "updated_at": "2026-11-20T00:00:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}

@@ -127,6 +127,8 @@ jobs:
         run: python -m unittest tests.test_docker_fixture_runtime_broker -v
       - name: Windows fixed functional test repair coordinator policy (mocked provider/Docker)
         run: python -m unittest tests.test_dev_fixture_functional_repair_loop -v
+      - name: Windows fd-scoped disposable writer denies host execution (no fallback)
+        run: python -m unittest tests.test_scoped_worktree_fixture_writer -v
       - name: Confirm no model or GitHub mutations
         run: |
           python -c "print('WORKSPACE WINDOWS: fixture-only, no model/GitHub writes')"

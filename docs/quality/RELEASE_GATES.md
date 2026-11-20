@@ -180,3 +180,8 @@ A two-attempt, default-disabled local-model fixture syntax coordinator is **sour
 ## P00 functional fixture source-only gate (2026-11-20)
 
 A test of fixed `solve(x)=2*x` Python model source inside a *future* rootless Linux container is a narrower capability than actual autonomous repository development. The controller must require explicit operator opt-in, independent phase/path/plan hashes, credential-free no-mount/no-network runner and signed/broker receipts before any file edit. CI mock tests or an untrusted container result cannot advance P00, close Issue #3, merge the draft PR, start P01 or count as real M22 screenshot/help publication. Host security + actual source-edit/test/repair/PR write E2E remain mandatory.
+
+
+## P00 safe disposable fixture write is not a production patch/release gate (2026-11-20)
+
+A successful no-overwrite `tests/fixtures/*.py` file creation in a CI-owned detached worktree proves only an authorized scoped **disposable file write**. It is neither a production source patch, an independently attested model-execution sandbox, a continuous worker, Windows handle security, a test/repair E2E, a trusted PR writer, nor a protected merge. P00-T20 must stay IN_PROGRESS and Issue #3 OPEN until host-owned scope/lease, real code testing, file mutations, allowed remote writes and CI readbacks are independently verified. Do not mark P01 or publish screenshots/Wiki from this experimental P00 helper.

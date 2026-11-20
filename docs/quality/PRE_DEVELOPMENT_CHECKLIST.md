@@ -149,3 +149,12 @@
 - Execute candidate Python **only** inside a separately approved rootless container with fixed tests, never on the host and never with repo credentials. The trusted literal reference harness smoke does not attest production isolation.
 - Repair at most once after exact invalid syntax or fixed functional failure; reject Docker transport errors, forged results, repeat candidate SHA, changed path/task and other statuses. No GitHub/checkout mutation is implied.
 - Require Linux and Windows mocked Docker/model negative tests, and independently witnessed real Linux host containment and credential-leak failure-injection before authorizing real task execution. P00-T20 remains incomplete.
+
+
+## P00 detached worktree file writer authorization (2026-11-20)
+
+- Require three independent, explicitly true grants before any new-file write: enable, operator acknowledgment and scoped file-write permission. The model may not supply these nor the file descriptor, trusted repo path, worktree parent, pinned commit or expected candidate digest.
+- Use a separately-created detached no-checkout worktree; verify `.git` points back to the *trusted source repo* and detached `HEAD` equals the operator-pinned full SHA. The real checkout must remain untouched. Never replace existing files.
+- Non-root Linux only; require directory FD support, no-follow opens, same-owner non-group-writable parent directories, bounded UTF-8 source, temp inode fsync, hardlink no-replace publication and reread SHA. Windows must fail closed; a Path/ACL fallback is not approved.
+- A partial crash or unusual filesystem error after hardlink requires trusted reconciliation, not automatic blind deletion or an assertion that no file was written. Same-UID attackers, lease fencing, sandbox resource proof and worktree cleanup remain outstanding host security gates.
+- Linux test must **actually write** to an isolated fixture Git worktree and verify source checkout untouched, plus deny symlink escapes, existing files, forged SHA/task and malicious draft content; Windows test must deny.
