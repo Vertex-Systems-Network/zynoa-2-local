@@ -125,7 +125,7 @@ class RuntimeFixturePolicyTests(unittest.TestCase):
             with self.subTest(p=p), self.assertRaises(FixtureRuntimeDenied):
                 plan_python_fixture_tests(p, REF, self.scope, expected_task_id=TASK)
         for source in ("", "a"*8193, "x\x00", "x\r",
-                       "caf" + chr(0x301), "x" + chr(0x202e)):
+                       "Cafe" + chr(0x301), "x" + chr(0x202e)):
             with self.subTest(size=len(source)), self.assertRaises(FixtureRuntimeDenied):
                 plan_python_fixture_tests(plan(), source, self.scope,
                                           expected_task_id=TASK)
@@ -181,7 +181,7 @@ class RuntimeFixturePolicyTests(unittest.TestCase):
             self.assertLess(_PARENT.index(condition),
                             _PARENT.index("data=sys.stdin.buffer.read"))
         self.assertIn("exec(compiled,scope)", _CHILD)
-        self.assertNotIn("exec(compiled", _PARENT)
+        # The parent includes the child source as a quoted literal; assert only\n        # the parent prelude has no source execution call.\n        self.assertNotIn("exec(compiled", _PARENT.partition("child=subprocess.run")[0])
         self.assertIn("subprocess.run(", _PARENT)
         self.assertIn("stderr=subprocess.DEVNULL", _PARENT)
         self.assertIn("timeout=3", _PARENT)
