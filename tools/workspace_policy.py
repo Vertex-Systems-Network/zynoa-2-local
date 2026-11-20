@@ -30,6 +30,7 @@ _PROTECTED_PATHS = (
     "tools/phase_controller.py", "tools/dev_job_queue.py",
     "tools/dev_task_graph.py", "tools/phase_worker.py",
     "tools/github_issue_bridge.py",
+    "tools/github_static_fixture_publisher.py",
     "tools/dev_model_planner.py", "tools/local_model_probe.py",
     "tools/host_bootstrap.py", "tools/fixture_draft_stager.py",
     "tools/docker_syntax_broker.py", "tools/docker_host_smoke.py",

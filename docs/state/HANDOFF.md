@@ -438,3 +438,16 @@ Handoff: source CI still pending for trusted default-branch issue writer; do not
 **Next:** evidence checkpoint commit and exact HEAD CI, update PR and Issue #3 with truth-preserving links. Remaining product host/model/sandbox/PR write blockers unchanged. [Runbook](../operations/P00_VERIFIED_CI_ISSUE_DELIVERY.md) · [Manual proof Issue #5](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/5).
 
 Next: exact HEAD CI and PR/Issue #3 checkpoint. No automatic publisher until protected main, no worker deployed, no phase progression.
+
+
+## P00-T21 operator-only static GitHub remote Git new-file contract (2026-11-20 — SOURCE CI PENDING)
+
+Remote preflight verified `phase/00-governance` / draft PR #1 at `766e48f6e00ed2cca271663b59ff8d38318e6a1b`, previous [CI #44659297080](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44659297080) SUCCESS both authenticated GitHub Actions App 15368 checks. `main` protected (ruleset #27593065); P00 IN_PROGRESS, `worker_running=false`; Issue #3 OPEN, P00-T21 BLOCKED. Canonical task board **31 total / 22 DONE / 3 IN_PROGRESS / 6 BLOCKED = 70% floor scoped P00 tasks**, NOT product completion.
+
+**New source experiment (CI pending):** default-disabled `tools/github_static_fixture_publisher.py` permits only operator-reviewed FIXED literal `tests/fixtures/p00_trusted_remote_probe.py` to be created as a **NEW file on open DRAFT P00 PR branch**. Validates exact prior PR HEAD SHA/branch/repo/base, file absence, SHA-1 Git object hash against static Python, one-blob tree and one-parent commit, `force:false` ref update, then independently rereads PR SHA and file bytes at immutable resulting commit. No user or model text can select GitHub commands/content/path; no existing source overwrite, force, main merge, PR description or Issue update is possible from its allowlisted API. Fails closed on invalid IDs, moved branch, nonfastforward, ambiguous response and postwrite mismatch, requiring reconciliation rather than auto-retry.
+
+**Tests prepared (CI pending):** mock Git Data API create/commit/ref/readback, existing fixture refusal, stale PR HEAD, forged blob/commit parent/tree, ref conflicts, incomplete readback, missing three grants and blocked privileged routes. Windows executes mock-only policy; no GitHub Actions write token. ADR-0024, runbook, M22 Help/**unpublished Wiki**, AGENTS/MASTER_PLAN, protected workspace and release gates prepared. The GitHub credential itself must still be provisioned with independently enforced GitHub App identity/limits; a Python source allowlist alone is not a nonbypass token guarantee.
+
+**True limit:** this proof is **NOT a model-backed PR writer** and cannot satisfy P00-T21. Source CI, if green, tests only simulated remote GitHub; a separately authenticated manual connector write can prove real Git API but NOT the future Python host-runner identity or full model→app edit/test/repair. T17/T19/T20/T21/T22/T23/T24 still unfinished; no automatic main activation, P01, real GUI screenshots or release. Next: verify GitHub CI, optionally perform one real static fixture Git commit on same PR with exact remote readback, preserve evidence and leave blockers truthful.
+
+Next safe step: exact source CI then one manual static fixture Git Data API proof with immutable SHA and file bytes; do not confuse with deployed model writer.

@@ -175,3 +175,11 @@
 - Independent `GET /actions/runs/<id>` must confirm completed failed Governance workflow, identical full SHA/run ID/repo/event. Only allow safe P2 `developer-ci` fixed error class/version and fingerprint. P0/user telemetry goes private or denies.
 - Reusing a fingerprint updates only a canonical existing bot-owned Issue, not spoofed user Issue. Preserve only max five strict run markers, no raw old issue text. Bound listing to four pages, restrict all HTTP methods/paths, reject uncertain POST/PATCH readback as failed delivery.
 - CI negative tests may mock GET/POST/PATCH; only actual postmerge workflow run and verified GitHub Issue response establish real automatic delivery (T22). Keep T22 blocked until proof.
+
+
+## P00 static GitHub PR new-file proof preflight (2026-11-20)
+
+- Only a trusted human/operator-controlled literal fixture is permitted; model-authored source may NOT be given a remote Git permission before independent sandbox provenance and host separation.
+- Explicit three host opt-ins and a separate scoped remote token; exact current open/draft/unmerged P00 PR #1 and trusted 40-hex HEAD. Prove fixed path absent and read Git parent tree; never overwrite existing sources.
+- Verify Git blob object hash against literal bytes; tree has exactly one new 100644 fixture; commit has pinned original parent/tree; update only phase/00-governance ref with `force:false`. On remote ambiguity or moved head reconcile, do NOT retry blindly.
+- Verify PR HEAD at new SHA plus fixed file contents from immutable SHA. CI mocks all network/remote writes; real manual connector proofs do not attest host security/token restriction/full autonomous source edits.

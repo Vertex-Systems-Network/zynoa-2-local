@@ -195,3 +195,8 @@ A successful no-overwrite `tests/fixtures/*.py` file creation in a CI-owned deta
 ## P00 T22 developer Issue delivery source vs operational gate (2026-11-20)
 
 Default-branch `workflow_run` reporter can be source-tested on PR #1 but CANNOT automatically deliver issues until that reviewed workflow exists on protected main. Tests of mocked GitHub transport or one manual connector-authorized issue creation are NOT CI `GITHUB_TOKEN` delivery/permission proof. Do not advance T22, merge P00, claim deployed incident reporter, start P01 or publish M26 app Help/Wiki until real failed governance run triggers the trusted listener and correct bot-owned dedup Issue readback; P0/end-user private data must never enter public issues.
+
+
+## P00 T21 static GitHub remote write is not a deployed autonomous writer (2026-11-20)
+
+`github_static_fixture_publisher` is an operator-only fixed literal Python fixture single-file GitHub Git Data API proof, never a general write permission for model source. Even a real manually authorized GitHub connector commit/readback proves only remote new-file plumbing, not real Ollama/OS security, independent token provisioning, safe project source edits/test/repair, trusted GitHub App scope or unattended E2E. P00-T21 and Issue #3 stay BLOCKED until separately attested model-backed source and authorized non-bypass PR writer success. PR #1 remains draft, no P01.

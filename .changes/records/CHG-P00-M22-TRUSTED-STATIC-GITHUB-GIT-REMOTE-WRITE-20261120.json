@@ -1,0 +1,41 @@
+{
+  "change_id": "CHG-P00-M22-TRUSTED-STATIC-GITHUB-GIT-REMOTE-WRITE-20261120",
+  "module_id": "M22",
+  "kind": "security",
+  "title": "Trusted static one-file GitHub Git commit and immutable branch/file readback",
+  "summary": "Default-disabled host-only fixed literal fixture probe to OPEN DRAFT P00 PR using GitHub Git Data API. Verifies exact preexisting head/absence, blob Git hash, one-file tree and parent, non-force ref update, immutable file bytes readback. No model-authored GitHub writes, token deployment, remote source overwrites or main merge permitted.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1",
+  "docs_paths": [
+    "docs/operations/P00_TRUSTED_STATIC_GIT_PROBE.md",
+    "docs/adr/0024-static-only-remote-branch-write-probe.md",
+    "docs/modules/M22.md",
+    "docs/MASTER_PLAN_V3_2.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M22.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M22.md"
+  ],
+  "test_evidence": [],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No real operator host or model-authored source publication; CI GitHub HTTP calls are mocked. Any manual real connector proof is distinguished from a deployed trusted worker. T21 remains BLOCKED.",
+  "created_at": "2026-11-20T02:00:00Z",
+  "updated_at": "2026-11-20T02:00:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}
