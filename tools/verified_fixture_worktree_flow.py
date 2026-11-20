@@ -107,6 +107,9 @@ def run_verified_fixture_worktree_flow(
         raise VerifiedFixtureFlowDenied("five independent trusted host grants required")
     if expected_task_id != _TASK:
         raise VerifiedFixtureFlowDenied("only P00-T20 fixture workflow authorized")
+    if (not callable(syntax_broker) or not callable(runtime_broker) or
+            (model_transport is not None and not callable(model_transport))):
+        raise VerifiedFixtureFlowDenied("trusted model/broker callback invalid")
 
     # Host-owned worktree/commit and OS security are checked BEFORE model
     # inference or container work, not after receiving adversarial source.

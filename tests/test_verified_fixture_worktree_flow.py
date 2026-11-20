@@ -328,10 +328,20 @@ class VerifiedFlowIntegrationTests(unittest.TestCase):
         self.assertFalse((self.worktree / _PATH).exists())
 
     def test_default_denies_missing_real_rootless_broker_before_inference(self):
+        from tools.docker_fixture_runtime_broker import run_python_fixture_tests
         with patch("tools.verified_fixture_worktree_flow._docker_binary",
                    side_effect=DockerSyntaxDenied("not configured")):
             with self.assertRaises(VerifiedFixtureFlowDenied):
-                self.invoke(syntax_broker=None)
+                self.invoke(runtime_broker=run_python_fixture_tests)
+        self.assertFalse(self.model_calls)
+
+    def test_invalid_broker_callbacks_fail_before_model_inference(self):
+        for option in ({"syntax_broker": None}, {"runtime_broker": None},
+                       {"model_transport": "invalid"}):
+            with self.subTest(option=option), self.assertRaises(
+                VerifiedFixtureFlowDenied
+            ):
+                self.invoke(**option)
         self.assertFalse(self.model_calls)
 
     def test_rootless_file_write_identity_cannot_be_model_supplied(self):
