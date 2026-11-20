@@ -179,6 +179,12 @@
       "title": "Default-disabled two-attempt local-model fixture syntax repair coordinator",
       "status": "DONE",
       "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44636074965"
+    },
+    {
+      "id": "P00-T30",
+      "title": "Linux detached worktree fixture writer with real disposable Git IO regression",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44646826831"
     }
   ]
 }
