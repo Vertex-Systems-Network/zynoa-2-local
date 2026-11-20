@@ -4,7 +4,7 @@
 
 **Scope:** A *trusted operator* can opt in to checking **one small model-authored Python fixture** against a **fixed five-case contract** inside rootless Docker, and on a failure permit **one** new model draft. This is a constrained execution proof-of-concept, not a production sandbox attestation, general code-test runner, editor, autonomous programmer or GitHub writer. CI exercises mocked Docker/Ollama and a trusted literal Python harness reference; the operator's real host is unavailable.
 
-Operator diagnosis: a rejected local model draft now retains the sanitized `LocalFixtureDenied` category in `FunctionalRepairDenied` (for example, transport unavailable or changed fixture identity). Generated source, raw model content and transport exception details remain hidden. The coordinator does not retry a rejected envelope or change any grant.
+Operator diagnosis: a rejected local model draft now retains the sanitized `LocalFixtureDenied` category in `FunctionalRepairDenied`. The local transport adapter also preserves only its fixed `ModelPlanDenied` category, distinguishing transport failure, oversized response, invalid JSON and invalid response shape. Generated source, raw model content, response bodies and transport exception details remain hidden. The coordinator does not retry a rejected envelope or change any grant.
 
 ## Why it is different from the prior source-only syntax step
 

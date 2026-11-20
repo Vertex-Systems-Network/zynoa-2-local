@@ -9,7 +9,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from tools.dev_model_planner import make_model_request
+from tools.dev_model_planner import ModelPlanDenied, make_model_request
 from tools.docker_syntax_broker import DockerSyntaxDenied, plan_python_syntax, run_python_syntax
 from tools.local_fixture_drafter import (
     LocalFixtureDenied, LocalFixtureDraft, draft_local_fixture, make_fixture_request,
@@ -281,6 +281,20 @@ class FixtureModelTests(unittest.TestCase):
                 expected_task_id=TASK, transport=offline,
             )
         self.assertNotIn(secret, str(cm.exception))
+        self.assertFalse((self.root / FILE).exists())
+
+    def test_sanitized_transport_category_is_preserved(self):
+        def rejected(_base, _payload):
+            raise ModelPlanDenied("model response is not valid JSON")
+        with self.assertRaises(LocalFixtureDenied) as cm:
+            draft_local_fixture(
+                MODEL, self.plan(), self.scope,
+                expected_task_id=TASK, transport=rejected,
+            )
+        self.assertEqual(
+            "local fixture model response rejected: model response is not valid JSON",
+            str(cm.exception),
+        )
         self.assertFalse((self.root / FILE).exists())
 
 

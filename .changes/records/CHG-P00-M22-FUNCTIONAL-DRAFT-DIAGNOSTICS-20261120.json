@@ -3,7 +3,7 @@
   "module_id": "M22",
   "kind": "bugfix",
   "title": "Sanitized model draft rejection category for functional fixture operator",
-  "summary": "Expose only the existing sanitized LocalFixtureDenied category when the fixed P00 functional fixture model draft is rejected. Preserve default denial, no retry, no model source or transport exception leakage; regression confirms redaction.",
+  "summary": "Expose the existing sanitized LocalFixtureDenied category and the fixed inner model transport category when the P00 functional fixture draft is rejected. Preserve default denial, no retry, no model source, response body or exception-detail leakage; regressions confirm redaction.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [

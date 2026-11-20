@@ -204,7 +204,11 @@ def draft_local_fixture(
     )
     try:
         envelope = (transport or _request_local_json)(base, payload)
-    except (ModelPlanDenied, LocalModelUnavailable, OSError, TimeoutError, ValueError):
+    except ModelPlanDenied as exc:
+        # ModelPlanDenied messages from the transport adapter are fixed,
+        # sanitized categories and never contain response bodies or paths.
+        raise LocalFixtureDenied(f"local fixture model response rejected: {exc}") from None
+    except (LocalModelUnavailable, OSError, TimeoutError, ValueError):
         raise LocalFixtureDenied("local fixture model response unavailable") from None
     if not isinstance(envelope, dict) or envelope.get("done") is not True:
         raise LocalFixtureDenied("local fixture model response incomplete")
