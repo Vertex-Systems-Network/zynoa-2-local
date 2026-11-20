@@ -185,6 +185,12 @@
       "title": "Linux detached worktree fixture writer with real disposable Git IO regression",
       "status": "DONE",
       "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44646826831"
+    },
+    {
+      "id": "P00-T31",
+      "title": "Exact tested candidate SHA bound to disposable Git fixture file creation",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44653308893"
     }
   ]
 }
