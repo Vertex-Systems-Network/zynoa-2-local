@@ -1,0 +1,44 @@
+{
+  "change_id": "CHG-P00-M22-LOCAL-FIXTURE-CONTENT-20261120",
+  "module_id": "M22",
+  "kind": "enhancement",
+  "title": "Generate single local-model Python fixture as untrusted text without host execution",
+  "summary": "Adds a phase/task/plan-SHA-bound local Ollama fixture-content request, independent UTF-8 validation and ephemeral preview receipt. Generated source is retained only in a hidden-repr trusted-caller object and cannot edit the checkout, call Docker or GitHub, or execute code. No live host/model is claimed.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1",
+  "docs_paths": [
+    "docs/operations/P00_LOCAL_FIXTURE_DRAFTING.md",
+    "docs/operations/P00_LOCAL_MODEL_PLANNING.md",
+    "docs/operations/P00_FIXTURE_DRAFT_STAGING.md",
+    "docs/adr/0018-untrusted-local-fixture-content-boundary.md",
+    "docs/modules/M22.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M22.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M22.md"
+  ],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44630397210"
+  ],
+  "commit_sha": "185767c82182645267acfddb2ad8b48f3776e998",
+  "release": null,
+  "verification": {
+    "tests_passed": true,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No product release, installed model or host deployment, database schema or user data migration. P00-T20 remains IN_PROGRESS. The additional adapter does not enable Docker or source writes.",
+  "created_at": "2026-11-20T00:00:00Z",
+  "updated_at": "2026-11-19T22:39:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}

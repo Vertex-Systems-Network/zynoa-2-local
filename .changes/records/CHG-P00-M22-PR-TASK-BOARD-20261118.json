@@ -1,0 +1,44 @@
+{
+  "change_id": "CHG-P00-M22-PR-TASK-BOARD-20261118",
+  "module_id": "M22",
+  "kind": "enhancement",
+  "title": "Every phase PR has evidence-backed task table, counts and trusted sync policy",
+  "summary": "Implemented versioned phase-scoped PR task manifests, generated task status/count table in PR #1, guarded body-only GitHub sync and a trusted-default-branch CI-success sync workflow. The workflow is not active until verified merge to main; actual P00 table was updated through an authorized connector.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1",
+  "docs_paths": [
+    "docs/operations/PR_TASK_TABLES.md",
+    "docs/adr/0012-pr-task-table-trust.md",
+    "docs/modules/M22.md",
+    "docs/PHASE_SPECS.md",
+    "docs/quality/RELEASE_GATES.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M22.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M22.md"
+  ],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44230241651"
+  ],
+  "commit_sha": "2e79323073828aa7773e53126dc3124aa8eb8c03",
+  "release": null,
+  "verification": {
+    "tests_passed": true,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "New versioned manifest under docs/state/pr-tasks; old PR body text is preserved outside the managed block.",
+  "created_at": "2026-11-18T03:20:00Z",
+  "updated_at": "2026-11-18T03:26:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}

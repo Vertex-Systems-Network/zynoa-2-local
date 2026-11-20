@@ -1,0 +1,44 @@
+{
+  "change_id": "CHG-P00-M22-SYSTEMD-REMOTE-WATCHDOG-20261119",
+  "module_id": "M22",
+  "kind": "enhancement",
+  "title": "Linux systemd readiness and watchdog follow authenticated GitHub observer successes",
+  "summary": "Strengthens the uninstalled P00 read-only observer service with opt-in Type=notify readiness and watchdog pulses only after authenticated remote success and durable owner-fenced SQLite evidence. Does not deploy a persistent agent.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1",
+  "docs_paths": [
+    "docs/operations/P00_SYSTEMD_NOTIFY_WATCHDOG.md",
+    "docs/operations/P00_WORKER_RUNBOOK.md",
+    "docs/operations/P00_HOST_BOOTSTRAP.md",
+    "docs/adr/0017-trusted-remote-systemd-watchdog.md",
+    "docs/modules/M22.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M22.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M22.md"
+  ],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44412717005"
+  ],
+  "commit_sha": "1f8d0b28482681525a8b67aa2384e40923f705f9",
+  "release": null,
+  "verification": {
+    "tests_passed": true,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No deployed service or end-user migration. Existing read-only Linux service template changes to Type=notify and must be reviewed/installed only by an authorized operator; it is not yet installed. Observer SQLite schema remains unchanged.",
+  "created_at": "2026-11-19T00:00:00Z",
+  "updated_at": "2026-11-18T22:34:10Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}

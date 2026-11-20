@@ -1,0 +1,44 @@
+{
+  "change_id": "CHG-P00-M22-ROOTLESS-SYNTAX-GATE-20261118",
+  "module_id": "M22",
+  "kind": "enhancement",
+  "title": "P00 opt-in rootless Docker Python syntax broker with cgroup and scope checks",
+  "summary": "Implemented a default-disabled rootless Docker Python fixture syntax-only broker. It rebuilds the job from independently trusted P00 task/workspace scope, requires owner-bound Unix socket, daemon rootless status, cgroup v2/systemd, pre-cached digest-pinned official Python image, no network/host mounts/privileges and bounded CPU/memory/PIDs. Candidate bytecode is never executed; all CLI/daemon interactions are mock tested on Linux/Windows. User host daemon, OS isolation and autonomous code repair remain unverified.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1",
+  "docs_paths": [
+    "docs/operations/P00_DOCKER_SYNTAX_BROKER.md",
+    "docs/adr/0015-rootless-syntax-gate.md",
+    "docs/quality/RELEASE_GATES.md",
+    "docs/security/THREAT_MODEL.md",
+    "docs/modules/M22.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M22.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M22.md"
+  ],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44240644251"
+  ],
+  "commit_sha": "094dfadc93dc61e048e3710c30ddeb1cf2c51529",
+  "release": null,
+  "verification": {
+    "tests_passed": true,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No user data changes. Docker runtime is default-disabled; image install/pre-caching and rootless host provisioning require separate operator action.",
+  "created_at": "2026-11-18T04:48:00Z",
+  "updated_at": "2026-11-18T05:00:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}

@@ -1,0 +1,42 @@
+{
+  "change_id": "CHG-P00-M22-LOCAL-MODEL-PREFLIGHT-20261118",
+  "module_id": "M22",
+  "kind": "enhancement",
+  "title": "Loopback Ollama model and version health probe for future development host",
+  "summary": "Added a local-only loopback Ollama version and model inventory preflight with strict endpoint validation, no proxy, no inference and mocked tests. The actual user's host, OS sandbox and persistent AI worker have not been deployed or tested.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1",
+  "docs_paths": [
+    "docs/operations/P00_LOCAL_MODEL_PREFLIGHT.md",
+    "docs/modules/M22.md",
+    "docs/operations/P00_WORKER_RUNBOOK.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M22.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M22.md"
+  ],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44229540332"
+  ],
+  "commit_sha": "834d56b15964df6106b7bf75ca4e059161b272e8",
+  "release": null,
+  "verification": {
+    "tests_passed": true,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No product data migration; probe is read-only and does not download models.",
+  "created_at": "2026-11-18T03:17:00Z",
+  "updated_at": "2026-11-18T03:26:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}

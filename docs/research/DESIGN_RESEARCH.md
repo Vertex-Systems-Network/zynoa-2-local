@@ -46,3 +46,8 @@
 ## Reference image policy
 
 Reference screenshots may be linked for internal research with attribution and source URLs. Own product guide screenshots must come from our running product; do not use competitor captures or generated simulations as proof. Source examples: https://openpencil.dev/screenshot.png ; https://penpot.app/design/design-systems ; https://www.figma.com/dev-mode/.
+
+
+## Design file interchange research (P00) and implementation (P08I)
+
+Research import AND export for editable files from Figma, Penpot and both OpenPencil projects (not the same project), then Sketch, standard SVG, design-tokens JSON and other documented UI file formats. For each target record exact official URL, revision/date, license/API permissions, import/export direction, supported node features, fonts/components/variants/tokens/layers fidelity, reference fixtures, independent target-app verification, performance, network needs and fallback. Record **Supported/Partial/Experimental/Unsupported** per direction and source version; never generalize from marketing pages. P08 must first finalize native Zynoa Designer and its versioned document format; P08I then implements tested adapters in a separate phase/PR. See [canonical DESIGN-IO](../operations/DESIGN_INTEROPERABILITY.md) and [ADR-0008](../adr/0008-design-import-export-gate.md).

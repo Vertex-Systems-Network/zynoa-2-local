@@ -1,0 +1,64 @@
+# Runs from trusted default branch, never checks out untrusted PR code.
+# This workflow activates only after its own PR has been merged to main.
+name: Developer CI Incident Publisher
+on:
+  workflow_run:
+    workflows: ["Governance v3.2"]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+  issues: write
+
+concurrency:
+  group: zynoa-developer-incident-writer
+  cancel-in-progress: false
+
+jobs:
+  sanitized-incident:
+    if: >-
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout trusted default-branch reporter
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Python for reporter
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Deduplicate sanitized CI failure in GitHub Issues
+        env:
+          ZYNOA_ISSUE_TOKEN: ${{ github.token }}
+          ZYNOA_ISSUE_PUBLISH_ENABLED: '1'
+          ZYNOA_REPOSITORY: ${{ github.repository }}
+          ZYNOA_FAILED_RUN_ID: ${{ github.event.workflow_run.id }}
+          ZYNOA_FAILED_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from tools.github_issue_bridge import DeveloperIssueBridge
+          event = {
+              "source_type": "developer-ci",
+              "severity": "P2",
+              "module": "M22",
+              "error_code": "GOVERNANCE_CI_FAILURE",
+              "message_class": "GitHubActionsFailure",
+              "app_version": "0.0.1",
+          }
+          bridge = DeveloperIssueBridge(
+              os.environ["ZYNOA_REPOSITORY"],
+              publish_enabled=os.environ.get("ZYNOA_ISSUE_PUBLISH_ENABLED") == "1",
+          )
+          result = bridge.publish(
+              event,
+              run_id=int(os.environ["ZYNOA_FAILED_RUN_ID"]),
+              commit_sha=os.environ["ZYNOA_FAILED_HEAD_SHA"],
+          )
+          print(json.dumps(result, sort_keys=True))
+          PY

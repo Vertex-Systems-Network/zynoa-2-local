@@ -1,0 +1,12 @@
+# TEMPLATE ONLY. This timer is inactive until installed and enabled by admin.
+[Unit]
+Description=Daily Zynoa P00 observer database backup verification
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=15m
+Unit=zynoa-phase-observer-backup.service
+
+[Install]
+WantedBy=timers.target

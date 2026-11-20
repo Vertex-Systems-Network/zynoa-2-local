@@ -220,3 +220,32 @@
 - **P12:** preserve semantic version changes across plugin capabilities and platform updates.
 
 **PR gate:** no affected module can become COMPLETED_VERIFIED if change record/docs/help/wiki/screenshot and CI evidence incomplete. A new reported issue is logged immediately but never described as fixed before release. See [M26 system contract](operations/CHANGE_INTELLIGENCE_CHANGELOG.md).
+
+
+## P08I — Cross-tool Designer import/export (AFTER P08, BEFORE P09)
+
+**Owner:** M11/M12 interoperability extension. **Mandatory prerequisite: P08 verified** merged GitHub SHA on `main`, native Designer core tests/undo/autosave/objects/components/assets/fidelity and real screenshots/help/Wiki complete. In P00–P08 research and document adapters only; do not add conversion runtime code.
+
+**Branch:** `phase/08i-design-interoperability`. One active branch and one primary PR. Create it only after P08 remote merge is verified, and never in parallel with an unmerged P08.
+
+**Scope:** capability-negotiated, license-aware import/export adapters for verified Figma, Penpot, two OpenPencil ecosystems and additional documented tools; canonical editable Zynoa document graph, supported/partial/experimental/unsupported registry, import/export UI, user controls, asset/font/token/component mapping, safe file parsing, round-trip fidelity report, tests and illustrated documentation. No unsupported proprietary format guarantees.
+
+**Exit:** All ten DESIGN-IO-01..10 requirements from [DESIGN-IO](operations/DESIGN_INTEROPERABILITY.md) with real target-tool evidence, security/failure fixtures, data preservation, CI, screenshots, Help/Wiki, changelog and verified phase PR merge. The original native P08 completion must not be blocked by unimplemented P08I features.
+
+## P00 bootstrap scope clarification — continuous autonomy audit, 2026-11-18
+
+**Normative distinction:** P00 delivers the external **development-automation bootstrap** needed to continuously implement later phases. This is NOT the P04 in-product Coding Studio, P10 in-product advanced agent suite, or P02 product GUI. [Evidence and detailed blockers](operations/P00_CONTINUOUS_AUTONOMY_AUDIT.md).
+
+**P00 must actually verify before merge:** (a) active remote phase/PR/CI readback, (b) safe scoped task execution on a **deployed persistent host** with a real model and independent OS security controls, (c) durable queue/checkpoints/restart/failure triage, (d) same-branch/same-PR patch, test and bounded repair, (e) actual protected `main` + pinned trusted CI and narrow write identity, and (f) reproducible evidence from one safe test-repo unattended task. This developer host is prerequisite for the requested no-repeated-prompt progression; it cannot be simulated by an observer CLI or scheduled GitHub Action.
+
+**Not a P00 pre-merge requirement:** fully featured end-user M22 dashboard and screenshots (P02 when a GUI exists); a complete product Coding Studio (P04); an end-user multi-agent system (P10); external Designer imports (P08I); app release (P11). Their original detailed feature requirements remain fully mandatory **at their own phase/module finalization**; no screenshot or test is fabricated or globally waived.
+
+**Lifecycle order:** close only truly resolved **pre-merge** blocker Issues with independent evidence, then make PR non-draft when all other gates pass, then protected GitHub merge, then verify main merge SHA and persist `MERGED_VERIFIED`, and only THEN start P01. The act of merging/verification cannot simultaneously be a prerequisite to closing the pre-merge Issue #3 if the same open issue blocks merge. Track post-merge work separately in status/events without relaxing live protection or CI checks.
+
+If the dedicated developer host is not provisioned, mark P00 `BLOCKED_EXTERNAL_INFRASTRUCTURE` for unattended automation; continue independent safe repository work only during an actively authorized execution session. Do NOT claim ChatGPT messages can run in the background.
+
+## Universal per-phase PR task board contract (2026-11-18)
+
+For **every** phase, the first phase-branch work produces `docs/state/pr-tasks/<PHASE>.json` and primary PR description with exact derived task count, task IDs/names, Done/In Progress/Pending/Blocked statuses, links to test evidence or open blockers, and a versioned managed section. The task list is updated **throughout the phase**, after each material change and before any merge. The trusted main-only PR table synchronizer can refresh the description after passing CI; local host sync requires explicit constrained write capability. Every PR's final acceptance includes manifest/body parity, separate actual tests/security/screenshot Help/Wiki requirements and release gate proof. A 100% count alone never authorizes merge.
+
+See [PR Task Tables](operations/PR_TASK_TABLES.md). P00 currently has 24 tracked tasks, with multiple real external infrastructure blockers; no P01 task manifest/PR may start before actual P00 remote merge.

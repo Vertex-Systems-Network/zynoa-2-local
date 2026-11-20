@@ -1,0 +1,45 @@
+{
+  "change_id": "CHG-P00-M26-GITHUB-CI-FAILURE-ISSUE-DELIVERY-20261120",
+  "module_id": "M26",
+  "kind": "security",
+  "title": "Verify failed GitHub Actions run ID/SHA before sanitized bot-owned Issue writeback",
+  "summary": "Default-branch-only GitHub Actions issue bridge now independently verifies completed failed Governance v3.2 run identity via GitHub REST, allows only canonical safe issue create/update, avoids spoofed existing Issue authors/URLs, bounds dedup run evidence to five and sanitizes source/user data. Workflow remains inactive on draft PR #1 until policy-compliant P00 protected merge.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/5"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1",
+  "docs_paths": [
+    "docs/operations/P00_VERIFIED_CI_ISSUE_DELIVERY.md",
+    "docs/operations/ISSUE_AUTOMATION.md",
+    "docs/adr/0023-ci-run-verified-sanitized-issue-delivery.md",
+    "docs/modules/M26.md",
+    "docs/MASTER_PLAN_V3_2.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M26.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M26.md"
+  ],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44658827576"
+  ],
+  "commit_sha": "a9b2d771399865c0e76f3a5b8e3e65bbb50cc5d2",
+  "release": null,
+  "verification": {
+    "tests_passed": true,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No live default-branch workflow_run listener or production issue write claimed. GitHub Actions CI uses mocked HTTP, no user incident data or credential in app, and no real host deployment. P00-T22 remains BLOCKED pending verified postmerge delivery.",
+  "created_at": "2026-11-20T00:00:00Z",
+  "updated_at": "2026-11-20T02:14:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}

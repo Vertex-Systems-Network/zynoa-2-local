@@ -4,16 +4,20 @@ on:
   push:
     branches: [main]
 permissions:
+  actions: read
   contents: read
+  checks: read
+  issues: read
+  pull-requests: read
 jobs:
   governance:
     name: governance-lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: Policy checks
@@ -29,5 +33,108 @@ jobs:
         env:
           GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: python scripts/check_changelog_pr.py
+      - name: Deferred Designer interoperability policy (spec only)
+        run: python scripts/check_design_interop_policy.py
+      - name: Validate per-PR task table manifest (read-only)
+        env:
+          ZYNOA_CI_PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+        run: python -m scripts.check_pr_task_board
+      - name: Check controller source syntax
+        run: python -m compileall -q tools scripts tests
+      - name: Remote P00 observation (read-only; cannot merge)
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          ZYNOA_GITHUB_TOKEN: ${{ github.token }}
+        run: python -m tools.phase_worker --once --db "$RUNNER_TEMP/zynoa-controller-observation.db"
+      - name: Guarded PR merge dry-run (must make no GitHub mutation)
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          ZYNOA_GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          python -m tools.phase_merge_guard > "$RUNNER_TEMP/zynoa-merge-dryrun.json"
+          exit_code=$?
+          set -e
+          python - "$RUNNER_TEMP/zynoa-merge-dryrun.json" "$exit_code" <<'PY'
+          import json, sys
+          result = json.load(open(sys.argv[1], encoding="utf-8"))
+          assert int(sys.argv[2]) in (0, 2)
+          assert result["merge_performed"] is False
+          assert result["status"] in ("BLOCKED", "ELIGIBLE_FOR_SEPARATELY_AUTHORIZED_MERGE")
+          print("MERGE-GUARD DRY-RUN: PASS (zero GitHub mutations)")
+          PY
+      - name: Durable development queue smoke (read-only)
+        run: |
+          python -m tools.dev_job_runner --smoke --repo-root . --db "$RUNNER_TEMP/zynoa-job-smoke.db"
+      - name: Trusted disposable worktree and file-scope regression
+        run: python -m unittest tests.test_workspace_policy -v
+      - name: Disposable host storage backup and restore smoke (no service installed)
+        env:
+          ZYNOA_HOST_INIT_ALLOWED: '1'
+        run: |
+          python -m tools.host_bootstrap --repo-root "$GITHUB_WORKSPACE" --host-root "$RUNNER_TEMP/zynoa-host-fixture" initialize
+          python -m tools.host_bootstrap --repo-root "$GITHUB_WORKSPACE" --host-root "$RUNNER_TEMP/zynoa-host-fixture" inspect
+          python -m tools.host_bootstrap --repo-root "$GITHUB_WORKSPACE" --host-root "$RUNNER_TEMP/zynoa-host-fixture" backup
       - name: Incident redaction tests
         run: python -m unittest discover -s tests -v
+
+  workspace-windows:
+    name: workspace-windows
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Windows path guard and trusted worktree fixture
+        run: python -m unittest tests.test_workspace_policy -v
+      - name: Windows disposable host storage and observer-logon preview
+        shell: pwsh
+        env:
+          ZYNOA_HOST_INIT_ALLOWED: '1'
+        run: |
+          $hostDir = Join-Path $env:RUNNER_TEMP 'zynoa-host-fixture'
+          python -m tools.host_bootstrap --repo-root "$env:GITHUB_WORKSPACE" --host-root "$hostDir" initialize
+          if ($LASTEXITCODE -ne 0) { throw 'Windows host initialization failed' }
+          python -m tools.host_bootstrap --repo-root "$env:GITHUB_WORKSPACE" --host-root "$hostDir" backup
+          if ($LASTEXITCODE -ne 0) { throw 'Windows host online SQLite backup failed' }
+          $preview = & ./deploy/windows/Install-ZynoaObserverTask.ps1 -RepoRoot $env:GITHUB_WORKSPACE -HostRoot $hostDir
+          if (-not (($preview | Out-String) -match 'PREVIEW_ONLY')) { throw 'Windows least-privilege logon preview failed' }
+      - name: Windows independent host recovery tests
+        run: python -m unittest tests.test_host_bootstrap -v
+      - name: Windows local model proposal policy tests (mocked inference only)
+        run: python -m unittest tests.test_dev_model_planner -v
+      - name: Windows disposable LLM fixture draft staging tests (no source writes)
+        run: python -m unittest tests.test_fixture_draft_stager -v
+      - name: Windows Docker syntax policy contract (mocked daemon, no container launch)
+        run: python -m unittest tests.test_docker_syntax_broker -v
+      - name: Windows operator-only rootless host smoke policy (mocked, no Docker)
+        run: python -m unittest tests.test_docker_host_smoke -v
+      - name: Windows durable observer success heartbeat and readonly status probe
+        run: python -m unittest tests.test_worker_health -v
+      - name: Windows systemd notification policy and observer signal suppression (no socket)
+        run: python -m unittest tests.test_systemd_watchdog -v
+      - name: Windows P00 model fixture content generation policy (mocked local model, no execution)
+        run: python -m unittest tests.test_local_fixture_drafter -v
+      - name: Windows bounded local-model syntax repair coordinator policy (mocked Docker, no execution)
+        run: python -m unittest tests.test_dev_fixture_repair_loop -v
+      - name: Windows rootless functional fixture broker (mocked Docker, trusted reference only)
+        run: python -m unittest tests.test_docker_fixture_runtime_broker -v
+      - name: Windows fixed functional test repair coordinator policy (mocked provider/Docker)
+        run: python -m unittest tests.test_dev_fixture_functional_repair_loop -v
+      - name: Windows fd-scoped disposable writer denies host execution (no fallback)
+        run: python -m unittest tests.test_scoped_worktree_fixture_writer -v
+      - name: Windows tested-candidate SHA-bound disposable writer gate (deny-only)
+        run: python -m unittest tests.test_verified_fixture_worktree_flow -v
+      - name: Windows privileged incident publisher policy (mocked CI/GitHub, no issue writes)
+        run: python -m unittest tests.test_github_issue_bridge tests.test_ci_incident_delivery -v
+      - name: Windows trusted static GitHub fixture publisher policy (mock-only)
+        run: python -m unittest tests.test_github_static_fixture_publisher -v
+      - name: Confirm no model or GitHub mutations
+        run: |
+          python -c "print('WORKSPACE WINDOWS: fixture-only, no model/GitHub writes')"

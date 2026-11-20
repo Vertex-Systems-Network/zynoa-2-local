@@ -1,0 +1,44 @@
+{
+  "change_id": "CHG-P00-M22-HOST-BOOTSTRAP-20261118",
+  "module_id": "M22",
+  "kind": "enhancement",
+  "title": "P00 secure host storage, SQLite WAL backup drill and OS startup templates",
+  "summary": "Added operator-authorized external observer host storage initialization, SQLite online backup and checksum-backed disposable restore drills; fixed Windows SQLite connection leaks, added Linux systemd observer and backup templates and an explicitly opt-in Windows current-user at-logon task preview. Real 24/7 model-backed worker and protected GitHub main remain unverified.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1",
+  "docs_paths": [
+    "docs/operations/P00_HOST_BOOTSTRAP.md",
+    "docs/operations/P00_WORKER_RUNBOOK.md",
+    "docs/quality/RELEASE_GATES.md",
+    "docs/security/THREAT_MODEL.md",
+    "docs/modules/M22.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M22.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M22.md"
+  ],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44233203055"
+  ],
+  "commit_sha": "8a5e5aa56442fd2fec11a3883e3f00121d4abe5b",
+  "release": null,
+  "verification": {
+    "tests_passed": true,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "External host directory now uses state/controller.db; update Linux observer service data location. No user chat history or app database migrations. Existing host states require non-destructive reconciliation; initialize refuses overwrite.",
+  "created_at": "2026-11-18T03:33:00Z",
+  "updated_at": "2026-11-18T03:49:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}

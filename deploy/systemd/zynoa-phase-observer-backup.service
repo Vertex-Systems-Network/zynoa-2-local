@@ -1,0 +1,26 @@
+# TEMPLATE ONLY. Never install without host credential/path review.
+# This runs SQLite's online backup; it neither stops the observer nor
+# overwrites a live database or sends backups to GitHub.
+[Unit]
+Description=Zynoa P00 observer consistent database snapshot + restore drill
+After=local-fs.target
+
+[Service]
+Type=oneshot
+User=zynoa
+Group=zynoa
+WorkingDirectory=/srv/zynoa/current
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/usr/bin/python3 -m tools.host_bootstrap --repo-root /srv/zynoa/current --host-root /var/lib/zynoa backup
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/zynoa
+RestrictSUIDSGID=true
+LockPersonality=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX
