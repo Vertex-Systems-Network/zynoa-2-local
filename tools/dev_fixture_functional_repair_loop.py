@@ -114,7 +114,11 @@ def run_fixture_functional_repair(
                 repair_source=previous, repair_feedback=feedback,
             )
             sha = _verify_draft(draft, valid, path, plan_sha, scope)
-        except (LocalFixtureDenied, FixtureRepairDenied, OSError, ValueError, TypeError):
+        except LocalFixtureDenied as exc:
+            # LocalFixtureDenied messages are fixed, sanitized policy categories.
+            # Retain the category for operator diagnosis without model source.
+            raise FunctionalRepairDenied(f"model draft rejected: {exc}") from None
+        except (FixtureRepairDenied, OSError, ValueError, TypeError):
             raise FunctionalRepairDenied("model draft/preflight rejected") from None
         if sha in seen:
             raise FunctionalRepairDenied("repeated invalid candidate refused")

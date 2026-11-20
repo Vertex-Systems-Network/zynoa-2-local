@@ -270,6 +270,19 @@ class FunctionalLoopTests(unittest.TestCase):
         self.assertNotIn(secret,str(cm.exception))
         self.assertEqual(1,len(self.model_calls))
 
+    def test_model_transport_failure_reports_safe_category(self):
+        def fail(*args, **kwargs):
+            raise ValueError("PRIVATE-MODEL-RESPONSE")
+        with self.assertRaises(FunctionalRepairDenied) as cm:
+            run_fixture_functional_repair(
+                "coder:7b",self.plan(),self.scope,expected_task_id=TASK,
+                enabled=True,operator_ack=True,syntax_enabled=True,
+                execution_grant=True,model_transport=fail,
+                syntax_broker=self.syntax,runtime_broker=self.runtime)
+        self.assertIn("local fixture model response unavailable",str(cm.exception))
+        self.assertNotIn("PRIVATE-MODEL-RESPONSE",str(cm.exception))
+        self.assertEqual([],self.syntax_calls)
+
 
 if __name__=="__main__":
     unittest.main()

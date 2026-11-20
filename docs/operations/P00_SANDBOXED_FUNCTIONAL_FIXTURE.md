@@ -4,6 +4,8 @@
 
 **Scope:** A *trusted operator* can opt in to checking **one small model-authored Python fixture** against a **fixed five-case contract** inside rootless Docker, and on a failure permit **one** new model draft. This is a constrained execution proof-of-concept, not a production sandbox attestation, general code-test runner, editor, autonomous programmer or GitHub writer. CI exercises mocked Docker/Ollama and a trusted literal Python harness reference; the operator's real host is unavailable.
 
+Operator diagnosis: a rejected local model draft now retains the sanitized `LocalFixtureDenied` category in `FunctionalRepairDenied` (for example, transport unavailable or changed fixture identity). Generated source, raw model content and transport exception details remain hidden. The coordinator does not retry a rejected envelope or change any grant.
+
 ## Why it is different from the prior source-only syntax step
 
 The earlier `docker_syntax_broker.py` only used `compile()` inside Docker but **never ran model-written Python**. This step adds `tools/docker_fixture_runtime_broker.py`, which can execute a model's Python **inside** a separately authorized, no-network/no-repository-mount rootless Linux container, to assess a fixed `solve(x) == 2*x` function contract. The model never receives a shell or command tool. The controller host only validates byte lengths, phase/task/path, hashes and broker receipts: it never imports, parses, compiles or executes the candidate.
