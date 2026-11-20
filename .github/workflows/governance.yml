@@ -123,6 +123,10 @@ jobs:
         run: python -m unittest tests.test_local_fixture_drafter -v
       - name: Windows bounded local-model syntax repair coordinator policy (mocked Docker, no execution)
         run: python -m unittest tests.test_dev_fixture_repair_loop -v
+      - name: Windows rootless functional fixture broker (mocked Docker, trusted reference only)
+        run: python -m unittest tests.test_docker_fixture_runtime_broker -v
+      - name: Windows fixed functional test repair coordinator policy (mocked provider/Docker)
+        run: python -m unittest tests.test_dev_fixture_functional_repair_loop -v
       - name: Confirm no model or GitHub mutations
         run: |
           python -c "print('WORKSPACE WINDOWS: fixture-only, no model/GitHub writes')"

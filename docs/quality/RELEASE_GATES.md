@@ -175,3 +175,8 @@ Source acceptance: validate the host-issued P00-T20 plan before a local Ollama r
 ## P00-T20 syntax-only repair orchestration (2026-11-20)
 
 A two-attempt, default-disabled local-model fixture syntax coordinator is **source-only**: requires exact P00-T20 host-owned plan, loopback Ollama, opt-in rootless syntax broker, valid candidate/broker digests and no code execution or checkout writes. Test simulations are not actual model deployment, OS sandbox attestation or autonomous plan→patch→test→fix acceptance. Do not close Issue #3 or merge/P01 for this feature alone; real host/service, execution isolation, API write identity and full unattended E2E remain hard gates.
+
+
+## P00 functional fixture source-only gate (2026-11-20)
+
+A test of fixed `solve(x)=2*x` Python model source inside a *future* rootless Linux container is a narrower capability than actual autonomous repository development. The controller must require explicit operator opt-in, independent phase/path/plan hashes, credential-free no-mount/no-network runner and signed/broker receipts before any file edit. CI mock tests or an untrusted container result cannot advance P00, close Issue #3, merge the draft PR, start P01 or count as real M22 screenshot/help publication. Host security + actual source-edit/test/repair/PR write E2E remain mandatory.

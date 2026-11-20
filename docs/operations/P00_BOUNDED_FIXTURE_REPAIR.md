@@ -83,3 +83,8 @@ CI tests use **mock Ollama and mocked Docker syntax receipts** on Linux and Wind
 ## Status and handoff
 
 This operation advances *existing* P00-T20 source capabilities but **does not mark P00-T20 DONE**. P00-T17 real deployed worker, T19 attested OS isolation, T21 nonbypass GitHub writes, T22 verified developer-issue delivery, T23 unattended full fixture E2E, T24 policy-compliant PR merge remain blocked on [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3). Current P00 task completion remains derived from manifest (19/28 DONE at baseline), not count of tests or source functions. Keep [PR #1](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1) draft, no P01 until post-merge SHA readback [Issue #4](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/4). Related [model content adapter](P00_LOCAL_FIXTURE_DRAFTING.md) · [Docker broker](P00_DOCKER_SYNTAX_BROKER.md) · [ADR-0019](../adr/0019-bounded-fixture-syntax-repair.md) · [M22](../modules/M22.md).
+
+
+## Experimental functional test extension (2026-11-20)
+
+The preceding **syntax-only** flow is unchanged and never runs candidate code. A **separate**, stronger [P00 functional fixture runner](P00_SANDBOXED_FUNCTIONAL_FIXTURE.md) is now implemented behind four independent operator opt-ins. It first reuses syntax checks, then optionally executes a small model Python function against a fixed five-case test **inside** a rootless Docker container. Only a failed fixed test or invalid syntax permits one correction, never a Docker/transport failure. The model does not gain shell, repo edits or GitHub permissions. Both integrations remain mock-tested and NOT a deployed developer host or a complete P00-T20 loop.

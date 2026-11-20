@@ -1,0 +1,42 @@
+{
+  "change_id": "CHG-P00-M22-FIXTURE-RUNTIME-FUNCTIONAL-20261120",
+  "module_id": "M22",
+  "kind": "enhancement",
+  "title": "Host-granted rootless Docker functional fixture runner with bounded model repair",
+  "summary": "Adds a default-disabled rootless Docker-only fixed Python solve(x)=2*x fixture evaluator with no repo mount/network, in-container resource checks, bounded child and sanitized unverified verdict; a two-candidate local-model coordinator uses syntax and functional feedback without granting any source edit, execution on the controller host or GitHub write.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1",
+  "docs_paths": [
+    "docs/operations/P00_SANDBOXED_FUNCTIONAL_FIXTURE.md",
+    "docs/operations/P00_BOUNDED_FIXTURE_REPAIR.md",
+    "docs/adr/0020-functional-container-fixture-proof-of-concept.md",
+    "docs/modules/M22.md",
+    "docs/MASTER_PLAN_V3_2.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M22.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M22.md"
+  ],
+  "test_evidence": [],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No actual installed host, observed model inference, attested rootless container, user data change or product release. The controller does not execute generated code; only a separately operator-authorized rootless container may do so. P00-T20 stays IN_PROGRESS and PR #1 remains draft.",
+  "created_at": "2026-11-20T00:00:00Z",
+  "updated_at": "2026-11-20T00:00:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}

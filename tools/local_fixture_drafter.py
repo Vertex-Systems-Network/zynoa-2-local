@@ -94,6 +94,7 @@ def make_fixture_request(
     model: str, plan: dict, scope: WorkspaceScope, *,
     expected_task_id: str,
     repair_source: str | None = None,
+    repair_feedback: str = "PYTHON_SYNTAX_INVALID_NO_CODE_EXECUTION",
 ) -> tuple[dict, dict, str, str]:
     """Trusted-only request. Optional repair text is prior model output only.
 
@@ -127,6 +128,13 @@ def make_fixture_request(
         "summary": valid["summary"],
         "reason": valid["file_proposals"][0]["reason"],
     }
+    if repair_feedback not in (
+        "PYTHON_SYNTAX_INVALID_NO_CODE_EXECUTION",
+        "FIXTURE_TESTS_FAILED_ISOLATION_UNVERIFIED",
+    ):
+        raise LocalFixtureDenied("repair feedback outside fixed trusted allowlist")
+    if repair_source is None and repair_feedback != "PYTHON_SYNTAX_INVALID_NO_CODE_EXECUTION":
+        raise LocalFixtureDenied("functional test failure requires preceding model candidate")
     if repair_source is not None:
         try:
             # A previous candidate must pass the same text limits as a fresh
@@ -135,10 +143,15 @@ def make_fixture_request(
         except FixtureStageDenied:
             raise LocalFixtureDenied("previous model fixture is invalid") from None
         user_context["previous_candidate"] = repair_source
-        user_context["prior_result"] = "PYTHON_SYNTAX_INVALID_NO_CODE_EXECUTION"
+        user_context["prior_result"] = repair_feedback
         user_context["request"] = (
-            "Correct Python syntax only; return the same fixture path and "
-            "plan digest with complete corrected source. Do not add tools."
+            ("Correct Python syntax only; return the same fixture path and "
+             "plan digest with complete corrected source. Do not add tools.")
+            if repair_feedback == "PYTHON_SYNTAX_INVALID_NO_CODE_EXECUTION"
+            else
+            ("Correct only the fixed Python fixture solve(x) functional "
+             "contract: expected solve(x) == x * 2 for integers. Return the "
+             "identical path and plan SHA; no commands or tools.")
         )
     payload = {
         "model": model,
@@ -172,6 +185,7 @@ def draft_local_fixture(
     endpoint: str = "http://127.0.0.1:11434",
     transport: Callable | None = None,
     repair_source: str | None = None,
+    repair_feedback: str = "PYTHON_SYNTAX_INVALID_NO_CODE_EXECUTION",
 ) -> LocalFixtureDraft:
     """Generate bounded untrusted text, then preview in disposable temp storage.
 
@@ -186,7 +200,7 @@ def draft_local_fixture(
         raise LocalFixtureDenied("only an explicit loopback Ollama URL is eligible") from None
     payload, valid, path, plan_sha = make_fixture_request(
         model, plan, scope, expected_task_id=expected_task_id,
-        repair_source=repair_source,
+        repair_source=repair_source, repair_feedback=repair_feedback,
     )
     try:
         envelope = (transport or _request_local_json)(base, payload)

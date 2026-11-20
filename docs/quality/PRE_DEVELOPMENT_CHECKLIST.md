@@ -140,3 +140,12 @@
 - Require all three independent trusted host opt-ins and a current-user-owned rootless Docker socket before real inference. No model-selected image, broker callable, code execution, shell arguments, task identity or GitHub write token.
 - Limit candidate attempts to two. Syntax-invalid may trigger a repair request to the same loopback model with only the model's prior candidate and a **fixed generic** invalid-syntax marker; any other broker/transport failure stops. Reject identical candidate digest.
 - Check independent plan/source/preview SHA and validated syntax-broker receipt for *each* attempt. Never host-parse/execute generated Python, patch real workspace files or report mock inference as deployed. Linux/Windows mock suites required.
+
+
+## P00 experimental functional execution preflight (2026-11-20)
+
+- Confirm P00/PR #1 HEAD, actual GitHub rules and CI; do not use source-only mock results as deployed-worker evidence.
+- Any functional execution needs FOUR independent trusted grants, a one-file P00-T20 fixture, exact plan hash and full rootless socket/daemon/cgroup-v2/systemd checks. Verify effective in-container cgroup ceilings, no-network/no-mount/read-only/nonroot settings.
+- Execute candidate Python **only** inside a separately approved rootless container with fixed tests, never on the host and never with repo credentials. The trusted literal reference harness smoke does not attest production isolation.
+- Repair at most once after exact invalid syntax or fixed functional failure; reject Docker transport errors, forged results, repeat candidate SHA, changed path/task and other statuses. No GitHub/checkout mutation is implied.
+- Require Linux and Windows mocked Docker/model negative tests, and independently witnessed real Linux host containment and credential-leak failure-injection before authorizing real task execution. P00-T20 remains incomplete.
