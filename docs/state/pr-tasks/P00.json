@@ -191,6 +191,12 @@
       "title": "Exact tested candidate SHA bound to disposable Git fixture file creation",
       "status": "DONE",
       "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44653308893"
+    },
+    {
+      "id": "P00-T32",
+      "title": "Manual trusted static Git remote new file and immutable readback",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/1ad028f6ef6f8aaed8be342e98431105b29b68f0"
     }
   ]
 }
