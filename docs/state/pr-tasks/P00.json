@@ -87,14 +87,14 @@
     {
       "id": "P00-T14",
       "title": "Trusted automatic PR task board synchronization",
-      "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44962373225"
     },
     {
       "id": "P00-T15",
       "title": "Model provider discovery and local Ollama health preflight",
-      "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44962373227"
     },
     {
       "id": "P00-T16",
@@ -117,8 +117,8 @@
     {
       "id": "P00-T19",
       "title": "OS-level sandbox, scoped execution and recovery proof",
-      "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44961577131"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44962373227"
     },
     {
       "id": "P00-T20",
