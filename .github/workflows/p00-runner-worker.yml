@@ -23,13 +23,19 @@ jobs:
         with: { python-version: '3.12' }
       - name: Rootless Docker (non-root runner user, cgroup v2 + systemd)
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq uidmap docker-ce-rootless-extras dbus-user-session
-          sudo loginctl enable-linger "$USER"
-          sudo systemctl start "user@$(id -u).service"
-          export XDG_RUNTIME_DIR=/run/user/$(id -u)
+          sudo apt-get update -qq && sudo apt-get install -y -qq uidmap dbus-user-session
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          sudo mkdir -p /etc/systemd/system/user@.service.d
+          printf '[Service]\nDelegate=cpu cpuset io memory pids\n' | sudo tee /etc/systemd/system/user@.service.d/delegate.conf
+          sudo systemctl daemon-reload
           sudo systemctl disable --now docker.service docker.socket
-          dockerd-rootless-setuptool.sh install --force
-          echo "ZYNOA_DOCKER=$(readlink -f "$(command -v docker)")" >> "$GITHUB_ENV"
+          sudo loginctl enable-linger "$USER"
+          sudo systemctl restart "user@$(id -u).service"
+          export XDG_RUNTIME_DIR=/run/user/$(id -u) DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus
+          curl -fsSL https://get.docker.com/rootless | FORCE_ROOTLESS_INSTALL=1 sh
+          systemctl --user is-active docker
+          echo "PATH=$HOME/bin:$PATH" >> "$GITHUB_ENV"
+          echo "ZYNOA_DOCKER=$HOME/bin/docker" >> "$GITHUB_ENV"
           echo "DOCKER_HOST=unix://$XDG_RUNTIME_DIR/docker.sock" >> "$GITHUB_ENV"
           echo "XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR" >> "$GITHUB_ENV"
       - name: Pre-cache digest-pinned image (broker uses --pull never)
