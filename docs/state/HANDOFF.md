@@ -464,3 +464,8 @@ Next safe step: exact source CI then one manual static fixture Git Data API proo
 **Canonical manifest now 32 total / 23 DONE / 3 IN_PROGRESS / 0 TODO / 6 BLOCKED = 71% integer floor of scoped P00 subtasks, NOT product completion**. Record `CHG-P00-M22-TRUSTED-STATIC-GITHUB-GIT-REMOTE-WRITE-20261120` is tests-passed but implementing/unmerged/unreleased with source SHA+CI and manual remote proof. Evidence checkpoint SHA itself requires exact-head CI verification. Next operational requirement remains dedicated supervised least-privilege host and actual Ollama/container OS attestation, dynamic model-provenance bound to scoped GitHub writer and real app source edits/tests/repair, remote PR checks and policy merge verification. [Runbook](../operations/P00_TRUSTED_STATIC_GIT_PROBE.md) · [Infrastructure Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3).
 
 Handoff: verify final evidence-checkpoint HEAD CI and synchronize current PR managed board; do not merge, enable privileged CI workflow on main, claim active worker, or start P01. 
+
+
+## 2026-11-21 agent governance hardening
+
+Added binding `docs/agent/AI_STRICT_PROTOCOL.md` (source precedence, phase lock, AI decision authority, single-worker lease, token budget). Entry files for Claude/Gemini/Cursor/Copilot reduced to one pointer; governance check rejects references to superseded `MASTER_PLAN_V3.md`. CI now also runs `verify_v31_kit.py`. No P00 task status changed.
