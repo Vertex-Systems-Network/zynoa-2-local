@@ -127,6 +127,9 @@ def make_fixture_request(
         "task_id": _TASK, "plan_sha256": plan_sha, "path": path,
         "summary": valid["summary"],
         "reason": valid["file_proposals"][0]["reason"],
+        # The fixed in-container contract must be stated up front, not only on repair.
+        "contract": ("Define a top-level Python function solve(x) that returns "
+                     "x * 2 for any integer x. Plain Python, no imports, no tests."),
     }
     if repair_feedback not in (
         "PYTHON_SYNTAX_INVALID_NO_CODE_EXECUTION",

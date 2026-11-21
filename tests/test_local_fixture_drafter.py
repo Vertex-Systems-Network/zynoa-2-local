@@ -77,6 +77,7 @@ class FixtureModelTests(unittest.TestCase):
         )
         self.assertEqual(FILE, path)
         self.assertEqual(64, len(digest))
+        self.assertIn("solve(x)", json.loads(req["messages"][1]["content"])["contract"])
         self.assertEqual("P00", plan["phase"])
         self.assertFalse(req["stream"])
         self.assertEqual(0, req["options"]["temperature"])
