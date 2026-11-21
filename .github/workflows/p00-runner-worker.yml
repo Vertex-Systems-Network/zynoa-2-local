@@ -60,6 +60,8 @@ jobs:
           ollama pull "$ZYNOA_MODEL"
           # Preload weights so the 45s planner transport timeout covers inference only.
           ollama run --keepalive 30m "$ZYNOA_MODEL" "ok" >/dev/null
+      - name: P00-T15 local Ollama health preflight
+        run: python -m tools.local_model_probe
       - name: Run AI worker (model draft -> rootless syntax -> rootless test -> repair)
         run: set -o pipefail; python -m scripts.runner_worker | tee worker-receipt.json
       - uses: actions/upload-artifact@v4

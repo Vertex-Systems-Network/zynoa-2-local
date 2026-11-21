@@ -1,0 +1,33 @@
+# P00-T14: keep the PR task table in sync from the manifest on every relevant
+# same-repo PR push. Fork PRs never get a write token. No schedule.
+name: PR Task Board Sync (PR)
+on:
+  pull_request:
+    paths: ['docs/state/pr-tasks/**', 'tools/pr_task_board.py', '.github/workflows/pr-task-board-pr.yml']
+permissions:
+  contents: read
+concurrency:
+  group: pr-task-board-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  sync:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with: { persist-credentials: false }
+      - uses: actions/setup-python@v6
+        with: { python-version: '3.12' }
+      - name: Sync and read back PR table
+        env:
+          ZYNOA_PR_TASK_WRITE_ENABLED: '1'
+          ZYNOA_PR_TASK_WRITE_TOKEN: ${{ github.token }}
+        run: |
+          set -o pipefail
+          phase=$(python -c "import json;print(json.load(open('docs/state/PHASE.json'))['phase'])")
+          python -m tools.pr_task_board --manifest "docs/state/pr-tasks/$phase.json" --sync --expected-head "${{ github.event.pull_request.head.sha }}" | tee r.json
+          grep -qE '"status": "(SYNCED_VERIFIED|UNCHANGED)"' r.json
