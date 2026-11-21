@@ -50,3 +50,32 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: p00-worker-receipt, path: worker-receipt.json }
+  # P00-T21: scoped write identity = this run's GITHUB_TOKEN. It may only push a
+  # fresh bot/* branch; main stays guarded by ruleset #27593065 (no bypass).
+  publish:
+    needs: worker
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { name: p00-worker-receipt }
+      - name: Push receipt to scoped bot branch and read it back
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: bot/p00-worker-${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          git init -q w && cd w
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mkdir -p evidence && cp ../worker-receipt.json evidence/
+          git add evidence && git commit -qm "P00 worker receipt run ${{ github.run_id }}"
+          git push -q "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" "HEAD:refs/heads/${BRANCH}"
+          sha=$(git rev-parse HEAD)
+          remote=$(git ls-remote "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" "refs/heads/${BRANCH}" | cut -f1)
+          test "$sha" = "$remote" && echo "T21 readback OK $BRANCH $sha"
+          # Negative proof: the same token must NOT be able to update protected main.
+          if git push -q "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" "HEAD:refs/heads/main" 2>/dev/null; then echo "main write NOT blocked"; exit 1; fi
+          echo "T21 main protected OK"
