@@ -1,0 +1,46 @@
+# P00 AI worker on an ephemeral GitHub-hosted runner. No schedule by design:
+# runs only on PR pushes that touch worker code, or on manual dispatch.
+name: P00 Runner Worker
+on:
+  pull_request:
+    paths: ['tools/**', 'scripts/runner_worker.py', '.github/workflows/p00-runner-worker.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: p00-runner-worker-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  worker:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      ZYNOA_MODEL: qwen2.5-coder:1.5b
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: Rootless Docker (non-root runner user, cgroup v2 + systemd)
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq uidmap docker-ce-rootless-extras dbus-user-session
+          sudo loginctl enable-linger "$USER"
+          sudo systemctl start "user@$(id -u).service"
+          export XDG_RUNTIME_DIR=/run/user/$(id -u)
+          sudo systemctl disable --now docker.service docker.socket
+          dockerd-rootless-setuptool.sh install --force
+          echo "ZYNOA_DOCKER=$(readlink -f "$(command -v docker)")" >> "$GITHUB_ENV"
+          echo "DOCKER_HOST=unix://$XDG_RUNTIME_DIR/docker.sock" >> "$GITHUB_ENV"
+          echo "XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR" >> "$GITHUB_ENV"
+      - name: Pre-cache digest-pinned image (broker uses --pull never)
+        run: docker pull "$(python -c 'from tools.docker_syntax_broker import DEFAULT_IMAGE as i;print(i)')" && docker info --format '{{.SecurityOptions}} {{.CgroupVersion}} {{.CgroupDriver}}'
+      - name: Local Ollama with small model
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          for i in $(seq 30); do curl -sf http://127.0.0.1:11434/api/tags >/dev/null && break; sleep 2; done
+          ollama pull "$ZYNOA_MODEL"
+      - name: Run AI worker (model draft -> rootless syntax -> rootless test -> repair)
+        run: python -m scripts.runner_worker | tee worker-receipt.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: p00-worker-receipt, path: worker-receipt.json }
