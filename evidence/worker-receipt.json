@@ -1,0 +1,39 @@
+{
+  "status": "FIXTURE_FUNCTIONAL_PASS_HOST_UNATTESTED",
+  "phase": "P00",
+  "task_id": "P00-T20",
+  "attempt_count": 1,
+  "max_attempts": 2,
+  "repair_attempted": false,
+  "attempts": [
+    {
+      "attempt": 1,
+      "candidate_sha256": "d593cfcecdfef2907abfcc50decda201e4665c9828473fe5c3db32fe8560fef6",
+      "preview_receipt_sha256": "7a99912e24b08f14515c8be6d0fea0365eafa0caf9652ba2ce653ff0ac3b61fe",
+      "syntax_status": "PYTHON_SYNTAX_VALID_NO_CODE_EXECUTION",
+      "functional_status": "FIXTURE_TESTS_PASSED_ISOLATION_UNVERIFIED"
+    }
+  ],
+  "functional_runtime_broker_invoked": true,
+  "real_model_execution_independently_verified": false,
+  "trusted_host_model_source_execution": false,
+  "workspace_files_written": 0,
+  "github_writes": 0,
+  "repository_patches_applied": 0,
+  "independent_host_sandbox_verified": false,
+  "persistent_worker_deployed": false,
+  "full_autonomous_development_verified": false,
+  "hostile_containment": {
+    "network": "FIXTURE_TESTS_FAILED_ISOLATION_UNVERIFIED",
+    "cpu_hang": "FIXTURE_TESTS_FAILED_ISOLATION_UNVERIFIED",
+    "memory": "FIXTURE_TESTS_FAILED_ISOLATION_UNVERIFIED",
+    "fork": "FIXTURE_TESTS_FAILED_ISOLATION_UNVERIFIED",
+    "write_root": "FIXTURE_TESTS_FAILED_ISOLATION_UNVERIFIED"
+  },
+  "host": {
+    "kind": "github-hosted-runner",
+    "run_id": "44962373227",
+    "sha": "721d78a3e9c9251745a55af6a0ac3562ff1f5081",
+    "image": "ubuntu24"
+  }
+}
