@@ -13,9 +13,9 @@ concurrency:
 jobs:
   worker:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 40
     env:
-      ZYNOA_MODEL: qwen2.5-coder:1.5b
+      ZYNOA_MODEL: qwen2.5-coder:7b
     steps:
       - uses: actions/checkout@v4
         with: { persist-credentials: false }
@@ -46,7 +46,7 @@ jobs:
           for i in $(seq 30); do curl -sf http://127.0.0.1:11434/api/tags >/dev/null && break; sleep 2; done
           ollama pull "$ZYNOA_MODEL"
       - name: Run AI worker (model draft -> rootless syntax -> rootless test -> repair)
-        run: python -m scripts.runner_worker | tee worker-receipt.json
+        run: set -o pipefail; python -m scripts.runner_worker | tee worker-receipt.json
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: p00-worker-receipt, path: worker-receipt.json }
