@@ -3,7 +3,7 @@
 import json, pathlib, sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 REQUIRED = [
-    'AGENTS.md','CLAUDE.md','GEMINI.md','.cursor/rules/00-project-governance.mdc',
+    'AGENTS.md','docs/agent/AI_STRICT_PROTOCOL.md','docs/MASTER_PLAN_V3_2.md','CLAUDE.md','GEMINI.md','.cursor/rules/00-project-governance.mdc',
     '.github/copilot-instructions.md','.github/pull_request_template.md',
     'docs/MASTER_PLAN_V3.md','docs/state/STATUS.md','docs/state/HANDOFF.md',
     'docs/state/PHASE.json','docs/state/PHASES.json','docs/state/MODULES.json',
@@ -28,7 +28,8 @@ try:
 except Exception as e:errors.append('Invalid phase state: '+str(e))
 for name in ['CLAUDE.md','GEMINI.md','.github/copilot-instructions.md','.cursor/rules/00-project-governance.mdc']:
     p=ROOT/name
-    if p.is_file() and 'AGENTS.md' not in p.read_text(): errors.append(name+' does not link canonical AGENTS.md')
+    if p.is_file() and not all(k in p.read_text() for k in ('AGENTS.md','AI_STRICT_PROTOCOL.md')): errors.append(name+' must link AGENTS.md and AI_STRICT_PROTOCOL.md')
+    if p.is_file() and 'MASTER_PLAN_V3.md' in p.read_text(): errors.append(name+' points to superseded plan V3')
 if errors:
     for e in errors:print('ERROR:',e)
     sys.exit(1)

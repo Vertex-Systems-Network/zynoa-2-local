@@ -19,3 +19,6 @@ Record future decisions using ADR number, options considered, evidence, rational
 ## ADR-0007 — planned change intelligence architecture
 
 M26 uses append-only event ledger, per-PR change records, verified-release manifest, product changelog projections and versioned Help/Wiki. Unreleased issue history stays separate from user-visible shipped releases. See `docs/adr/0007-change-intelligence-and-changelog.md`. No implementation yet.
+2026-11-21 | P00 | Added AI_STRICT_PROTOCOL; V3_2 is sole operational plan | removes plan conflict and agent drift
+2026-11-21 | P00 | Owner has no hardware/credentials: T17/T19/T21-T24 to be redesigned on GitHub-hosted runners + GITHUB_TOKEN | only AI-executable path; no user infrastructure
+2026-11-21 | P00 | T22 live acceptance (workflow_run listener must be on main) moves to the first step after P00 merge; T24 merge no longer waits on it | breaks T22<->T24 circular dependency

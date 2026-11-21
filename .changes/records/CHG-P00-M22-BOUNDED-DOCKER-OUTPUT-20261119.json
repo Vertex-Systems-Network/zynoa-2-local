@@ -1,0 +1,41 @@
+{
+  "change_id": "CHG-P00-M22-BOUNDED-DOCKER-OUTPUT-20261119",
+  "module_id": "M22",
+  "kind": "security",
+  "title": "Bound host Docker CLI output during read",
+  "summary": "The rootless syntax broker now limits stdout/stderr as bytes arrive, kills noisy Docker CLI children and attempts targeted container cleanup on overflow. No production sandbox or model execution is claimed.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1",
+  "docs_paths": [
+    "docs/operations/P00_DOCKER_SYNTAX_BROKER.md",
+    "docs/state/STATUS.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M22.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M22.md"
+  ],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44419708348"
+  ],
+  "commit_sha": "eb3b861dcc37a808cd7bf328d65cc0f8fc71a0f4",
+  "release": null,
+  "verification": {
+    "tests_passed": true,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No end-user release or data migration. The optional Linux rootless Docker syntax broker remains default-disabled and uninstalled.",
+  "created_at": "2026-11-19T00:00:00Z",
+  "updated_at": "2026-11-19T00:00:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}

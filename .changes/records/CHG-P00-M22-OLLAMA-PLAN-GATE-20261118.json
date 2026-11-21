@@ -1,0 +1,43 @@
+{
+  "change_id": "CHG-P00-M22-OLLAMA-PLAN-GATE-20261118",
+  "module_id": "M22",
+  "kind": "enhancement",
+  "title": "P00 local Ollama structured draft proposals with host-controlled path validation",
+  "summary": "Introduced explicit loopback Ollama structured JSON planning with untrusted response schema checks, phase/task binding, protected workspace draft paths and fixed read-only checks. Added mocked Linux/Windows model tests and protected planner/host authority files. No actual model-backed file edit, OS sandbox, worker deployment or GitHub mutation.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1",
+  "docs_paths": [
+    "docs/operations/P00_LOCAL_MODEL_PLANNING.md",
+    "docs/quality/RELEASE_GATES.md",
+    "docs/security/THREAT_MODEL.md",
+    "docs/modules/M22.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M22.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M22.md"
+  ],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44235129115"
+  ],
+  "commit_sha": "2d058f9f7674e291995af967e54b5ae28a807318",
+  "release": null,
+  "verification": {
+    "tests_passed": true,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No data migration. New proposal-only local API adapter does not execute patches or retain model prompts.",
+  "created_at": "2026-11-18T04:00:00Z",
+  "updated_at": "2026-11-18T04:11:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}

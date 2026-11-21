@@ -69,3 +69,13 @@ Classify update failures by `UPD-*`, backup corruption and data loss by `DAT-*`/
 ## v3.2 incident-to-change-event route
 
 Upon issue report: write privacy-scoped event with stable fingerprint and GitHub URL if report succeeds; don't imply fix. Upon approved enhancement: record planned scope and evidence. Upon fix PR: link the change ID, tests, documentation and screenshots. Upon verified release: mark as shipped in release-specific feed and only then show Fixed to installed users. Keep issue state, implementation state and release state independent. See [M26](CHANGE_INTELLIGENCE_CHANGELOG.md).
+
+
+## P00 Developer CI bridge status — 2026-11-18
+
+The repo contains `tools/github_issue_bridge.py` with developer-ci-only allowlisting, `tools/incident_router.py` sanitization, P0 public-report block, remote fingerprint dedup and 4-page fail-closed pagination. Direct issue publishing is OFF without separate `ZYNOA_ISSUE_TOKEN` and explicit publish authorization. A trusted-default-branch `.github/workflows/developer-incident.yml` triggers for failed governance runs; it **does not activate until merged to main**, and does not checkout untrusted PR code. No installed client/user incident relay has been deployed, and no actual automatic issue generation has yet been proven on a failing workflow. See [P00 runbook](P00_WORKER_RUNBOOK.md) and [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3).
+
+
+## P00 CI run readback and bounded dedup update (2026-11-20)
+
+The existing trusted-default-branch `developer-incident.yml` reporter now passes the failed `workflow_run` ID and full HEAD SHA to `DeveloperIssueBridge`. The bridge independently GETs the GitHub Actions run and requires completed failure, exact `Governance v3.2` workflow, same head repository and matching ID/SHA before public Issues operations. It uses a restricted `issues:write` token and allows only canonical create/dedup/patch for a matching `github-actions[bot]` Issue title/fingerprint, rebuilding a source-free body with up to five verified run links, no old text or job logs. The same event is idempotent; ambiguous results deny. Read [P00 operator delivery runbook](P00_VERIFIED_CI_ISSUE_DELIVERY.md) and [ADR-0023](../adr/0023-ci-run-verified-sanitized-issue-delivery.md). **Not live on current draft branch:** GitHub `workflow_run` listener must exist on default branch, so a genuine postmerge failed-run → authenticated issue readback is required to finish P00-T22. CI mocks and optional manual connector write proof are distinct.

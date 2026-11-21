@@ -1,0 +1,44 @@
+{
+  "change_id": "CHG-P00-M22-OPERATOR-LIVE-SYNTAX-SMOKE-20261118",
+  "module_id": "M22",
+  "kind": "enhancement",
+  "title": "Operator-only rootless Docker syntax smoke for live-host preflight",
+  "summary": "Adds a disabled-by-default two-flag operator CLI that exercises the existing P00 rootless syntax-only broker on fixed harmless valid/invalid Python source, verifies sanitized receipts and refuses model-controlled Docker or GitHub writes. Cross-platform mocked tests do not prove real user-host isolation.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1",
+  "docs_paths": [
+    "docs/operations/P00_DOCKER_SYNTAX_BROKER.md",
+    "docs/adr/0015-rootless-syntax-gate.md",
+    "docs/quality/RELEASE_GATES.md",
+    "docs/security/THREAT_MODEL.md",
+    "docs/modules/M22.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M22.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M22.md"
+  ],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44253930931"
+  ],
+  "commit_sha": "e88a89095c85bb1e7fed4563e92d4e64a9dcead6",
+  "release": null,
+  "verification": {
+    "tests_passed": true,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No released product data migration. Operator must separately install, verify and opt in to the dedicated Linux rootless runtime; command remains deny-by-default.",
+  "created_at": "2026-11-18T06:46:29.037Z",
+  "updated_at": "2026-11-18T06:48:33.410Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}

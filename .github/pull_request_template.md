@@ -1,3 +1,16 @@
+## Phase task table (required for EVERY PR)
+
+- **Manifest:** `docs/state/pr-tasks/<ACTIVE_PHASE>.json` (must match active `PHASE.json` and actual primary PR number).
+- [ ] Every phase task is tracked with stable ID, status, evidence/blocker link and honest completion verification.
+- [ ] Auto-generated table below matches manifest; preserve its markers when editing PR description.
+- [ ] In-scope new tasks appended to the SAME phase manifest; phase merger still checks independent protected GitHub CI and release gates.
+
+<!-- ZYNOA_PR_TASK_BOARD_START v1 -->
+Task table not synchronized yet. The trusted controller must populate this block from the checked manifest; do not mark the PR complete while placeholder remains.
+<!-- ZYNOA_PR_TASK_BOARD_END -->
+
+---
+
 ## Phase and scope
 - Phase ID / branch:
 - Applicable module dossier(s) and requirement IDs:

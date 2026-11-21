@@ -1,0 +1,38 @@
+{
+  "change_id": "CHG-P00-M22-FUNCTIONAL-DRAFT-DIAGNOSTICS-20261120",
+  "module_id": "M22",
+  "kind": "bugfix",
+  "title": "Sanitized model draft rejection category for functional fixture operator",
+  "summary": "Expose the existing sanitized LocalFixtureDenied category and the fixed inner model transport category when the P00 functional fixture draft is rejected. Preserve default denial, no retry, no model source, response body or exception-detail leakage; regressions confirm redaction.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1",
+  "docs_paths": [
+    "docs/operations/P00_SANDBOXED_FUNCTIONAL_FIXTURE.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M22.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M22.md"
+  ],
+  "test_evidence": [],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No runtime deployment or user data migration; P00-T20 remains IN_PROGRESS until actual host evidence and general repair gates pass.",
+  "created_at": "2026-11-20T00:00:00Z",
+  "updated_at": "2026-11-20T05:00:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}

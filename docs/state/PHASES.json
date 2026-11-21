@@ -4,7 +4,7 @@
     "name": "Governance, product research and AI controller",
     "modules": "M22 M26(governance)",
     "acceptance": "Constitution, PR policy, verified source bank, local controller contract and test harness; change-event policy and release-note evidence contract",
-    "state": "NOT_STARTED"
+    "state": "IN_PROGRESS"
   },
   {
     "id": "P01",
@@ -63,6 +63,16 @@
     "state": "NOT_STARTED"
   },
   {
+    "id": "P08I",
+    "name": "Cross-tool editable design interoperability",
+    "modules": "M11 M12 (post-core adapter extension)",
+    "acceptance": "Only after remote P08 merge/acceptance: Figma/Penpot/two OpenPencil format research verified; editable imports and target-tested exports, compatibility/fidelity reports, secure adapters, round-trip tests, real screenshots, Help/Wiki and P08I PR verified",
+    "state": "NOT_STARTED",
+    "depends_on_verified_phase": "P08",
+    "branch_name": "phase/08i-design-interoperability",
+    "contract": "docs/operations/DESIGN_INTEROPERABILITY.md"
+  },
+  {
     "id": "P09",
     "name": "Media generation",
     "modules": "M13",
@@ -86,7 +96,7 @@
   {
     "id": "P12",
     "name": "Future expansion (separate scoped phases)",
-    "modules": "\u2014",
+    "modules": "—",
     "acceptance": "Native macOS/Linux maturity, collaboration, plugin SDK and innovation bank; changelog compatible with plugin/version upgrades",
     "state": "NOT_STARTED"
   }

@@ -1,0 +1,42 @@
+{
+  "change_id": "CHG-P00-M22-EXACT-IMAGE-ALLOWLIST-20261118",
+  "module_id": "M22",
+  "kind": "security",
+  "title": "Require reviewed exact Docker image digest before syntax broker execution",
+  "summary": "Hardened P00 default-disabled Docker syntax validation so a well-formed, different Docker Hub Python digest can no longer substitute for the explicitly reviewed image. Regression tests confirm rejection happens before any Docker command. No host deployment or model-authored execution is claimed.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1",
+  "docs_paths": [
+    "docs/operations/P00_DOCKER_SYNTAX_BROKER.md",
+    "docs/modules/M22.md",
+    "docs/quality/RELEASE_GATES.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M22.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M22.md"
+  ],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44245275881"
+  ],
+  "commit_sha": "edd8182c35bb2847f91e4879098ae6d82526d3c6",
+  "release": null,
+  "verification": {
+    "tests_passed": true,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No released user data or installed host migration. An approved base-image rotation requires reviewed allowlist update, independent image provenance review and new CI evidence.",
+  "created_at": "2026-11-18T05:34:44.086Z",
+  "updated_at": "2026-11-18T05:37:13.319Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}

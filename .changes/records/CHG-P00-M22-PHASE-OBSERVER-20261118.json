@@ -1,0 +1,54 @@
+{
+  "change_id": "CHG-P00-M22-PHASE-OBSERVER-20261118",
+  "module_id": "M22",
+  "kind": "enhancement",
+  "title": "P00 governance controller: durable queue, worktree planning and protected GitHub policies",
+  "summary": "P00 governance controller foundations exist but actual unattended AI developer is not deployed. Audit identified undelivered always-on model worker, GitHub Actions-only tests, unprotected main, draft PR, and circular Issue #3 pre/postmerge dependency; plan and issue lifecycle clarified without bypassing security.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1",
+  "docs_paths": [
+    "docs/modules/M22.md",
+    "docs/operations/P00_WORKER_RUNBOOK.md",
+    "docs/operations/AUTONOMOUS_LOOP.md",
+    "docs/research/P00_WORKER_HOSTING_RESEARCH.md",
+    "docs/operations/P00_DURABLE_JOB_QUEUE.md",
+    "docs/security/THREAT_MODEL.md",
+    "docs/quality/RELEASE_GATES.md",
+    "docs/operations/P00_MAIN_RULESET.md",
+    "docs/evidence/P00_REMOTE_PREFLIGHT.md",
+    "docs/operations/P00_TASK_DEPENDENCY_GRAPH.md",
+    "docs/adr/0010-phase-task-dag.md",
+    "docs/operations/P00_WORKTREE_POLICY.md",
+    "docs/adr/0011-worktree-is-not-sandbox.md",
+    "docs/operations/P00_CONTINUOUS_AUTONOMY_AUDIT.md",
+    "docs/PHASE_SPECS.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M22.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M22.md"
+  ],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44224444145"
+  ],
+  "commit_sha": "1bb228c74f2e0518fe720ee52ad9ef39705238e0",
+  "release": null,
+  "verification": {
+    "tests_passed": true,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No product database migration; local worker SQLite records are development-only.",
+  "created_at": "2026-11-18T00:50:00Z",
+  "updated_at": "2026-11-18T03:02:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}

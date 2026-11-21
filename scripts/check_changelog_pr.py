@@ -16,7 +16,7 @@ if p.returncode:
     print('CHG-PR-GATE: FAIL — cannot verify base commit:',p.stderr.strip(),file=sys.stderr)
     sys.exit(1)
 changed=[x.strip() for x in p.stdout.splitlines() if x.strip()]
-code_changes=[x for x in changed if x.startswith(('apps/','crates/','packages/','optional-workers/'))]
+code_changes=[x for x in changed if x.startswith(('apps/','crates/','packages/','optional-workers/','tools/','scripts/','.github/workflows/'))]
 record_files=[ROOT/x for x in changed if x.startswith(('.changes/records/','docs/changelog/records/')) and x.endswith('.json')]
 if code_changes and not record_files:
     print('CHG-PR-GATE: FAIL — product code changes require change record in same PR',file=sys.stderr)

@@ -1,0 +1,40 @@
+# TEMPLATE ONLY — NOT INSTALLED. Review docs/operations/P00_WORKER_RUNBOOK.md first.
+# Install as /etc/systemd/system/zynoa-phase-observer.service only after
+# provisioning a dedicated restricted user, credentials and directories.
+[Unit]
+Description=Zynoa P00 read-only GitHub phase observer
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=30min
+StartLimitBurst=4
+
+[Service]
+Type=notify
+NotifyAccess=main
+WatchdogSec=300
+TimeoutStartSec=150
+User=zynoa
+Group=zynoa
+WorkingDirectory=/srv/zynoa/current
+Environment=PYTHONDONTWRITEBYTECODE=1
+EnvironmentFile=/etc/zynoa/observer.env
+ExecStartPre=/usr/bin/python3 -m tools.host_bootstrap --repo-root /srv/zynoa/current --host-root /var/lib/zynoa inspect
+ExecStart=/usr/bin/python3 -m tools.phase_worker --repo Vertex-Systems-Network/zynoa-2-local --state /srv/zynoa/current/docs/state/PHASE.json --db /var/lib/zynoa/state/controller.db --interval 30 --systemd-watchdog
+Restart=on-failure
+RestartSec=30
+TimeoutStopSec=20
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/zynoa
+RestrictSUIDSGID=true
+LockPersonality=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target
