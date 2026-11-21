@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     env:
-      ZYNOA_MODEL: qwen2.5-coder:7b
+      ZYNOA_MODEL: qwen2.5-coder:3b
     steps:
       - uses: actions/checkout@v4
         with: { persist-credentials: false }
@@ -45,6 +45,8 @@ jobs:
           curl -fsSL https://ollama.com/install.sh | sh
           for i in $(seq 30); do curl -sf http://127.0.0.1:11434/api/tags >/dev/null && break; sleep 2; done
           ollama pull "$ZYNOA_MODEL"
+          # Preload weights so the 45s planner transport timeout covers inference only.
+          ollama run --keepalive 30m "$ZYNOA_MODEL" "ok" >/dev/null
       - name: Run AI worker (model draft -> rootless syntax -> rootless test -> repair)
         run: set -o pipefail; python -m scripts.runner_worker | tee worker-receipt.json
       - uses: actions/upload-artifact@v4
