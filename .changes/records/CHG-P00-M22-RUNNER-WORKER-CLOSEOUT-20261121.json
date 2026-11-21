@@ -1,0 +1,42 @@
+{
+  "change_id": "CHG-P00-M22-RUNNER-WORKER-CLOSEOUT-20261121",
+  "module_id": "M22",
+  "kind": "feature",
+  "title": "Runner-hosted AI worker, PR task-board sync and P00 closeout checks",
+  "summary": "AI worker runs on GitHub-hosted runners (rootless Docker, local Ollama 7b, hostile-candidate containment, bounded model timeout, contract in first prompt); scoped bot-branch writer; same-repo PR task-board sync limited to the phase primary PR; task-board check accepts the closeout PR once the phase is MERGED_VERIFIED; CI host/queue smokes use an active-P00 fixture root.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/7"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/8",
+  "docs_paths": [
+    "docs/agent/AI_STRICT_PROTOCOL.md",
+    "docs/modules/M22.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M22.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M22.md"
+  ],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44962373227",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44963750468"
+  ],
+  "commit_sha": "f0a1ebbd0d439b5ef3ffa46cf4447f47e512ce8c",
+  "release": null,
+  "verification": {
+    "tests_passed": true,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No product release. P00 tools stay restricted to an active P00 state; CI smokes use tests/fixtures/p00_active_root instead of live PHASE.json.",
+  "created_at": "2026-11-21T00:00:00Z",
+  "updated_at": "2026-11-21T23:59:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}
