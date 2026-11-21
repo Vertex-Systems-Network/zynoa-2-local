@@ -279,3 +279,12 @@ class ModelPlannerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TransportTimeoutBoundsTest(unittest.TestCase):
+    def test_bounds(self):
+        from unittest import mock
+        from tools.dev_model_planner import _transport_timeout
+        for raw, want in (("", 45), ("x", 45), ("10", 45), ("180", 180), ("9999", 300)):
+            with mock.patch.dict("os.environ", {"ZYNOA_MODEL_TIMEOUT": raw}):
+                self.assertEqual(want, _transport_timeout())

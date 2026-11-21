@@ -16,6 +16,7 @@ jobs:
     timeout-minutes: 40
     env:
       ZYNOA_MODEL: qwen2.5-coder:7b
+      ZYNOA_MODEL_TIMEOUT: '240'
     steps:
       - uses: actions/checkout@v4
         with: { persist-credentials: false }

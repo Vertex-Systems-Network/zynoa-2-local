@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import urllib.error
 import urllib.request
@@ -19,6 +20,15 @@ from pathlib import Path
 from typing import Callable, Mapping
 
 from tools.local_model_probe import LocalModelUnavailable, _NoRedirect, validate_local_base
+
+
+def _transport_timeout() -> int:
+    # CPU-only hosts (GitHub runners) need longer local inference; bounded 45..300s.
+    try:
+        value = int(os.environ.get("ZYNOA_MODEL_TIMEOUT", "45"))
+    except ValueError:
+        return 45
+    return min(max(value, 45), 300)
 from tools.workspace_policy import WorkspaceScope, WorkspaceDenied
 
 _MODEL_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._/+:\-]{0,127}$")
@@ -189,7 +199,7 @@ def _request_local_json(base: str, payload: dict) -> dict:
         urllib.request.ProxyHandler({}), _NoRedirect
     )
     try:
-        with opener.open(req, timeout=45) as response:
+        with opener.open(req, timeout=_transport_timeout()) as response:
             if response.status != 200:
                 raise ModelPlanDenied("local Ollama HTTP response not successful")
             raw = response.read(_MAX_RESPONSE + 1)
