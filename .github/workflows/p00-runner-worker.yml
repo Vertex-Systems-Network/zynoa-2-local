@@ -3,17 +3,6 @@
 name: P00 Runner Worker
 on:
   pull_request:
-    paths:
-      - 'scripts/runner_worker.py'
-      - '.github/workflows/p00-runner-worker.yml'
-      - 'tools/dev_fixture_functional_repair_loop.py'
-      - 'tools/dev_model_planner.py'
-      - 'tools/local_fixture_drafter.py'
-      - 'tools/local_model_probe.py'
-      - 'tools/docker_syntax_broker.py'
-      - 'tools/docker_fixture_runtime_broker.py'
-      - 'tools/workspace_policy.py'
-      - 'tools/fixture_draft_stager.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -21,7 +10,24 @@ concurrency:
   group: p00-runner-worker-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  # pull_request `paths:` compares the whole PR, so gate on files changed since the previous push.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.diff.outputs.run }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0, persist-credentials: false }
+      - id: diff
+        env:
+          BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+        run: |
+          if [ "${{ github.event_name }}" = workflow_dispatch ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then echo run=true
+          elif git diff --name-only "$BASE" HEAD | grep -qE '^(scripts/runner_worker\.py|\.github/workflows/p00-runner-worker\.yml|tools/dev_fixture_functional_repair_loop\.py|tools/dev_model_planner\.py|tools/local_fixture_drafter\.py|tools/local_model_probe\.py|tools/docker_syntax_broker\.py|tools/docker_fixture_runtime_broker\.py|tools/workspace_policy\.py|tools/fixture_draft_stager\.py)$'; then echo run=true
+          else echo run=false; fi >> "$GITHUB_OUTPUT"
   worker:
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     env:

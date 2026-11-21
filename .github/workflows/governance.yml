@@ -25,7 +25,7 @@ jobs:
           persist-credentials: false
       - id: diff
         env:
-          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
         run: |
           if git cat-file -e "$BASE^{commit}" 2>/dev/null; then files=$(git diff --name-only "$BASE" HEAD); else files=ALL; fi
           if [ "$files" = ALL ] || echo "$files" | grep -qE '^(tools|scripts|tests|deploy|\.github)/'; then echo code=true; else echo code=false; fi >> "$GITHUB_OUTPUT"
