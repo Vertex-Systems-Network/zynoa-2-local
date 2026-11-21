@@ -29,5 +29,8 @@ jobs:
         run: |
           set -o pipefail
           phase=$(python -c "import json;print(json.load(open('docs/state/PHASE.json'))['phase'])")
+          # Only the phase's primary PR owns the board; other PRs (closeout, probes) skip.
+          pr=$(python -c "import json;print(json.load(open('docs/state/pr-tasks/$phase.json'))['pr_number'])")
+          if [ "$pr" != "${{ github.event.pull_request.number }}" ]; then echo "PR is not phase primary #$pr; skip"; exit 0; fi
           python -m tools.pr_task_board --manifest "docs/state/pr-tasks/$phase.json" --sync --expected-head "${{ github.event.pull_request.head.sha }}" | tee r.json
           grep -qE '"status": "(SYNCED_VERIFIED|UNCHANGED)"' r.json
