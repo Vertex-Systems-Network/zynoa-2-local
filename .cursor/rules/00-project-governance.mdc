@@ -1,10 +1,6 @@
 ---
-description: Mandatory AI Workspace v3 phase governance, design research, testing and documentation
+description: Mandatory project governance
 alwaysApply: true
 ---
 
-Follow `AGENTS.md`, `docs/MASTER_PLAN_V3.md`, `docs/state/PHASE.json`, relevant module dossier, PRE-DEV, RELEASE_GATES and issue/help operational docs. One active phase branch + one PR; all errors/warnings fixed or tracked; actual screenshots and wiki/help coverage required for final modules. No cross-phase unauthorized writes. The UI is GUI-first, then Chat, then Code.
-
-**v3.1 addition:** Follow `AGENTS.md` data durability, release qualification and user-controlled update constraints; read `docs/operations/{DATA_VAULT_BACKUP_RECOVERY,STORAGE_DOWNLOADS_RELOCATION,AUTO_RELEASE_AND_UPDATES}.md` before affected code. Do not skip verification or delete the last user data copy.
-
-**v3.2:** Before work read `AGENTS.md` M26 rules, `docs/MASTER_PLAN_V3_2.md`, `docs/operations/CHANGE_INTELLIGENCE_CHANGELOG.md` and current change-records. Record new issues/feature changes; update Help/Wiki/screenshots in same phase PR. Never treat an opened/closed issue or mere merged PR as a shipped release. All public changelog entries require verified release proof.
+Canonical rules: [AGENTS.md](AGENTS.md) + [docs/agent/AI_STRICT_PROTOCOL.md](docs/agent/AI_STRICT_PROTOCOL.md). Read those first; they define the only plan (`docs/MASTER_PLAN_V3_2.md`), phase lock, decision authority and token budget. Do not copy rules here.

@@ -20,6 +20,8 @@ jobs:
         run: python scripts/check_governance.py
       - name: Comprehensive v3 spec checks
         run: python scripts/verify_v3_kit.py
+      - name: Comprehensive v3.1 spec checks
+        run: python scripts/verify_v31_kit.py
       - name: Comprehensive v3.2 spec checks
         run: python scripts/verify_v32_kit.py
       - name: Validate change records fixture

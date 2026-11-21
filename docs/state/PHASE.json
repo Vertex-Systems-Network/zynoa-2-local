@@ -7,9 +7,12 @@
   "last_verified_remote_sha": null,
   "worker_running": false,
   "required_documents": [
-    "docs/MASTER_PLAN_V3.md",
     "AGENTS.md",
+    "docs/agent/AI_STRICT_PROTOCOL.md",
+    "docs/MASTER_PLAN_V3_2.md",
     "docs/quality/PRE_DEVELOPMENT_CHECKLIST.md"
   ],
-  "next_phase": "P01"
+  "next_phase": "P01",
+  "lease_holder": null,
+  "repository": "vertex-systems-network/zynoa-2-local"
 }
