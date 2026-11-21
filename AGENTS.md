@@ -2,9 +2,11 @@
 
 **Applies to Codex, ChatGPT coding agents, Claude, Cursor, Gemini, Copilot and other coding models.** The controlling authority is actual repository policy, CI and tools; this file alone does not enforce sandboxing.
 
+**Strict mode:** [docs/agent/AI_STRICT_PROTOCOL.md](docs/agent/AI_STRICT_PROTOCOL.md) is binding (source precedence, phase lock, AI decision authority, token budget). The only operational plan is `docs/MASTER_PLAN_V3_2.md`.
+
 ## First action every session (DO NOT START CODING before this)
 
-1. Read `docs/MASTER_PLAN_V3.md`, `docs/state/PHASE.json`, `docs/state/STATUS.md`, `docs/state/HANDOFF.md`, ADRs and in-scope `docs/modules/Mxx.md`.
+1. Read `docs/state/PHASE.json`, `docs/state/HANDOFF.md`, then only the needed sections of `docs/MASTER_PLAN_V3_2.md`, `docs/state/STATUS.md`, ADRs and in-scope `docs/modules/Mxx.md`.
 2. Run/inspect `git status`, current branch and real GitHub remote `main`, current phase PR and CI. If unavailable, report `REMOTE_UNVERIFIED` and only perform safe local tasks.
 3. Validate current phase lease and allowed paths; reconcile persistent worker memory, issues, baseline tests and outstanding blockers.
 4. Run `docs/quality/PRE_DEVELOPMENT_CHECKLIST.md` and record time/version/source research before code edits. No blind copying.
