@@ -469,3 +469,9 @@ Handoff: verify final evidence-checkpoint HEAD CI and synchronize current PR man
 ## 2026-11-21 agent governance hardening
 
 Added binding `docs/agent/AI_STRICT_PROTOCOL.md` (source precedence, phase lock, AI decision authority, single-worker lease, token budget). Entry files for Claude/Gemini/Cursor/Copilot reduced to one pointer; governance check rejects references to superseded `MASTER_PLAN_V3.md`. CI now also runs `verify_v31_kit.py`. No P00 task status changed.
+
+## 2026-11-21 runner-hosted AI worker verified (https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44961577131)
+
+Owner has no host (see DECISIONS). `p00-runner-worker.yml` on a GitHub-hosted ubuntu-24.04 runner: rootless Docker (non-root uid 1001, cgroup v2 + systemd delegation), local Ollama `qwen2.5-coder:7b` real inference, fixed solve(x)=x*2 contract test inside the no-network container -> `FIXTURE_FUNCTIONAL_PASS_HOST_UNATTESTED`. Job `publish` (GITHUB_TOKEN contents:write) pushed `bot/p00-worker-44961577131` @ `0cdc84fd8c52`, read it back, and the same token was refused on protected `main`.
+Status: T17 DONE (host = per-run GitHub runner, heartbeat = run record; no 24/7 daemon by design), T20 DONE, T21 DONE, T23 DONE (unattended on PR push), T19 IN_PROGRESS (isolation flags verified; no hostile-fixture recovery test yet). T22 waits for P00 merge (workflow_run listener must be on main); T24 = merge after T14/T15/T19.
+Fixes found on the way: false-green worker job (missing pipefail), Ollama server not started without systemd, 45s fixed model timeout (now bounded 45-300s env), contract missing from first model request.
