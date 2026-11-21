@@ -51,7 +51,7 @@ class TaskBoardTests(unittest.TestCase):
         first = merge_into_pr_body(original, m)
         self.assertTrue(first.startswith(original + "\n\n"))
         before_done = summary(m)["done"]
-        incomplete = next(task for task in m["tasks"] if task["status"] == "IN_PROGRESS")
+        incomplete = next(task for task in m["tasks"] if task["status"] != "DONE")
         incomplete["status"] = "DONE"
         incomplete["reference"] = "https://github.com/" + REPO + "/pull/1"
         second = merge_into_pr_body(first, m)
