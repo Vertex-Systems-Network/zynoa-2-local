@@ -9,7 +9,26 @@ permissions:
   checks: read
   issues: read
   pull-requests: read
+concurrency:
+  group: governance-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
+  # Decides which heavy jobs are needed. A skipped required job counts as passed.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.diff.outputs.code }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: diff
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if git cat-file -e "$BASE^{commit}" 2>/dev/null; then files=$(git diff --name-only "$BASE" HEAD); else files=ALL; fi
+          if [ "$files" = ALL ] || echo "$files" | grep -qE '^(tools|scripts|tests|deploy|\.github)/'; then echo code=true; else echo code=false; fi >> "$GITHUB_OUTPUT"
   governance:
     name: governance-lint
     runs-on: ubuntu-latest
@@ -82,6 +101,8 @@ jobs:
 
   workspace-windows:
     name: workspace-windows
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: windows-latest
     permissions:
       contents: read

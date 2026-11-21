@@ -23,6 +23,8 @@ If two sources conflict, the higher one wins. Record the conflict in `docs/state
 
 - **Task table in every PR (all phases):** each phase has `docs/state/pr-tasks/<PHASE>.json` (stable ID, title, status DONE/IN_PROGRESS/TODO/BLOCKED, evidence/blocker link). Every PR description carries the generated table between the `ZYNOA_PR_TASK_BOARD` markers of `.github/pull_request_template.md`, exactly like P00. New in-scope work is appended to the same manifest before coding. CI (`python -m scripts.check_pr_task_board`) must pass; a PR without a synced table is not complete.
 
+- **CI runners only when needed:** every workflow uses `concurrency` with `cancel-in-progress: true` and runs heavy jobs only for the paths they test (`paths:` filter or the `changes` job in `governance.yml`). Docs-only pushes run just the cheap `governance-lint`. No `schedule:` triggers. A new workflow without a path/changes gate is rejected in review.
+
 ## 3. Decision authority (AI decides, does not wait)
 
 The AI makes the call itself when the plan already answers it or when the choice is reversible and inside the phase. Apply in order:

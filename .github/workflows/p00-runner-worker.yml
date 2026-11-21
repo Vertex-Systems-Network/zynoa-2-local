@@ -3,7 +3,17 @@
 name: P00 Runner Worker
 on:
   pull_request:
-    paths: ['tools/**', 'scripts/runner_worker.py', '.github/workflows/p00-runner-worker.yml']
+    paths:
+      - 'scripts/runner_worker.py'
+      - '.github/workflows/p00-runner-worker.yml'
+      - 'tools/dev_fixture_functional_repair_loop.py'
+      - 'tools/dev_model_planner.py'
+      - 'tools/local_fixture_drafter.py'
+      - 'tools/local_model_probe.py'
+      - 'tools/docker_syntax_broker.py'
+      - 'tools/docker_fixture_runtime_broker.py'
+      - 'tools/workspace_policy.py'
+      - 'tools/fixture_draft_stager.py'
   workflow_dispatch:
 permissions:
   contents: read
