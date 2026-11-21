@@ -21,12 +21,16 @@ If two sources conflict, the higher one wins. Record the conflict in `docs/state
 - **Finish rule:** a slice is done only when `python scripts/check_governance.py`, the `verify_*` scripts and `python -m unittest discover -s tests` pass and `docs/state/HANDOFF.md` is updated.
 - **Data safety:** never delete the last copy of user data; never weaken tests/CI to go green.
 
+- **Task table in every PR (all phases):** each phase has `docs/state/pr-tasks/<PHASE>.json` (stable ID, title, status DONE/IN_PROGRESS/TODO/BLOCKED, evidence/blocker link). Every PR description carries the generated table between the `ZYNOA_PR_TASK_BOARD` markers of `.github/pull_request_template.md`, exactly like P00. New in-scope work is appended to the same manifest before coding. CI (`python -m scripts.check_pr_task_board`) must pass; a PR without a synced table is not complete.
+
 ## 3. Decision authority (AI decides, does not wait)
 
 The AI makes the call itself when the plan already answers it or when the choice is reversible and inside the phase. Apply in order:
 1. What the plan says. 2. What existing code/docs already do. 3. Smallest reversible option. 4. Log it in `DECISIONS.md` as one line: `date | phase | decision | reason`.
 
-Stop and write `BLOCKED: <reason>` in `HANDOFF.md` (then do other safe work) only for: missing credentials/access, paid services, a destructive action on user data, a legal/licence question, or a change to this file or the phase order.
+**The owner has no own machine, host or credentials.** Everything is done by AI. For a host, worker, sandbox or model runtime use GitHub-hosted Actions runners with the built-in `GITHUB_TOKEN` (least-privilege `permissions:`) and public free tools only. Never mark a task BLOCKED for "needs owner hardware/credentials"; redesign it onto those runners and log the decision.
+
+Stop and write `BLOCKED: <reason>` in `HANDOFF.md` (then do other safe work) only for: paid services, access GitHub itself refuses, a destructive action on user data, a legal/licence question, or a change to this file or the phase order.
 
 ## 4. Token budget (minimum tokens, best output)
 
