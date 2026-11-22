@@ -3,7 +3,7 @@
   "module_id": "M19",
   "kind": "feature",
   "title": "Bundled offline Help Center and local article search",
-  "summary": "Source implementation of M19 curated bundled help index, deterministic local search, FAQ/glossary and accessible article reader; no server, wiki write or telemetry. Native visuals pending.",
+  "summary": "Source implementation of M19 curated bundled help index, deterministic local search, FAQ/glossary and accessible article reader; no server, wiki write or telemetry. Native visuals pending. Reader selection now follows filtered results; zero-hit search shows an explicit empty reader; related/contextual navigation restores visible selection. M02 Wiki source anchor corrected.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [],
@@ -31,7 +31,7 @@
   "breaking_change": false,
   "migration_notes": "No native user-storage schema change or migrated data. UI session state only; offline help bundled from curated static source.",
   "created_at": "2026-11-22T20:49:36.088Z",
-  "updated_at": "2026-11-22T20:49:36.088Z",
+  "updated_at": "2026-11-22T23:14:31.586Z",
   "version_bump": "none",
   "affected_option_ids": [
     "M19-OPT-01",

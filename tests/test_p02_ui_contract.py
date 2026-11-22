@@ -62,6 +62,17 @@ class P02UIContractTests(unittest.TestCase):
                        "<iframe", "eval("):
             self.assertNotIn(unsafe, catalog+help_page)
 
+    def test_help_reader_stays_inside_filtered_results(self):
+        catalog = (APP/"src/ui/help-catalog.ts").read_text(encoding="utf-8")
+        help_page = (APP/"src/ui/HelpCenter.tsx").read_text(encoding="utf-8")
+        self.assertIn("export function resolveVisibleHelpArticle", catalog)
+        self.assertIn("resolveVisibleHelpArticle(results, articleId)", help_page)
+        self.assertIn('article.id === selected?.id', help_page)
+        self.assertIn('No matching help article', help_page)
+        self.assertIn('openArticle(id)', help_page)
+        self.assertIn('setQuery("");', help_page)
+        self.assertIn('setCategory("All");', help_page)
+
     def test_workbench_tab_arrows_and_split_are_real_session_controls(self):
         s=(APP/"src/ui/Workbench.tsx").read_text(encoding="utf-8")
         for marker in ('role="tablist"', 'role="tabpanel"', 'ArrowLeft', 'ArrowRight',

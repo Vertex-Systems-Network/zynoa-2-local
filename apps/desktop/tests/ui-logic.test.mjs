@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { effectiveTheme, isTheme, isDensity, themeOptions, densityOptions, uiOptionIds } from "../.ui-tests/theme.js";
 import { appCommands, findCommands, shortcutView } from "../.ui-tests/commands.js";
-import { findHelpArticle, helpArticles, searchHelp, helpOptionIds } from "../.ui-tests/help-catalog.js";
+import { findHelpArticle, helpArticles, resolveVisibleHelpArticle, searchHelp, helpOptionIds } from "../.ui-tests/help-catalog.js";
 
 test("theme defaults follow operating system and never coerce unknown values", () => {
   assert.equal(effectiveTheme("system", true), "dark");
@@ -62,6 +62,17 @@ test("offline help search and category filter work without network", () => {
   assert.equal(searchHelp("windows native").some(x => x.id === "native-troubleshooting"), true);
   assert.ok(searchHelp("HELP").every(x => x.id && x.title));
 });
+test("visible help reader stays synchronized with category, query and empty states", () => {
+  const privacy = searchHelp("", "Privacy");
+  assert.ok(privacy.length > 0);
+  assert.equal(resolveVisibleHelpArticle(privacy, "quick-start"), privacy[0]);
+  assert.equal(resolveVisibleHelpArticle(privacy, privacy[1].id), privacy[1]);
+  const search = searchHelp("theme");
+  assert.equal(resolveVisibleHelpArticle(search, "quick-start"), search[0]);
+  assert.equal(resolveVisibleHelpArticle([], "quick-start"), undefined);
+  assert.equal(resolveVisibleHelpArticle(search, "__proto__"), search[0]);
+});
+
 test("bounded search inputs cannot invent results or throw", () => {
   const overlong = "a".repeat(10000);
   assert.doesNotThrow(() => findCommands(overlong));

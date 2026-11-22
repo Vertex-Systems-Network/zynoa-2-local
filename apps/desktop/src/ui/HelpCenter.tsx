@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { findHelpArticle, helpArticles, searchHelp, type HelpCategory } from "./help-catalog";
+import { findHelpArticle, helpArticles, resolveVisibleHelpArticle, searchHelp, type HelpCategory } from "./help-catalog";
 
 type Props = { contextArticle?: string };
 
@@ -13,10 +13,15 @@ export function HelpCenter({ contextArticle }: Props) {
   const [articleId, setArticleId] = useState(contextArticle || "quick-start");
   const [showGlossary, setShowGlossary] = useState(false);
   const results = useMemo(() => searchHelp(query, category), [query, category]);
-  const selected = findHelpArticle(articleId) ?? helpArticles[0];
+  const selected = resolveVisibleHelpArticle(results, articleId);
+  const openArticle = (id: string) => {
+    setQuery("");
+    setCategory("All");
+    setArticleId(id);
+  };
 
   useEffect(() => {
-    if (contextArticle && findHelpArticle(contextArticle)) setArticleId(contextArticle);
+    if (contextArticle && findHelpArticle(contextArticle)) openArticle(contextArticle);
   }, [contextArticle]);
 
   return <section className="help-page" aria-labelledby="help-title">
@@ -51,9 +56,9 @@ export function HelpCenter({ contextArticle }: Props) {
         <div className="help-list-heading"><b>Explore the library</b><span role="status">{results.length} results</span></div>
         {results.length ? results.map(article =>
           <button key={article.id} type="button"
-            className={"help-result " + (article.id === articleId ? "active" : "")}
-            aria-current={article.id === articleId ? "true" : undefined}
-            onClick={() => setArticleId(article.id)}>
+            className={"help-result " + (article.id === selected?.id ? "active" : "")}
+            aria-current={article.id === selected?.id ? "true" : undefined}
+            onClick={() => openArticle(article.id)}>
             <span className="help-result-category">{article.category}</span>
             <strong>{article.title}</strong><small>{article.summary}</small>
             <span aria-hidden="true" className="help-result-arrow">↗</span>
@@ -67,7 +72,7 @@ export function HelpCenter({ contextArticle }: Props) {
           <p>Remote reporting and the hosted Wiki are not configured in this foundation build. Bundled articles remain available offline.</p>
         </div>
       </aside>
-      <article className="help-article" aria-labelledby="help-article-title">
+      {selected ? <article className="help-article" aria-labelledby="help-article-title">
         <div className="help-breadcrumb"><span>Help Center</span><span aria-hidden="true">/</span><span>{selected.category}</span></div>
         <span className="soft-chip">BUNDLED GUIDE</span>
         <h2 id="help-article-title">{selected.title}</h2>
@@ -85,7 +90,7 @@ export function HelpCenter({ contextArticle }: Props) {
           <div>
             {selected.related.map(id => {
               const item = findHelpArticle(id);
-              return item ? <button key={id} type="button" onClick={() => setArticleId(id)}>
+              return item ? <button key={id} type="button" onClick={() => openArticle(id)}>
                 {item.title}<span aria-hidden="true">↗</span>
               </button> : null;
             })}
@@ -107,7 +112,10 @@ export function HelpCenter({ contextArticle }: Props) {
           <div><strong>Found something inaccurate?</strong><p>Remote issue reporting is disabled until a privacy-reviewed reporting service is available.</p></div>
           <button type="button" className="subtle-action" disabled title="Issue reporting service is not enabled">Report article</button>
         </div>
-      </article>
+      </article> : <article className="help-article" role="status" aria-labelledby="help-article-title">
+        <h2 id="help-article-title">No matching help article</h2>
+        <p>Try a different search term or clear the category filter to browse bundled offline guidance.</p>
+      </article>}
     </div>
   </section>;
 }

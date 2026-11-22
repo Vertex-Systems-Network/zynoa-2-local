@@ -131,6 +131,11 @@ export function findHelpArticle(id: string): HelpArticle | undefined {
   return helpArticles.find(article => article.id === id);
 }
 
+/** Reader must never render a document absent from the visible filtered results. */
+export function resolveVisibleHelpArticle(results: readonly HelpArticle[], preferredId: string): HelpArticle | undefined {
+  return results.find(article => article.id === preferredId) ?? results[0];
+}
+
 export function searchHelp(query: string, category: HelpCategory | "All" = "All"): HelpArticle[] {
   const words = query.trim().toLocaleLowerCase().slice(0, 120).split(/\s+/).filter(Boolean);
   return helpArticles
