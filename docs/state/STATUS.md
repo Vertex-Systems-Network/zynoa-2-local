@@ -2,11 +2,11 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- **P01 IN_PROGRESS:** [PR #10](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10), Draft/unmerged; **10/11 DONE**, T11 IN_PROGRESS. User directed **do not merge**; no P02/release.
-- [Governance source trust fix `26f69f8`](https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/26f69f879492ed2c6f8a1d973afeba7248d8c678) and [CI #45014409170](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45014409170) **PASS, 494 Python tests** plus Windows governance and zero-mutation merge dry-run. P00 Runner, P01 Desktop and PR Board also passed at the tested commit.
-- Exact `.github/workflows/governance.yml` Git blob on protected `main` and PR head matches; runtime merge observer now authenticates equality at immutable SHAs, rejecting PR-edited/fake-green CI workflow code.
-- [Issue triage dossier](../evidence/P01_T11_ISSUE_TRIAGE.md): issues #2/#3/#4/#5/#7 remain unlabelled, so protected phase policy still **INCOMPLETE**. No issue labels/state changes. [Main ruleset #27593065](https://github.com/Vertex-Systems-Network/zynoa-2-local/rules/27593065) active.
-- Genuine [P01 native evidence](../screenshots/M01/README.md) limited to implemented read-only subset. `PHASE.json` lease cleared at handoff.
+- **P01 IN_PROGRESS:** [PR #10](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10) Draft/unmerged; T01–T10 DONE, T11 IN_PROGRESS (**10/11**). Owner said **do not merge**; no P02/release.
+- [Owner-intent gate `83315f1`](https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/83315f13734fe501dfa2f2eff55fef6f5537e291) verified in [Governance CI #45055277734](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45055277734): **498 Python tests PASS** plus Windows governance; P00 Runner, Desktop and Task Board also PASS. Even with a write token and green CI, merge requires independent explicit owner approval tied to the exact PR/head. This is operator confirmation (not identity signing), and none is present.
+- [T11 issue triage](../evidence/P01_T11_ISSUE_TRIAGE.md) still requires independent classification of open #2/#3/#4/#5/#7. Do not declare zero critical blockers from absent labels; do not change labels merely to satisfy gate.
+- [Main ruleset #27593065](https://github.com/Vertex-Systems-Network/zynoa-2-local/rules/27593065), source-matched Governance workflow, double snapshot and issue fingerprint protections remain enabled. [Real native screenshots](../screenshots/M01/README.md) cover P01 read-only states only.
+- `PHASE.json.lease_holder=null` at this handoff; `worker_running=false`.
 
 ## Historical status (archive below)
 
