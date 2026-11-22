@@ -1,0 +1,41 @@
+name: Verified Phase Transition Receipt
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - docs/state/PHASE.json
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: zynoa-verified-phase-transition-main
+  cancel-in-progress: true
+
+jobs:
+  receipt:
+    # This privileged job is NEVER run for pull_request / untrusted branches.
+    if: github.ref == 'refs/heads/main' && github.repository == 'Vertex-Systems-Network/zynoa-2-local'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+      actions: read
+      checks: read
+      pull-requests: read
+      issues: write
+    steps:
+      - name: Checkout exact trusted default-branch commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Verify postmerge P01+ transition and persist bot PR receipt
+        env:
+          ZYNOA_GITHUB_TOKEN: ${{ github.token }}
+        run: python -m tools.phase_transition_publisher --publish
