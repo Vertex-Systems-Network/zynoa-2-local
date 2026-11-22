@@ -43,6 +43,9 @@ jobs:
         run: |
           npm run check
           npm run build
+      - name: Native IPC validation tests (no user data)
+        working-directory: apps/desktop/src-tauri
+        run: cargo test --lib --release
       - name: Native Windows desktop build (no release or signature)
         working-directory: apps/desktop
         run: npm run tauri -- build --no-bundle

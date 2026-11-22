@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { probeWorkspaceStatus } from "./ipc";
 
 type View = "startup" | "settings" | "recovery" | "diagnostics";
 type StartupState = "starting" | "desktop" | "browser";
+type TransportState = "pending" | "connected" | "unavailable" | "preview";
 const views: { key: View; title: string; shortcut: string; icon: string }[] = [
   { key: "startup", title: "Overview", shortcut: "1", icon: "⌂" },
   { key: "settings", title: "Settings", shortcut: "2", icon: "⚙" },
@@ -9,7 +11,7 @@ const views: { key: View; title: string; shortcut: string; icon: string }[] = [
   { key: "diagnostics", title: "Diagnostics", shortcut: "4", icon: "◎" },
 ];
 
-function Startup({ state }: { state: StartupState }) {
+function Startup({ state, transport }: { state: StartupState; transport: TransportState }) {
   return (
     <>
       <p className="eyebrow">DESKTOP FOUNDATION / P01</p>
@@ -20,7 +22,7 @@ function Startup({ state }: { state: StartupState }) {
           <div className="panel-head">Startup status <span className={state === "starting" ? "dot pending" : "dot healthy"} /></div>
           <h2>{state === "starting" ? "Preparing interface" : state === "desktop" ? "Native window displayed" : "Browser preview"}</h2>
           <p>{state === "desktop" ? "The bundled interface is running inside Tauri. The IPC bridge, storage and service health have not yet been verified." : state === "browser" ? "The browser preview cannot establish native runtime readiness. Use the Windows executable to check desktop startup." : "Initializing locally without a cloud connection."}</p>
-          <div className="status-strip"><span className="status-pill">Offline interface</span><span className="status-muted">No cloud account required</span></div>
+          <div className="status-strip"><span className="status-pill">Offline interface</span><span className="status-muted" role="status">{transport === "connected" ? "Typed native handshake connected · workspace not configured" : transport === "unavailable" ? "Native handshake unavailable · reopen the application" : transport === "preview" ? "Browser-only preview" : "Checking the read-only native transport"}</span></div>
         </section>
         <section className="panel" aria-label="Workspace status">
           <div className="panel-head">Your workspace <span className="muted-symbol">↗</span></div>
@@ -75,10 +77,24 @@ function Diagnostics() {
 export function App() {
   const [view, setView] = useState<View>("startup");
   const [startup, setStartup] = useState<StartupState>("starting");
+  const [transport, setTransport] = useState<TransportState>("pending");
   useEffect(() => {
+    let disposed = false;
     const nativeHostPresent = "__TAURI_INTERNALS__" in window;
-    const frame = window.requestAnimationFrame(() => setStartup(nativeHostPresent ? "desktop" : "browser"));
-    return () => window.cancelAnimationFrame(frame);
+    const frame = window.requestAnimationFrame(() => {
+      if (!nativeHostPresent) {
+        setStartup("browser");
+        setTransport("preview");
+        return;
+      }
+      setStartup("desktop");
+      void probeWorkspaceStatus().then(() => {
+        if (!disposed) setTransport("connected");
+      }).catch(() => {
+        if (!disposed) setTransport("unavailable");
+      });
+    });
+    return () => { disposed = true; window.cancelAnimationFrame(frame); };
   }, []);
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -108,7 +124,7 @@ export function App() {
       </aside>
       <main id="main-content" tabIndex={-1}>
         <header className="topbar"><div className="crumb">Zynoa <span>/</span> <strong>{views.find((page) => page.key === view)?.title}</strong></div><div className="top-actions"><span>PHASE 01</span><span className="avatar" aria-label="Profile not yet configured">Z</span></div></header>
-        <div className="content">{view === "startup" ? <Startup state={startup} /> : view === "settings" ? <Settings /> : view === "recovery" ? <Recovery /> : <Diagnostics />}</div>
+        <div className="content">{view === "startup" ? <Startup state={startup} transport={transport} /> : view === "settings" ? <Settings /> : view === "recovery" ? <Recovery /> : <Diagnostics />}</div>
         <footer className="footer"><span>Local desktop foundation</span><span>Native services require verification · <strong>No data stored</strong></span></footer>
       </main>
     </div>

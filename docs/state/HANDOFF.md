@@ -2,11 +2,10 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- Active P01 on `phase/01-foundation`, draft PR #10. Lease currently owned by worker. No merge or P02.
-- T01, T02 and T03 DONE with task manifest links (desktop Windows compile + 8-second process boot: [#44972395326](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44972395326)). Real GUI screenshot and checked-in lockfiles remain unverified.
-- **P01-T04 IN_PROGRESS**: implement versioned read-only workspace.status IPC from React through single native Tauri command. Must use explicit AppManifest command ACL limited to main window, Rust/TS envelope parity and negative tests. No filesystem paths, writes, stores, secrets, telemetry or derived permissions yet. M16 stays Workspace Manager.
-- Next: compile/test T04 via Windows desktop CI and Governance, fix root failures, close task only with passing evidence; then T05.
-- Do not infer user vault or restore from handshake. Keep PR #10 draft.
+- Active P01 on `phase/01-foundation`, draft PR #10; worker lease currently held. No merge or P02.
+- T01-T03 DONE with verified CI links in manifest; T03 Windows compiled/booted process [#44972395326](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44972395326), but not an interactive GUI attestation.
+- **P01-T04 IN_PROGRESS**: new bounded Rust `workspace_handshake` and TS `probeWorkspaceStatus()`, explicit main-window ACL/manifest and Rust negative contract tests. UI shows a truthful "not configured" response, never a working workspace. Must pass fresh Governance, frontend/Windows native CI and Rust tests before T04 may be DONE.
+- No source-vault writes, secrets, telemetry, snapshot or backup service is implemented. Future M17/23 tasks own those capabilities.
 
 
 ## v3.1 agent handoff requirements
