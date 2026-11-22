@@ -1,4 +1,12 @@
-# P01 native screenshot status — candidate only
+# P01 native screenshot evidence — reviewed, committed read-only subset
+
+**P01 native visual proof: ACCEPTED for implemented foundation screens.** [Windows CI run #45006477419](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45006477419) passed native tests, Windows executable build, cold boot and genuine Tauri navigation/screenshot capture. Five original SHA-256-verified PNGs, capture metadata and separate review files are [permanently committed](https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/1b582a6d5968b105de3143d3f5294aac7d4cd0de) and indexed [here](M01/README.md). The [SHA-pinned publisher](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45007283638) passed; committed Git blob hashes match the original extracted CI images.
+
+**Still pending:** full M01/M16/M17/M18 planned option controls/screens, contextual F1 Help, remote Wiki publishing, user workspace operations, working backup/restore, production release. The existing broader [screen inventory](../ui/SCREEN_INVENTORY.csv) remains PENDING_IMPLEMENTATION where its enumerated states do not exist. T10 closes *documenting and proving the real P01 subset*, not building later UI features.
+
+## Historical failed/rejected candidates (superseded; preserve audit trail)
+
+### Earlier candidate status (historical)
 
 **No verified screenshot was committed by this change.** P01-T10 is IN_PROGRESS. The Windows CI job attempts a first native `M01-S01` Overview screenshot from the actual unsigned Tauri process, not a browser rendering, concept mock or generated image.
 

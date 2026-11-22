@@ -53,3 +53,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-22 | P01 | Fix PowerShell Marshal.SizeOf DWM RECT by passing boxed value instance instead of type object | Windows CI #44990920037 had all 32 Rust tests pass but capture script marshaling failed; preserve fail-closed capture on DWM failure
 
 2026-11-22 | P01 | Bind screenshot evidence to the actual checked-out PR HEAD and fail fast on PowerShell parser errors; keep unreviewed native PNG as candidate only | prior synthetic-merge SHA ambiguity and Windows parser failure needed explicit reproducible proof and no premature visual acceptance
+
+2026-11-22 | P01 | Source-control only authentic SHA-pinned and independently reviewed native CI PNGs; keep all unimplemented full-module option screens explicitly pending | preserves exact source/visual provenance without falsely claiming P02 Help/UI or production features

@@ -48,6 +48,21 @@ class ScreenshotEvidencePublisherTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 trusted_redirect_target(url)
 
+    def test_committed_native_images_match_reviewed_bytes(self):
+        import json
+        from pathlib import Path
+        root = Path(__file__).resolve().parents[1]
+        approved = json.loads((root / "docs/screenshots/M01/P01_REVIEW_APPROVAL.json").read_text(encoding="utf-8"))
+        validate_approval(approved)
+        for image_id, expected_sha in approved["sha256_by_screenshot"].items():
+            image = (root / "docs/screenshots/M01" / (image_id + ".png")).read_bytes()
+            capture = json.loads((root / "docs/screenshots/M01" / (image_id + ".capture.json")).read_text(encoding="utf-8-sig"))
+            review = json.loads((root / "docs/screenshots/M01" / (image_id + ".review.json")).read_text(encoding="utf-8"))
+            self.assertEqual(expected_sha, hashlib.sha256(image).hexdigest())
+            validate_png_and_capture(image, capture, image_id, expected_sha, approved["source_commit_sha"])
+            self.assertEqual("ACCEPTED_NATIVE_FOUNDATION_ONLY", review["review_status"])
+            self.assertEqual(expected_sha, review["png_sha256"])
+
     def test_provenance_mismatch_or_fake_image_rejected(self):
         payload = b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\x0DIHDR" + struct.pack(">II", 998, 701) + b"x" * 1020
         digest = hashlib.sha256(payload).hexdigest()

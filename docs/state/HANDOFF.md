@@ -2,12 +2,10 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10; T01-T09 DONE, T10 IN_PROGRESS, T11 TODO. **Lease released at handoff**; do not merge/start P02.
-- Windows [#45005079893](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45005079893) SUCCESS: 32 Rust tests, native build, PowerShell script parse, cold boot, native screenshot capture, local vault/locations/diagnostics/event checks. [Build/screenshot candidate artifact #14747861582](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45005079893/artifacts/14747861582); **not independently visually reviewed, not accepted, no PNG committed**.
-- T10 hardening landed in PR #10: pin actual PR HEAD checkout and built/source SHA equality; fail-fast PS1 parser; correct keyboard Ctrl+non-digit guard; truthful read-only M01/M16/M17/M18 Help/Wiki.
-- **Current T10 visual review:** run #45005079893 Overview native PNG was authentic/hash-matched but rejected for white WebView scrollbar and missing scrolled continuation. New dark native scrollbar/viewport CSS and real PageDown + Settings/Recovery/Diagnostics screenshots are pending a fresh Windows capture and pixel review.
-- Windows [#45005959476](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45005959476) rejected the PageDown continuation because pixels were unchanged; a native scroll focus/reset UI fix is now being verified. No accepted screenshot yet.
-- **Next:** obtain fresh genuine screenshot PNG + `.capture.json` from Windows artifact, review pixels/privacy/framing/legibility and verify SHA256; if accepted commit reviewed PNG/evidence and update `docs/ui/SCREEN_INVENTORY.csv`. Keep unimplemented options explicitly PENDING. After T10 proof, run exit gates (T11); owner merge instruction is still required.
+- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10. T01–**T10 DONE** with evidence-gated native tests/screenshots and truthful Help/Wiki; **T11 TODO**. No merge or P02.
+- [Windows CI #45006477419](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45006477419): PASS, 32 native Rust tests, Windows executable, real boot, five native screenshots and private local foundations. [SHA-pinned screenshot publisher](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45007283638): PASS. [Original PNGs + capture/review metadata committed](https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/1b582a6d5968b105de3143d3f5294aac7d4cd0de).
+- [Screenshot evidence summary](../screenshots/M01/README.md) distinguishes implemented read-only views from planned full M01/M16/M17/M18 option screens. Unimplemented controls remain explicitly PENDING. GitHub Wiki is source-only, **not published**.
+- Worker lease cleared at this handoff (`PHASE.json.lease_holder=null`, `worker_running=false`). Next: P01-T11 exit gates and owner-authorized PR merge only; verify remote SHA before advancing phase. Do not mark any release or start P02.
 
 
 ## v3.1 agent handoff requirements
