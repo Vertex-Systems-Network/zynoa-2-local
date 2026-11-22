@@ -83,6 +83,24 @@ class PhaseControllerPolicyTests(unittest.TestCase):
         p["active_branch"] = "phase/08-core"
         self.assertTrue(any("P08I" in error for error in validate_snapshot(p)))
 
+    def test_active_phase_branch_prefix_is_enforced(self):
+        for phase, branch in (
+            ("P01", "phase/00-governance"),
+            ("P01", "phase/02-ui"),
+            ("P00", "phase/01-foundation"),
+            ("P08", "phase/08i-design-interoperability"),
+        ):
+            with self.subTest(phase=phase, branch=branch):
+                snapshot = fixture(phase)
+                snapshot["active_branch"] = branch
+                self.assertIn("active branch does not match active phase", validate_snapshot(snapshot))
+
+    def test_p01_foundation_snapshot_is_accepted(self):
+        snapshot = fixture("P01", status="IN_PROGRESS")
+        snapshot["active_branch"] = "phase/01-foundation"
+        snapshot["primary_pr"] = 10
+        self.assertEqual([], validate_snapshot(snapshot))
+
     def test_working_snapshot_has_no_worker_claim(self):
         p = fixture()
         self.assertEqual([], validate_snapshot(p))

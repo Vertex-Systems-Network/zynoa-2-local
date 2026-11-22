@@ -2,11 +2,11 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- Phase **P01** IN_PROGRESS on `phase/01-foundation`, draft PR #10. Never merge without owner-written auto-merge rule or owner "merge" instruction.
-- **P01-T01 DONE**: ADR-0025 and tests-first regression verified by [passing Governance v3.2 CI run 44968928750](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44968928750); governance, all three v3 kit checks, Python unittest discovery and task-board validation passed at tested commit `6695b72c7c3f03d7980107f5adfaab1b04dab9df`.
-- **Next P01-T02 TODO**: generalise P00-only controller/worker tools to the active phase; preserve all existing authorization, scope, read-only observer and merge gates. Use existing tests and add negative regressions.
-- P01-T04 mismatch: task calls M16 typed IPC; M16 dossier is workspace manager. ADR-0025 limits IPC to M01/M16 transport, without relabeling M16.
-- Lease held for current worker session; release on stop. Desktop app, screenshots, user vault and release remain unimplemented.
+- Phase P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10; lease held for this slice. No permission to merge or advance P02.
+- P01-T01 DONE, evidenced by passing [Governance 44968928750](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44968928750).
+- P01-T02 IN_PROGRESS: guard active phase/branch correspondence; cross-phase PR observation is rejected and corrupt phase state is never logged as P00. P01 regression tests added; code CI pending.
+- Next: check PR #10 full Governance and Windows checks, fix root causes, then examine P00-only fixture runner hardcodes; do not grant P00 model execution rights to P01.
+- No P01 desktop binary, real Windows UI, vault backup, screenshots or release proven.
 
 ## v3.1 agent handoff requirements
 

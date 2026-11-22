@@ -36,6 +36,10 @@ def validate_snapshot(state: Mapping[str, Any]) -> list[str]:
             problems.append("active branch must be phase/*")
         if phase == "P08I" and branch != "phase/08i-design-interoperability":
             problems.append("P08I requires the dedicated phase branch")
+        elif phase in PHASE_ORDER and phase != "P08I" and not branch.startswith(
+            f"phase/{phase[1:].lower()}-"
+        ):
+            problems.append("active branch does not match active phase")
     pr = state.get("primary_pr")
     if pr is not None and (type(pr) is not int or pr < 1):
         problems.append("primary_pr must be a positive GitHub PR number")

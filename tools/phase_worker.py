@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Resumable read-only P00 controller worker (deployable but NOT deployed).
+"""Resumable read-only active-phase controller worker (not deployed).
 
 It observes authenticated remote phase/PR/CI/issue facts and checkpoints
 sanitized results in a SQLite journal. It has no GitHub write capability.
@@ -137,6 +137,9 @@ class PhaseObserver:
         observation = self.gateway.observe(state)
         if observation.get("authenticated_remote") is not True:
             raise GitHubEvidenceError("GitHub observer response is not authenticated")
+        if (observation.get("head_branch") != state.get("active_branch")
+                or observation.get("pr_number") != state.get("primary_pr")):
+            raise GitHubEvidenceError("remote phase PR identity mismatch")
         # An observed merge is NOT a transition: remote SHA, phase state and
         # required gates still require separate independent verification.
         view = {
@@ -219,12 +222,14 @@ class PhaseWorker:
                     failures += 1
                     # Never log exception strings; persist only a safe error class.
                     self.last_error_class = type(exc).__name__
-                    self.observer.journal.append(
-                        "blocked:" + self.last_error_class + ":" + str(min(failures, 3)),
-                        (state.get("phase") if isinstance(state, dict) and state.get("phase") in PHASE_ORDER else "P00"),
-                        "observation_blocked",
-                        {"error_class": self.last_error_class, "retry": min(failures, 3)},
-                    )
+                    # Never invent P00 attribution for invalid/missing phase state.
+                    phase = state.get("phase") if isinstance(state, dict) else None
+                    if phase in PHASE_ORDER:
+                        self.observer.journal.append(
+                            "blocked:" + self.last_error_class + ":" + str(min(failures, 3)),
+                            phase, "observation_blocked",
+                            {"error_class": self.last_error_class, "retry": min(failures, 3)},
+                        )
                     # Keep the lease fresh during transient GitHub/API failures.
                     self.lease.heartbeat(self.name, self.owner)
                 except LeaseLost:
@@ -250,7 +255,7 @@ class PhaseWorker:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Zynoa P00 read-only observer; no AI/merge actions")
+    parser = argparse.ArgumentParser(description="Zynoa active-phase read-only observer; no AI/merge actions")
     parser.add_argument("--repo", default="Vertex-Systems-Network/zynoa-2-local")
     parser.add_argument("--state", type=Path, default=Path("docs/state/PHASE.json"))
     parser.add_argument("--db", type=Path, default=Path.home() / ".zynoa" / "controller" / "events.db")
