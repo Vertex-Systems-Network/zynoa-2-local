@@ -22,3 +22,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-21 | P00 | Added AI_STRICT_PROTOCOL; V3_2 is sole operational plan | removes plan conflict and agent drift
 2026-11-21 | P00 | Owner has no hardware/credentials: T17/T19/T21-T24 to be redesigned on GitHub-hosted runners + GITHUB_TOKEN | only AI-executable path; no user infrastructure
 2026-11-21 | P00 | T22 live acceptance (workflow_run listener must be on main) moves to the first step after P00 merge; T24 merge no longer waits on it | breaks T22<->T24 circular dependency
+2026-11-22 | P01 | ADR-0025 selects Tauri 2/Rust + React/TypeScript/Vite for native capability-scoped P01 foundation; Electron and Wails 3 retained as researched alternatives | matches master plan and keeps policy/vault in Rust; version pin and Windows proof deferred to T03
+2026-11-22 | P01 | Interpret P01-T04 typed IPC as M01/M16 workspace transport while M16 remains Project & Workspace Manager; include M23/M24/M26 only for their explicit P01 foundation tasks | reconciles task-label discrepancy with module dossiers and preserves phase scope

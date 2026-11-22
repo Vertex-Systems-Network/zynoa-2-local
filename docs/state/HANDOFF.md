@@ -2,16 +2,12 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- Phase **P01** IN_PROGRESS on `phase/01-foundation`, draft PR #10. P00 closed: `main` `fe34877` (PRs #1, #8). P01 kickoff merged at `1697ea8` (PR #9, owner-requested).
-- Tasks: `docs/state/pr-tasks/P01.json` (11, all TODO). Next: P01-T01 pre-dev/ADR, then P01-T02 (P00 tools + runner worker hardcode P00).
-- Lease: free. Set `PHASE.json.lease_holder` before editing; clear at handoff.
-- Next agent: copy-paste `docs/agent/NEXT_AGENT_PROMPT.md`.
-- Merges need an explicit owner "merge" message until the owner adds an auto-merge rule to `docs/agent/AI_STRICT_PROTOCOL.md`.
-
-
-Current task: implement P00 in actual destination GitHub repository after checking remote truth. Deliver: agent rules, phase controller, PRE-DEV, research bank, CI docs checks, issue integration design, GitHub Wiki mirror plan. Next: P01 foundation ONLY after verified P00 merge.
-
-Blocked by: no designated repo URL or installed development worker in this document-only kit. Never claim branch/PR/issue/daemon exists. Sample local incident router is not production relay. Screenshots are future acceptance obligations, not present evidence.
+- Phase **P01** IN_PROGRESS on `phase/01-foundation`, draft PR #10; remote main `1697ea8488b2da089da22951de64f5254a48b71f`.
+- Task **P01-T01 IN_PROGRESS**: pre-development ADR-0025, baseline research, threat review, tests-first matrix and regression tests committed for CI verification. Do not mark DONE until a passing PR CI run link is attached in the P01 task manifest.
+- Next task after T01 passes: **P01-T02**, generalise the P00-only phase controller/runner without weakening existing safeguards.
+- P01-T04 naming conflict: task calls M16 typed IPC, but M16 dossier is workspace manager. Scope IPC as M01/M16 workspace transport; do not relabel M16 or enlarge scope.
+- Lease held for current slice; clear it before handoff. No desktop binary, native Windows run, screenshots, user vault restore, or release proven yet.
+- PR #10 remains draft and MUST NOT be merged without explicit owner authorization. No P02 work.
 
 ## v3.1 agent handoff requirements
 
