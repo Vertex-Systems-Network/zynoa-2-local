@@ -1,0 +1,29 @@
+# P01-T11 — independent GitHub issue triage dossier
+
+**Evidence captured:** 2026-11-22 UTC. **Decision:** `TRIAGE_REQUIRED`. This is a read-only assessment and **not** an issue-label authorization, a closure, or a merge approval.
+
+## Authoritative state
+
+- [PR #10](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10) is **Draft, open and unmerged**, with P01-T01–T10 DONE and P01-T11 IN_PROGRESS. The owner's last explicit direction prohibits merging.
+- [P00 PR #1](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/1) is **merged**, with GitHub merge SHA `f0a1ebbd0d439b5ef3ffa46cf4447f47e512ce8c`, merged **2026-11-21 23:50:07 UTC**. GitHub's compare of that merge SHA to current `main` `1697ea8488b2da089da22951de64f5254a48b71f` returned `ahead` (main +10 commits, 0 behind): **the P00 merge remains in main's ancestry**.
+- GitHub's authenticated **open issues** API lists #2, #3, #4, #5 and #7 as OPEN, **all with zero labels**. Do not infer phase or merge severity from titles alone. Existing P01+ observer requires explicit GitHub `phase:Pxx`/`phase:global` and `merge:blocker`/`merge:nonblocker` labels for every open issue; it correctly reports policy INCOMPLETE while they are unclassified.
+- The trusted current [Governance CI #45011813795](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45011813795) passed and proves current tests, **not retrospective closure** of open incidents.
+
+## Issue-by-issue evidence for independent maintainer decision
+
+| GitHub issue | What the actual issue says | Material decision required of maintainer | Current eligibility |
+|---|---|---|---|
+| [#2 — P08I design interoperability](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/2) | Future editable import/export work, **strictly after P08 verified merge**; not P01 delivery. | Confirm P08I scope and whether to defer it as nonblocking for P01. Do not claim feature completion. | **UNCLASSIFIED** — no labels assigned |
+| [#3 — P00 persistent worker / guarded merge infrastructure](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3) | Explicitly called a **P00 PRE-MERGE BLOCKER**. Historically requires deployed worker/observer, guarded transition, secure CI/Issue reporting; issue remains OPEN **after** PR #1 merge. Its body includes old snapshots and partially completed work. | **Highest priority:** reconcile how P00 was merged with this open blocker. Independently verify whether criteria were actually met, waived by authorized policy, or still affect current P01/global governance. Do not close/mark nonblocking merely because P00 merged. | **UNCLASSIFIED / potential governance risk** |
+| [#4 — P00 post-merge checkpoint](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/4) | Explicitly **post-merge-only**, not a P00 premerge blocker. Requires PR #1 merge SHA, main ancestry and phase checkpoint proof. | Merge and main ancestry are verified above. Independently inspect whether required `MERGED_VERIFIED` checkpoint and transition journal were really persisted before resolving/closing. | **UNCLASSIFIED** |
+| [#5 — P00 CI incident write proof](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/5) | Historical failed CI #44652995831, source corrected with trusted CI; issue explicitly says manually created incident does **not** prove automated failed-run → sanitized Issue publication. | Verify protected-main automatic incident publisher was deployed and really delivered a failed-run issue with remote readback, or retain a genuine infrastructure blocker as appropriate. | **UNCLASSIFIED / unresolved acceptance proof** |
+| [#7 — M22 Governance CI failure (P2)](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/7) | P2 incident marked **unverified, requires reproduction and regression**; links actual failed Governance runs #44973754765, #44981211249, #45004191071, #45004388661 and #45005833293, including runs during P01. | Determine whether all implicated failures are resolved with specific regression evidence, whether the incident is active for P01 and whether it is global governance-critical. Recent green CI alone does **not** prove incident closure. | **UNCLASSIFIED / potential P01 or global risk** |
+
+## Safe maintainer resolution procedure
+
+1. Independently review the five issue bodies, the linked CI evidence and the actual branch/merge history. **Prioritize #3 and #7**, then #5 and #4. Do not alter issue states without a documented reason.
+2. For each **open non-PR issue**, have an authorized maintainer assign explicit, accurate phase scope(s) (`phase:P00`, `phase:P01`, `phase:P08I`, or `phase:global`) and **exactly one** merge disposition (`merge:blocker` or `merge:nonblocker`). Labels are an evidence-backed governance decision, **not** a way to turn CI green or bypass the guard.
+3. Re-query every open GitHub issue via the authenticated paginated API and verify a complete, unambiguous inventory. If an issue remains unlabelled, ambiguous, missing or inaccessible, merge-readiness stays **blocked**. A blocker relevant to P01 or global scope blocks P01 irrespective of other green checks.
+4. Even after complete independent triage, **PR #10 must remain Draft/unmerged under the owner's explicit instruction**. Only a new explicit merge authorization can permit premerge checks, protected merge, exact remote SHA verification and a future phase checkpoint. No P02 before verified handoff.
+
+**Changes in this audit:** zero issue labels added/removed; zero issue states changed; no PR merge, release or phase advancement. This is a maintainer decision dossier, not independent classification itself.
