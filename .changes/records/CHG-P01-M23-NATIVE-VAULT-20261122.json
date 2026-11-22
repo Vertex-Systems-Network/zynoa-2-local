@@ -3,7 +3,7 @@
   "module_id": "M23",
   "kind": "feature",
   "title": "Native SQLite transactional user-data vault foundation",
-  "summary": "P01-T07 Rust-only native SQLite WAL commit/reopen, bounded data ownership, SQLite online backup, disposable restore drill; no frontend or production data writes.",
+  "summary": "P01-T07 Rust-only native SQLite WAL commit/reopen, bounded data ownership, SQLite online backup, disposable restore drill; no frontend or production data writes. Native startup OS-root integration, SQLite sidecar validation and no-overwrite disposable restore are pending new Windows CI.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [],
@@ -14,7 +14,10 @@
   ],
   "help_paths": [],
   "wiki_paths": [],
-  "test_evidence": [],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44980644703",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44980644649"
+  ],
   "commit_sha": null,
   "release": null,
   "verification": {
@@ -25,7 +28,7 @@
   "breaking_change": false,
   "migration_notes": "New schema v1; no previous native user vault. Unexpected existing schema is refused without migration; do not delete or overwrite any user data.",
   "created_at": "2026-11-22T03:26:15.291Z",
-  "updated_at": "2026-11-22T03:26:15.291Z",
+  "updated_at": "2026-11-22T03:33:35.566Z",
   "version_bump": "none",
   "affected_option_ids": [],
   "docs_impact": true,

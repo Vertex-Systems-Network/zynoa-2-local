@@ -19,6 +19,11 @@ pub fn run() {
                 .map_err(|_| std::io::Error::other("ZYN-DIAG-002"))?;
             runtime.install_redacted_panic_hook();
             app.manage(runtime);
+            // Native-only user vault is attached to the OS-owned app data root.
+            // It has NO Tauri invoke command or untrusted WebView write grant.
+            let storage = vault::NativeVault::open(&app_local)
+                .map_err(|_| std::io::Error::other("ZYN-DAT-001"))?;
+            app.manage(std::sync::Mutex::new(storage));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![ipc::workspace_handshake])

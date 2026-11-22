@@ -90,6 +90,11 @@ impl NativeVault {
         let data = checked_child(app_root, "data")?;
         let file = data.join("state.sqlite");
         let existed = reject_nonregular_file(&file)?;
+        // SQLite can create these sidecars. Refuse pre-existing linked or
+        // non-file occupants before opening a potentially user-owned vault.
+        for suffix in ["-wal", "-shm", "-journal"] {
+            reject_nonregular_file(&data.join(format!("state.sqlite{suffix}")))?;
+        }
         let flags = OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_CREATE;
         let conn = Connection::open_with_flags(&file, flags).map_err(map_sql)?;
         conn.busy_timeout(Duration::from_secs(2)).map_err(map_sql)?;
@@ -167,6 +172,10 @@ impl NativeVault {
             || reject_nonregular_file(destination)?
         { return Err(VaultFault::InvalidLocation); }
         checked_directory(destination.parent().ok_or(VaultFault::InvalidLocation)?)?;
+        // Reserve a NEW preview inode; an existing file is NEVER overwritten.
+        let reserved = OpenOptions::new().write(true).create_new(true)
+            .open(destination).map_err(|_| VaultFault::Conflict)?;
+        drop(reserved);
         let mut restored = Connection::open_with_flags(
             destination, OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_CREATE,
         ).map_err(map_sql)?;
@@ -247,6 +256,35 @@ mod tests {
         fs::write(&source, b"DO_NOT_OVERWRITE_MY_DATA").unwrap();
         assert!(NativeVault::open(&app).is_err());
         assert_eq!(fs::read(source).unwrap(), b"DO_NOT_OVERWRITE_MY_DATA");
+    }
+
+
+    #[test]
+    fn restore_never_overwrites_a_preexisting_destination() {
+        let f = Fixture::new();
+        let app = f.app();
+        let mut vault = NativeVault::open(&app).unwrap();
+        vault.insert_new("record_abc_001", ContentClass::Project, "snapshot-content").unwrap();
+        let backup = vault.snapshot_new("snapshot_safe_001").unwrap();
+        let occupied = f.0.join("user-existing.sqlite");
+        fs::write(&occupied, b"DO_NOT_OVERWRITE").unwrap();
+        assert_eq!(NativeVault::restore_to_new_test_profile(&backup, &occupied),
+                   Err(VaultFault::InvalidLocation));
+        assert_eq!(fs::read(occupied).unwrap(), b"DO_NOT_OVERWRITE");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn sqlite_sidecar_symlink_target_must_remain_untouched() {
+        let f = Fixture::new();
+        let app = f.app();
+        let data = app.join("data");
+        fs::create_dir(&data).unwrap();
+        let target = f.0.join("precious.txt");
+        fs::write(&target, b"USER_CONTENT").unwrap();
+        std::os::unix::fs::symlink(&target, data.join("state.sqlite-wal")).unwrap();
+        assert!(matches!(NativeVault::open(&app), Err(VaultFault::InvalidLocation)));
+        assert_eq!(fs::read(target).unwrap(), b"USER_CONTENT");
     }
 
     #[test]

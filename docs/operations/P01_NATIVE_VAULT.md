@@ -1,6 +1,6 @@
 # P01-T07 native user vault — first implementation slice
 
-**Status:** P01-T07 IN_PROGRESS, NOT DONE. Native Rust-only user data vault is **NOT connected to the frontend**, native app startup or any public IPC command. These are disposable Windows CI fixtures, not a persistent real user's workspace.
+**Status:** P01-T07 IN_PROGRESS, NOT DONE. Native Rust-only user data vault is **NOT connected to the frontend** or any public IPC command. The native Tauri startup now opens the OS-derived app-local vault (pending Windows real-process verification); no end-user file or chat content is written. These are disposable Windows CI fixtures, not a persistent real user's workspace.
 
 **Storage:** An independently pinned rusqlite 0.43.0 SQLite engine (MIT; bundled SQLite is public domain) uses the app-local `com.zynoa.desktop/data/state.sqlite` outside the executable. New installations get schema v1, SQLite WAL, FULL synchronous mode, foreign keys and bounded immutable first-write records. A success receipt is returned strictly after the SQLite transaction commits. Repeated IDs fail without overwriting earlier content. An unexpected existing SQLite schema or corrupt file is not replaced, reinitialized, migrated or deleted.
 
@@ -9,3 +9,5 @@
 **Security limits:** Input comes only from trusted native tests; UI has no grants for save, read, or restore. Database file ACLs, secure OS ownership checks, transactional artifact blobs, idempotent updates, migrations, encryption/passphrase backup, full-schema content model, actual app boot persistence and uninstall/reinstall fixtures, low-disk failure injection, and user-facing recoverability are pending. T07 must not be accepted until relevant Windows integration and real restore evidence prove those guarantees. No actual user data is touched.
 
 **Tests:** `python -m unittest tests.test_p01_vault`, Windows `cargo test --lib --release`, Windows executable build, Governance v3.2. GitHub CI links added only after successful runs.
+
+**Runtime integration added (pending CI):** the Tauri setup hook opens `data/state.sqlite` only under its OS-provided app-local root and stores the private connection behind a native Rust mutex. This creates only schema metadata on first startup, never a chat record. The Windows runner will read the real app-created database read-only after cold boot and verify SQLite schema v1, WAL, integrity, zero user records and location outside binaries. Existing WAL/SHM/journal nonregular occupants are rejected. Restore preview now reserves its destination exclusively and refuses preexisting files, with a negative test confirming bytes unchanged. Production file ownership, encrypted backup, schema migrations, large file artifacts and actual UI saving remain pending.

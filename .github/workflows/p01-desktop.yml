@@ -79,6 +79,27 @@ jobs:
             foreach ($key in $keys) { if ($key -notin $allowed) { throw 'ZYN-DIAG-105: unsafe extra field' } }
           }
           Write-Output 'Native startup diagnostic record validated without exposing raw private data'
+      - name: Verify real native vault outside executable after cold boot
+        shell: pwsh
+        run: |
+          $file = Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop\data\state.sqlite'
+          if (-not (Test-Path -LiteralPath $file)) { throw 'ZYN-DAT-101: native app vault missing' }
+          $env:ZYNOA_CI_VAULT = $file
+          @'
+          import os
+          import sqlite3
+          from pathlib import Path
+          path = Path(os.environ["ZYNOA_CI_VAULT"])
+          assert path.is_file() and path.name == "state.sqlite"
+          assert "src-tauri" not in str(path).lower()
+          uri = f"file:{path.as_posix()}?mode=ro"
+          with sqlite3.connect(uri, uri=True) as db:
+              assert db.execute("PRAGMA user_version").fetchone()[0] == 1
+              assert db.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+              assert db.execute("PRAGMA journal_mode").fetchone()[0].lower() == "wal"
+              assert db.execute("SELECT count(*) FROM records").fetchone()[0] == 0
+          print("Native app vault schema/integrity verified; no user records created")
+          '@ | python -
       - uses: actions/upload-artifact@v4
         if: always()
         with:

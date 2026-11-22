@@ -38,6 +38,16 @@ class NativeVaultContractTests(unittest.TestCase):
         self.assertNotIn("println!", self.vault)
         self.assertNotIn("eprintln!", self.vault)
 
+    def test_app_boot_wires_os_local_native_vault_but_never_exposes_command(self):
+        self.assertIn("vault::NativeVault::open(&app_local)", self.lib)
+        self.assertIn("app.manage(std::sync::Mutex::new(storage))", self.lib)
+        self.assertIn("generate_handler![ipc::workspace_handshake]", self.lib)
+        self.assertNotIn("vault::", (ROOT/"apps/desktop/src-tauri/src/ipc.rs").read_text(encoding="utf-8"))
+        for marker in ("state.sqlite{suffix}", '"-wal", "-shm", "-journal"',
+                       "restore_never_overwrites_a_preexisting_destination",
+                       "reserved = OpenOptions::new().write(true).create_new(true)"):
+            self.assertIn(marker, self.vault)
+
     def test_windows_runs_real_vault_tests_and_scope_is_honest(self):
         self.assertIn("tests.test_p01_vault", self.ci)
         self.assertIn("cargo test --lib --release", self.ci)

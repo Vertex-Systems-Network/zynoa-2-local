@@ -2,11 +2,11 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10. ChatGPT holds current lease. Do not merge or enter P02.
-- **T01–T06 DONE**. Most recent T06 native diagnostic spine verified with [Windows #44980027777](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44980027777) and [Governance #44980027876](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44980027876). Full M18 UI, privacy consent, screenshots and remote incident publishing are later gates.
-- **T07 IN_PROGRESS**: first native-only M23 vault foundation added using pinned rusqlite SQLite WAL FULL, schema-version checks, write receipts only after committed transaction, bounded IDs/content, read-after-reopen, online snapshot and separate disposable restore tests. See `docs/operations/P01_NATIVE_VAULT.md`. No WebView vault command, real user data manipulation or live persistence claim.
-- **Fresh T07 CI pending:** GitHub-hosted Windows Rust tests, frontend/TypeScript, full Governance, PR table sync. Fix all new failures; do not downgrade or skip tests. Keep T07 IN_PROGRESS until actual app-local startup, backup-integrity/security/restore evidence and full T07 acceptance. No T08 work yet.
-- P01 release and M23 full-module screenshots, signing, portable encrypted backup and off-device restore are not proven. Existing docs-only Windows CI gate inefficiency remains to be addressed safely.
+- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10, with current ChatGPT-owned lease; never merge or start P02.
+- **T01–T06 DONE**; task-specific CI evidence in PR table. T06 native diagnostics Windows [CI #44980027777](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44980027777) passed; full M18 UI and release gates not claimed.
+- **T07 IN_PROGRESS**: native-only SQLite WAL vault added in `a01603f9fdaef467135906310899be6829f103d7`, verified [Windows CI #44980644703](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44980644703) and [Governance #44980644649](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44980644649). Tests cover commit/reopen, duplicate refusal, online backup and disposable restore.
+- **Newest T07 integration pending CI:** app boot now opens OS-owned `com.zynoa.desktop/data/state.sqlite` without WebView write privileges, refuses linked SQLite sidecars, reserves restore targets without overwrite, and checks real on-disk SQLite schema on Windows cold boot. No user records created by startup; actual UI saving, portable encryption, migration, content-addressed managed files, and persistent real-user restore not done. No T08 yet.
+- Next: inspect Windows Rust/frontend/cold-boot and Governance; fix any failures; record verified evidence. Do not mark T07 DONE before security/recovery acceptance and release lease at handoff.
 
 ## v3.1 agent handoff requirements
 
