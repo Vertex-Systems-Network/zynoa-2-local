@@ -63,6 +63,22 @@ jobs:
           } finally {
             if (-not $process.HasExited) { Stop-Process -Id $process.Id -Force }
           }
+      - name: Verify native boot wrote only allowlisted diagnostic metadata
+        shell: pwsh
+        run: |
+          $path = Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop\diagnostics\events-v1.jsonl'
+          if (-not (Test-Path -LiteralPath $path)) { throw 'ZYN-DIAG-101: missing real startup record' }
+          $lines = @(Get-Content -LiteralPath $path -Encoding utf8)
+          if ($lines.Count -lt 1) { throw 'ZYN-DIAG-102: empty spool' }
+          $records = @($lines | ForEach-Object { $_ | ConvertFrom-Json })
+          if (-not @($records | Where-Object { $_.module -eq 'M01' -and $_.code -eq 'BootReady' }).Count) { throw 'ZYN-DIAG-103: missing boot event' }
+          foreach ($record in $records) {
+            if ($record.schema_version -ne 1 -or $record.fingerprint.Length -gt 120) { throw 'ZYN-DIAG-104: invalid schema' }
+            $keys = @($record.PSObject.Properties.Name)
+            $allowed = @('schema_version', 'module', 'severity', 'code', 'fingerprint', 'trace_id', 'first_seen_ms', 'last_seen_ms', 'occurrence_count')
+            foreach ($key in $keys) { if ($key -notin $allowed) { throw 'ZYN-DIAG-105: unsafe extra field' } }
+          }
+          Write-Output 'Native startup diagnostic record validated without exposing raw private data'
       - uses: actions/upload-artifact@v4
         if: always()
         with:

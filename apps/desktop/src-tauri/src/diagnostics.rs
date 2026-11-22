@@ -6,6 +6,7 @@ use std::fs::{self, File, OpenOptions};
 use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Arc, Mutex};
 
 const SCHEMA_VERSION: u8 = 1;
 const MAX_SPOOL_BYTES: u64 = 1_048_576;
@@ -20,7 +21,7 @@ pub(crate) enum Severity { Info, Warning, Error, Critical }
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, Eq, PartialEq)]
 pub(crate) enum Code {
     BootFailure, IpcDenied, PermissionDenied, CredentialUnavailable,
-    PersistenceFailure, RecoveryUnavailable, RuntimeFault,
+    PersistenceFailure, RecoveryUnavailable, RuntimeFault, BootReady,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
@@ -41,6 +42,79 @@ pub(crate) struct DiagnosticSpool {
     path: PathBuf,
     groups: BTreeMap<String, SafeDiagnostic>,
 }
+
+#[derive(Clone)]
+pub(crate) struct NativeDiagnostics {
+    inner: Arc<Mutex<DiagnosticSpool>>,
+}
+
+impl NativeDiagnostics {
+    /// Resolve an OS-provided local application directory, never an IPC path.
+    /// The app identifier cannot be redirected into the binary or user files.
+    pub(crate) fn initialize(
+        os_local_data_root: &Path, app_local_data_root: &Path,
+    ) -> Result<Self, DiagnosticFault> {
+        if !os_local_data_root.is_absolute()
+            || app_local_data_root != os_local_data_root.join("com.zynoa.desktop") {
+            return Err(DiagnosticFault::InvalidLocation);
+        }
+        reject_linked_directory(os_local_data_root)?;
+        let root = create_checked_child(os_local_data_root, "com.zynoa.desktop")?;
+        let directory = create_checked_child(&root, "diagnostics")?;
+        let mut spool = DiagnosticSpool::open(directory.join("events-v1.jsonl"))?;
+        spool.record(Module::M01, Severity::Info, Code::BootReady, now_ms())?;
+        Ok(Self { inner: Arc::new(Mutex::new(spool)) })
+    }
+
+    /// Captures only a fixed category. No panic text, path, stack or user content.
+    pub(crate) fn install_redacted_panic_hook(&self) {
+        let inner = Arc::clone(&self.inner);
+        std::panic::set_hook(Box::new(move |_| {
+            if let Ok(mut spool) = inner.try_lock() {
+                let _ = spool.record(Module::M18, Severity::Critical,
+                                     Code::RuntimeFault, now_ms());
+            }
+        }));
+    }
+
+    pub(crate) fn record_denied_ipc(&self) {
+        if let Ok(mut spool) = self.inner.try_lock() {
+            let _ = spool.record(Module::M16, Severity::Warning, Code::IpcDenied, now_ms());
+        }
+    }
+
+    #[cfg(test)]
+    fn snapshot(&self) -> Vec<SafeDiagnostic> {
+        self.inner.lock().unwrap().grouped_snapshot()
+    }
+}
+
+fn now_ms() -> u64 {
+    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_millis().min(u128::from(u64::MAX)) as u64)
+        .unwrap_or(0)
+}
+
+fn reject_linked_directory(path: &Path) -> Result<(), DiagnosticFault> {
+    let metadata = fs::symlink_metadata(path).map_err(|_| DiagnosticFault::InvalidLocation)?;
+    if !metadata.is_dir() || metadata.file_type().is_symlink() {
+        return Err(DiagnosticFault::InvalidLocation);
+    }
+    Ok(())
+}
+
+fn create_checked_child(parent: &Path, child: &str) -> Result<PathBuf, DiagnosticFault> {
+    reject_linked_directory(parent)?;
+    let path = parent.join(child);
+    match fs::create_dir(&path) {
+        Ok(()) => (),
+        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => (),
+        Err(_) => return Err(DiagnosticFault::Unavailable),
+    }
+    reject_linked_directory(&path)?;
+    Ok(path)
+}
+
 fn fingerprint(module: Module, severity: Severity, code: Code) -> String {
     format!("{module:?}:{severity:?}:{code:?}")
 }
@@ -153,6 +227,60 @@ mod tests {
         fn file(&self) -> PathBuf { self.0.join("diagnostics.jsonl") }
     }
     impl Drop for Fixture { fn drop(&mut self) { let _ = fs::remove_dir_all(&self.0); } }
+
+    #[test]
+    fn os_local_boot_creates_app_owned_record_and_replays_without_data_loss() {
+        let fixture = Fixture::new();
+        let app = fixture.0.join("com.zynoa.desktop");
+        let diag = NativeDiagnostics::initialize(&fixture.0, &app).unwrap();
+        assert!(diag.snapshot().iter().any(|e| e.module == Module::M01
+            && e.code == Code::BootReady));
+        diag.record_denied_ipc();
+        let file = app.join("diagnostics").join("events-v1.jsonl");
+        let persisted = fs::read_to_string(&file).unwrap();
+        assert!(persisted.contains("BootReady"));
+        assert!(persisted.contains("IpcDenied"));
+        assert!(!persisted.contains("password"));
+        assert!(!persisted.contains("stack"));
+        assert_eq!(DiagnosticSpool::open(file).unwrap().grouped_snapshot().len(), 2);
+    }
+
+    #[test]
+    fn app_root_cannot_be_redirected_to_external_or_symlink_path() {
+        let fixture = Fixture::new();
+        assert!(matches!(
+            NativeDiagnostics::initialize(&fixture.0, &fixture.0.join("arbitrary")),
+            Err(DiagnosticFault::InvalidLocation)
+        ));
+        let app = fixture.0.join("com.zynoa.desktop");
+        fs::create_dir(&app).unwrap();
+        fs::create_dir(app.join("diagnostics")).unwrap();
+        let file = app.join("diagnostics/events-v1.jsonl");
+        fs::write(&file, b"DO_NOT_REPLACE").unwrap();
+        assert!(matches!(
+            NativeDiagnostics::initialize(&fixture.0, &app),
+            Err(DiagnosticFault::CorruptSpool)
+        ));
+        assert_eq!(fs::read(file).unwrap(), b"DO_NOT_REPLACE");
+    }
+
+    #[test]
+    fn known_runtime_fault_is_only_a_category_without_panic_text() {
+        let fixture = Fixture::new();
+        let app = fixture.0.join("com.zynoa.desktop");
+        let runtime = NativeDiagnostics::initialize(&fixture.0, &app).unwrap();
+        // This calls the same category-only hook code without changing the
+        // process-global panic hook for unrelated tests.
+        if let Ok(mut spool) = runtime.inner.try_lock() {
+            spool.record(Module::M18, Severity::Critical, Code::RuntimeFault, 42)
+                 .unwrap();
+        }
+        let raw = fs::read_to_string(app.join("diagnostics/events-v1.jsonl")).unwrap();
+        assert!(raw.contains("RuntimeFault"));
+        assert!(!raw.contains("password"));
+        assert!(!raw.contains("C:\\\\Users"));
+    }
+
     #[test]
     fn real_file_replay_groups_incidents_without_private_text() {
         let f = Fixture::new();

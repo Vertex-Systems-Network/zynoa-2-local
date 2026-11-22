@@ -81,14 +81,20 @@ fn validate(request: WorkspaceStatusRequest) -> Result<WorkspaceStatusReply, Ipc
 #[tauri::command]
 pub fn workspace_handshake(
     window: tauri::Window,
+    diagnostics: tauri::State<'_, crate::diagnostics::NativeDiagnostics>,
     request: WorkspaceStatusRequest,
 ) -> Result<WorkspaceStatusReply, IpcError> {
-    if window.label() != "main" {
-        return Err(denied("ZYN-IPC-006"));
+    let result = if window.label() != "main" {
+        Err(denied("ZYN-IPC-006"))
+    } else {
+        crate::security::allow_local_workspace_handshake(window.label())
+            .map_err(|_| denied("ZYN-IPC-006"))
+            .and_then(|_| validate(request))
+    };
+    if result.is_err() {
+        diagnostics.record_denied_ipc();
     }
-    crate::security::allow_local_workspace_handshake(window.label())
-        .map_err(|_| denied("ZYN-IPC-006"))?;
-    validate(request)
+    result
 }
 
 #[cfg(test)]

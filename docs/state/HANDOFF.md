@@ -2,11 +2,11 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- **P01 IN_PROGRESS** on `phase/01-foundation`, [draft PR #10](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10). Lease **FREE** at handoff; do not merge or begin P02. No production release exists.
-- **P01-T01 through P01-T05 DONE**, all references in the PR task board. T05 accepted native-only least-privilege and Windows Credential Manager foundation with [real Windows CI #44973840898](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44973840898). This does not prove a signed release, user grant UI or comprehensive OS boundary audit.
-- **P01-T06 IN_PROGRESS, not DONE**: safe native Rust diagnostics spool and Python contract tests pushed in commit `7c0f2cb2fe32342b9cf103ed74c2119683dc7212`. Verified [Governance #44978533782](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44978533782) and [Windows Rust/desktop CI #44978533633](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44978533633): all PASS; task table sync PASS. T06 source is still NOT connected to actual runtime.
-- **Next worker:** acquire a fresh lease with a committed `PHASE.json` change before code edits. Continue only T06 (not T07): authorized app-local data path, native boot/panic/error-class recording, restart/corruption recovery, privacy preview and tests; keep errors text-free, no remote reports, no WebView privilege escalation. Then P01-T06 can be considered for DONE with a new passing Windows CI reference.
-- P01 exit gates still include real window/screenshot evidence, stable user data strategy, consented reporting/privacy, code signing and protected merge; no P02 edits.
+- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10. ChatGPT holds the active lease for this T06 slice; no merge or P02.
+- P01-T01 through T05 DONE with Windows/Governance evidence in task manifest; production signing, permission-grant UI, screenshots and stable release remain later phase gates.
+- **P01-T06 IN_PROGRESS**: native M18 spool passed Windows/Governance [run #44978533633](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44978533633) and [#44978533782](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44978533782). Runtime integration added: Tauri OS-owned app-local path, boot event, sanitized native panic hook, denied IPC categories, Rust recovery/invalid-root tests, and actual Windows cold-boot spool readback. **Fresh CI pending; not DONE.**
+- Next: inspect Rust/Python/Windows workflow for this runtime integration. Repair failures without skipping tests. Review multi-process file locking and safe retention, ensure native privacy preview, then decide T06 completion. T07 must not begin while T06 IN_PROGRESS.
+- PR #10 stays draft/unmerged. No end-user release, user vault, signed installer or verified screenshot exists.
 
 
 ## v3.1 agent handoff requirements
