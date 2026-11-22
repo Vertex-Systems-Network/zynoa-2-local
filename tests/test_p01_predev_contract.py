@@ -25,7 +25,7 @@ class P01PredevelopmentContractTests(unittest.TestCase):
         section = self.document.split("## 5. Tests-first acceptance map", 1)[1]
         for number in range(2, 12):
             with self.subTest(task=number):
-                self.assertRegex(section, rf"\\| P01-T{number:02d} \\|")
+                self.assertRegex(section, rf"\| P01-T{number:02d} \|")
 
     def test_baseline_is_not_misreported_as_product_acceptance(self):
         for pending in ("NOT_MEASURED", "PENDING", "not a shipped capability",
