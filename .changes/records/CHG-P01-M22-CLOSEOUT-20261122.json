@@ -1,0 +1,39 @@
+{
+  "change_id": "CHG-P01-M22-CLOSEOUT-20261122",
+  "module_id": "M22",
+  "kind": "bugfix",
+  "title": "Verified P01 phase closeout and precloseout receipt workflow guard",
+  "summary": "Record actual owner-directed protected primary PR10 squash merge SHA and 11/11 P01 tasks in a separate protected closeout proposal; skip privileged receipt publication for still-IN_PROGRESS main snapshots, preserve fail-closed publication for MERGED_VERIFIED. Existing P00 infrastructure Issue #3 remains OPEN and scoped blocking, and Issue #4 historic journal gap is not backfilled.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/4"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/11",
+  "docs_paths": [
+    "docs/state/HANDOFF.md",
+    "docs/state/STATUS.md",
+    "docs/state/DECISIONS.md",
+    "docs/evidence/P01_T11_PREMERGE_AUDIT.md"
+  ],
+  "help_paths": [],
+  "wiki_paths": [],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45065695753"
+  ],
+  "commit_sha": "8161d06f6de2ba50dc56de0d3f0728272eb1ee9b",
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "Only phase closeout JSON and privileged workflow eligibility; no user data or database changes.",
+  "created_at": "2026-11-22T20:23:58.722Z",
+  "updated_at": "2026-11-22T20:23:58.722Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}
