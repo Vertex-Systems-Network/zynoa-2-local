@@ -57,7 +57,8 @@
     {
       "id": "P01-T09",
       "title": "M26 durable privacy-scoped append-only event store",
-      "status": "IN_PROGRESS"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44988269511"
     },
     {
       "id": "P01-T10",

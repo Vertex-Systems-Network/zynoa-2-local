@@ -1,6 +1,6 @@
 # P01-T09 — native privacy-scoped change event ledger
 
-**Status:** IN_PROGRESS; original Windows CI #44987500956 failed only the concurrent first-opener fixture (30 passed, 1 failed). A process-local native bootstrap mutex and a simultaneous first-open regression test have been added; **new Windows CI pending**. This is a P01 native-only durability foundation, **NOT a released changelog**, GitHub issue publisher or user-facing What's New feed.
+**Status:** P01-T09 DONE for **native-only event persistence** with [Windows CI #44988269511](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44988269511) and [Governance #44988269504](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44988269504) PASS. The full M26 UI/release feed/remote delivery is **NOT complete**. This is a P01 native-only durability foundation, **NOT a released changelog**, GitHub issue publisher or user-facing What's New feed.
 
 The Tauri native startup hook opens a separate `data/change-events-v1.sqlite` within the OS-resolved `com.zynoa.desktop` local app-data root. The existing SQLite WAL vault remains unchanged. The ledger itself uses SQLite WAL, FULL synchronous writes, an immediate write transaction, unique event IDs/idempotency keys, per-stream monotonic sequence and SQL triggers rejecting UPDATE and DELETE. Only a successful commit returns an event sequence acknowledgement; duplicate events fail instead of claiming success.
 
