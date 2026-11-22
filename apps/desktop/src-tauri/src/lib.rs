@@ -3,7 +3,8 @@ mod ipc;
 mod security;
 mod secrets;
 mod diagnostics;
-mod vault; // native-only; not available to WebView
+mod vault;
+mod locations; // native-only; not available to WebView
 
 use tauri::Manager;
 
@@ -19,6 +20,10 @@ pub fn run() {
                 .map_err(|_| std::io::Error::other("ZYN-DIAG-002"))?;
             runtime.install_redacted_panic_hook();
             app.manage(runtime);
+            // M24 app-owned locations are native-only and cannot move external runtimes.
+            let registry = locations::NativeLocationRegistry::open(&os_local, &app_local)
+                .map_err(|_| std::io::Error::other("ZYN-STO-001"))?;
+            app.manage(registry);
             // Native-only user vault is attached to the OS-owned app data root.
             // It has NO Tauri invoke command or untrusted WebView write grant.
             let storage = vault::NativeVault::open(&app_local)

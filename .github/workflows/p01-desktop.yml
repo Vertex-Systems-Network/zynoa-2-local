@@ -16,7 +16,7 @@ jobs:
         with: { fetch-depth: 2, persist-credentials: false }
       - id: diff
         run: |
-          if git cat-file -e HEAD^ 2>/dev/null && git diff --name-only HEAD^ HEAD | grep -qE '^(apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|\.github/workflows/p01-desktop.yml)'; then
+          if git cat-file -e HEAD^ 2>/dev/null && git diff --name-only HEAD^ HEAD | grep -qE '^(apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|tests/test_p01_locations.py|\.github/workflows/p01-desktop.yml)'; then
             echo "desktop=true" >> "$GITHUB_OUTPUT"
           else
             echo "desktop=false" >> "$GITHUB_OUTPUT"
@@ -32,7 +32,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: '22' }
       - name: Desktop shell and IPC safety contracts
-        run: python -m unittest tests.test_p01_desktop_shell tests.test_p01_ipc_contract tests.test_p01_native_security tests.test_p01_diagnostics tests.test_p01_vault -v
+        run: python -m unittest tests.test_p01_desktop_shell tests.test_p01_ipc_contract tests.test_p01_native_security tests.test_p01_diagnostics tests.test_p01_vault tests.test_p01_locations -v
       - name: Resolve pinned dependency inventory and install
         working-directory: apps/desktop
         run: |
@@ -99,6 +99,31 @@ jobs:
               assert db.execute("PRAGMA journal_mode").fetchone()[0].lower() == "wal"
               assert db.execute("SELECT count(*) FROM records").fetchone()[0] == 0
           print("Native app vault schema/integrity verified; no user records created")
+          '@ | python -
+      - name: Verify local storage ownership registry after real native boot
+        shell: pwsh
+        run: |
+          $file = Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop\storage-locations-v1.json'
+          if (-not (Test-Path -LiteralPath $file)) { throw 'ZYN-STO-101: registry missing' }
+          $env:ZYNOA_CI_REGISTRY = $file
+          @'
+          import os, json
+          from pathlib import Path
+          path = Path(os.environ["ZYNOA_CI_REGISTRY"])
+          registry = json.loads(path.read_text(encoding="utf-8"))
+          assert registry["schema_version"] == 1
+          assert registry["app_id"] == "com.zynoa.desktop"
+          keys = {item["kind"]:item for item in registry["locations"]}
+          for kind in ("user_vault","diagnostics","backups","cache","download_staging","managed_models"):
+              assert keys[kind]["owner"] == "app_managed"
+              relative = keys[kind]["relative"]
+              assert relative and not Path(relative).is_absolute()
+              assert ".." not in Path(relative).parts
+              assert keys[kind]["move_allowed"] is False
+          assert keys["external_runtime"]["owner"] == "external_read_only"
+          assert keys["external_runtime"]["relative"] is None
+          assert keys["external_runtime"]["move_allowed"] is False
+          print("Native registry safe ownership and no-move defaults verified")
           '@ | python -
       - uses: actions/upload-artifact@v4
         if: always()

@@ -2,11 +2,11 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- **P01 IN_PROGRESS** on `phase/01-foundation`, draft PR #10. Current ChatGPT worker still holds `chatgpt@2026-11-22T03:25:00.232Z` exclusive lease; do not merge or start P02.
-- **P01-T01 through P01-T07 DONE** with CI evidence in task board. T07 native M23 core passed [Windows #44981325644](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44981325644) and [Governance #44981325655](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44981325655); no actual user content written or WebView vault write/read grant.
-- T07 native scope: OS-local `com.zynoa.desktop/data/state.sqlite` created at app boot outside executable; SQLite WAL FULL and schema/integrity/empty records verified; new-only transaction save acknowledges after commit; duplicate IDs refused; unexpected schema/corrupt DB preserved; SQLite online backup and disposable separate-path restore tested. Native code does not grant frontend backup/restore.
-- **Full M23 NOT complete**: encrypted off-device backups, chat/attachments UI, migration, exhaustive OS crash/disk-full recovery, real screenshots, production signing/uninstall/reinstall not proven. See `docs/operations/P01_NATIVE_VAULT.md`.
-- **Next P01-T08 TODO** — M24 managed data location registry. In-scope native-only OS path ownership categories; external/model runtimes read-only and never silently moved. Add tests and CI; no source paths from WebView, no arbitrary migrations. Keep PR #10 draft, use the same active worker lease until final handoff.
+- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10; current ChatGPT worker holds exclusive lease. Never merge or start P02.
+- **P01-T01 through T07 DONE** with evidence in PR task board; T07 native SQLite transactional vault [Windows #44981325644](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44981325644) and [Governance #44981325655](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44981325655). Full encrypted user backup/screenshots/signing not implemented.
+- **P01-T08 IN_PROGRESS:** new M24 native-only location ownership registry with OS-bound app-local `storage-locations-v1.json`. Categorizes user vault, diagnostics, backup, cache, staging, app-managed model storage and *unresolved external read-only runtimes*. Relative-only identifiers, strict manifest schema, corruption refusal, no move/cleanup authority, Rust negative tests and Windows cold-boot proof added. Fresh CI pending.
+- Next: inspect Windows Rust compilation/real registry smoke and all Governance checks; fix failures, then decide T08 native foundation acceptance. Do not start T09 before T08 DONE.
+- M24 storage migration and path selection UI, real screenshots, external runtime integrations and release signing remain unimplemented.
 
 ## v3.1 agent handoff requirements
 
