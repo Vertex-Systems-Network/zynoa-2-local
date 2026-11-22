@@ -31,6 +31,25 @@ The prior forensic audit independently validated five bot `UPDATED` receipts but
 
 **Impact:** automated fail-to-Issue **creation and deduplication are now actually demonstrated**, not merely inferred or mock-tested. Historic Issue #5 remains manually authored; open Issue #3 covers a separate infrastructure acceptance question. Issue #5/#7 states and phase/merge labels still need independent maintainer adjudication; no label, close, merge, or P02 action is implied.
 
+## Independent P00 infrastructure and M22 incident acceptance matrix (2026-11-22 UTC)
+
+The original [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3) text and comments dated before the P00 merge state that *no* actual runner, model, sandbox, scoped write or incident publisher ran. Those statements are historical. An independent review of the **real** GitHub Actions job logs has now been [posted to Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3#issuecomment-7084243965):
+
+| Acceptance dimension | Verified remote evidence | Limit requiring explicit maintainer disposition |
+|---|---|---|
+| Hosted agent worker | [P00 runner #44961577131](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44961577131) completed actual rootless host bootstrap, model processing and generated a scoped worker receipt | This is an **ephemeral GitHub-hosted runner**, consistent with the owner's no-host operational constraint; it is **not** a 24/7 dedicated supervisor |
+| Rootless isolation and failure injection | [P00 runner #44962373227](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44962373227) ran five negative fixture cases and none passed | The actual job receipt says `independent_host_sandbox_verified=false`, with individual cases labelled `ISOLATION_UNVERIFIED`; do not present fixture success as independent full host attestation |
+| Model-backed development | Real Ollama `qwen2.5-coder:7b` used in bounded fixture flow | Its result says `FIXTURE_FUNCTIONAL_PASS_HOST_UNATTESTED`, `real_model_execution_independently_verified=false`, `full_autonomous_development_verified=false`; it does not attest arbitrary Zynoa source repairs |
+| GitHub permission boundary | [Publish job #44961577131](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44961577131) pushed a `bot/p00-worker-*` branch with SHA readback; push to protected `main` was denied | No permission to evade protected merges or impersonate an approved production developer |
+| Automatic sanitized issue creation | [Listener #44963750468](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44963750468) logged `issue_number=7, status=CREATED`; five later jobs logged `UPDATED` | Concrete issue delivery accepted as observed; unrelated future reporting and host operation claims must remain scoped |
+| P00 phase progression | PR #1 remote merge and closeout #8 + P01 kickoff #9 exact-SHA readback | P00 marked `MERGED_VERIFIED` is an actual repository state, **not proof that every broader Issue #3 wording was literally delivered** |
+
+The remaining question is **whether the original always-on/full-independent-attestation requirements were superseded by the owner's accepted narrower GitHub-hosted per-run delivery**, or whether they remain separately applicable global commitments. This must be explicitly adjudicated before assigning `phase:*` and `merge:*` labels; never classify the issue nonblocking merely because the P00 manifest says DONE. A status of `UNVERIFIED` in the bounded P00 fixture receipts is not itself proof of a security vulnerability.
+
+Separately, a detailed [Issue #7 review comment](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/7#issuecomment-7084247287) reconciles the five historical failed CI runs to documented source corrections, current [Governance #45057713181](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45057713181) **498 passing Python tests**, and live bot creation/update. Historical incidents are not automatically closed by passing present CI; maintainer lifecycle and issue classification remain independent.
+
+**No issue was closed/labelled by this audit.** Owner's no-merge directive remains binding; PR #10 stays Draft, P01-T11 IN_PROGRESS, and P02 remains locked.
+
 ## Safe maintainer resolution procedure
 
 1. Independently review the five issue bodies, the linked CI evidence and the actual branch/merge history. **Prioritize #3 and #7**, then #5 and #4. Do not alter issue states without a documented reason.
