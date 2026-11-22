@@ -2,11 +2,11 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- **P01 IN_PROGRESS:** [PR #10](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10) is Draft/unmerged, **10/11 DONE**, T11 IN_PROGRESS. Owner's standing instruction prohibits merge; no P02 or release.
-- [Merge race hardening `da84ea0`](https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/da84ea0c21ecbc6fac9a95730d0b348b0e56b43f) and [Governance CI #45013784415](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45013784415) **PASS, 489 tests**. Guard checks two current independent GitHub observations and stable hashed issue classification immediately before any merge. All workflows on the code commit passed.
-- [Issue triage dossier](../evidence/P01_T11_ISSUE_TRIAGE.md): issues #2/#3/#4/#5/#7 lack independent phase + blocker labels. Scope verification remains **INCOMPLETE**; no labels changed. Actual P00 PR #1 merged but issue #3 still open.
-- Trusted [main ruleset #27593065](https://github.com/Vertex-Systems-Network/zynoa-2-local/rules/27593065) stays active, no bypass. Genuine P01 Tauri [evidence](../screenshots/M01/README.md) covers implemented foundation only; full option UIs and published Wiki remain pending.
-- Phase lease is held only while active. On this handoff `PHASE.json.lease_holder=null`, `worker_running=false`.
+- **P01 IN_PROGRESS:** [PR #10](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10), Draft/unmerged; **10/11 DONE**, T11 IN_PROGRESS. User directed **do not merge**; no P02/release.
+- [Governance source trust fix `26f69f8`](https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/26f69f879492ed2c6f8a1d973afeba7248d8c678) and [CI #45014409170](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45014409170) **PASS, 494 Python tests** plus Windows governance and zero-mutation merge dry-run. P00 Runner, P01 Desktop and PR Board also passed at the tested commit.
+- Exact `.github/workflows/governance.yml` Git blob on protected `main` and PR head matches; runtime merge observer now authenticates equality at immutable SHAs, rejecting PR-edited/fake-green CI workflow code.
+- [Issue triage dossier](../evidence/P01_T11_ISSUE_TRIAGE.md): issues #2/#3/#4/#5/#7 remain unlabelled, so protected phase policy still **INCOMPLETE**. No issue labels/state changes. [Main ruleset #27593065](https://github.com/Vertex-Systems-Network/zynoa-2-local/rules/27593065) active.
+- Genuine [P01 native evidence](../screenshots/M01/README.md) limited to implemented read-only subset. `PHASE.json` lease cleared at handoff.
 
 ## Historical status (archive below)
 
