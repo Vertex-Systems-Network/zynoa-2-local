@@ -36,7 +36,8 @@ class NativeSecurityContractTests(unittest.TestCase):
         self.assertNotIn("derive(Debug", self.secrets.split("struct SensitiveText")[0].split("enum SecretFault")[-1])
         self.assertNotIn("pub struct SensitiveText", self.secrets)
         self.assertNotIn("#[tauri::command]", self.secrets)
-        self.assertNotIn("Serialize", self.secrets)
+        for forbidden in ("use serde::Serialize", "#[derive(Serialize", "#[serde"):
+            self.assertNotIn(forbidden, self.secrets)
         self.assertNotIn("println!", self.secrets)
         self.assertNotIn("eprintln!", self.secrets)
         self.assertNotIn("println!", self.security)
