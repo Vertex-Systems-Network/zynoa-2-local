@@ -2,11 +2,11 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10. Current worker holds lease. Never merge without owner instruction; no P02.
-- P01-T01 DONE [Gov #44968928750](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44968928750); P01-T02 DONE [Gov #44971261413](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44971261413).
-- **P01-T03 DONE**: native Windows Tauri/Rust executable compiled and the process survived 8-second cold boot; TS/Vite offline frontend and Python safety tests passed [Desktop Foundation #44972395326](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44972395326); full governance [#44972395271](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44972395271) passed. The generated `package-lock.json` and `Cargo.lock` and unsigned EXE are downloadable from that run's build-evidence artifact, but **not checked into Git**. Real interactive window/screenshot, absent-WebView2 behavior, install signing and desktop E2E remain unverified, tracked for P01 exit/T10/T11.
-- **Next P01-T04 TODO**: typed UI/native IPC for M01/M16 operations only. Read M16 dossier, design a small Rust+TypeScript typed transport and tests-first; deny arbitrary commands, paths, replay, oversized payload and untrusted window. Do not change M16 module meaning.
-- Data vault, durable events and real native security policy are still pending. Keep desktop UI buttons disabled until services are proven.
+- Active P01 on `phase/01-foundation`, draft PR #10. Lease currently owned by worker. No merge or P02.
+- T01, T02 and T03 DONE with task manifest links (desktop Windows compile + 8-second process boot: [#44972395326](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44972395326)). Real GUI screenshot and checked-in lockfiles remain unverified.
+- **P01-T04 IN_PROGRESS**: implement versioned read-only workspace.status IPC from React through single native Tauri command. Must use explicit AppManifest command ACL limited to main window, Rust/TS envelope parity and negative tests. No filesystem paths, writes, stores, secrets, telemetry or derived permissions yet. M16 stays Workspace Manager.
+- Next: compile/test T04 via Windows desktop CI and Governance, fix root failures, close task only with passing evidence; then T05.
+- Do not infer user vault or restore from handshake. Keep PR #10 draft.
 
 
 ## v3.1 agent handoff requirements

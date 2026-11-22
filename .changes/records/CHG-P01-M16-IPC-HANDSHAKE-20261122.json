@@ -1,0 +1,33 @@
+{
+  "change_id": "CHG-P01-M16-IPC-HANDSHAKE-20261122",
+  "module_id": "M16",
+  "kind": "feature",
+  "title": "Typed read-only M01/M16 IPC handshake",
+  "summary": "Versioned Rust/TypeScript transport with restricted Tauri command, bounded schema and explicit not-configured workspace state; no write operations.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10",
+  "docs_paths": [
+    "docs/state/HANDOFF.md",
+    "docs/adr/0025-p01-desktop-foundation-predev.md"
+  ],
+  "help_paths": [],
+  "wiki_paths": [],
+  "test_evidence": [],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No persisted IPC state or user data migration.",
+  "created_at": "2026-11-22T01:44:52.244Z",
+  "updated_at": "2026-11-22T01:44:52.244Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}
