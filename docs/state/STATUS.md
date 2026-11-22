@@ -2,10 +2,11 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- **P01 IN_PROGRESS:** [PR #10](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10) on `phase/01-foundation`, Draft/unmerged, 10/11 DONE, T11 IN_PROGRESS. No merge or P02.
-- [T11 merge-guard hardening `77b5207`](https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/77b520791b229815f4016f2e951ecd16fb4f2c3e) and [Governance #45010064639](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45010064639): PASS, **479 Python tests** and strict independent blocker-scope / CI provenance checks. [Audit](../evidence/P01_T11_PREMERGE_AUDIT.md).
-- [Main ruleset #27593065](https://github.com/Vertex-Systems-Network/zynoa-2-local/rules/27593065) active with trusted governance check and no bypass. No owner merge permission, independent P01 issue classification unverified; current open issues unlabelled, cannot be silently dismissed. `PHASE.json` is the lease authority.
-- Genuine Tauri screenshots and capture/review metadata exist under [M01 evidence](../screenshots/M01/README.md). Planned option UI and remote Wiki publishing remain pending.
+- **P01 IN_PROGRESS:** [Draft PR #10](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10), `phase/01-foundation`, **10/11 DONE**, T11 IN_PROGRESS. No merge, release or P02.
+- [Verified issue-scope fix `41fe812`](https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/41fe812c6d19432f9ae1b29702126bc68614f52c) and [Governance #45011643530](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45011643530): **PASS, 484 Python tests**, real Windows governance, and zero-mutating merge guard dry-run. P00 Runner/Desktop/Task Board also green at tested commit.
+- [Authenticated GitHub issue-label policy](../operations/ISSUE_AUTOMATION.md): all open non-PR issues must be explicitly scoped and marked blocker/nonblocker by independent maintainer; live #2/#3/#4/#5/#7 **unlabelled**, so P01 critical-blocker policy remains incomplete. Never infer merge readiness from missing labels or from titles.
+- Owner's **do-not-merge** instruction remains binding. Trusted [main ruleset #27593065](https://github.com/Vertex-Systems-Network/zynoa-2-local/rules/27593065) remains enabled. P01 T10 [native screenshot proof](../screenshots/M01/README.md) only verifies implemented read-only/disabled foundation, not future options or published Wiki.
+- The exact remote current development lock is recorded in `docs/state/PHASE.json`; current handoff clears it to `null`.
 
 ## Historical status (archive below)
 
