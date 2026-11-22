@@ -39,7 +39,8 @@
     {
       "id": "P01-T06",
       "title": "M18 diagnostic spine (structured logs, crash capture, redaction)",
-      "status": "IN_PROGRESS"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44980027777"
     },
     {
       "id": "P01-T07",

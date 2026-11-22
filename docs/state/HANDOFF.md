@@ -2,13 +2,12 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10, with current ChatGPT-held lease; no merge or P02.
-- **T01–T05 DONE** with task-specific CI references in PR task board. T05's Rust-native credential and deny-first scope passed [Windows #44973840898](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44973840898). Full production signing and user grant UI remain P01 exit gates.
-- **T06 IN_PROGRESS**: native diagnostics spool integrated at Tauri startup with an OS-provided app-local directory, sanitized panic hook, denied IPC event types and actual Windows cold-boot record. Green [Governance #44979498370](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44979498370) / [Windows #44979498386](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44979498386).
-- **Newest pending T06 hardening:** exclusive Windows writer guard (fail closed on concurrent process; OS releases on exit), real panic payload redaction fixture and honest diagnostics UI / footer copy. Await fresh GitHub-hosted Windows and governance CI. No changes to frontend native privileges.
-- Next: inspect CI; fix failures. Decide whether T06 native-spine task can be accepted with advanced retention, user privacy preview, screenshot, signed installer and remote issue/reporting explicitly reserved for T10/T11; do not mark M18 full module as complete. Never begin T07 while T06 remains IN_PROGRESS.
-- PR is draft/unmerged; no release or user data vault.
-
+- **P01 IN_PROGRESS** on `phase/01-foundation`, [draft PR #10](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10). Lease **FREE**. Never merge without explicit owner "merge" or valid owner-written protocol rule. No P02 or release.
+- **P01-T01 through P01-T06 DONE**, evidence in task manifest/PR board. T05 native-only Windows keychain and deny-first permissions: [CI #44973840898](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44973840898). T06 native-only diagnostic spine: [Windows CI #44980027777](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44980027777) and [Governance #44980027876](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44980027876) both PASS. Source commits `c218186d32961669fece89b1d1cbb292ac1fffb8` and `3e2004c55343f58fbf57d86532aa6976fd8a8095`.
+- T06 implemented: native OS per-user local diagnostics at startup, fixed allowlisted event classes, bounded append/sync/replay, sanitized Rust panic hook and denied-IPC class logging, Windows-exclusive writer guard, real Rust unit tests and executable startup spool readback. The Diagnostics UI accurately reports no remote telemetry and no workspace-data storage.
+- **Do not mistake T06 task completion for full M18 release.** Full M18 screens and privacy consent/reports, OS-level crash dumps, cross-platform store locking, retention/rotation, signed installer, real screenshots and auto GitHub issue relay remain pending later P01/T10/T11 acceptance. No user vault or update/backup system exists yet.
+- **Next task: P01-T07 TODO** — M23 transactional user-owned data vault outside executable. Before editing, acquire new lease, read `docs/operations/DATA_VAULT_BACKUP_RECOVERY.md`, `docs/operations/STORAGE_DOWNLOADS_RELOCATION.md`, `docs/operations/AUTO_RELEASE_AND_UPDATES.md`, and M23/M24/M25 module docs per AGENTS.md. Implement tests-first real SQLite/WAL/online backup and a disposable restore drill on GitHub-hosted Windows; never overwrite the last good user data.
+- **CI performance issue:** current P01 desktop path gate can run a Windows build after docs-only PR commits due merge-ref diff; improve it without missing multi-commit source pushes or weakening required checks.
 
 ## v3.1 agent handoff requirements
 
