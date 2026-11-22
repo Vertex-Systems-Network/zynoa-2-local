@@ -130,19 +130,41 @@ def authorize_next_phase(
         raise PhasePolicyError("current phase is not marked MERGED_VERIFIED")
     if not state.get("active_branch") or not state.get("primary_pr"):
         raise PhasePolicyError("cannot advance without a tracked branch and PR")
-    if not evidence.get("authenticated_remote") or not evidence.get("merged") or not evidence.get("checks_passed"):
+    if (evidence.get("authenticated_remote") is not True
+            or evidence.get("merged") is not True
+            or evidence.get("checks_passed") is not True):
         raise PhasePolicyError("GitHub merge/check evidence not verified")
     if evidence.get("head_branch") != state["active_branch"]:
         raise PhasePolicyError("GitHub branch mismatch")
-    if evidence.get("pr_number") != state["primary_pr"]:
+    if (type(evidence.get("pr_number")) is not int
+            or evidence["pr_number"] != state["primary_pr"]):
         raise PhasePolicyError("GitHub primary PR mismatch")
     if evidence.get("base_branch") != "main":
         raise PhasePolicyError("phase PR must target main")
     verified = state.get("last_verified_remote_sha")
     if evidence.get("merge_sha") != verified or not re.fullmatch(r"[a-f0-9]{40}", str(verified or "")):
         raise PhasePolicyError("verified remote SHA does not match merge commit")
-    if evidence.get("open_critical_blockers", 1) != 0:
-        raise PhasePolicyError("critical blockers unresolved")
+    blocker_count = evidence.get("open_critical_blockers")
+    # bool False and float 0.0 compare equal to integer zero in Python.
+    # Neither represents a verified count from the trusted GitHub reader.
+    if type(blocker_count) is not int or blocker_count != 0:
+        raise PhasePolicyError("critical-blocker count is not a verified integer zero")
+    if source != "P00":
+        # The legacy P00 issue list predates per-issue scope labels. P01+
+        # transitions must consume the exact, complete, authenticated issue
+        # inventory returned by GitHubGateway, not only a claimed zero count.
+        if (evidence.get("blocker_policy_complete") is not True
+                or evidence.get("issue_scope_source")
+                    != "authenticated_github_open_issue_labels"
+                or not re.fullmatch(
+                    r"[a-f0-9]{64}", str(evidence.get("issue_inventory_fingerprint") or "")
+                )):
+            raise PhasePolicyError("independent GitHub issue inventory not verified")
+        unclassified = evidence.get("unclassified_issue_numbers")
+        blockers = evidence.get("blocker_issue_numbers")
+        if (type(unclassified) is not list or unclassified
+                or type(blockers) is not list or blockers):
+            raise PhasePolicyError("unclassified or blocking GitHub issues remain")
     if target == "P08I" and source != "P08":
         raise PhasePolicyError("interoperability follows completed P08 only")
     return True

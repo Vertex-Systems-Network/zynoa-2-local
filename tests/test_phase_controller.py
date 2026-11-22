@@ -36,6 +36,11 @@ def remote(branch="phase/08-native-designer"):
         "base_branch": "main",
         "merge_sha": SHA,
         "open_critical_blockers": 0,
+        "blocker_policy_complete": True,
+        "issue_scope_source": "authenticated_github_open_issue_labels",
+        "issue_inventory_fingerprint": "a" * 64,
+        "unclassified_issue_numbers": [],
+        "blocker_issue_numbers": [],
     }
 
 
@@ -71,6 +76,67 @@ class PhaseControllerPolicyTests(unittest.TestCase):
         e["open_critical_blockers"] = 1
         with self.assertRaises(PhasePolicyError):
             authorize_next_phase(fixture(), "P08I", e)
+
+    def test_critical_blocker_count_must_be_exact_integer_zero(self):
+        # bool False and 0.0 previously passed Python's == 0 comparison.
+        for invalid in (False, True, 0.0, "0", None, [], {}):
+            with self.subTest(invalid=invalid), self.assertRaises(PhasePolicyError):
+                evidence = remote()
+                evidence["open_critical_blockers"] = invalid
+                authorize_next_phase(fixture(), "P08I", evidence)
+        evidence = remote()
+        del evidence["open_critical_blockers"]
+        with self.assertRaises(PhasePolicyError):
+            authorize_next_phase(fixture(), "P08I", evidence)
+
+    def test_remote_authentication_and_pr_types_are_exact(self):
+        for field in ("authenticated_remote", "merged", "checks_passed"):
+            for invalid in (1, "true", [], None):
+                with self.subTest(field=field, invalid=invalid):
+                    evidence = remote()
+                    evidence[field] = invalid
+                    with self.assertRaises(PhasePolicyError):
+                        authorize_next_phase(fixture(), "P08I", evidence)
+        evidence = remote()
+        evidence["pr_number"] = "22"
+        with self.assertRaises(PhasePolicyError):
+            authorize_next_phase(fixture(), "P08I", evidence)
+
+    def test_post_p00_transition_requires_complete_gitHub_issue_inventory(self):
+        scenarios = (
+            ("incomplete", "blocker_policy_complete", False),
+            ("missing policy", "blocker_policy_complete", None),
+            ("forged scope", "issue_scope_source", "user_supplied_zero"),
+            ("missing scope", "issue_scope_source", None),
+            ("invalid fingerprint", "issue_inventory_fingerprint", "0" * 63),
+            ("missing fingerprint", "issue_inventory_fingerprint", None),
+            ("unclassified issue", "unclassified_issue_numbers", [7]),
+            ("unclassified bool", "unclassified_issue_numbers", False),
+            ("blocking issue", "blocker_issue_numbers", [3]),
+            ("blocking list spoof", "blocker_issue_numbers", 0),
+        )
+        for name, key, invalid in scenarios:
+            with self.subTest(scenario=name):
+                evidence = remote()
+                evidence[key] = invalid
+                with self.assertRaises(PhasePolicyError):
+                    authorize_next_phase(fixture(), "P08I", evidence)
+        for key in ("blocker_policy_complete", "issue_scope_source",
+                    "issue_inventory_fingerprint", "unclassified_issue_numbers",
+                    "blocker_issue_numbers"):
+            with self.subTest(missing=key):
+                evidence = remote()
+                del evidence[key]
+                with self.assertRaises(PhasePolicyError):
+                    authorize_next_phase(fixture(), "P08I", evidence)
+
+    def test_p00_legacy_transition_still_requires_a_real_zero(self):
+        self.assertTrue(authorize_next_phase(
+            fixture("P00"), "P01", remote(branch="phase/00-governance")))
+        evidence = remote(branch="phase/00-governance")
+        evidence["open_critical_blockers"] = False
+        with self.assertRaises(PhasePolicyError):
+            authorize_next_phase(fixture("P00"), "P01", evidence)
 
     def test_bad_sha_blocks(self):
         e = remote()
