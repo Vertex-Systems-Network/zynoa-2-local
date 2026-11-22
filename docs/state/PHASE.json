@@ -5,7 +5,7 @@
   "active_branch": "phase/01-foundation",
   "primary_pr": 10,
   "last_verified_remote_sha": "fe34877b140c338a3004aae6127df3e831228bcc",
-  "worker_running": true,
+  "worker_running": false,
   "required_documents": [
     "docs/MASTER_PLAN_V3_2.md",
     "docs/agent/AI_STRICT_PROTOCOL.md",

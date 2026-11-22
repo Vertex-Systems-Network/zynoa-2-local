@@ -41,6 +41,9 @@ class NativeScreenshotCaptureContracts(unittest.TestCase):
         self.assertIn("Native Windows desktop build (no release or signature)", self.workflow)
         self.assertEqual(2, self.workflow.count("ref: ${{ github.event.pull_request.head.sha }}"))
         self.assertIn("scripts/capture_p01_desktop\\.ps1", self.workflow)
+        self.assertIn('PR_ACTION: ${{ github.event.action }}', self.workflow)
+        self.assertIn('changed="$(git diff --name-only HEAD^ HEAD)"', self.workflow)
+        self.assertIn('changed="$(git diff --name-only FETCH_HEAD HEAD)"', self.workflow)
         self.assertIn("ZYN-SCREEN-014", self.workflow)
         self.assertIn("-BuiltSha $builtSha", self.workflow)
 
