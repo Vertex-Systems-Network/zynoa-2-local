@@ -18,7 +18,9 @@ class NativeVaultContractTests(unittest.TestCase):
     def test_pinned_sqlite_native_dependency_and_ipc_denial(self):
         self.assertIn('rusqlite = { version = "=0.43.0", features = ["bundled", "backup"] }', self.cargo)
         self.assertIn("mod vault;", self.lib)
-        self.assertNotIn("vault::", self.lib)
+        self.assertIn("vault::NativeVault::open(&app_local)", self.lib)
+        self.assertNotIn("vault::", (ROOT/"apps/desktop/src-tauri/src/ipc.rs").read_text(encoding="utf-8"))
+        self.assertIn("generate_handler![ipc::workspace_handshake]", self.lib)
         self.assertNotIn("#[tauri::command]", self.vault)
 
     def test_no_ack_until_commit_and_no_overwrite(self):
