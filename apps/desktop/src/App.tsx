@@ -113,6 +113,15 @@ export function App() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  // Each view starts at the top; focus the native scroll surface for keyboard PageDown.
+  useEffect(() => {
+    const surface = document.getElementById("main-content");
+    if (surface) {
+      surface.scrollTop = 0;
+      surface.focus({ preventScroll: true });
+    }
+  }, [view]);
+
   return (
     <div className="shell">
       <aside className="sidebar" aria-label="Primary navigation">

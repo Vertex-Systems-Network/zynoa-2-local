@@ -51,6 +51,8 @@ class DesktopShellContractTests(unittest.TestCase):
             self.assertIn(marker, frontend)
         self.assertIn('"__TAURI_INTERNALS__" in window', frontend)
         self.assertIn('role="status"', frontend)
+        self.assertIn('surface.scrollTop = 0;', frontend)
+        self.assertIn('surface.focus({ preventScroll: true });', frontend)
         # Ctrl+Home and other non-numeric keys must never index views[NaN].
         guard = "if (!/^[1-4]$/.test(event.key)) return;"
         self.assertIn(guard, frontend)

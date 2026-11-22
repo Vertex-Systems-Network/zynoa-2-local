@@ -10,3 +10,5 @@ main{height:100vh;min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-co
 main::-webkit-scrollbar,.sidebar::-webkit-scrollbar{width:10px}
 main::-webkit-scrollbar-track,.sidebar::-webkit-scrollbar-track{background:#10151d}
 main::-webkit-scrollbar-thumb,.sidebar::-webkit-scrollbar-thumb{background:#42505d;border:2px solid #10151d;border-radius:10px}
+
+main:focus{outline:none}
