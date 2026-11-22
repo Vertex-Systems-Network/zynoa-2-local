@@ -1,0 +1,71 @@
+name: P01 Desktop Foundation
+on:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: p01-desktop-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      desktop: ${{ steps.diff.outputs.desktop }}
+    steps:
+      - uses: actions/checkout@v6
+        with: { fetch-depth: 2, persist-credentials: false }
+      - id: diff
+        run: |
+          if git cat-file -e HEAD^ 2>/dev/null && git diff --name-only HEAD^ HEAD | grep -qE '^(apps/desktop/|tests/test_p01_desktop_shell.py|\.github/workflows/p01-desktop.yml)'; then
+            echo "desktop=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "desktop=false" >> "$GITHUB_OUTPUT"
+          fi
+  desktop-windows:
+    needs: changes
+    if: needs.changes.outputs.desktop == 'true' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'phase/01-foundation'
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - name: Desktop shell safety contract
+        run: python -m unittest tests.test_p01_desktop_shell -v
+      - name: Resolve pinned dependency inventory and install
+        working-directory: apps/desktop
+        run: |
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          npm ci --no-audit --no-fund
+      - name: Frontend TypeScript and offline web bundle
+        working-directory: apps/desktop
+        run: |
+          npm run check
+          npm run build
+      - name: Native Windows desktop build (no release or signature)
+        working-directory: apps/desktop
+        run: npm run tauri -- build --no-bundle
+      - name: Verify desktop executable cold boot
+        shell: pwsh
+        run: |
+          $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
+          if (-not (Test-Path -LiteralPath $exe)) { throw 'Desktop binary not built' }
+          $process = Start-Process -FilePath $exe -PassThru
+          try {
+            Start-Sleep -Seconds 8
+            $process.Refresh()
+            if ($process.HasExited) { throw "Desktop exited early ($($process.ExitCode))" }
+            Write-Output 'Desktop process survived cold boot; WebView/window visibility still needs independent verification'
+          } finally {
+            if (-not $process.HasExited) { Stop-Process -Id $process.Id -Force }
+          }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p01-desktop-windows-build-evidence
+          path: |
+            apps/desktop/package-lock.json
+            apps/desktop/src-tauri/Cargo.lock
+            apps/desktop/src-tauri/target/release/zynoa_desktop.exe
+          if-no-files-found: warn
