@@ -3,7 +3,7 @@
   "module_id": "M26",
   "kind": "bugfix",
   "title": "Fail-closed active ruleset fallback for protected main GitHub merge evidence",
-  "summary": "P01 final merge-readiness audit found legacy effective-rules API inaccessible while repository active ruleset #27593065 remains readable. Add exact-target active non-bypass repository ruleset fallback with strict trusted check provider validation. Never infer blocker-scope completeness, authorize PR merge, or publish a release. T11 guarded merge hardening now requires a separately verified blocker-policy-complete flag, a real integer zero open-critical count, and trusted workflow-run/job provenance; zero reported from an incomplete observer or bool False cannot permit a merge. No merge mutation.",
+  "summary": "P01 final merge-readiness audit found legacy effective-rules API inaccessible while repository active ruleset #27593065 remains readable. Add exact-target active non-bypass repository ruleset fallback with strict trusted check provider validation. Never infer blocker-scope completeness, authorize PR merge, or publish a release. T11 guarded merge hardening now requires a separately verified blocker-policy-complete flag, a real integer zero open-critical count, and trusted workflow-run/job provenance; zero reported from an incomplete observer or bool False cannot permit a merge. No merge mutation. GuardedMerger now explicitly enforces independent critical-blocker policy completeness, strict integer-zero blocker count, and verified Actions workflow provenance; all 479 GitHub governance tests pass. No owner merge authorization and no P01 blocker-scope certification.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [],
@@ -16,19 +16,20 @@
   "wiki_paths": [],
   "test_evidence": [
     "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45008555925",
-    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45008926254"
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45008926254",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45010064639"
   ],
   "commit_sha": "58ae70e2b39296e7e2a767e4b98764b69b596923",
   "release": null,
   "verification": {
-    "tests_passed": false,
+    "tests_passed": true,
     "merge_verified": false,
     "release_published": false
   },
   "breaking_change": false,
   "migration_notes": "No data migration, branch protection change or merge; read-only GitHub gate evidence only.",
   "created_at": "2026-11-22T09:43:15.230Z",
-  "updated_at": "2026-11-22T09:57:33.237Z",
+  "updated_at": "2026-11-22T09:59:19.720Z",
   "version_bump": "none",
   "affected_option_ids": [],
   "docs_impact": true,

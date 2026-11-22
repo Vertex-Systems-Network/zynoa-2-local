@@ -2,12 +2,10 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- P01 IN_PROGRESS · `phase/01-foundation` · [PR #10](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10) **Draft and unmerged**. T01–T10 DONE; **T11 IN_PROGRESS** (pre-merge exit checks; owner authorization and protected merge pending).
-- [P01-T11 read-only gate audit](../evidence/P01_T11_PREMERGE_AUDIT.md) confirms main SHA `1697ea8488b2da089da22951de64f5254a48b71f`, active [trusted ruleset #27593065](https://github.com/Vertex-Systems-Network/zynoa-2-local/rules/27593065), 473 passing tests in [governance CI](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45008304983), and authentic native screenshot proof from P01-T10.
-- **Do not merge** until owner explicitly requests merge, independently scoped blockers are evaluated, and GitHub verifies current required checks. No P02 or shipped release.
-- [Fallback code `58ae70e`](https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/58ae70e2b39296e7e2a767e4b98764b69b596923) and [Governance run #45008926254](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45008926254) prove 476 passing tests including strict active ruleset fallback. This does not satisfy independent P01 blocker-scope policy or authorize merge.
-- T10 Help/Wiki content is source-controlled; the GitHub Wiki is not published. Future option screens and full module UI remain pending.
-- Agent lease is a temporary development lock only; see `PHASE.json` for live holder and `HANDOFF.md` for the latest checkpoint.
+- **P01 IN_PROGRESS:** [PR #10](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10) on `phase/01-foundation`, Draft/unmerged, 10/11 DONE, T11 IN_PROGRESS. No merge or P02.
+- [T11 merge-guard hardening `77b5207`](https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/77b520791b229815f4016f2e951ecd16fb4f2c3e) and [Governance #45010064639](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45010064639): PASS, **479 Python tests** and strict independent blocker-scope / CI provenance checks. [Audit](../evidence/P01_T11_PREMERGE_AUDIT.md).
+- [Main ruleset #27593065](https://github.com/Vertex-Systems-Network/zynoa-2-local/rules/27593065) active with trusted governance check and no bypass. No owner merge permission, independent P01 issue classification unverified; current open issues unlabelled, cannot be silently dismissed. `PHASE.json` is the lease authority.
+- Genuine Tauri screenshots and capture/review metadata exist under [M01 evidence](../screenshots/M01/README.md). Planned option UI and remote Wiki publishing remain pending.
 
 ## Historical status (archive below)
 
