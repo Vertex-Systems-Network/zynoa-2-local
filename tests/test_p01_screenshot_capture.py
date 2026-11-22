@@ -16,6 +16,9 @@ class NativeScreenshotCaptureContracts(unittest.TestCase):
                        "ZYN-SCREEN-002", "ZYN-SCREEN-007", "refuse replacing existing image"):
             self.assertIn(marker, self.script)
         self.assertNotIn("capture_verified = $true", self.script)
+        for marker in ("System.Windows.Forms.Screen", "WorkingArea", "MoveWindow(",
+                       "window still overlaps desktop/taskbar", "window_fully_visible"):
+            self.assertIn(marker, self.script)
 
     def test_provenance_with_no_premature_verified_claims(self):
         for marker in ("source_commit_sha", "sha256", "Get-FileHash",

@@ -21,7 +21,7 @@ function Startup({ state, transport }: { state: StartupState; transport: Transpo
         <section className="panel emphasis" aria-label="Startup status">
           <div className="panel-head">Startup status <span className={state === "starting" ? "dot pending" : "dot healthy"} /></div>
           <h2>{state === "starting" ? "Preparing interface" : state === "desktop" ? "Native window displayed" : "Browser preview"}</h2>
-          <p>{state === "desktop" ? "The bundled interface is running inside Tauri. The IPC bridge, storage and service health have not yet been verified." : state === "browser" ? "The browser preview cannot establish native runtime readiness. Use the Windows executable to check desktop startup." : "Initializing locally without a cloud connection."}</p>
+          <p>{state === "desktop" ? "The native shell started with app-local storage initialized. The workspace is not configured, and optional background services are unavailable." : state === "browser" ? "The browser preview cannot establish native runtime readiness. Use the Windows executable to check desktop startup." : "Initializing locally without a cloud connection."}</p>
           <div className="status-strip"><span className="status-pill">Offline interface</span><span className="status-muted" role="status">{transport === "connected" ? "Typed native handshake connected · workspace not configured" : transport === "unavailable" ? "Native handshake unavailable · reopen the application" : transport === "preview" ? "Browser-only preview" : "Checking the read-only native transport"}</span></div>
         </section>
         <section className="panel" aria-label="Workspace status">
@@ -47,7 +47,7 @@ function Settings() {
       <p className="eyebrow">PREFERENCES / RESTRICTED</p><h1 id="settings-title">Settings<span className="period">.</span></h1>
       <p className="lead">Preferences are view-only until the native configuration service has been implemented and tested.</p>
       <div className="setting-row"><div><strong>Interface appearance</strong><p>Theme changes are not available yet.</p></div><select disabled aria-label="Interface appearance" value="dark" onChange={() => undefined}><option value="dark">Dark foundation</option></select></div>
-      <div className="setting-row"><div><strong>Application storage</strong><p>Local folder registration will be introduced with the data registry.</p></div><button type="button" disabled>Choose folder</button></div>
+      <div className="setting-row"><div><strong>Application storage</strong><p>Native app-owned locations are registered; user-chosen folders and relocation are not available yet.</p></div><button type="button" disabled>Choose folder</button></div>
       <div className="notice" role="status">This build does not write settings or user data.</div>
     </section>
   );
@@ -58,7 +58,7 @@ function Recovery() {
     <section className="detail" aria-labelledby="recovery-title">
       <p className="eyebrow">DATA / SAFETY</p><h1 id="recovery-title">Recovery<span className="period">.</span></h1>
       <p className="lead">Your files belong outside the app executable. Backup and restore will remain disabled until a vault and a real restore drill are verified.</p>
-      <div className="panel wide"><div className="panel-head">Recovery center <span className="status-muted">Not configured</span></div><h2>No verified backups</h2><p>This build has no user vault or backup inventory. We will not suggest your files are protected without evidence.</p><button type="button" disabled>Restore from backup</button></div>
+      <div className="panel wide"><div className="panel-head">Recovery center <span className="status-muted">Not configured</span></div><h2>No verified backups</h2><p>A native storage foundation exists, but no workspace data or user-accessible backup inventory is configured. Backup protection is not yet available.</p><button type="button" disabled>Restore from backup</button></div>
     </section>
   );
 }

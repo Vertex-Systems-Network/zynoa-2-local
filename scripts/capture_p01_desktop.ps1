@@ -7,6 +7,7 @@ param(
 $ErrorActionPreference = 'Stop'
 if ($SourceSha -notmatch '^[0-9a-f]{40}$') { throw 'ZYN-SCREEN-001: invalid source commit' }
 Add-Type -AssemblyName System.Drawing
+Add-Type -AssemblyName System.Windows.Forms
 Add-Type -TypeDefinition @'
 using System;
 using System.Runtime.InteropServices;
@@ -19,6 +20,8 @@ public static class ZynoaScreenWin32 {
     public static extern bool IsWindowVisible(IntPtr hwnd);
     [DllImport("user32.dll")]
     public static extern bool SetForegroundWindow(IntPtr hwnd);
+    [DllImport("user32.dll", SetLastError=true)]
+    public static extern bool MoveWindow(IntPtr hwnd, int x, int y, int width, int height, bool repaint);
 }
 '@
 $proc = Get-Process -Id $TargetPid -ErrorAction Stop
@@ -32,10 +35,32 @@ $bounds = [ZynoaScreenWin32+Rect]::new()
 if (-not [ZynoaScreenWin32]::GetWindowRect($hwnd, [ref]$bounds)) {
     throw 'ZYN-SCREEN-004: cannot resolve native window bounds'
 }
+# A CI runner may have a 1024x768 desktop: move and resize the native
+# window fully into the *working area* so the taskbar is NEVER photographed.
+$workArea = [System.Windows.Forms.Screen]::FromHandle($hwnd).WorkingArea
+if ($workArea.Width -lt 912 -or $workArea.Height -lt 632) {
+    throw 'ZYN-SCREEN-005: insufficient display area for a real native screenshot'
+}
+$fits = $bounds.Left -ge $workArea.Left -and $bounds.Top -ge $workArea.Top -and
+        $bounds.Right -le $workArea.Right -and $bounds.Bottom -le $workArea.Bottom
+if (-not $fits) {
+    $fittedWidth = [Math]::Min(1180, $workArea.Width - 12)
+    $fittedHeight = [Math]::Min(760, $workArea.Height - 12)
+    if (-not [ZynoaScreenWin32]::MoveWindow($hwnd, $workArea.Left + 6, $workArea.Top + 6,
+        $fittedWidth, $fittedHeight, $true)) {
+        throw 'ZYN-SCREEN-009: unable to fit native window inside display working area'
+    }
+    Start-Sleep -Milliseconds 900
+    if (-not [ZynoaScreenWin32]::GetWindowRect($hwnd, [ref]$bounds)) {
+        throw 'ZYN-SCREEN-010: moved window bounds unavailable'
+    }
+}
 $width = $bounds.Right - $bounds.Left
 $height = $bounds.Bottom - $bounds.Top
-if ($width -lt 900 -or $height -lt 620 -or $width -gt 4000 -or $height -gt 3000) {
-    throw 'ZYN-SCREEN-005: invalid desktop window dimensions'
+if ($width -lt 900 -or $height -lt 620 -or
+    $bounds.Left -lt $workArea.Left -or $bounds.Top -lt $workArea.Top -or
+    $bounds.Right -gt $workArea.Right -or $bounds.Bottom -gt $workArea.Bottom) {
+    throw 'ZYN-SCREEN-011: window still overlaps desktop/taskbar'
 }
 if (-not [ZynoaScreenWin32]::SetForegroundWindow($hwnd)) {
     throw 'ZYN-SCREEN-006: native window cannot become foreground'
@@ -73,6 +98,8 @@ $meta = [ordered]@{
     capture_verified = $false
     window_width = $width
     window_height = $height
+    window_fully_visible = $true
+    desktop_work_area = "$($workArea.Width)x$($workArea.Height)"
     sha256 = $hash
     alt_text = 'Zynoa native desktop Overview with local startup and disabled workspace creation'
     privacy = 'Disposable CI fixture with no user content or secrets'
