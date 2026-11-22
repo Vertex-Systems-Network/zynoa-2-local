@@ -1,8 +1,10 @@
 {
   "identifier": "main-readonly",
-  "description": "P01 minimal window: no JS-to-native grants or remote origins",
+  "description": "Main local window: only the bounded read-only workspace handshake is exposed",
   "windows": [
     "main"
   ],
-  "permissions": []
+  "permissions": [
+    "allow-workspace-handshake"
+  ]
 }
