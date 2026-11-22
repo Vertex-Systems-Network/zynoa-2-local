@@ -1,0 +1,8 @@
+{
+  "identifier": "main-readonly",
+  "description": "P01 minimal window: no JS-to-native grants or remote origins",
+  "windows": [
+    "main"
+  ],
+  "permissions": []
+}

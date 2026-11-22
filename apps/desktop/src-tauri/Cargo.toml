@@ -1,0 +1,17 @@
+[package]
+name = "zynoa_desktop"
+version = "0.1.0"
+edition = "2021"
+description = "Zynoa offline desktop foundation shell"
+license = "MIT OR Apache-2.0"
+build = "build.rs"
+
+[lib]
+name = "zynoa_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "=2.7.6", features = [] }
+
+[dependencies]
+tauri = { version = "=2.12.7", features = [] }
