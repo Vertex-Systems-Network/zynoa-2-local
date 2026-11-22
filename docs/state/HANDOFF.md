@@ -2,11 +2,10 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- Phase **P01** IN_PROGRESS on `phase/01-foundation`; [draft PR #10](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10). Lease **free**. No permission to merge or start P02.
-- **P01-T01 DONE**: pre-development ADR-0025 and tests-first contract, [passing Governance #44968928750](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44968928750).
-- **P01-T02 DONE**: phase/PR-aware controller, read-only worker and fail-closed active-phase runner dispatch with tests. [Governance and Windows #44971261413](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44971261413) PASS; [P01 phase-observer #44971261440](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44971261440) PASS. P00 Docker/Ollama fixture and its bot-branch publisher were **SKIPPED** under P01. Task manifest records verified CI evidence.
-- **Next: P01-T03 TODO** — M01 bootable desktop client shell. Read only code/docs relevant to T03; plan tests-first, build on GitHub-hosted Windows, capture real evidence as implemented. Do not claim UI, screenshots, signed app or vault recovery exists yet.
-- Never merge PR #10 without owner-written protocol auto-merge rule or explicit owner "merge". No P02 work.
+- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10, current agent lease held. No merge or P02.
+- T01 DONE (CI 44968928750), T02 DONE (Governance 44971261413; P01 observer 44971261440).
+- **P01-T03 IN_PROGRESS**: implement the minimal native Tauri 2 / React+TS/Vite shell; Windows build, runtime smoke, exact dependency locks and real GUI evidence require CI. No native data, restore, IPC, telemetry or external cloud authority is permitted in the shell.
+- Next: add executable and tests, run Governance and targeted P01 Windows build; only mark DONE with passing evidence. Next tasks T04+ stay TODO.
 
 
 ## v3.1 agent handoff requirements
