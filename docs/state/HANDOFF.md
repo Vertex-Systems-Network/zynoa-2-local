@@ -2,12 +2,11 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- Phase **P01** IN_PROGRESS on `phase/01-foundation`, draft PR #10; remote main `1697ea8488b2da089da22951de64f5254a48b71f`.
-- **P01-T01 IN_PROGRESS (not DONE)**: ADR-0025 and tests-first contract committed in `a64eb6aeb961fb1bf33b240752aea4bbe584b412`; task manifest and PR board synchronized. Baseline prior Governance [44968410424](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44968410424) was green, but does not test the new T01 change.
-- **Verification pending**: [Governance run 44968687573](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44968687573) was pending with zero jobs assigned at the handoff; prior governance job [44968680144](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44968680144) was still in progress despite superseding commits. PR board sync and P00 Runner Worker on the T01 test commit succeeded. No T01 passing CI run yet; do not mark DONE until verified.
-- Next safe action: reconcile fresh PR #10 HEAD and CI. If the new T01 code/test suite passes, update P01-T01 to DONE **with that passing run link**, regenerate PR board and then start P01-T02. If red, fix root cause without weakening tests.
-- P01-T04 naming conflict recorded in ADR-0025 and DECISIONS: task says M16 typed IPC; M16 dossier is workspace manager. Keep transport scoped to M01/M16 operations.
-- Lease: **free** after this handoff. Do not start P02. Do not merge draft PR #10 without owner instruction or owner-written rule.
+- Phase **P01** IN_PROGRESS on `phase/01-foundation`, draft PR #10. Never merge without owner-written auto-merge rule or owner "merge" instruction.
+- **P01-T01 DONE**: ADR-0025 and tests-first regression verified by [passing Governance v3.2 CI run 44968928750](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44968928750); governance, all three v3 kit checks, Python unittest discovery and task-board validation passed at tested commit `6695b72c7c3f03d7980107f5adfaab1b04dab9df`.
+- **Next P01-T02 TODO**: generalise P00-only controller/worker tools to the active phase; preserve all existing authorization, scope, read-only observer and merge gates. Use existing tests and add negative regressions.
+- P01-T04 mismatch: task calls M16 typed IPC; M16 dossier is workspace manager. ADR-0025 limits IPC to M01/M16 transport, without relabeling M16.
+- Lease held for current worker session; release on stop. Desktop app, screenshots, user vault and release remain unimplemented.
 
 ## v3.1 agent handoff requirements
 

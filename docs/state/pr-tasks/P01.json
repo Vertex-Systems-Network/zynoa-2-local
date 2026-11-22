@@ -9,7 +9,8 @@
     {
       "id": "P01-T01",
       "title": "Pre-dev: baseline, desktop stack research/ADR, threat review, tests-first plan",
-      "status": "IN_PROGRESS"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44968928750"
     },
     {
       "id": "P01-T02",
