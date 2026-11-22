@@ -2,11 +2,11 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- Phase **P01** IN_PROGRESS, `phase/01-foundation`, draft PR #10. Lease held during active task; no merge permission and no P02.
-- **P01-T01 DONE** evidenced by [Governance run #44968928750](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44968928750).
-- **P01-T02 IN_PROGRESS**, code slice 1 [Governance run #44969786422](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44969786422) PASS; code slice 2 adds phase-specific blocker policy and P01 remote readback regressions. Latest CI pending. On passing required tests at latest SHA, mark T02 DONE with that run URL and sync PR task board.
-- Active-phase read-only observer is `tools.phase_worker`; `scripts/runner_worker.py` is the **historical P00-T20 model-fixture isolation test only**, NOT an authorized P01 AI coder. P01 blocker scope is unknown, so phase transition/merge cannot be inferred from zero reported issues.
-- Next after T02 evidence: P01-T03 desktop foundation shell. Do not mark any desktop product, backup/restore, real screenshots or release implemented before proof.
+- Active P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10. Lease **free** at handoff; do not merge without owner-written auto-merge rule or owner saying "merge". P02 forbidden.
+- **P01-T01 DONE**: [Governance #44968928750](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44968928750). PR table and change record synced.
+- **P01-T02 IN_PROGRESS, NOT DONE**: two safe code slices committed (`8e7c234e938cae092521de8d19f34e6904abff8b`, `5ab12a8e92c4066ea8e747072436612daa029bfd`). Verified Linux governance-lint, all three kit scripts, full Python unittests, task-board checker, and Windows job passed [Governance #44969903225](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44969903225); PR table sync passed.
+- T02 now has correct P01 branch/PR verification, no invalid-state P00 event misattribution, and phase-scoped blocker-policy unknown/fail-closed observation. P00 `scripts/runner_worker.py` still hardcodes P00-T20 fixture model execution and MUST NOT be promoted to P01 source edits by changing identifiers.
+- **Next agent step:** T02 remaining work: reconcile runner dispatch/CI for the active phase without granting P00 fixture execution authority to P01; add negative tests, run full checks, and only then mark T02 DONE with a green CI run reference. Do not start T03 yet. No actual desktop app, screenshots or user vault implemented.
 
 ## v3.1 agent handoff requirements
 
