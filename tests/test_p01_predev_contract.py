@@ -1,5 +1,4 @@
 """Contract regression for P01-T01's pre-development decision gate."""
-import re
 import unittest
 from pathlib import Path
 
