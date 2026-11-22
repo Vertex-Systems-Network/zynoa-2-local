@@ -1,0 +1,13 @@
+# P01 M17 native-only security foundation
+
+**Current evidence status:** code under review; Windows tests must pass before this can be accepted. No production release or signed installer exists.
+
+**Native authorization boundary:** the default `NativeAccessBroker` holds no grants. The local main Tauri window can obtain only `workspace.status`, a non-mutating and non-persisted status result. Privileged file reads/writes, outbound network and secret operations are never automatically granted. Revocation removes a grant immediately; the frontend cannot assert a native window label or create grants. Tauri's AppManifest explicitly permits just `workspace_handshake`. Remote windows and unregistered commands remain denied.
+
+**Native secrets:** Windows-only `WindowsCredentialVault` stores application-scoped entries in **Windows Credential Manager** under the logged-on Windows user's security context, not app files or JavaScript storage. Values are represented internally by `SensitiveText` using `zeroize::Zeroizing<String>`; no WebView secret commands or serialization are implemented. Account slots are bounded ASCII identifiers and values are bounded UTF-8. The backend maps errors to stable sanitized types without logging slot, secret or platform response. The security context is per user account, **not** protection against a hostile process executing as that same user; OS store protections are not a substitute for a trusted endpoint.
+
+**Windows acceptance:** `cargo test --lib --release` exercises default denial, per-window authorization, revoke/replay, invalid slot/value refusal, actual native Windows credential save/read/delete with a disposable unique fixture namespace, and no user data. Non-Windows use of this Windows-only vault is deliberately unavailable; no mock success is claimed as a Windows system keychain result. The Windows runner also checks the IPC capability manifest and a real unsigned executable boot.
+
+**Signing and future policy:** the app is **NOT production-signed**; no private signing identity has been provisioned or used. Authenticode/installer identity verification is a separate P01 exit/release gate, **not** implied by manifest permissions. User-facing grant approvals/revocation UI, external filesystem path canon, consent telemetry, secure schema migrations and production account onboarding are pending their respective module evidence. Until those exist, the native store is inaccessible from frontend and not a credential-management feature.
+
+References: [Microsoft handling passwords](https://learn.microsoft.com/en-us/windows/win32/SecBP/handling-passwords); [keyring 3.6.3 native store](https://docs.rs/keyring/3.6.3/keyring/); [Tauri capabilities](https://v2.tauri.app/security/capabilities/).
