@@ -72,7 +72,7 @@ Start-Sleep -Milliseconds 800
 # GetWindowRect includes invisible DWM resize margins. Never capture desktop
 # pixels through those margins or pretend cropping a browser preview is proof.
 $visibleBounds = [ZynoaScreenWin32+Rect]::new()
-$sizeOfRect = [System.Runtime.InteropServices.Marshal]::SizeOf([ZynoaScreenWin32+Rect])
+$sizeOfRect = [System.Runtime.InteropServices.Marshal]::SizeOf($visibleBounds)
 $dwmStatus = [ZynoaScreenWin32]::DwmGetWindowAttribute(
     $hwnd, 9, [ref]$visibleBounds, $sizeOfRect)
 if ($dwmStatus -ne 0) {

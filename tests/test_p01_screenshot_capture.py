@@ -15,6 +15,8 @@ class NativeScreenshotCaptureContracts(unittest.TestCase):
                        "GetWindowRect($hwnd", "CopyFromScreen(", "SetForegroundWindow",
                        "ZYN-SCREEN-002", "ZYN-SCREEN-007", "refuse replacing existing image"):
             self.assertIn(marker, self.script)
+        self.assertIn('SizeOf($visibleBounds)', self.script)
+        self.assertNotIn('SizeOf([ZynoaScreenWin32+Rect])', self.script)
         self.assertNotIn("capture_verified = $true", self.script)
         for marker in ("DwmGetWindowAttribute(", "DWMWA_EXTENDED_FRAME_BOUNDS",
                        "$visibleBounds", "$bounds = $visibleBounds",

@@ -2,12 +2,11 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10; current ChatGPT session holds T10 lease. Do not merge or enter P02.
-- P01-T01 through T09 DONE, task-specific evidence in PR task board. T10 IN_PROGRESS; T11 TODO.
-- P01-T10 Help/Wiki M01/M16/M17/M18 correctly distinguish verified native foundations from unimplemented controls, all source in phase branch.
-- Actual native screenshot from [Windows #44990093642](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44990093642) was rejected for thin underlying CI desktop strips caused by invisible DWM resize margins; no verified screenshot image committed.
-- **New T10 pending CI:** `scripts/capture_p01_desktop.ps1` now uses `DwmGetWindowAttribute(9)` extended visible frame after the real Tauri window is foregrounded and rejects errors/overlap. Strict image and privacy checks stay enabled. Examine the new artifact visually; only accept and commit image/provenance if genuine clean visible native pixels, no desktop strips and readable controls. No browser/CGI substitute.
-- Source screenshots, Help UI, option capture and Wiki publication are not all complete; T11 signing/merge/release gates remain TODO. Do not claim P01 exit done.
+- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10; current ChatGPT owns T10 lease; no merge/P02.
+- P01-T01 through T09 DONE (native evidence in task board). P01-T10 IN_PROGRESS; M01/M16/M17/M18 Help/Wiki source truthful, full T10 screenshots/Help UI still pending.
+- Real native Windows Tauri screenshot uses DwmGetWindowAttribute extended visible bounds (9) to remove invisible desktop/shadow strips. [Windows #44990920037](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44990920037) passed 32/32 native Rust tests and unsigned build; screenshot step FAILED on PowerShell Marshal.SizeOf called with a type object rather than value.
+- **New fix pending CI:** `Marshal.SizeOf($visibleBounds)` uses actual RECT struct value. Static regression requires value and forbids type call. Native window DWM failure still fails closed; no browser screenshot fallback.
+- **Next:** monitor new Windows runner; if capture succeeds, download image artifact and independently review true native visible UI/frame, metadata hash, privacy and legibility. Keep unreviewed/rejected screenshot out of repo; only then commit real PNG and evidence. Full T10 and T11 exit/signing remain pending.
 
 
 ## v3.1 agent handoff requirements
