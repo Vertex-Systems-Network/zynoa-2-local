@@ -28,9 +28,9 @@ class NativeScreenshotCaptureContracts(unittest.TestCase):
             self.assertIn(marker, self.script)
 
     def test_provenance_with_no_premature_verified_claims(self):
-        for marker in ("source_commit_sha", "sha256", "Get-FileHash",
+        for marker in ("source_commit_sha", "built_commit_sha = $BuiltSha", "sha256", "Get-FileHash",
                        "capture_verified = $false", "candidate_pending_visual_review",
-                       "M01-S01.capture.json", "Disposable CI fixture"):
+                       "M01-S01.capture.json", "Disposable CI fixture", "ZYN-SCREEN-015"):
             self.assertIn(marker, self.script)
 
     def test_windows_ci_invokes_native_capture_while_process_is_alive(self):
@@ -39,6 +39,10 @@ class NativeScreenshotCaptureContracts(unittest.TestCase):
                        "Verify desktop executable cold boot"):
             self.assertIn(marker, self.workflow)
         self.assertIn("Native Windows desktop build (no release or signature)", self.workflow)
+        self.assertEqual(2, self.workflow.count("ref: ${{ github.event.pull_request.head.sha }}"))
+        self.assertIn("scripts/capture_p01_desktop\\.ps1", self.workflow)
+        self.assertIn("ZYN-SCREEN-014", self.workflow)
+        self.assertIn("-BuiltSha $builtSha", self.workflow)
 
 if __name__=="__main__":
     unittest.main()

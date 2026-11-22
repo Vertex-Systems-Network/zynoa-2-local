@@ -2,11 +2,10 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10; current ChatGPT owns T10 lease; no merge/P02.
-- P01-T01 through T09 DONE (native evidence in task board). P01-T10 IN_PROGRESS; M01/M16/M17/M18 Help/Wiki source truthful, full T10 screenshots/Help UI still pending.
-- Real native Windows Tauri screenshot uses DwmGetWindowAttribute extended visible bounds (9) to remove invisible desktop/shadow strips. [Windows #44990920037](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44990920037) passed 32/32 native Rust tests and unsigned build; screenshot step FAILED on PowerShell Marshal.SizeOf called with a type object rather than value.
-- **New fix pending CI:** `Marshal.SizeOf($visibleBounds)` uses actual RECT struct value. Static regression requires value and forbids type call. Native window DWM failure still fails closed; no browser screenshot fallback.
-- **Next:** monitor new Windows runner; if capture succeeds, download image artifact and independently review true native visible UI/frame, metadata hash, privacy and legibility. Keep unreviewed/rejected screenshot out of repo; only then commit real PNG and evidence. Full T10 and T11 exit/signing remain pending.
+- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10; T01-T09 DONE, T10 IN_PROGRESS, T11 TODO. No merge/P02.
+- Native Windows [#44991398718](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44991398718) passed. Its M01-S01 PNG is a CI candidate in [artifact #14742127510](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44991398718/artifacts/14742127510), **not visually accepted or committed**.
+- T10 hardening slice: build from actual PR HEAD, enforce SHA agreement in screenshot metadata, watch capture script in CI path gate, reject Ctrl+non-digit navigation, clarify implemented read-only subset in M01 Help/Wiki/UI.
+- **Next:** inspect fresh native screenshot artifact pixels, correct any frame/privacy/legibility issue, then only commit verified real PNG and evidence. Finish T10 and run all exit gates before T11. PR merge requires owner instruction.
 
 
 ## v3.1 agent handoff requirements

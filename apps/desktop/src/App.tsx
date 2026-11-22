@@ -16,7 +16,7 @@ function Startup({ state, transport }: { state: StartupState; transport: Transpo
     <>
       <p className="eyebrow">DESKTOP FOUNDATION / P01</p>
       <h1>One workspace.<br /><em>Built to last.</em></h1>
-      <p className="lead">A local-first environment for projects and files. This early desktop shell is ready for native services that will be introduced in later foundation steps.</p>
+      <p className="lead">A local-first environment for projects and files. This foundation shell includes a read-only native handshake and app-owned startup storage. Workspace creation and user-facing services are not available yet.</p>
       <div className="hero-grid">
         <section className="panel emphasis" aria-label="Startup status">
           <div className="panel-head">Startup status <span className={state === "starting" ? "dot pending" : "dot healthy"} /></div>
@@ -33,9 +33,9 @@ function Startup({ state, transport }: { state: StartupState; transport: Transpo
       </div>
       <div className="section-top"><h3>Foundation progress</h3><span>Verification stages</span></div>
       <div className="checklist">
-        <div className="check-item"><b>01</b><div><strong>Local desktop shell</strong><small>Bundled React view and Tauri window</small></div><span className="check-info">In verification</span></div>
-        <div className="check-item"><b>02</b><div><strong>Native service transport</strong><small>Typed commands and workspace boundaries</small></div><span className="check-pending">Planned</span></div>
-        <div className="check-item"><b>03</b><div><strong>Durable storage and recovery</strong><small>User-owned vault, backups and diagnostics</small></div><span className="check-pending">Planned</span></div>
+        <div className="check-item"><b>01</b><div><strong>Local desktop shell</strong><small>Bundled React view and Tauri window</small></div><span className="check-info">Native CI tested</span></div>
+        <div className="check-item"><b>02</b><div><strong>Native service transport</strong><small>Typed commands and workspace boundaries</small></div><span className="check-info">Read-only handshake</span></div>
+        <div className="check-item"><b>03</b><div><strong>Durable storage and recovery</strong><small>Native vault and event records; backup/restore not available</small></div><span className="check-pending">Foundation only</span></div>
       </div>
     </>
   );
@@ -48,7 +48,7 @@ function Settings() {
       <p className="lead">Preferences are view-only until the native configuration service has been implemented and tested.</p>
       <div className="setting-row"><div><strong>Interface appearance</strong><p>Theme changes are not available yet.</p></div><select disabled aria-label="Interface appearance" value="dark" onChange={() => undefined}><option value="dark">Dark foundation</option></select></div>
       <div className="setting-row"><div><strong>Application storage</strong><p>Native app-owned locations are registered; user-chosen folders and relocation are not available yet.</p></div><button type="button" disabled>Choose folder</button></div>
-      <div className="notice" role="status">This build does not write settings or user data.</div>
+      <div className="notice" role="status">These controls do not save preferences or create workspace documents. Startup initializes app-owned local metadata.</div>
     </section>
   );
 }
@@ -57,7 +57,7 @@ function Recovery() {
   return (
     <section className="detail" aria-labelledby="recovery-title">
       <p className="eyebrow">DATA / SAFETY</p><h1 id="recovery-title">Recovery<span className="period">.</span></h1>
-      <p className="lead">Your files belong outside the app executable. Backup and restore will remain disabled until a vault and a real restore drill are verified.</p>
+      <p className="lead">The native vault is initialized outside the executable. Backup and restore controls remain disabled until a verified restore drill and user-facing recovery flow exist.</p>
       <div className="panel wide"><div className="panel-head">Recovery center <span className="status-muted">Not configured</span></div><h2>No verified backups</h2><p>A native storage foundation exists, but no workspace data or user-accessible backup inventory is configured. Backup protection is not yet available.</p><button type="button" disabled>Restore from backup</button></div>
     </section>
   );
@@ -103,8 +103,9 @@ export function App() {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (!event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return;
+      if (!/^[1-4]$/.test(event.key)) return;
       const target = Number(event.key) - 1;
-      if (target < 0 || target >= views.length) return;
+      if (target >= views.length) return;
       event.preventDefault();
       setView(views[target].key);
     };

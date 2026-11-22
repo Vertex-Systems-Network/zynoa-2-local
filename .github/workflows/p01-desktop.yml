@@ -13,10 +13,13 @@ jobs:
       desktop: ${{ steps.diff.outputs.desktop }}
     steps:
       - uses: actions/checkout@v6
-        with: { fetch-depth: 2, persist-credentials: false }
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
+          persist-credentials: false
       - id: diff
         run: |
-          if git cat-file -e HEAD^ 2>/dev/null && git diff --name-only HEAD^ HEAD | grep -qE '^(apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|tests/test_p01_locations.py|tests/test_p01_events.py|tests/test_p01_screenshot_capture.py|\.github/workflows/p01-desktop.yml)'; then
+          if git cat-file -e HEAD^ 2>/dev/null && git diff --name-only HEAD^ HEAD | grep -qE '^(scripts/capture_p01_desktop\.ps1|apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|tests/test_p01_locations.py|tests/test_p01_events.py|tests/test_p01_screenshot_capture.py|\.github/workflows/p01-desktop.yml)'; then
             echo "desktop=true" >> "$GITHUB_OUTPUT"
           else
             echo "desktop=false" >> "$GITHUB_OUTPUT"
@@ -28,7 +31,9 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
-        with: { persist-credentials: false }
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with: { node-version: '22' }
       - name: Desktop shell and IPC safety contracts
@@ -56,6 +61,10 @@ jobs:
         run: |
           $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
           if (-not (Test-Path -LiteralPath $exe)) { throw 'Desktop binary not built' }
+          $builtSha = (& git -C $env:GITHUB_WORKSPACE rev-parse HEAD).Trim().ToLowerInvariant()
+          if ($builtSha -ne $env:ZYNOA_HEAD_SHA.ToLowerInvariant()) {
+            throw 'ZYN-SCREEN-014: checked-out built commit does not match PR source SHA'
+          }
           $process = Start-Process -FilePath $exe -PassThru
           try {
             # Process existence alone is not native initialization readiness.
@@ -81,7 +90,7 @@ jobs:
                 (Test-Path -LiteralPath $registry))
             }
             Write-Output 'Native startup foundations exist; WebView/window visibility still needs independent verification'
-            & (Join-Path $env:GITHUB_WORKSPACE 'scripts\capture_p01_desktop.ps1') -TargetPid $process.Id -OutputDirectory (Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\M01') -SourceSha $env:ZYNOA_HEAD_SHA
+            & (Join-Path $env:GITHUB_WORKSPACE 'scripts\capture_p01_desktop.ps1') -TargetPid $process.Id -OutputDirectory (Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\M01') -SourceSha $env:ZYNOA_HEAD_SHA -BuiltSha $builtSha
           } finally {
             $process.Refresh()
             if (-not $process.HasExited) { Stop-Process -Id $process.Id -Force }

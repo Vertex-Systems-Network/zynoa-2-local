@@ -51,6 +51,10 @@ class DesktopShellContractTests(unittest.TestCase):
             self.assertIn(marker, frontend)
         self.assertIn('"__TAURI_INTERNALS__" in window', frontend)
         self.assertIn('role="status"', frontend)
+        # Ctrl+Home and other non-numeric keys must never index views[NaN].
+        guard = "if (!/^[1-4]$/.test(event.key)) return;"
+        self.assertIn(guard, frontend)
+        self.assertLess(frontend.index(guard), frontend.index("const target = Number(event.key) - 1;"))
 
     def test_windows_build_gated_read_only_and_no_release(self):
         wf = (ROOT / ".github/workflows/p01-desktop.yml").read_text(encoding="utf-8")
