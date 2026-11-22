@@ -16,7 +16,7 @@ jobs:
         with: { fetch-depth: 2, persist-credentials: false }
       - id: diff
         run: |
-          if git cat-file -e HEAD^ 2>/dev/null && git diff --name-only HEAD^ HEAD | grep -qE '^(apps/desktop/|tests/test_p01_desktop_shell.py|\.github/workflows/p01-desktop.yml)'; then
+          if git cat-file -e HEAD^ 2>/dev/null && git diff --name-only HEAD^ HEAD | grep -qE '^(apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|\.github/workflows/p01-desktop.yml)'; then
             echo "desktop=true" >> "$GITHUB_OUTPUT"
           else
             echo "desktop=false" >> "$GITHUB_OUTPUT"
@@ -31,8 +31,8 @@ jobs:
         with: { persist-credentials: false }
       - uses: actions/setup-node@v4
         with: { node-version: '22' }
-      - name: Desktop shell safety contract
-        run: python -m unittest tests.test_p01_desktop_shell -v
+      - name: Desktop shell and IPC safety contracts
+        run: python -m unittest tests.test_p01_desktop_shell tests.test_p01_ipc_contract -v
       - name: Resolve pinned dependency inventory and install
         working-directory: apps/desktop
         run: |
