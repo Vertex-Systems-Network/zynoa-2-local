@@ -18,7 +18,10 @@ REPO = "Vertex-Systems-Network/zynoa-2-local"
 
 
 def fixture():
-    return load_manifest(MANIFEST)
+    # Live manifest can be fully DONE; keep one unfinished task so state tests stay meaningful.
+    m = load_manifest(MANIFEST)
+    next(t for t in m["tasks"] if t["id"] == "P00-T24")["status"] = "BLOCKED"
+    return m
 
 
 class TaskBoardTests(unittest.TestCase):

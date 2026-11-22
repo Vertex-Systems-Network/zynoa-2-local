@@ -86,16 +86,16 @@ jobs:
           PY
       - name: Durable development queue smoke (read-only)
         run: |
-          python -m tools.dev_job_runner --smoke --repo-root . --db "$RUNNER_TEMP/zynoa-job-smoke.db"
+          python -m tools.dev_job_runner --smoke --repo-root . --state tests/fixtures/p00_active_root/docs/state/PHASE.json --db "$RUNNER_TEMP/zynoa-job-smoke.db"
       - name: Trusted disposable worktree and file-scope regression
         run: python -m unittest tests.test_workspace_policy -v
       - name: Disposable host storage backup and restore smoke (no service installed)
         env:
           ZYNOA_HOST_INIT_ALLOWED: '1'
         run: |
-          python -m tools.host_bootstrap --repo-root "$GITHUB_WORKSPACE" --host-root "$RUNNER_TEMP/zynoa-host-fixture" initialize
-          python -m tools.host_bootstrap --repo-root "$GITHUB_WORKSPACE" --host-root "$RUNNER_TEMP/zynoa-host-fixture" inspect
-          python -m tools.host_bootstrap --repo-root "$GITHUB_WORKSPACE" --host-root "$RUNNER_TEMP/zynoa-host-fixture" backup
+          python -m tools.host_bootstrap --repo-root "$GITHUB_WORKSPACE/tests/fixtures/p00_active_root" --host-root "$RUNNER_TEMP/zynoa-host-fixture" initialize
+          python -m tools.host_bootstrap --repo-root "$GITHUB_WORKSPACE/tests/fixtures/p00_active_root" --host-root "$RUNNER_TEMP/zynoa-host-fixture" inspect
+          python -m tools.host_bootstrap --repo-root "$GITHUB_WORKSPACE/tests/fixtures/p00_active_root" --host-root "$RUNNER_TEMP/zynoa-host-fixture" backup
       - name: Incident redaction tests
         run: python -m unittest discover -s tests -v
 
@@ -122,11 +122,12 @@ jobs:
           ZYNOA_HOST_INIT_ALLOWED: '1'
         run: |
           $hostDir = Join-Path $env:RUNNER_TEMP 'zynoa-host-fixture'
-          python -m tools.host_bootstrap --repo-root "$env:GITHUB_WORKSPACE" --host-root "$hostDir" initialize
+          python -m tools.host_bootstrap --repo-root "$env:GITHUB_WORKSPACE\tests\fixtures\p00_active_root" --host-root "$hostDir" initialize
           if ($LASTEXITCODE -ne 0) { throw 'Windows host initialization failed' }
-          python -m tools.host_bootstrap --repo-root "$env:GITHUB_WORKSPACE" --host-root "$hostDir" backup
+          python -m tools.host_bootstrap --repo-root "$env:GITHUB_WORKSPACE\tests\fixtures\p00_active_root" --host-root "$hostDir" backup
           if ($LASTEXITCODE -ne 0) { throw 'Windows host online SQLite backup failed' }
-          $preview = & ./deploy/windows/Install-ZynoaObserverTask.ps1 -RepoRoot $env:GITHUB_WORKSPACE -HostRoot $hostDir
+          $env:PYTHONPATH = $env:GITHUB_WORKSPACE
+          $preview = & ./deploy/windows/Install-ZynoaObserverTask.ps1 -RepoRoot "$env:GITHUB_WORKSPACE\tests\fixtures\p00_active_root" -HostRoot $hostDir
           if (-not (($preview | Out-String) -match 'PREVIEW_ONLY')) { throw 'Windows least-privilege logon preview failed' }
       - name: Windows independent host recovery tests
         run: python -m unittest tests.test_host_bootstrap -v

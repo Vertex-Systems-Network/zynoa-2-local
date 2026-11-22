@@ -479,3 +479,7 @@ Fixes found on the way: false-green worker job (missing pipefail), Ollama server
 ## 2026-11-21 T14/T15/T19 verified
 
 T15: `tools.local_model_probe` preflight passed before inference (https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44962373227). T19: five hostile candidates (network, CPU hang, 1 GiB alloc, fork storm, write /etc) run in the rootless container; none PASSED, none left a container (https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44962373227). T14: `pr-task-board-pr.yml` synced and read back the PR #1 table with a same-repo-only token (https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44962373225). Remaining: T22 (needs listener on main) and T24 (merge).
+
+## 2026-11-21 P00 merged and verified
+
+PR #1 merged to `main` at `f0a1ebbd0d43` (owner-authorized). T22: probe PR #6 (empty CLAUDE.md) failed governance-lint; the main-hosted `Developer CI Incident Publisher` run 44963750468 opened bot Issue #7. T24: merge SHA read back from remote `main`. P00 = 32/32 DONE. Next: P01 on `phase/01-*` only (PHASE_SPECS P01). Cleanup left: remote branches `bot/t22-probe`, `bot/p00-worker-*`, `wpe/fervent-turing-kcbww3` (delete blocked from this session).

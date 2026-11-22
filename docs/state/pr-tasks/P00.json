@@ -135,8 +135,8 @@
     {
       "id": "P00-T22",
       "title": "Verified CI failure to sanitized GitHub Issue delivery",
-      "status": "BLOCKED",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/7"
     },
     {
       "id": "P00-T23",
@@ -147,8 +147,8 @@
     {
       "id": "P00-T24",
       "title": "P00 exit gates and policy-compliant PR merge",
-      "status": "BLOCKED",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/f0a1ebbd0d439b5ef3ffa46cf4447f47e512ce8c"
     },
     {
       "id": "P00-T25",

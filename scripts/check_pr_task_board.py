@@ -25,7 +25,8 @@ def main() -> int:
         ):
             raise TaskBoardError("PR task manifest does not match active phase")
         expected_pr = os.environ.get("ZYNOA_CI_PR_NUMBER", "")
-        if expected_pr:
+        # A verified-merged phase is closed out by a follow-up PR with its own number.
+        if expected_pr and phase.get("phase_status") != "MERGED_VERIFIED":
             if not expected_pr.isascii() or not expected_pr.isdecimal():
                 raise TaskBoardError("CI PR number invalid")
             if manifest["pr_number"] != int(expected_pr):
