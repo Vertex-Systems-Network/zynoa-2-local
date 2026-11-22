@@ -2,10 +2,11 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10, current agent lease held. No merge or P02.
-- T01 DONE (CI 44968928750), T02 DONE (Governance 44971261413; P01 observer 44971261440).
-- **P01-T03 IN_PROGRESS**: implement the minimal native Tauri 2 / React+TS/Vite shell; Windows build, runtime smoke, exact dependency locks and real GUI evidence require CI. No native data, restore, IPC, telemetry or external cloud authority is permitted in the shell.
-- Next: add executable and tests, run Governance and targeted P01 Windows build; only mark DONE with passing evidence. Next tasks T04+ stay TODO.
+- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10. Current worker holds lease. Never merge without owner instruction; no P02.
+- P01-T01 DONE [Gov #44968928750](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44968928750); P01-T02 DONE [Gov #44971261413](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44971261413).
+- **P01-T03 DONE**: native Windows Tauri/Rust executable compiled and the process survived 8-second cold boot; TS/Vite offline frontend and Python safety tests passed [Desktop Foundation #44972395326](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44972395326); full governance [#44972395271](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44972395271) passed. The generated `package-lock.json` and `Cargo.lock` and unsigned EXE are downloadable from that run's build-evidence artifact, but **not checked into Git**. Real interactive window/screenshot, absent-WebView2 behavior, install signing and desktop E2E remain unverified, tracked for P01 exit/T10/T11.
+- **Next P01-T04 TODO**: typed UI/native IPC for M01/M16 operations only. Read M16 dossier, design a small Rust+TypeScript typed transport and tests-first; deny arbitrary commands, paths, replay, oversized payload and untrusted window. Do not change M16 module meaning.
+- Data vault, durable events and real native security policy are still pending. Keep desktop UI buttons disabled until services are proven.
 
 
 ## v3.1 agent handoff requirements

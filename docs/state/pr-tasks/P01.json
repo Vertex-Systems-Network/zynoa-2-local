@@ -21,7 +21,8 @@
     {
       "id": "P01-T03",
       "title": "M01 bootable desktop client shell",
-      "status": "IN_PROGRESS"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44972395326"
     },
     {
       "id": "P01-T04",
