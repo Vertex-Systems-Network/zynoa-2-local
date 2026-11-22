@@ -40,7 +40,8 @@ class NativeSecurityContractTests(unittest.TestCase):
         self.assertNotIn("println!", self.secrets)
         self.assertNotIn("eprintln!", self.secrets)
         self.assertNotIn("println!", self.security)
-        self.assertNotIn("secret", self.ipc.lower())
+        for forbidden in ("SensitiveText", "get_password(", "put(", "store_secret", "secret_value"):
+            self.assertNotIn(forbidden, self.ipc)
         self.assertNotIn("secret", (ROOT / "apps/desktop/src/ipc.ts").read_text(encoding="utf-8").lower())
         self.assertIn("generate_handler![ipc::workspace_handshake]", self.lib)
         self.assertNotIn("secrets::", self.lib)

@@ -2,10 +2,10 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- Active P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10, lease claimed. Never merge without owner permission; no P02.
-- T01-T04 DONE, latest T04 [Windows/Rust CI #44973070953](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44973070953) and [Gov #44973070945](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44973070945) green. Read-only typed workspace.status IPC only.
-- **P01-T05 IN_PROGRESS**: add native deny-first M17 capability broker with revoke; Windows Credential Manager keychain adapter behind Rust-only interface; secrets never returned through IPC, plain-text files or debug logs. Rust and Windows tests including keychain fixture roundtrip are acceptance gates; no production signing attestation or installer credential exists.
-- Next: verify native Windows security tests and full Governance; if green, record task evidence and continue to T06. No P01 data vault or user-visible secret-management UI yet.
+- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10; lease held by current worker. No merge/P02.
+- T01-T04 DONE with passing CI evidence in P01 board; T04 Windows/Rust #44973070953.
+- **P01-T05 IN_PROGRESS**: M17 Rust native-only Windows Credential Manager adapter (`keyring` 3.6.3), Zeroizing sensitive value, bounded slots/values, sanitized errors and deny-first local capability broker; only main-window read-only workspace.status is accessible over IPC, with revocation tests. Rust CI on real Windows must prove actual credential write/read/delete fixture and blocked scopes. Build/UX signing and release trust **not proven**; no webview credential APIs. Security runbook `docs/operations/P01_NATIVE_SECURITY.md`.
+- Next: verify Governance and Windows P01 Desktop Foundation for latest T05 SHA; inspect failures and fix root. Mark T05 DONE only for verified native foundation, document production signing and full user-grant UI as exit gates; T06 diagnostics thereafter.
 
 
 ## v3.1 agent handoff requirements
