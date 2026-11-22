@@ -31,7 +31,7 @@ jobs:
           import os
           from pathlib import Path
           import subprocess
-          from tools.phase_controller import runner_job_plan
+          from tools.phase_controller import runner_job_plan, PhasePolicyError, validate_snapshot
 
           event = os.environ["GITHUB_EVENT_NAME"]
           branch = os.environ.get("GITHUB_HEAD_REF") or os.environ.get("GITHUB_REF_NAME", "")
@@ -48,10 +48,27 @@ jobs:
                                        capture_output=True, check=True).stdout
               files = [s.decode("utf-8") for s in changed.split(b"\0") if s]
           state = json.loads(Path("docs/state/PHASE.json").read_text(encoding="utf-8"))
-          plan = runner_job_plan(
-              state, files, event=event, head_branch=branch,
-              pr_number=int(pr) if pr and pr.isdecimal() else None,
-          )
+          # Closeout PRs propose a verified snapshot but must NEVER gain
+          # worker/model or observer authority. Only the dedicated, correctly
+          # phase-scoped postmerge closeout ref may report both jobs disabled.
+          if state.get("phase_status") == "MERGED_VERIFIED":
+              closeout_ok = (
+                  not validate_snapshot(state)
+                  and event == "pull_request"
+                  and branch == f"phase/{state['phase'][1:].lower()}-closeout"
+                  and pr.isdecimal()
+                  and int(pr) != state.get("primary_pr")
+                  and state.get("lease_holder") is None
+                  and state.get("worker_running") is False
+              )
+              if not closeout_ok:
+                  raise PhasePolicyError("untrusted verified-phase runner event")
+              plan = {"p00_fixture": False, "phase_observer": False}
+          else:
+              plan = runner_job_plan(
+                  state, files, event=event, head_branch=branch,
+                  pr_number=int(pr) if pr and pr.isdecimal() else None,
+              )
           for name, enabled in plan.items():
               print(f"{name}={'true' if enabled else 'false'}")
           PY

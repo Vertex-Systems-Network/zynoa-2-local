@@ -239,6 +239,16 @@ class PhaseControllerPolicyTests(unittest.TestCase):
                 runner_job_plan(state, bad, event="pull_request",
                                 head_branch="phase/01-foundation", pr_number=10)
 
+    def test_verified_closeout_workflow_disables_workers_only_on_exact_ref(self):
+        content = (ROOT / ".github/workflows/p00-runner-worker.yml").read_text(
+            encoding="utf-8")
+        self.assertIn('state.get("phase_status") == "MERGED_VERIFIED"', content)
+        self.assertIn('branch == f"phase/{state[\'phase\'][1:].lower()}-closeout"', content)
+        self.assertIn('and state.get("lease_holder") is None', content)
+        self.assertIn('and state.get("worker_running") is False', content)
+        self.assertIn('plan = {"p00_fixture": False, "phase_observer": False}', content)
+        self.assertIn('raise PhasePolicyError("untrusted verified-phase runner event")', content)
+
     def test_runner_workflow_never_executes_p00_fixture_for_p01(self):
         content = (ROOT / ".github/workflows/p00-runner-worker.yml").read_text(
             encoding="utf-8"
