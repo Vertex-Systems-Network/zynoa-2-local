@@ -1,0 +1,12 @@
+# P02 — First working M02/M19 desktop UI slice
+
+**Status:** implementation proposed in Draft PR #12; **all CI and native screenshot outcomes pending** on this first source commit.
+
+- Repo/branch: `Vertex-Systems-Network/zynoa-2-local` / `phase/02-shared-ui`; trusted prior P01 closeout protected main `f24c72eff1c4fec03a6687575ea19e9593b57a2c`, P01 11/11 verified.
+- Modules: M02 shared design system/workbench, M19 offline help. Existing P01 native read-only `workspace_handshake`, user data vault, restrictions and CSP must not change.
+- M02 implementation paths: `src/ui/theme.ts`, `src/ui/commands.ts`, `src/ui/CommandPalette.tsx`, `src/ui/Workbench.tsx`, `src/App.tsx`, `src/styles.css`. Provides theme/density from state (not persisted), semantic dark/light tokens, command search/keyboard, workbench tab roles and split slider, gallery interactive state examples and disabled non-backed controls.
+- M19 implementation paths: `src/ui/help-catalog.ts`, `src/ui/HelpCenter.tsx`. Seven bundled curated help articles, search/category ranking, related navigation, glossary, FAQ, native/offline troubleshooting; intentionally no fetch, HTML injection, data upload, remote wiki write or reporting action.
+- Tests: `apps/desktop/tests/ui-logic.test.mjs` pure TypeScript semantic search/token tests, `tests/test_p02_ui_contract.py` source/IPC/a11y tests, existing P01 regression suite, Windows native Tauri build. P02 native candidates will be captured via the existing SHA-pinned `scripts/capture_p01_desktop.ps1`, invoked by read-only `p01-desktop.yml` only for `phase/02-shared-ui`. New screenshots `M02-S03`, `M02-S05`, `M02-S06`, `M02-S04`, `M19-S01` are **candidate_pending_visual_review** with `capture_verified=false`. Additional M02/M19 option/state screenshots remain pending.
+- T01 research: [ADR-0026](../adr/0026-p02-shared-ui-help-predev.md), official VS Code command palette, WAI-ARIA keyboard/focus, Figma and Penpot token systems. Alternative UI framework dependency rejected for no-supply-chain source slice.
+- Rollback: revert these P02-only source/CI/docs files; no user data or native capabilities changed. No P03 or release.
+- **Open risks and TODO:** native Windows compile may find TypeScript errors; actual visuals/keyboard automation must be inspected, preferences are not persisted, native Wiki external-link launch and issue feedback are not available, Help source mapping and full screenshot acceptance remain. Do not mark M02/M19 final based on this stage.

@@ -1,0 +1,45 @@
+{
+  "change_id": "CHG-P02-M19-OFFLINE-HELP-20261123",
+  "module_id": "M19",
+  "kind": "feature",
+  "title": "Bundled offline Help Center and local article search",
+  "summary": "Source implementation of M19 curated bundled help index, deterministic local search, FAQ/glossary and accessible article reader; no server, wiki write or telemetry. Native visuals pending.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12",
+  "docs_paths": [
+    "docs/adr/0026-p02-shared-ui-help-predev.md",
+    "docs/evidence/P02_T02_FIRST_REAL_UI_SLICE.md",
+    "docs/modules/M19.md",
+    "docs/state/HANDOFF.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M19.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M19.md"
+  ],
+  "test_evidence": [],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No native user-storage schema change or migrated data. UI session state only; offline help bundled from curated static source.",
+  "created_at": "2026-11-22T20:49:36.088Z",
+  "updated_at": "2026-11-22T20:49:36.088Z",
+  "version_bump": "none",
+  "affected_option_ids": [
+    "M19-OPT-01",
+    "M19-OPT-02",
+    "M19-OPT-04",
+    "M19-OPT-05",
+    "M19-OPT-08"
+  ],
+  "docs_impact": true,
+  "data_migration": false
+}

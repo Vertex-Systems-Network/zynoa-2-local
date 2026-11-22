@@ -1,0 +1,116 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { appCommands, findCommands, type AppView } from "./commands";
+
+type Props = { open: boolean; onClose: () => void; onNavigate: (view: AppView) => void };
+
+export function CommandPalette({ open, onClose, onNavigate }: Props) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState(0);
+  const matches = useMemo(() => findCommands(query), [query]);
+
+  useEffect(() => {
+    if (!open) return;
+    returnFocusRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const frame = window.requestAnimationFrame(() => inputRef.current?.focus());
+    return () => {
+      window.cancelAnimationFrame(frame);
+      returnFocusRef.current?.focus({ preventScroll: true });
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) {
+      setQuery("");
+      setSelected(0);
+    }
+  }, [open]);
+
+  if (!open) return null;
+  const execute = (view: AppView) => { onNavigate(view); onClose(); };
+
+  const onDialogKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      onClose();
+      return;
+    }
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      const direction = event.key === "ArrowDown" ? 1 : -1;
+      setSelected(current =>
+        matches.length ? (current + direction + matches.length) % matches.length : 0
+      );
+      inputRef.current?.focus();
+      return;
+    }
+    if (event.key === "Enter" && matches.length && event.target === inputRef.current) {
+      event.preventDefault();
+      execute(matches[Math.min(selected, matches.length - 1)].view);
+      return;
+    }
+    if (event.key === "Tab" && dialogRef.current) {
+      const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(
+        "button:not([disabled]),input:not([disabled])"
+      ));
+      if (!focusable.length) return;
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+  };
+
+  return (
+    <div className="palette-backdrop" onMouseDown={event => {
+      if (event.target === event.currentTarget) onClose();
+    }}>
+      <div className="command-dialog" ref={dialogRef} role="dialog" aria-modal="true"
+        aria-labelledby="command-title" onKeyDown={onDialogKey}>
+        <div className="command-dialog-header">
+          <div><p className="eyebrow">QUICK ACTIONS</p><h2 id="command-title">Command palette</h2></div>
+          <button className="icon-button close-command" type="button" onClick={onClose}
+            aria-label="Close command palette">×</button>
+        </div>
+        <label className="search-control" htmlFor="command-query">
+          <span aria-hidden="true">⌕</span>
+          <input id="command-query" ref={inputRef} value={query} maxLength={100}
+            onChange={event => { setQuery(event.target.value); setSelected(0); }}
+            autoComplete="off" spellCheck={false}
+            aria-label="Search available commands"
+            aria-controls="command-results" placeholder="Search views, help, settings…" />
+          <kbd>ESC</kbd>
+        </label>
+        <div className="command-results" id="command-results" role="listbox"
+          aria-label="Available navigation commands">
+          {matches.length ? matches.map((command, index) =>
+            <button key={command.id} type="button"
+              id={"command-" + command.id}
+              role="option" aria-selected={selected === index}
+              className={"command-result " + (selected === index ? "active" : "")}
+              onMouseEnter={() => setSelected(index)}
+              onClick={() => execute(command.view)}>
+              <span className="command-glyph" aria-hidden="true">{command.symbol}</span>
+              <span><strong>{command.title}</strong><small>{command.description}</small></span>
+              <kbd>{command.keys}</kbd>
+            </button>
+          ) : <div className="empty-state" role="status">
+            <strong>No matching commands</strong><p>Try “help”, “workbench” or “preferences”.</p>
+          </div>}
+        </div>
+        <footer className="command-dialog-foot">
+          <span>↑ ↓ navigate</span><span>↵ open</span><span>Esc close</span>
+          <span className="command-count">{matches.length} / {appCommands.length} commands</span>
+        </footer>
+      </div>
+    </div>
+  );
+}

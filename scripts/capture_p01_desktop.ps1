@@ -200,3 +200,19 @@ Save-NativeFollowup -ScreenshotId 'P01-Settings-preview' -Shortcut '^{2}' -Scree
 Save-NativeFollowup -ScreenshotId 'P01-Recovery-preview' -Shortcut '^{3}' -ScreenTitle 'Recovery (no verified backups)' -Description 'Zynoa native Recovery foundation screen with disabled restore action'
 Save-NativeFollowup -ScreenshotId 'P01-Diagnostics-preview' -Shortcut '^{4}' -ScreenTitle 'Diagnostics (capability summary)' -Description 'Zynoa native Diagnostics read-only summary with remote reporting disabled'
 
+
+# P02 native screenshot candidates: source/build SHA remains bound to the
+# same verified real Tauri executable. No browser mock, synthetic screenshot,
+# or "capture_verified=true" claim. These artifacts require visual review.
+if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
+    $m02Output = Join-Path (Split-Path -Parent $OutputDirectory) 'M02'
+    $m19Output = Join-Path (Split-Path -Parent $OutputDirectory) 'M19'
+    New-Item -ItemType Directory -Force -Path $m02Output, $m19Output | Out-Null
+    $OutputDirectory = $m02Output
+    Save-NativeFollowup -ScreenshotId 'M02-S03' -Shortcut '^{5}' -ScreenTitle 'P02 native workbench panels' -Description 'Native Windows Zynoa workbench, runtime state and keyboard-accessible tabs'
+    Save-NativeFollowup -ScreenshotId 'M02-S05' -Shortcut '^{6}' -ScreenTitle 'P02 native component gallery' -Description 'Real Tauri component gallery with semantic token swatches, state chips and interactive input'
+    Save-NativeFollowup -ScreenshotId 'M02-S06' -Shortcut '^{2}' -ScreenTitle 'P02 native appearance settings' -Description 'Session-only theme and density selectors with unavailable native relocation labelled'
+    Save-NativeFollowup -ScreenshotId 'M02-S04' -Shortcut '^+p' -ScreenTitle 'P02 native command palette' -Description 'Native modal command palette with focusable search and allowlisted navigation commands'
+    $OutputDirectory = $m19Output
+    Save-NativeFollowup -ScreenshotId 'M19-S01' -Shortcut '{ESC}{F1}' -ScreenTitle 'P02 native offline Help Center' -Description 'Bundled offline Help Center article library and searchable local help interface'
+}

@@ -1,14 +1,22 @@
 import { useEffect, useState } from "react";
 import { probeWorkspaceStatus } from "./ipc";
+import { CommandPalette } from "./ui/CommandPalette";
+import { Workbench, ComponentGallery } from "./ui/Workbench";
+import { HelpCenter } from "./ui/HelpCenter";
+import { effectiveTheme, densityOptions, isDensity, isTheme, themeOptions, type ThemePreference, type DensityPreference } from "./ui/theme";
+import type { AppView } from "./ui/commands";
 
-type View = "startup" | "settings" | "recovery" | "diagnostics";
+type View = AppView;
 type StartupState = "starting" | "desktop" | "browser";
 type TransportState = "pending" | "connected" | "unavailable" | "preview";
-const views: { key: View; title: string; shortcut: string; icon: string }[] = [
-  { key: "startup", title: "Overview", shortcut: "1", icon: "⌂" },
-  { key: "settings", title: "Settings", shortcut: "2", icon: "⚙" },
-  { key: "recovery", title: "Recovery", shortcut: "3", icon: "↺" },
-  { key: "diagnostics", title: "Diagnostics", shortcut: "4", icon: "◎" },
+const views: { key: View; title: string; shortcut: string; icon: string; section: string }[] = [
+  { key: "startup", title: "Overview", shortcut: "1", icon: "⌂", section: "WORKSPACE" },
+  { key: "workbench", title: "Workbench", shortcut: "5", icon: "▣", section: "WORKSPACE" },
+  { key: "gallery", title: "Components", shortcut: "6", icon: "◫", section: "EXPLORE" },
+  { key: "help", title: "Help Center", shortcut: "F1", icon: "?", section: "EXPLORE" },
+  { key: "settings", title: "Preferences", shortcut: "2", icon: "⚙", section: "SYSTEM" },
+  { key: "recovery", title: "Recovery", shortcut: "3", icon: "↺", section: "SYSTEM" },
+  { key: "diagnostics", title: "Diagnostics", shortcut: "4", icon: "◎", section: "SYSTEM" },
 ];
 
 function Startup({ state, transport }: { state: StartupState; transport: TransportState }) {
@@ -41,14 +49,38 @@ function Startup({ state, transport }: { state: StartupState; transport: Transpo
   );
 }
 
-function Settings() {
+function Settings({ theme, onTheme, density, onDensity, onHelp }: {
+  theme: ThemePreference; onTheme: (next: ThemePreference) => void;
+  density: DensityPreference; onDensity: (next: DensityPreference) => void;
+  onHelp: () => void;
+}) {
   return (
-    <section className="detail" aria-labelledby="settings-title">
-      <p className="eyebrow">PREFERENCES / RESTRICTED</p><h1 id="settings-title">Settings<span className="period">.</span></h1>
-      <p className="lead">Preferences are view-only until the native configuration service has been implemented and tested.</p>
-      <div className="setting-row"><div><strong>Interface appearance</strong><p>Theme changes are not available yet.</p></div><select disabled aria-label="Interface appearance" value="dark" onChange={() => undefined}><option value="dark">Dark foundation</option></select></div>
-      <div className="setting-row"><div><strong>Application storage</strong><p>Native app-owned locations are registered; user-chosen folders and relocation are not available yet.</p></div><button type="button" disabled>Choose folder</button></div>
-      <div className="notice" role="status">These controls do not save preferences or create workspace documents. Startup initializes app-owned local metadata.</div>
+    <section className="detail settings-page" aria-labelledby="settings-title">
+      <p className="eyebrow">M02 / YOUR INTERFACE</p><h1 id="settings-title">Make it <em>your workspace.</em></h1>
+      <p className="lead">Fine-tune your working environment. Appearance and density update this window immediately; they are session-only until a native preferences service is verified.</p>
+      <div className="settings-intro"><div className="settings-symbol" aria-hidden="true">◐</div>
+        <div><strong>Interface appearance</strong><p>Choose a comfortable environment for focus and readability.</p></div>
+        <span className="soft-chip">SESSION ONLY</span>
+      </div>
+      <div className="setting-row"><div><strong>Appearance</strong><p>Follow Windows colors or choose a fixed palette.</p></div>
+        <select aria-label="Interface appearance" value={theme} onChange={event => {
+          if (isTheme(event.target.value)) onTheme(event.target.value);
+        }}>
+          {themeOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+        </select>
+      </div>
+      <div className="setting-row"><div><strong>Navigation density</strong><p>Comfortable spacing or compact lists for faster scanning.</p></div>
+        <select aria-label="Navigation density" value={density} onChange={event => {
+          if (isDensity(event.target.value)) onDensity(event.target.value);
+        }}>
+          {densityOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+        </select>
+      </div>
+      <div className="setting-row"><div><strong>Native storage</strong><p>Data locations are owned by the native runtime. User-selected relocation remains unavailable.</p></div>
+        <button type="button" disabled>Choose folder</button>
+      </div>
+      <div className="notice" role="status">Changes are not saved to disk or synchronized with any account. A restart returns to the system default.</div>
+      <button type="button" className="text-action" onClick={onHelp}>Appearance & keyboard help ↗</button>
     </section>
   );
 }
@@ -82,6 +114,29 @@ export function App() {
   const [view, setView] = useState<View>("startup");
   const [startup, setStartup] = useState<StartupState>("starting");
   const [transport, setTransport] = useState<TransportState>("pending");
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [theme, setTheme] = useState<ThemePreference>("system");
+  const [density, setDensity] = useState<DensityPreference>("comfortable");
+  const [systemDark, setSystemDark] = useState(true);
+  const [helpTopic, setHelpTopic] = useState("quick-start");
+
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-color-scheme: dark)");
+    setSystemDark(query.matches);
+    const change = (event: MediaQueryListEvent) => setSystemDark(event.matches);
+    query.addEventListener("change", change);
+    return () => query.removeEventListener("change", change);
+  }, []);
+
+  const openContextHelp = () => {
+    const topics: Record<View, string> = {
+      startup: "quick-start", workbench: "commands", gallery: "appearance",
+      help: "quick-start", settings: "appearance", recovery: "privacy",
+      diagnostics: "native-troubleshooting",
+    };
+    setHelpTopic(topics[view]);
+    setView("help");
+  };
   useEffect(() => {
     let disposed = false;
     const nativeHostPresent = "__TAURI_INTERNALS__" in window;
@@ -102,12 +157,41 @@ export function App() {
   }, []);
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      const command = event.ctrlKey && event.shiftKey &&
+        !event.altKey && !event.metaKey && event.key.toLowerCase() === "p";
+      if (command) {
+        event.preventDefault();
+        setPaletteOpen(open => !open);
+        return;
+      }
+      if (event.key === "F1" && !event.altKey && !event.ctrlKey && !event.metaKey) {
+        event.preventDefault();
+        setView(current => {
+          const topics: Record<View, string> = {
+            startup: "quick-start", workbench: "commands", gallery: "appearance",
+            help: "quick-start", settings: "appearance", recovery: "privacy",
+            diagnostics: "native-troubleshooting",
+          };
+          setHelpTopic(topics[current]);
+          return "help";
+        });
+        return;
+      }
+      const element = event.target;
+      if (element instanceof HTMLElement &&
+          element.matches("input,textarea,select,[contenteditable=true]")) return;
       if (!event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return;
+      if (/^[5-6]$/.test(event.key)) {
+        event.preventDefault();
+        setView(event.key === "5" ? "workbench" : "gallery");
+        return;
+      }
       if (!/^[1-4]$/.test(event.key)) return;
       const target = Number(event.key) - 1;
-      if (target >= views.length) return;
+      const legacy: View[] = ["startup", "settings", "recovery", "diagnostics"];
+      if (target >= legacy.length) return;
       event.preventDefault();
-      setView(views[target].key);
+      setView(legacy[target]);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
@@ -123,24 +207,47 @@ export function App() {
   }, [view]);
 
   return (
-    <div className="shell">
+    <div className="shell" data-theme={effectiveTheme(theme, systemDark)} data-density={density}>
       <aside className="sidebar" aria-label="Primary navigation">
         <div className="brand"><span className="brand-symbol" aria-hidden="true">Z</span><span className="brand-word">ZYNOA<small>DESKTOP ENVIRONMENT</small></span></div>
-        <p className="nav-label">WORKSPACE</p>
         <nav aria-label="Application sections">
-          {views.map((page) => (
-            <button key={page.key} className={"nav-link " + (view === page.key ? "selected" : "")} aria-current={view === page.key ? "page" : undefined} type="button" onClick={() => setView(page.key)}>
-              <span className="nav-icon" aria-hidden="true">{page.icon}</span><span>{page.title}</span><kbd>⌃{page.shortcut}</kbd>
-            </button>
-          ))}
+          {["WORKSPACE", "EXPLORE", "SYSTEM"].map(section =>
+            <div className="sidebar-group" key={section}>
+              <p className="nav-label">{section}</p>
+              {views.filter(page => page.section === section).map(page =>
+                <button key={page.key} className={"nav-link " + (view === page.key ? "selected" : "")}
+                  aria-current={view === page.key ? "page" : undefined} type="button"
+                  onClick={() => setView(page.key)}>
+                  <span className="nav-icon" aria-hidden="true">{page.icon}</span>
+                  <span>{page.title}</span><kbd>{page.shortcut === "F1" ? "F1" : "⌃" + page.shortcut}</kbd>
+                </button>
+              )}
+            </div>
+          )}
         </nav>
-        <div className="sidebar-bottom"><span className="version">FOUNDATION BUILD · 0.1.0</span><div className="offline"><span className="dot healthy" /> Local-first shell</div></div>
+        <div className="sidebar-bottom"><span className="version">SHARED UI / P02 · 0.1.0</span><div className="offline"><span className="dot healthy" /> Local-first interface</div></div>
       </aside>
       <main id="main-content" tabIndex={-1}>
-        <header className="topbar"><div className="crumb">Zynoa <span>/</span> <strong>{views.find((page) => page.key === view)?.title}</strong></div><div className="top-actions"><span>PHASE 01</span><span className="avatar" aria-label="Profile not yet configured">Z</span></div></header>
-        <div className="content">{view === "startup" ? <Startup state={startup} transport={transport} /> : view === "settings" ? <Settings /> : view === "recovery" ? <Recovery /> : <Diagnostics transport={transport} />}</div>
-        <footer className="footer"><span>Local desktop foundation</span><span>Native services require verification · <strong>No workspace data stored</strong></span></footer>
+        <header className="topbar">
+          <div className="crumb">Zynoa <span>/</span> <strong>{views.find(page => page.key === view)?.title}</strong></div>
+          <div className="top-actions">
+            <button className="top-command" type="button" onClick={() => setPaletteOpen(true)}
+              aria-haspopup="dialog" aria-keyshortcuts="Control+Shift+P">⌕ <span>Search or run a command</span> <kbd>Ctrl ⇧ P</kbd></button>
+            <button className="top-help" type="button" onClick={openContextHelp} aria-label="Open contextual help (F1)">?</button>
+            <span className="avatar" aria-label="Profile not yet configured">Z</span>
+          </div>
+        </header>
+        <div className="content">
+          {view === "startup" ? <Startup state={startup} transport={transport} /> :
+            view === "workbench" ? <Workbench transport={transport} onNavigate={setView} /> :
+            view === "gallery" ? <ComponentGallery /> :
+            view === "help" ? <HelpCenter contextArticle={helpTopic} /> :
+            view === "settings" ? <Settings theme={theme} onTheme={setTheme} density={density} onDensity={setDensity} onHelp={openContextHelp} /> :
+            view === "recovery" ? <Recovery /> : <Diagnostics transport={transport} />}
+        </div>
+        <footer className="footer"><span>Local-first shared interface · P02</span><span>Native services require verification · <strong>No workspace data stored</strong></span></footer>
       </main>
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} onNavigate={setView} />
     </div>
   );
 }

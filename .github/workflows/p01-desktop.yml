@@ -38,7 +38,7 @@ jobs:
           fi
   desktop-windows:
     needs: changes
-    if: needs.changes.outputs.desktop == 'true' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'phase/01-foundation'
+    if: needs.changes.outputs.desktop == 'true' && github.event.pull_request.head.repo.full_name == github.repository && (github.event.pull_request.head.ref == 'phase/01-foundation' || github.event.pull_request.head.ref == 'phase/02-shared-ui')
     runs-on: windows-latest
     timeout-minutes: 45
     steps:
@@ -69,6 +69,7 @@ jobs:
         working-directory: apps/desktop
         run: |
           npm run check
+          npm run test:ui
           npm run build
       - name: Native IPC validation tests (no user data)
         working-directory: apps/desktop/src-tauri
@@ -80,6 +81,7 @@ jobs:
         shell: pwsh
         env:
           ZYNOA_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          ZYNOA_CAPTURE_P02: ${{ github.event.pull_request.head.ref == 'phase/02-shared-ui' && '1' || '0' }}
         run: |
           $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
           if (-not (Test-Path -LiteralPath $exe)) { throw 'Desktop binary not built' }
@@ -212,4 +214,8 @@ jobs:
             docs/screenshots/M01/M01-S01.capture.json
             docs/screenshots/M01/*.png
             docs/screenshots/M01/*.capture.json
+            docs/screenshots/M02/*.png
+            docs/screenshots/M02/*.capture.json
+            docs/screenshots/M19/*.png
+            docs/screenshots/M19/*.capture.json
           if-no-files-found: warn
