@@ -102,6 +102,36 @@ class ObserverTests(unittest.TestCase):
             self.assertFalse(first["transition_ready"])
             self.assertEqual(2, gateway.calls)
 
+    def test_p01_observer_uses_active_phase_and_pr(self):
+        class P01Gateway(StubGateway):
+            def observe(self, state):
+                observation = super().observe(state)
+                observation["head_branch"] = "phase/01-foundation"
+                observation["pr_number"] = 10
+                observation["blocker_issue_numbers"] = []
+                return observation
+
+        with tempfile.TemporaryDirectory() as d:
+            worker, journal = self.make_worker(Path(d), P01Gateway())
+            p01 = dict(STATE, phase="P01", active_branch="phase/01-foundation", primary_pr=10)
+            worker.state_file.write_text(json.dumps(p01), encoding="utf-8")
+            observation = worker.run_once()
+            self.assertEqual("P01", observation["phase"])
+            self.assertEqual("phase/01-foundation", observation["branch"])
+            self.assertEqual(10, observation["primary_pr"])
+            self.assertEqual("OBSERVE_ONLY", observation["action"])
+            self.assertFalse(observation["merge_performed"])
+            self.assertEqual(1, journal.count())
+
+    def test_p01_rejects_cross_phase_remote_identity(self):
+        with tempfile.TemporaryDirectory() as d:
+            worker, journal = self.make_worker(Path(d), StubGateway())
+            p01 = dict(STATE, phase="P01", active_branch="phase/01-foundation", primary_pr=10)
+            worker.state_file.write_text(json.dumps(p01), encoding="utf-8")
+            with self.assertRaises(GitHubEvidenceError):
+                worker.run_once()
+            self.assertEqual(0, journal.count())
+
     def test_restart_reuses_event_journal(self):
         with tempfile.TemporaryDirectory() as d:
             directory = Path(d)
@@ -155,6 +185,8 @@ class ObserverTests(unittest.TestCase):
             worker.state_file.write_text('{"phase":"P99"}', encoding="utf-8")
             self.assertEqual(1, worker.run_loop(max_cycles=1))
             self.assertEqual("PhasePolicyError", worker.last_error_class)
+            self.assertEqual(0, worker.observer.journal.count(),
+                             "invalid phase must not be logged as a P00 event")
 
 
 if __name__ == "__main__":

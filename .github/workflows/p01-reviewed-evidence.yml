@@ -1,0 +1,38 @@
+# P01-T10: the only writer for independently reviewed, SHA-pinned native PNG proof.
+# Not a release workflow. Same-repo phase branch only; no unreviewed image is accepted.
+name: P01 Reviewed Native Screenshot Publisher
+on:
+  push:
+    branches: [phase/01-foundation]
+    paths:
+      - docs/screenshots/M01/P01_REVIEW_APPROVAL.json
+permissions:
+  contents: read
+concurrency:
+  group: p01-native-review-publisher-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  publish:
+    if: github.repository == 'Vertex-Systems-Network/zynoa-2-local'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Fetch only approved GitHub-native PNGs and verify every hash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python scripts/publish_p01_native_evidence.py
+      - name: Commit reviewed bytes to the existing phase branch only
+        run: |
+          git add docs/screenshots/M01/*.png docs/screenshots/M01/*.capture.json docs/screenshots/M01/*.review.json
+          if git diff --cached --quiet; then
+            echo 'No new native evidence to commit'; exit 0
+          fi
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'docs(P01-T10): publish visually accepted native Windows screenshots'
+          git push origin HEAD:refs/heads/phase/01-foundation

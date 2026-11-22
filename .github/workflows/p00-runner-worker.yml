@@ -1,5 +1,5 @@
-# P00 AI worker on an ephemeral GitHub-hosted runner. No schedule by design:
-# runs only on PR pushes that touch worker code, or on manual dispatch.
+# Phase-gated runner: P00 model-fixture execution remains isolated from the
+# P01 read-only observer; no schedule or general code-edit permission.
 name: P00 Runner Worker
 on:
   pull_request:
@@ -10,24 +10,75 @@ concurrency:
   group: p00-runner-worker-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  # pull_request `paths:` compares the whole PR, so gate on files changed since the previous push.
+  # The phase state and trusted Actions event jointly select one path.
   changes:
     runs-on: ubuntu-latest
     outputs:
-      run: ${{ steps.diff.outputs.run }}
+      p00_fixture: ${{ steps.diff.outputs.p00_fixture }}
+      phase_observer: ${{ steps.diff.outputs.phase_observer }}
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0, persist-credentials: false }
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
       - id: diff
         env:
           BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
         run: |
-          if [ "${{ github.event_name }}" = workflow_dispatch ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then echo run=true
-          elif git diff --name-only "$BASE" HEAD | grep -qE '^(scripts/runner_worker\.py|\.github/workflows/p00-runner-worker\.yml|tools/dev_fixture_functional_repair_loop\.py|tools/dev_model_planner\.py|tools/local_fixture_drafter\.py|tools/local_model_probe\.py|tools/docker_syntax_broker\.py|tools/docker_fixture_runtime_broker\.py|tools/workspace_policy\.py|tools/fixture_draft_stager\.py)$'; then echo run=true
-          else echo run=false; fi >> "$GITHUB_OUTPUT"
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          import os
+          from pathlib import Path
+          import subprocess
+          from tools.phase_controller import runner_job_plan
+
+          event = os.environ["GITHUB_EVENT_NAME"]
+          branch = os.environ.get("GITHUB_HEAD_REF") or os.environ.get("GITHUB_REF_NAME", "")
+          base = os.environ.get("BASE", "")
+          pr = os.environ.get("PR_NUMBER", "")
+          if event == "workflow_dispatch":
+              files = []
+          elif subprocess.run(["git", "cat-file", "-e", base + "^{commit}"],
+                              capture_output=True).returncode:
+              # Unknown base schedules checks only, not new authority.
+              files = [".github/workflows/p00-runner-worker.yml"]
+          else:
+              changed = subprocess.run(["git", "diff", "--name-only", "-z", base, "HEAD"],
+                                       capture_output=True, check=True).stdout
+              files = [s.decode("utf-8") for s in changed.split(b"\0") if s]
+          state = json.loads(Path("docs/state/PHASE.json").read_text(encoding="utf-8"))
+          plan = runner_job_plan(
+              state, files, event=event, head_branch=branch,
+              pr_number=int(pr) if pr and pr.isdecimal() else None,
+          )
+          for name, enabled in plan.items():
+              print(f"{name}={'true' if enabled else 'false'}")
+          PY
+  # P01 observer has no Docker, Ollama, write token or code-edit grant.
+  phase-observer:
+    needs: changes
+    if: needs.changes.outputs.phase_observer == 'true' && (github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+      actions: read
+      checks: read
+      issues: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: Observe active phase PR/CI (read-only, no merge)
+        env:
+          ZYNOA_GITHUB_TOKEN: ${{ github.token }}
+        run: python -m tools.phase_worker --once --db "$RUNNER_TEMP/zynoa-p01-observation.db"
   worker:
     needs: changes
-    if: needs.changes.outputs.run == 'true'
+    if: needs.changes.outputs.p00_fixture == 'true' && (github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     env:
@@ -76,7 +127,8 @@ jobs:
   # P00-T21: scoped write identity = this run's GITHUB_TOKEN. It may only push a
   # fresh bot/* branch; main stays guarded by ruleset #27593065 (no bypass).
   publish:
-    needs: worker
+    needs: [changes, worker]
+    if: needs.changes.outputs.p00_fixture == 'true' && needs.worker.result == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:

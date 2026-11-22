@@ -1,0 +1,10 @@
+{
+  "identifier": "main-readonly",
+  "description": "Main local window: only the bounded read-only workspace handshake is exposed",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "allow-workspace-handshake"
+  ]
+}

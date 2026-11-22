@@ -36,6 +36,10 @@ def validate_snapshot(state: Mapping[str, Any]) -> list[str]:
             problems.append("active branch must be phase/*")
         if phase == "P08I" and branch != "phase/08i-design-interoperability":
             problems.append("P08I requires the dedicated phase branch")
+        elif phase in PHASE_ORDER and phase != "P08I" and not branch.startswith(
+            f"phase/{phase[1:].lower()}-"
+        ):
+            problems.append("active branch does not match active phase")
     pr = state.get("primary_pr")
     if pr is not None and (type(pr) is not int or pr < 1):
         problems.append("primary_pr must be a positive GitHub PR number")
@@ -46,6 +50,59 @@ def validate_snapshot(state: Mapping[str, Any]) -> list[str]:
     if state.get("worker_running") is True and not state.get("worker_id"):
         problems.append("worker_running requires actual worker identifier")
     return problems
+
+
+
+# The P00 model-fixture runner is NOT an active-phase code-edit worker.
+# P01 may run only the separate read-only observer.
+_P00_FIXTURE_PATHS = frozenset({
+    "scripts/runner_worker.py", ".github/workflows/p00-runner-worker.yml",
+    "tools/dev_fixture_functional_repair_loop.py", "tools/dev_model_planner.py",
+    "tools/local_fixture_drafter.py", "tools/local_model_probe.py",
+    "tools/docker_syntax_broker.py", "tools/docker_fixture_runtime_broker.py",
+    "tools/workspace_policy.py", "tools/fixture_draft_stager.py",
+})
+_P01_OBSERVER_PATHS = frozenset({
+    ".github/workflows/p00-runner-worker.yml",
+    "tools/phase_controller.py", "tools/phase_worker.py",
+    "tools/github_gateway.py", "tests/test_phase_controller.py",
+    "tests/test_phase_worker.py", "tests/test_github_gateway.py",
+})
+
+
+def runner_job_plan(
+    state: Mapping[str, Any], changed_paths: list[str] | tuple[str, ...], *,
+    event: str, head_branch: str, pr_number: int | None = None,
+) -> dict[str, bool]:
+    """Phase/PR-constrained CI scheduling; never grants model or merge authority."""
+    problems = validate_snapshot(state)
+    if problems:
+        raise PhasePolicyError("; ".join(problems))
+    if state.get("phase_status") != "IN_PROGRESS":
+        raise PhasePolicyError("runner requires active in-progress phase")
+    if (not state.get("active_branch") or not state.get("primary_pr")
+            or head_branch != state["active_branch"]):
+        raise PhasePolicyError("runner branch/PR identity mismatch")
+    if event not in ("pull_request", "workflow_dispatch"):
+        raise PhasePolicyError("unsupported runner event")
+    if event == "pull_request" and (
+        type(pr_number) is not int or pr_number != state["primary_pr"]
+    ):
+        raise PhasePolicyError("runner primary PR mismatch")
+    if not isinstance(changed_paths, (tuple, list)) or any(
+        not isinstance(path, str) or not path or "\0" in path
+        for path in changed_paths
+    ):
+        raise PhasePolicyError("runner changed-path list invalid")
+    touched = set(changed_paths)
+    return {
+        "p00_fixture": state["phase"] == "P00" and (
+            event == "workflow_dispatch" or bool(touched & _P00_FIXTURE_PATHS)
+        ),
+        "phase_observer": state["phase"] == "P01" and (
+            event == "workflow_dispatch" or bool(touched & _P01_OBSERVER_PATHS)
+        ),
+    }
 
 
 def next_phase(phase: str) -> str | None:
@@ -73,19 +130,41 @@ def authorize_next_phase(
         raise PhasePolicyError("current phase is not marked MERGED_VERIFIED")
     if not state.get("active_branch") or not state.get("primary_pr"):
         raise PhasePolicyError("cannot advance without a tracked branch and PR")
-    if not evidence.get("authenticated_remote") or not evidence.get("merged") or not evidence.get("checks_passed"):
+    if (evidence.get("authenticated_remote") is not True
+            or evidence.get("merged") is not True
+            or evidence.get("checks_passed") is not True):
         raise PhasePolicyError("GitHub merge/check evidence not verified")
     if evidence.get("head_branch") != state["active_branch"]:
         raise PhasePolicyError("GitHub branch mismatch")
-    if evidence.get("pr_number") != state["primary_pr"]:
+    if (type(evidence.get("pr_number")) is not int
+            or evidence["pr_number"] != state["primary_pr"]):
         raise PhasePolicyError("GitHub primary PR mismatch")
     if evidence.get("base_branch") != "main":
         raise PhasePolicyError("phase PR must target main")
     verified = state.get("last_verified_remote_sha")
     if evidence.get("merge_sha") != verified or not re.fullmatch(r"[a-f0-9]{40}", str(verified or "")):
         raise PhasePolicyError("verified remote SHA does not match merge commit")
-    if evidence.get("open_critical_blockers", 1) != 0:
-        raise PhasePolicyError("critical blockers unresolved")
+    blocker_count = evidence.get("open_critical_blockers")
+    # bool False and float 0.0 compare equal to integer zero in Python.
+    # Neither represents a verified count from the trusted GitHub reader.
+    if type(blocker_count) is not int or blocker_count != 0:
+        raise PhasePolicyError("critical-blocker count is not a verified integer zero")
+    if source != "P00":
+        # The legacy P00 issue list predates per-issue scope labels. P01+
+        # transitions must consume the exact, complete, authenticated issue
+        # inventory returned by GitHubGateway, not only a claimed zero count.
+        if (evidence.get("blocker_policy_complete") is not True
+                or evidence.get("issue_scope_source")
+                    != "authenticated_github_open_issue_labels"
+                or not re.fullmatch(
+                    r"[a-f0-9]{64}", str(evidence.get("issue_inventory_fingerprint") or "")
+                )):
+            raise PhasePolicyError("independent GitHub issue inventory not verified")
+        unclassified = evidence.get("unclassified_issue_numbers")
+        blockers = evidence.get("blocker_issue_numbers")
+        if (type(unclassified) is not list or unclassified
+                or type(blockers) is not list or blockers):
+            raise PhasePolicyError("unclassified or blocking GitHub issues remain")
     if target == "P08I" and source != "P08":
         raise PhasePolicyError("interoperability follows completed P08 only")
     return True
@@ -122,6 +201,70 @@ class EventJournal:
     def count(self) -> int:
         with closing(self._connect()) as db, db:
             return int(db.execute("SELECT COUNT(*) FROM phase_events").fetchone()[0])
+
+    def record_verified_transition(
+        self, state: Mapping[str, Any], target: str, evidence: Mapping[str, Any]
+    ) -> dict[str, Any]:
+        """Persist and re-read a *new* authenticated phase-transition checkpoint.
+
+        The caller MUST obtain evidence from the trusted live GitHub reader.
+        This SQLite journal neither authenticates the reader nor publishes an
+        immutable GitHub artifact. Do not use it to invent historical receipts.
+        """
+        if not isinstance(state, Mapping) or not isinstance(evidence, Mapping):
+            raise PhasePolicyError("transition requires verified state and evidence maps")
+        authorize_next_phase(state, target, evidence)
+        for flag in (
+            "main_matches_merge", "branch_protected", "rules_policy_verified",
+            "workflow_provenance_verified", "workflow_source_verified",
+        ):
+            if evidence.get(flag) is not True:
+                raise PhasePolicyError("transition lacks trusted main/CI proof: " + flag)
+
+        source = state["phase"]
+        merge_sha = state["last_verified_remote_sha"]
+        event_id = "verified-transition:" + source + ":" + target + ":" + merge_sha
+        metadata = {
+            "source_phase": source,
+            "target_phase": target,
+            "primary_pr": state["primary_pr"],
+            "merge_sha": merge_sha,
+            "issue_inventory_fingerprint": (
+                evidence["issue_inventory_fingerprint"] if source != "P00" else None
+            ),
+        }
+        encoded = json.dumps(metadata, sort_keys=True, separators=(",", ":"))
+        expected = (source, "phase_transition_verified", encoded)
+        with closing(self._connect()) as db, db:
+            cursor = db.execute(
+                "INSERT OR IGNORE INTO phase_events (id, phase, event_type, metadata)"
+                " VALUES (?, ?, ?, ?)",
+                (event_id, *expected),
+            )
+            stored = db.execute(
+                "SELECT phase, event_type, metadata FROM phase_events WHERE id = ?",
+                (event_id,),
+            ).fetchone()
+            if stored != expected:
+                raise PhasePolicyError("transition receipt collision or altered metadata")
+            created = cursor.rowcount == 1
+
+        # An independent connection ensures the committed WAL entry survives
+        # close/reopen before reporting a persisted receipt to the caller.
+        with closing(self._connect()) as db:
+            committed = db.execute(
+                "SELECT phase, event_type, metadata FROM phase_events WHERE id = ?",
+                (event_id,),
+            ).fetchone()
+        if committed != expected:
+            raise PhasePolicyError("transition journal readback did not match")
+        return {
+            "created": created,
+            "event_id": event_id,
+            "readback_verified": True,
+            "external_checkpoint_published": False,
+            "next_phase_started": False,
+        }
 
 
 def main() -> int:

@@ -1,12 +1,14 @@
-# Status — 2026-11-18
+# Status — 2026-11-22
 
 ## CURRENT (read this first; history below is archive)
 
-- Phase **P01** IN_PROGRESS on `phase/01-foundation`, draft PR #9. P00 closed: `main` `fe34877` (PRs #1, #8).
-- Tasks: `docs/state/pr-tasks/P01.json` (11, all TODO). Next: P01-T01 pre-dev/ADR, then P01-T02 (P00 tools + runner worker hardcode P00).
-- Lease: free. Set `PHASE.json.lease_holder` before editing; clear at handoff.
-- Merges need an explicit owner "merge" message until the owner adds an auto-merge rule to `docs/agent/AI_STRICT_PROTOCOL.md`.
+- **P01 IN_PROGRESS:** [PR #10](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10) Draft/unmerged; T01–T10 DONE, T11 IN_PROGRESS (**10/11**). Owner said **do not merge**; no P02/release.
+- [Owner-intent gate `83315f1`](https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/83315f13734fe501dfa2f2eff55fef6f5537e291) verified in [Governance CI #45055277734](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45055277734): **498 Python tests PASS** plus Windows governance; P00 Runner, Desktop and Task Board also PASS. Even with a write token and green CI, merge requires independent explicit owner approval tied to the exact PR/head. This is operator confirmation (not identity signing), and none is present.
+- [T11 issue triage](../evidence/P01_T11_ISSUE_TRIAGE.md) still requires independent classification of open #2/#3/#4/#5/#7. Do not declare zero critical blockers from absent labels; do not change labels merely to satisfy gate.
+- [Main ruleset #27593065](https://github.com/Vertex-Systems-Network/zynoa-2-local/rules/27593065), source-matched Governance workflow, double snapshot and issue fingerprint protections remain enabled. [Real native screenshots](../screenshots/M01/README.md) cover P01 read-only states only.
+- `PHASE.json.lease_holder=null` at this handoff; `worker_running=false`.
 
+## Historical status (archive below)
 
 **Specification status:** v3 expanded planning kit generated locally. **Application implemented:** NO. **GitHub phase branch/PR:** NOT VERIFIED/NOT CREATED by this action. **Persistent development worker:** NOT INSTALLED. **User Help screenshots:** PENDING REAL APP. **GitHub Wiki publication:** PENDING REPOSITORY CONFIGURATION. **Issue bridge:** local sanitization demo only, remote GitHub integration not deployed.
 

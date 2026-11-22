@@ -1,0 +1,36 @@
+{
+  "change_id": "CHG-P01-M24-LOCATION-REGISTRY-20261122",
+  "module_id": "M24",
+  "kind": "feature",
+  "title": "Native app-owned data location registry without relocation authority",
+  "summary": "Versioned relative storage class/owner manifest with native OS path binding, external runtime read-only classification, corruption-preserving tests, and no migration grants. Native Windows readiness gate now waits for diagnostics, SQLite vault and registry; existing detailed checks preserved, pending CI. T08 native-only location registry accepted after strict real Windows startup/readback and Governance CI passed; full M24 relocation and user-granted paths remain unimplemented.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10",
+  "docs_paths": [
+    "docs/operations/P01_LOCATION_REGISTRY.md",
+    "docs/state/HANDOFF.md"
+  ],
+  "help_paths": [],
+  "wiki_paths": [],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44986611731",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44986611713"
+  ],
+  "commit_sha": "287beccbaeebcb92ade3717896d9d49d20ee851e",
+  "release": null,
+  "verification": {
+    "tests_passed": true,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "New versioned manifest; refuses unknown existing files; no user-folder relocation or previous data deletion.",
+  "created_at": "2026-11-22T03:42:41.220Z",
+  "updated_at": "2026-11-22T04:54:23.589Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}

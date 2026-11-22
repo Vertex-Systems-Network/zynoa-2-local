@@ -1,0 +1,17 @@
+{
+  "screenshot_id": "M01-S01-continued",
+  "source_commit_sha": "f9929443740a1740b8fd904058ab0790fadb7163",
+  "built_commit_sha": "f9929443740a1740b8fd904058ab0790fadb7163",
+  "source": "GitHub Windows Actions actual Tauri process",
+  "screen": "Overview (continued below fold)",
+  "capture_status": "candidate_pending_visual_review",
+  "capture_verified": false,
+  "window_width": 998,
+  "window_height": 701,
+  "window_fully_visible": true,
+  "frame_bounds_source": "DwmGetWindowAttribute DWMWA_EXTENDED_FRAME_BOUNDS (9)",
+  "desktop_work_area": "1024x720",
+  "sha256": "40f8cf64be0524366f22f350d4ece5467c91dbb16c500930a3192917adff4de7",
+  "alt_text": "Zynoa native Overview foundation progress, lower scroll position and footer",
+  "privacy": "Disposable CI fixture with no user content or secrets"
+}

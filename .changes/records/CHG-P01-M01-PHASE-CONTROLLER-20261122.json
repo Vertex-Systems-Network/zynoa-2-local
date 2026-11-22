@@ -1,0 +1,39 @@
+{
+  "change_id": "CHG-P01-M01-PHASE-CONTROLLER-20261122",
+  "module_id": "M01",
+  "kind": "bugfix",
+  "title": "Phase-scoped controller and safe P01 runner dispatch",
+  "summary": "P01 read-only controller/worker guards validate phase/PR, avoid P00 fallback events and route GitHub Actions to safe P01 observation without invoking historical P00 model fixture or write workflows.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10",
+  "docs_paths": [
+    "docs/state/HANDOFF.md",
+    "docs/state/DECISIONS.md",
+    "docs/adr/0025-p01-desktop-foundation-predev.md"
+  ],
+  "help_paths": [],
+  "wiki_paths": [],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44969786422",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44969903225",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44971261413",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44971261440"
+  ],
+  "commit_sha": "6c1dd1047c95b38dbdd5fb76d1125fb30dc9240e",
+  "release": null,
+  "verification": {
+    "tests_passed": true,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No user data migration; fail closed for phase/branch mismatch.",
+  "created_at": "2026-11-22T01:05:16.252Z",
+  "updated_at": "2026-11-22T01:25:20.750Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}

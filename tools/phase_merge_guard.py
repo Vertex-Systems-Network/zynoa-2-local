@@ -83,29 +83,84 @@ class GuardedMerger:
             raise MergeBlocked("PR already merged, draft or not open")
         if observed.get("mergeable") is not True:
             raise MergeBlocked("GitHub has not confirmed PR mergeability")
-        if (observed.get("checks_passed") is not True or observed.get("branch_protected") is not True
+        if (observed.get("checks_passed") is not True
+                or observed.get("workflow_provenance_verified") is not True
+                or observed.get("workflow_source_verified") is not True
+                or observed.get("branch_protected") is not True
                 or observed.get("rules_policy_verified") is not True):
-            raise MergeBlocked("CI or branch protection not verified")
+            raise MergeBlocked("trusted CI provenance or branch protection not verified")
         if observed.get("auto_merge_available") is not True:
             raise MergeBlocked("repository auto-merge policy not enabled")
-        if observed.get("open_critical_blockers") != 0:
-            raise MergeBlocked("open critical blocker issue")
+        # A count of zero is meaningless without an independently configured
+        # phase-scoped blocker policy. Refuse absent, null, or bool values;
+        # P01 has no trusted scope yet and therefore remains unmergeable.
+        if observed.get("blocker_policy_complete") is not True:
+            raise MergeBlocked("independent critical-blocker policy not verified")
+        if state.get("phase") != "P00" and not re.fullmatch(
+            r"[0-9a-f]{64}", str(observed.get("issue_inventory_fingerprint") or "")
+        ):
+            raise MergeBlocked("independent phase issue inventory fingerprint missing")
+        count = observed.get("open_critical_blockers")
+        if type(count) is not int or count != 0:
+            raise MergeBlocked("critical-blocker inventory missing or nonzero")
         for key in ("pr_head_sha", "base_sha", "main_sha"):
             if not _SHA.fullmatch(str(observed.get(key) or "")):
                 raise MergeBlocked("missing GitHub SHA evidence")
         if observed["base_sha"] != observed["main_sha"]:
             raise MergeBlocked("PR base does not match latest main")
 
-    def merge_current(self, state: Mapping) -> dict:
+    @staticmethod
+    def verify_owner_merge_approval(state: Mapping, approval: Mapping | None) -> None:
+        """Require a separate, per-head operator acknowledgement of owner intent.
+
+        This is *not* cryptographic authentication of the owner. The trusted
+        operator supplies it out-of-band ONLY after a new explicit owner merge
+        instruction; a PR file, CI check, or task manifest cannot supply it.
+        """
+        if (not isinstance(approval, Mapping)
+                or set(approval) != {"directive", "phase", "pr_number", "head_sha"}
+                or approval.get("directive") != "EXPLICIT_OWNER_MERGE_APPROVAL"
+                or approval.get("phase") != state.get("phase")
+                or type(approval.get("pr_number")) is not int
+                or approval["pr_number"] != state.get("primary_pr")
+                or not isinstance(approval.get("head_sha"), str)
+                or not _SHA.fullmatch(approval["head_sha"])):
+            raise MergeBlocked("explicit owner merge approval missing or invalid")
+
+    def merge_current(self, state: Mapping, *,
+                      owner_approval: Mapping | None = None) -> dict:
         if not self.enabled or not self.token or "\n" in self.token:
             raise MergeBlocked("merge write authority disabled")
+        self.verify_owner_merge_approval(state, owner_approval)
         observed = self.reader.observe(state)
         self.verify_premerge(state, observed)
+        if owner_approval["head_sha"] != observed["pr_head_sha"]:
+            raise MergeBlocked("owner approval is not bound to current PR head SHA")
         # Check main again just before the mutation; head_sha is also supplied
         # to GitHub's merge endpoint to reject a stale PR head.
         main_sha = (self.reader.branch("main").get("commit") or {}).get("sha")
         if main_sha != observed["main_sha"]:
             raise MergeBlocked("main advanced during merge preflight")
+        # Re-fetch PR, trusted checks/rules and every independently labelled
+        # open issue immediately before the write. A changing PR, a newly
+        # opened blocker, or a relabelled nonblocker must invalidate this
+        # attempt; GitHub's head SHA parameter additionally rejects a stale
+        # head at the merge endpoint itself.
+        fresh = self.reader.observe(state)
+        self.verify_premerge(state, fresh)
+        unchanged = (
+            "pr_head_sha", "base_sha", "main_sha",
+            "head_branch", "base_branch", "pr_number",
+            "blocker_policy_complete", "open_critical_blockers",
+            "blocker_issue_numbers", "unclassified_issue_numbers",
+            "issue_scope_source", "issue_inventory_fingerprint",
+            "workflow_source_verified",
+        )
+        if any(fresh.get(key) != observed.get(key) for key in unchanged):
+            raise MergeBlocked("GitHub PR or issue-scope evidence changed during merge preflight")
+        if owner_approval["head_sha"] != fresh["pr_head_sha"]:
+            raise MergeBlocked("owner approval invalidated by changed PR head")
+        observed = fresh
         url = (
             "https://api.github.com/repos/" + self.reader.repo
             + "/pulls/" + str(state["primary_pr"]) + "/merge"
@@ -149,7 +204,18 @@ def main() -> int:
         reader = GitHubGateway(args.repo)
         if args.apply:
             enabled = os.environ.get("ZYNOA_ENABLE_MERGE") == "1"
-            result = GuardedMerger(reader, enabled=enabled).merge_current(state)
+            # Trusted operator input, supplied separately from PR-controlled
+            # state and only after the owner explicitly authorizes this head.
+            # It is a confirmation gate, not a signature or substitute for
+            # independent GitHub branch/issue evidence.
+            raw_approval = os.environ.get("ZYNOA_OWNER_MERGE_APPROVAL", "")
+            try:
+                approval = json.loads(raw_approval) if raw_approval else None
+            except json.JSONDecodeError:
+                raise MergeBlocked("owner approval input malformed") from None
+            result = GuardedMerger(reader, enabled=enabled).merge_current(
+                state, owner_approval=approval
+            )
         else:
             observed = reader.observe(state)
             GuardedMerger.verify_premerge(state, observed)

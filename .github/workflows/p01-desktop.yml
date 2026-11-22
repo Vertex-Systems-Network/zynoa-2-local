@@ -1,0 +1,215 @@
+name: P01 Desktop Foundation
+on:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: p01-desktop-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      desktop: ${{ steps.diff.outputs.desktop }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - id: diff
+        env:
+          PR_ACTION: ${{ github.event.action }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          # Initial PR creation checks the full PR diff; later updates only the new commit.
+          if [ "$PR_ACTION" = "opened" ] || [ "$PR_ACTION" = "reopened" ]; then
+            git fetch --no-tags --depth=1 origin "$BASE_SHA"
+            changed="$(git diff --name-only FETCH_HEAD HEAD)"
+          elif git cat-file -e HEAD^ 2>/dev/null; then
+            changed="$(git diff --name-only HEAD^ HEAD)"
+          else
+            changed=""
+          fi
+          if printf '%s\n' "$changed" | grep -qE '^(scripts/capture_p01_desktop\.ps1|apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|tests/test_p01_locations.py|tests/test_p01_events.py|tests/test_p01_screenshot_capture.py|\.github/workflows/p01-desktop.yml)'; then
+            echo "desktop=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "desktop=false" >> "$GITHUB_OUTPUT"
+          fi
+  desktop-windows:
+    needs: changes
+    if: needs.changes.outputs.desktop == 'true' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'phase/01-foundation'
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - name: Desktop shell and IPC safety contracts
+        run: python -m unittest tests.test_p01_desktop_shell tests.test_p01_ipc_contract tests.test_p01_native_security tests.test_p01_diagnostics tests.test_p01_vault tests.test_p01_locations tests.test_p01_events tests.test_p01_screenshot_capture -v
+      - name: Parse screenshot capture script (fail fast)
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $parseErrors = $null
+          $scriptPath = Join-Path $env:GITHUB_WORKSPACE 'scripts\capture_p01_desktop.ps1'
+          [void][System.Management.Automation.Language.Parser]::ParseFile($scriptPath, [ref]$tokens, [ref]$parseErrors)
+          if ($parseErrors.Count -gt 0) {
+            throw ('ZYN-SCREEN-PARSE: ' + ($parseErrors | ForEach-Object { $_.Message } | Out-String))
+          }
+      - name: Resolve pinned dependency inventory and install
+        working-directory: apps/desktop
+        run: |
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          npm ci --no-audit --no-fund
+      - name: Frontend TypeScript and offline web bundle
+        working-directory: apps/desktop
+        run: |
+          npm run check
+          npm run build
+      - name: Native IPC validation tests (no user data)
+        working-directory: apps/desktop/src-tauri
+        run: cargo test --lib --release
+      - name: Native Windows desktop build (no release or signature)
+        working-directory: apps/desktop
+        run: npm run tauri -- build --no-bundle
+      - name: Verify desktop executable cold boot
+        shell: pwsh
+        env:
+          ZYNOA_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
+          if (-not (Test-Path -LiteralPath $exe)) { throw 'Desktop binary not built' }
+          $builtSha = (& git -C $env:GITHUB_WORKSPACE rev-parse HEAD).Trim().ToLowerInvariant()
+          if ($builtSha -ne $env:ZYNOA_HEAD_SHA.ToLowerInvariant()) {
+            throw 'ZYN-SCREEN-014: checked-out built commit does not match PR source SHA'
+          }
+          $process = Start-Process -FilePath $exe -PassThru
+          try {
+            # Process existence alone is not native initialization readiness.
+            # Keep the executable alive until all three OS-local foundations exist.
+            $root = Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop'
+            $diagnostics = Join-Path $root 'diagnostics\events-v1.jsonl'
+            $vault = Join-Path $root 'data\state.sqlite'
+            $registry = Join-Path $root 'storage-locations-v1.json'
+            $deadline = (Get-Date).AddSeconds(45)
+            $ready = $false
+            do {
+              Start-Sleep -Milliseconds 500
+              $process.Refresh()
+              if ($process.HasExited) { throw "Desktop exited before native readiness ($($process.ExitCode))" }
+              $ready = (Test-Path -LiteralPath $diagnostics) -and
+                       (Test-Path -LiteralPath $vault) -and
+                       (Test-Path -LiteralPath $registry)
+            } until ($ready -or (Get-Date) -ge $deadline)
+            if (-not $ready) {
+              throw ('ZYN-BOOT-READY: missing native startup outputs: diagnostics={0}; vault={1}; registry={2}' -f
+                (Test-Path -LiteralPath $diagnostics),
+                (Test-Path -LiteralPath $vault),
+                (Test-Path -LiteralPath $registry))
+            }
+            Write-Output 'Native startup foundations exist; WebView/window visibility still needs independent verification'
+            & (Join-Path $env:GITHUB_WORKSPACE 'scripts\capture_p01_desktop.ps1') -TargetPid $process.Id -OutputDirectory (Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\M01') -SourceSha $env:ZYNOA_HEAD_SHA -BuiltSha $builtSha
+          } finally {
+            $process.Refresh()
+            if (-not $process.HasExited) { Stop-Process -Id $process.Id -Force }
+          }
+      - name: Verify native boot wrote only allowlisted diagnostic metadata
+        shell: pwsh
+        run: |
+          $path = Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop\diagnostics\events-v1.jsonl'
+          if (-not (Test-Path -LiteralPath $path)) { throw 'ZYN-DIAG-101: missing real startup record' }
+          $lines = @(Get-Content -LiteralPath $path -Encoding utf8)
+          if ($lines.Count -lt 1) { throw 'ZYN-DIAG-102: empty spool' }
+          $records = @($lines | ForEach-Object { $_ | ConvertFrom-Json })
+          if (-not @($records | Where-Object { $_.module -eq 'M01' -and $_.code -eq 'BootReady' }).Count) { throw 'ZYN-DIAG-103: missing boot event' }
+          foreach ($record in $records) {
+            if ($record.schema_version -ne 1 -or $record.fingerprint.Length -gt 120) { throw 'ZYN-DIAG-104: invalid schema' }
+            $keys = @($record.PSObject.Properties.Name)
+            $allowed = @('schema_version', 'module', 'severity', 'code', 'fingerprint', 'trace_id', 'first_seen_ms', 'last_seen_ms', 'occurrence_count')
+            foreach ($key in $keys) { if ($key -notin $allowed) { throw 'ZYN-DIAG-105: unsafe extra field' } }
+          }
+          Write-Output 'Native startup diagnostic record validated without exposing raw private data'
+      - name: Verify real native vault outside executable after cold boot
+        shell: pwsh
+        run: |
+          $file = Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop\data\state.sqlite'
+          if (-not (Test-Path -LiteralPath $file)) { throw 'ZYN-DAT-101: native app vault missing' }
+          $env:ZYNOA_CI_VAULT = $file
+          @'
+          import os
+          import sqlite3
+          from pathlib import Path
+          path = Path(os.environ["ZYNOA_CI_VAULT"])
+          assert path.is_file() and path.name == "state.sqlite"
+          assert "src-tauri" not in str(path).lower()
+          uri = f"file:{path.as_posix()}?mode=ro"
+          with sqlite3.connect(uri, uri=True) as db:
+              assert db.execute("PRAGMA user_version").fetchone()[0] == 1
+              assert db.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+              assert db.execute("PRAGMA journal_mode").fetchone()[0].lower() == "wal"
+              assert db.execute("SELECT count(*) FROM records").fetchone()[0] == 0
+          print("Native app vault schema/integrity verified; no user records created")
+          '@ | python -
+      - name: Verify local storage ownership registry after real native boot
+        shell: pwsh
+        run: |
+          $file = Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop\storage-locations-v1.json'
+          if (-not (Test-Path -LiteralPath $file)) { throw 'ZYN-STO-101: registry missing' }
+          $env:ZYNOA_CI_REGISTRY = $file
+          @'
+          import os, json
+          from pathlib import Path
+          path = Path(os.environ["ZYNOA_CI_REGISTRY"])
+          registry = json.loads(path.read_text(encoding="utf-8"))
+          assert registry["schema_version"] == 1
+          assert registry["app_id"] == "com.zynoa.desktop"
+          keys = {item["kind"]:item for item in registry["locations"]}
+          for kind in ("user_vault","diagnostics","backups","cache","download_staging","managed_models"):
+              assert keys[kind]["owner"] == "app_managed"
+              relative = keys[kind]["relative"]
+              assert relative and not Path(relative).is_absolute()
+              assert ".." not in Path(relative).parts
+              assert keys[kind]["move_allowed"] is False
+          assert keys["external_runtime"]["owner"] == "external_read_only"
+          assert keys["external_runtime"]["relative"] is None
+          assert keys["external_runtime"]["move_allowed"] is False
+          print("Native registry safe ownership and no-move defaults verified")
+          '@ | python -
+      - name: Verify native append-only event DB after real startup
+        shell: pwsh
+        run: |
+          $file = Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop\data\change-events-v1.sqlite'
+          if (-not (Test-Path -LiteralPath $file)) { throw 'ZYN-CHG-101: native audit database absent' }
+          $env:ZYNOA_CI_EVENTS = $file
+          @'
+          import os, sqlite3
+          from pathlib import Path
+          p = Path(os.environ["ZYNOA_CI_EVENTS"])
+          assert p.is_file() and "src-tauri" not in str(p).lower()
+          uri = f"file:{p.as_posix()}?mode=ro"
+          with sqlite3.connect(uri, uri=True) as c:
+              assert c.execute("PRAGMA user_version").fetchone()[0] == 1
+              assert c.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+              assert c.execute("PRAGMA journal_mode").fetchone()[0].lower() == "wal"
+              assert c.execute("SELECT count(*) FROM audit_events").fetchone()[0] == 0
+              triggers = {t[0] for t in c.execute("SELECT name FROM sqlite_master WHERE type='trigger'")}
+              assert {"audit_events_no_update", "audit_events_no_delete"} <= triggers
+          print("Private native event ledger verified: WAL, schema, append-only triggers, zero fabricated events")
+          '@ | python -
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p01-desktop-windows-build-evidence
+          path: |
+            apps/desktop/package-lock.json
+            apps/desktop/src-tauri/Cargo.lock
+            apps/desktop/src-tauri/target/release/zynoa_desktop.exe
+            docs/screenshots/M01/M01-S01.png
+            docs/screenshots/M01/M01-S01.capture.json
+            docs/screenshots/M01/*.png
+            docs/screenshots/M01/*.capture.json
+          if-no-files-found: warn

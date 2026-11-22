@@ -1,0 +1,17 @@
+{
+  "screenshot_id": "P01-Settings-preview",
+  "source_commit_sha": "f9929443740a1740b8fd904058ab0790fadb7163",
+  "built_commit_sha": "f9929443740a1740b8fd904058ab0790fadb7163",
+  "source": "GitHub Windows Actions actual Tauri process",
+  "screen": "Settings (disabled P01 controls)",
+  "capture_status": "candidate_pending_visual_review",
+  "capture_verified": false,
+  "window_width": 998,
+  "window_height": 701,
+  "window_fully_visible": true,
+  "frame_bounds_source": "DwmGetWindowAttribute DWMWA_EXTENDED_FRAME_BOUNDS (9)",
+  "desktop_work_area": "1024x720",
+  "sha256": "77ea700ac32a7b61515aeb40822d29d6ca9b03fcc0d943581404ae13155586e5",
+  "alt_text": "Zynoa native Settings foundation screen with intentionally unavailable preferences",
+  "privacy": "Disposable CI fixture with no user content or secrets"
+}
