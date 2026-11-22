@@ -271,6 +271,86 @@ class PhaseJournalTests(unittest.TestCase):
             with self.assertRaises(PhasePolicyError):
                 store.append("evt-1", "P999", "started")
 
+    @staticmethod
+    def trusted_transition_evidence():
+        return {
+            **remote(),
+            "main_matches_merge": True,
+            "branch_protected": True,
+            "rules_policy_verified": True,
+            "workflow_provenance_verified": True,
+            "workflow_source_verified": True,
+        }
+
+    def test_verified_transition_persists_and_replays_without_duplicates(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "state" / "events.db"
+            state, proof = fixture(), self.trusted_transition_evidence()
+            first = EventJournal(path).record_verified_transition(state, "P08I", proof)
+            self.assertTrue(first["created"])
+            self.assertTrue(first["readback_verified"])
+            self.assertFalse(first["external_checkpoint_published"])
+            self.assertFalse(first["next_phase_started"])
+            self.assertEqual(1, EventJournal(path).count())
+            again = EventJournal(path).record_verified_transition(state, "P08I", proof)
+            self.assertFalse(again["created"])
+            self.assertEqual(first["event_id"], again["event_id"])
+            self.assertEqual(1, EventJournal(path).count())
+
+    def test_transition_evidence_missing_or_spoofed_cannot_write(self):
+        with tempfile.TemporaryDirectory() as temp:
+            store = EventJournal(Path(temp) / "state.db")
+            for flag in ("main_matches_merge", "branch_protected",
+                         "rules_policy_verified", "workflow_provenance_verified",
+                         "workflow_source_verified"):
+                for invalid in (None, False, 1, "true"):
+                    with self.subTest(flag=flag, invalid=invalid):
+                        proof = self.trusted_transition_evidence()
+                        proof[flag] = invalid
+                        with self.assertRaises(PhasePolicyError):
+                            store.record_verified_transition(fixture(), "P08I", proof)
+            self.assertEqual(0, store.count())
+
+    def test_transition_source_policy_missing_inventory_and_merge_fail_closed(self):
+        with tempfile.TemporaryDirectory() as temp:
+            store = EventJournal(Path(temp) / "state.db")
+            cases = (
+                (fixture(status="IN_PROGRESS"), self.trusted_transition_evidence()),
+                (fixture(), {**self.trusted_transition_evidence(),
+                             "open_critical_blockers": False}),
+                (fixture(), {**self.trusted_transition_evidence(),
+                             "blocker_policy_complete": False}),
+                (fixture(), {**self.trusted_transition_evidence(),
+                             "unclassified_issue_numbers": [7]}),
+                (fixture(), {**self.trusted_transition_evidence(),
+                             "merge_sha": "a" * 40}),
+            )
+            for state, proof in cases:
+                with self.subTest(proof=proof), self.assertRaises(PhasePolicyError):
+                    store.record_verified_transition(state, "P08I", proof)
+            self.assertEqual(0, store.count())
+
+    def test_transition_collision_is_not_silently_treated_as_idempotence(self):
+        with tempfile.TemporaryDirectory() as temp:
+            store = EventJournal(Path(temp) / "state.db")
+            event_id = "verified-transition:P08:P08I:" + SHA
+            self.assertTrue(store.append(
+                event_id, "P08", "phase_transition_verified", {"forged": True}))
+            with self.assertRaises(PhasePolicyError):
+                store.record_verified_transition(
+                    fixture(), "P08I", self.trusted_transition_evidence())
+            self.assertEqual(1, EventJournal(Path(temp) / "state.db").count())
+
+    def test_transition_p00_legacy_path_requires_protection_and_readback(self):
+        with tempfile.TemporaryDirectory() as temp:
+            store = EventJournal(Path(temp) / "state.db")
+            evidence = self.trusted_transition_evidence()
+            evidence["head_branch"] = "phase/00-governance"
+            result = store.record_verified_transition(fixture("P00"), "P01", evidence)
+            self.assertTrue(result["readback_verified"])
+            self.assertEqual(1, store.count())
+            self.assertFalse(result["next_phase_started"])
+
 
 if __name__ == "__main__":
     unittest.main()

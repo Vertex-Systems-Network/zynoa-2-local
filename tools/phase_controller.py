@@ -202,6 +202,70 @@ class EventJournal:
         with closing(self._connect()) as db, db:
             return int(db.execute("SELECT COUNT(*) FROM phase_events").fetchone()[0])
 
+    def record_verified_transition(
+        self, state: Mapping[str, Any], target: str, evidence: Mapping[str, Any]
+    ) -> dict[str, Any]:
+        """Persist and re-read a *new* authenticated phase-transition checkpoint.
+
+        The caller MUST obtain evidence from the trusted live GitHub reader.
+        This SQLite journal neither authenticates the reader nor publishes an
+        immutable GitHub artifact. Do not use it to invent historical receipts.
+        """
+        if not isinstance(state, Mapping) or not isinstance(evidence, Mapping):
+            raise PhasePolicyError("transition requires verified state and evidence maps")
+        authorize_next_phase(state, target, evidence)
+        for flag in (
+            "main_matches_merge", "branch_protected", "rules_policy_verified",
+            "workflow_provenance_verified", "workflow_source_verified",
+        ):
+            if evidence.get(flag) is not True:
+                raise PhasePolicyError("transition lacks trusted main/CI proof: " + flag)
+
+        source = state["phase"]
+        merge_sha = state["last_verified_remote_sha"]
+        event_id = "verified-transition:" + source + ":" + target + ":" + merge_sha
+        metadata = {
+            "source_phase": source,
+            "target_phase": target,
+            "primary_pr": state["primary_pr"],
+            "merge_sha": merge_sha,
+            "issue_inventory_fingerprint": (
+                evidence["issue_inventory_fingerprint"] if source != "P00" else None
+            ),
+        }
+        encoded = json.dumps(metadata, sort_keys=True, separators=(",", ":"))
+        expected = (source, "phase_transition_verified", encoded)
+        with closing(self._connect()) as db, db:
+            cursor = db.execute(
+                "INSERT OR IGNORE INTO phase_events (id, phase, event_type, metadata)"
+                " VALUES (?, ?, ?, ?)",
+                (event_id, *expected),
+            )
+            stored = db.execute(
+                "SELECT phase, event_type, metadata FROM phase_events WHERE id = ?",
+                (event_id,),
+            ).fetchone()
+            if stored != expected:
+                raise PhasePolicyError("transition receipt collision or altered metadata")
+            created = cursor.rowcount == 1
+
+        # An independent connection ensures the committed WAL entry survives
+        # close/reopen before reporting a persisted receipt to the caller.
+        with closing(self._connect()) as db:
+            committed = db.execute(
+                "SELECT phase, event_type, metadata FROM phase_events WHERE id = ?",
+                (event_id,),
+            ).fetchone()
+        if committed != expected:
+            raise PhasePolicyError("transition journal readback did not match")
+        return {
+            "created": created,
+            "event_id": event_id,
+            "readback_verified": True,
+            "external_checkpoint_published": False,
+            "next_phase_started": False,
+        }
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate local phase snapshot (not GitHub merge verification)")

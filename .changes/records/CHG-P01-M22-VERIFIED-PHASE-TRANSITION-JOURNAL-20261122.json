@@ -1,0 +1,37 @@
+{
+  "change_id": "CHG-P01-M22-VERIFIED-PHASE-TRANSITION-JOURNAL-20261122",
+  "module_id": "M22",
+  "kind": "bugfix",
+  "title": "Fail-closed future verified phase-transition journal receipts",
+  "summary": "Issue #4 forensic audit found prior P00 GitHub merger state but no original SQLite transition event. Added future-only postmerge journal API checking strict remote/main/workflow/issue evidence, deterministic replay, collision denial, and SQLite readback; explicitly does not backfill history, publish externally, merge or advance phases.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/4"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10",
+  "docs_paths": [
+    "docs/operations/PHASE_CONTROLLER_IMPLEMENTATION.md",
+    "docs/evidence/P01_T11_PREMERGE_AUDIT.md",
+    "docs/state/HANDOFF.md",
+    "docs/state/DECISIONS.md"
+  ],
+  "help_paths": [],
+  "wiki_paths": [],
+  "test_evidence": [],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "New opt-in local SQLite journal API only. No migration or modification of existing persistent user data. Does not create historical events.",
+  "created_at": "2026-11-22T19:45:53.847Z",
+  "updated_at": "2026-11-22T19:45:53.847Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}
