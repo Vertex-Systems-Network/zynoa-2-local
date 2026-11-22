@@ -56,11 +56,31 @@ jobs:
           if (-not (Test-Path -LiteralPath $exe)) { throw 'Desktop binary not built' }
           $process = Start-Process -FilePath $exe -PassThru
           try {
-            Start-Sleep -Seconds 8
-            $process.Refresh()
-            if ($process.HasExited) { throw "Desktop exited early ($($process.ExitCode))" }
-            Write-Output 'Desktop process survived cold boot; WebView/window visibility still needs independent verification'
+            # Process existence alone is not native initialization readiness.
+            # Keep the executable alive until all three OS-local foundations exist.
+            $root = Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop'
+            $diagnostics = Join-Path $root 'diagnostics\events-v1.jsonl'
+            $vault = Join-Path $root 'data\state.sqlite'
+            $registry = Join-Path $root 'storage-locations-v1.json'
+            $deadline = (Get-Date).AddSeconds(45)
+            $ready = $false
+            do {
+              Start-Sleep -Milliseconds 500
+              $process.Refresh()
+              if ($process.HasExited) { throw "Desktop exited before native readiness ($($process.ExitCode))" }
+              $ready = (Test-Path -LiteralPath $diagnostics) -and
+                       (Test-Path -LiteralPath $vault) -and
+                       (Test-Path -LiteralPath $registry)
+            } until ($ready -or (Get-Date) -ge $deadline)
+            if (-not $ready) {
+              throw ('ZYN-BOOT-READY: missing native startup outputs: diagnostics={0}; vault={1}; registry={2}' -f
+                (Test-Path -LiteralPath $diagnostics),
+                (Test-Path -LiteralPath $vault),
+                (Test-Path -LiteralPath $registry))
+            }
+            Write-Output 'Native startup foundations exist; WebView/window visibility still needs independent verification'
           } finally {
+            $process.Refresh()
             if (-not $process.HasExited) { Stop-Process -Id $process.Id -Force }
           }
       - name: Verify native boot wrote only allowlisted diagnostic metadata

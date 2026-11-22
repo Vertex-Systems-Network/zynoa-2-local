@@ -39,6 +39,19 @@ class NativeLocationRegistryContracts(unittest.TestCase):
         self.assertIn("cargo test --lib --release", self.workflow)
         self.assertNotIn("contents: write", self.workflow)
 
+    def test_real_native_readiness_not_just_process_survival(self):
+        for marker in (
+            "AddSeconds(45)", "Test-Path -LiteralPath $diagnostics",
+            "Test-Path -LiteralPath $vault",
+            "Test-Path -LiteralPath $registry",
+            "Desktop exited before native readiness",
+            "ZYN-BOOT-READY: missing native startup outputs",
+        ):
+            self.assertIn(marker, self.workflow)
+        self.assertIn("Verify native boot wrote only allowlisted diagnostic metadata", self.workflow)
+        self.assertIn("Verify real native vault outside executable after cold boot", self.workflow)
+        self.assertIn("Verify local storage ownership registry after real native boot", self.workflow)
+
     def test_no_unimplemented_migration_or_privacy_claims(self):
         doc=(ROOT/"docs/operations/P01_LOCATION_REGISTRY.md").read_text(encoding="utf-8")
         self.assertIn("NOT a relocation engine", doc)

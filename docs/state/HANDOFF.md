@@ -2,12 +2,13 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- P01 IN_PROGRESS on phase/01-foundation, draft PR #10; current ChatGPT worker holds lease; no merge or P02.
-- P01-T01 through T07 DONE with task-specific links. T07 Windows #44981325644 and Governance #44981325655 PASS.
-- P01-T08 IN_PROGRESS: native M24 registry source e2b261d5ce0e8342a71f0ef60506ddc179136706 categorizes app-owned and external read-only classes; no model movements.
-- Initial Windows #44981878863 RED from an unrelated existing M18 Rust test fixture folder collision (AlreadyExists, same Windows timestamp/PID under parallel tests); 26 tests passed, one test fixture creation failed. Governance PASS; no production data affected.
-- Fix committed for next CI: process-atomic extra unique sequence on M18/M23/M24 disposable test fixture paths. No test is disabled or bypassed. Inspect full Windows/Rust and Governance CI before accepting T08.
-- Full M24 relocation, path selection UI, Help/screenshots and release signing remain unimplemented; T09 must not start before T08 DONE.
+- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10, continuing existing ChatGPT-owned lease from this conversation. No merge or P02.
+- P01-T01 through T07 DONE with evidence in task board. T08 native M24 registry is **IN_PROGRESS**, no move/cleanup capability or external-runtime mutation.
+- Previous [Windows CI #44982356758](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44982356758): 27/27 native Rust tests and unsigned build pass; executable survived 8s, but missing local diagnostic file (`ZYN-DIAG-101`) failed downstream verification. Merely surviving 8s did not prove native setup readiness.
+- New T08 CI fix: Windows cold boot now waits up to 45s for **all** required native files (diagnostics, SQLite vault, location manifest) while checking process is alive; on failure it reports only presence flags and fails rather than bypassing validation. Existing detailed schema/integrity/privacy checks remain enabled. New regression contract added. **Fresh CI pending, do not mark T08 DONE.**
+- Next: inspect Windows run for native readiness and full registry schema; diagnose any missing files without weakening checks; only accept T08 with green Windows/Governance. Leave T09 TODO until T08 DONE and lease is handed off.
+- Full M24 relocation, user-granted path changes, real screenshots/Help UI and signing remain unimplemented.
+
 
 ## v3.1 agent handoff requirements
 
