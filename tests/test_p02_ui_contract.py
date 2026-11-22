@@ -96,5 +96,38 @@ class P02UIContractTests(unittest.TestCase):
         self.assertNotIn("contents: write", wf)
 
 
+    def test_p02_windows_pipeline_does_not_mask_ui_test_failures(self):
+        wf = (ROOT / ".github/workflows/p01-desktop.yml").read_text(encoding="utf-8")
+        for name, command in (
+            ("Frontend TypeScript check", "npm run check"),
+            ("Frontend UI algorithm tests", "npm run test:ui"),
+            ("Frontend offline production bundle", "npm run build"),
+        ):
+            self.assertIn(
+                f"- name: {name}\n        working-directory: apps/desktop\n        run: {command}",
+                wf,
+            )
+        self.assertNotIn("npm run check\n          npm run test:ui", wf)
+        self.assertNotIn("npm run test:ui\n          npm run build", wf)
+
+    def test_small_theme_labels_meet_wcag_normal_text_contrast(self):
+        import re
+        css = (APP / "src/styles.css").read_text(encoding="utf-8")
+        def linear(channel):
+            value = int(channel, 16) / 255
+            return value / 12.92 if value <= 0.04045 else ((value + 0.055) / 1.055) ** 2.4
+        def luminance(rgb):
+            return sum(weight * linear(rgb[i:i+2]) for i, weight in ((1, .2126), (3, .7152), (5, .0722)))
+        for theme in ("light", "dark"):
+            block = re.search(r'\.shell\[data-theme="' + theme + r'"\]\s*\{([^}]+)\}', css)
+            self.assertIsNotNone(block, theme)
+            colors = dict(re.findall(r'--([a-z-]+):\s*(#[0-9a-fA-F]{6})', block.group(1)))
+            foreground = luminance(colors["text-tertiary"][1:])
+            for name in ("canvas", "rail", "surface", "surface-raised", "surface-hover"):
+                background = luminance(colors[name][1:])
+                ratio = (max(foreground, background) + 0.05) / (min(foreground, background) + 0.05)
+                self.assertGreaterEqual(ratio, 4.5, f"{theme} tertiary text on {name}: {ratio:.2f}:1")
+
+
 if __name__ == "__main__":
     unittest.main()

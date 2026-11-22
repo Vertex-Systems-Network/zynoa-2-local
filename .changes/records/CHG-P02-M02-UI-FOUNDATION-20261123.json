@@ -3,10 +3,13 @@
   "module_id": "M02",
   "kind": "feature",
   "title": "Native shared UI tokens, workbench, keyboard command palette",
-  "summary": "Source implementation of a session-only accessible M02 desktop GUI, design tokens, gallery, theme/density and command routing. Backend features remain disabled; visual acceptance pending.",
+  "summary": "Source implementation of a session-only accessible M02 desktop GUI, design tokens, gallery, theme/density and command routing. Backend features remain disabled; visual acceptance pending. P02 regression follow-up: closed shortcut allowlist, fail-closed Windows CI stage separation and contrast-safe secondary text tokens (merge and native accessibility still pending).",
   "status": "implementing",
   "audience": "developer",
-  "source_issue_urls": [],
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/14",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/15"
+  ],
   "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12",
   "docs_paths": [
     "docs/adr/0026-p02-shared-ui-help-predev.md",
@@ -31,7 +34,7 @@
   "breaking_change": false,
   "migration_notes": "No native user-storage schema change or migrated data. UI session state only; offline help bundled from curated static source.",
   "created_at": "2026-11-22T20:49:36.088Z",
-  "updated_at": "2026-11-22T20:49:36.088Z",
+  "updated_at": "2026-11-22T23:12:16.022Z",
   "version_bump": "none",
   "affected_option_ids": [
     "M02-OPT-01",

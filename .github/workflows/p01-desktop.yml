@@ -65,12 +65,15 @@ jobs:
         run: |
           npm install --package-lock-only --ignore-scripts --no-audit --no-fund
           npm ci --no-audit --no-fund
-      - name: Frontend TypeScript and offline web bundle
+      - name: Frontend TypeScript check
         working-directory: apps/desktop
-        run: |
-          npm run check
-          npm run test:ui
-          npm run build
+        run: npm run check
+      - name: Frontend UI algorithm tests
+        working-directory: apps/desktop
+        run: npm run test:ui
+      - name: Frontend offline production bundle
+        working-directory: apps/desktop
+        run: npm run build
       - name: Native IPC validation tests (no user data)
         working-directory: apps/desktop/src-tauri
         run: cargo test --lib --release

@@ -29,7 +29,16 @@ test("command palette only returns fixed application navigation commands", () =>
   assert.equal(findCommands("NO-SUCH-COMMAND").length, 0);
   assert.equal(shortcutView("2"), "settings");
   assert.equal(shortcutView("6"), "gallery");
-  assert.equal(shortcutView("__proto__"), null);
+  for (const [key, view] of Object.entries({
+    "1": "startup", "2": "settings", "3": "recovery",
+    "4": "diagnostics", "5": "workbench", "6": "gallery",
+  })) {
+    assert.equal(shortcutView(key), view, key);
+  }
+  for (const key of ["__proto__", "constructor", "toString", "hasOwnProperty",
+    "valueOf", "7", "01", "2x", "", "0", "999"]) {
+    assert.equal(shortcutView(key), null, key);
+  }
   for (const cmd of findCommands("gO")) assert.ok(appCommands.includes(cmd));
 });
 test("help catalog is deterministic, unique and internally linked", () => {

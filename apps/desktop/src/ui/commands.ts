@@ -42,9 +42,13 @@ export function findCommands(query: string): AppCommand[] {
 }
 
 export function shortcutView(key: string): AppView | null {
-  const map: Record<string, AppView> = {
-    "1": "startup", "2": "settings", "3": "recovery",
-    "4": "diagnostics", "5": "workbench", "6": "gallery",
-  };
-  return map[key] ?? null;
+  switch (key) {
+    case "1": return "startup";
+    case "2": return "settings";
+    case "3": return "recovery";
+    case "4": return "diagnostics";
+    case "5": return "workbench";
+    case "6": return "gallery";
+    default: return null;
+  }
 }
