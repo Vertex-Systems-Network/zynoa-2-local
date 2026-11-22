@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "phase": "P02",
+  "branch": "phase/02-shared-ui",
+  "pr_number": 12,
+  "update_policy": "evidence-gated",
+  "source_of_truth": "docs/state/pr-tasks/P02.json",
+  "tasks": [
+    {
+      "id": "P02-T01",
+      "title": "Pre-dev: remote baseline, UX alternatives, M02/M19 ADR, threat and tests-first acceptance",
+      "status": "IN_PROGRESS",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/c09d7df33f7eb4ca6ec3ebfa01d683ef66078bd5"
+    },
+    {
+      "id": "P02-T02",
+      "title": "M02 design tokens, accessible UI primitives and visual foundations",
+      "status": "TODO"
+    },
+    {
+      "id": "P02-T03",
+      "title": "M02 adaptive navigation, workspace shell and structured pane layout",
+      "status": "TODO"
+    },
+    {
+      "id": "P02-T04",
+      "title": "M02 command palette, shortcuts, keyboard navigation and focus recovery",
+      "status": "TODO"
+    },
+    {
+      "id": "P02-T05",
+      "title": "M02 theme/light-dark-system, density, user preference boundaries",
+      "status": "TODO"
+    },
+    {
+      "id": "P02-T06",
+      "title": "M02 component gallery, split panes, empty/loading/error/offline states",
+      "status": "TODO"
+    },
+    {
+      "id": "P02-T07",
+      "title": "M19 bundled offline article catalog and versioned search contract",
+      "status": "TODO"
+    },
+    {
+      "id": "P02-T08",
+      "title": "M19 contextual help reader, FAQ, glossary and troubleshooting",
+      "status": "TODO"
+    },
+    {
+      "id": "P02-T09",
+      "title": "M19 Wiki source mapping, broken-link handling and offline assurance",
+      "status": "TODO"
+    },
+    {
+      "id": "P02-T10",
+      "title": "Real Windows visual/screenshots, a11y, full Help/Wiki option references and performance",
+      "status": "TODO"
+    },
+    {
+      "id": "P02-T11",
+      "title": "P02 final CI, security/privacy review, issue gates and policy-compliant verified merge",
+      "status": "TODO"
+    }
+  ]
+}
