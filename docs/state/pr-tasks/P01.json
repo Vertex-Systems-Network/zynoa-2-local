@@ -15,7 +15,8 @@
     {
       "id": "P01-T02",
       "title": "Generalise P00-only controller/worker tools to the active phase",
-      "status": "IN_PROGRESS"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44971261413"
     },
     {
       "id": "P01-T03",

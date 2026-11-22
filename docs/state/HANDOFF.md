@@ -2,11 +2,11 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10; lease held for current slice. No permission to merge or start P02.
-- P01-T01 DONE with [Governance #44968928750](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44968928750).
-- P01-T02 IN_PROGRESS: phase/PR identity and fail-closed observer passed [Governance #44970019874](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44970019874). P01 read-only observer/P00 isolated fixture runner dispatch and negative tests now committed for fresh CI. Do not mark DONE until newest Governance and phase-observer jobs pass.
-- Next: inspect PR #10 CI, fix red jobs, mark P01-T02 DONE with passing run URL, sync PR board and clear lease. T03 can follow only after T02 acceptance.
-- No actual P01 desktop app, screenshots, vault backup/restore or release yet.
+- Phase **P01** IN_PROGRESS on `phase/01-foundation`; [draft PR #10](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10). Lease **free**. No permission to merge or start P02.
+- **P01-T01 DONE**: pre-development ADR-0025 and tests-first contract, [passing Governance #44968928750](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44968928750).
+- **P01-T02 DONE**: phase/PR-aware controller, read-only worker and fail-closed active-phase runner dispatch with tests. [Governance and Windows #44971261413](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44971261413) PASS; [P01 phase-observer #44971261440](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44971261440) PASS. P00 Docker/Ollama fixture and its bot-branch publisher were **SKIPPED** under P01. Task manifest records verified CI evidence.
+- **Next: P01-T03 TODO** — M01 bootable desktop client shell. Read only code/docs relevant to T03; plan tests-first, build on GitHub-hosted Windows, capture real evidence as implemented. Do not claim UI, screenshots, signed app or vault recovery exists yet.
+- Never merge PR #10 without owner-written protocol auto-merge rule or explicit owner "merge". No P02 work.
 
 
 ## v3.1 agent handoff requirements
