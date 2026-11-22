@@ -1,5 +1,13 @@
 # Handoff (canonical starter)
 
+## CURRENT (read this first; history below is archive)
+
+- Phase **P01** IN_PROGRESS on `phase/01-foundation`, draft PR #9. P00 closed: `main` `fe34877` (PRs #1, #8).
+- Tasks: `docs/state/pr-tasks/P01.json` (11, all TODO). Next: P01-T01 pre-dev/ADR, then P01-T02 (P00 tools + runner worker hardcode P00).
+- Lease: free. Set `PHASE.json.lease_holder` before editing; clear at handoff.
+- Merges need an explicit owner "merge" message until the owner adds an auto-merge rule to `docs/agent/AI_STRICT_PROTOCOL.md`.
+
+
 Current task: implement P00 in actual destination GitHub repository after checking remote truth. Deliver: agent rules, phase controller, PRE-DEV, research bank, CI docs checks, issue integration design, GitHub Wiki mirror plan. Next: P01 foundation ONLY after verified P00 merge.
 
 Blocked by: no designated repo URL or installed development worker in this document-only kit. Never claim branch/PR/issue/daemon exists. Sample local incident router is not production relay. Screenshots are future acceptance obligations, not present evidence.

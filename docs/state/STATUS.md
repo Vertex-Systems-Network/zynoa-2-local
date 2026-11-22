@@ -1,5 +1,13 @@
 # Status — 2026-11-18
 
+## CURRENT (read this first; history below is archive)
+
+- Phase **P01** IN_PROGRESS on `phase/01-foundation`, draft PR #9. P00 closed: `main` `fe34877` (PRs #1, #8).
+- Tasks: `docs/state/pr-tasks/P01.json` (11, all TODO). Next: P01-T01 pre-dev/ADR, then P01-T02 (P00 tools + runner worker hardcode P00).
+- Lease: free. Set `PHASE.json.lease_holder` before editing; clear at handoff.
+- Merges need an explicit owner "merge" message until the owner adds an auto-merge rule to `docs/agent/AI_STRICT_PROTOCOL.md`.
+
+
 **Specification status:** v3 expanded planning kit generated locally. **Application implemented:** NO. **GitHub phase branch/PR:** NOT VERIFIED/NOT CREATED by this action. **Persistent development worker:** NOT INSTALLED. **User Help screenshots:** PENDING REAL APP. **GitHub Wiki publication:** PENDING REPOSITORY CONFIGURATION. **Issue bridge:** local sanitization demo only, remote GitHub integration not deployed.
 
 The next phase is P00 governance. Agent must verify real repo state before modifying source and must not reinterpret local example state as remote authority.
