@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "phase": "P02",
+  "branch": "phase/02-shared-ui-help",
+  "pr_number": 12,
+  "update_policy": "evidence-gated",
+  "source_of_truth": "docs/state/pr-tasks/P02.json",
+  "tasks": [
+    {
+      "id": "P02-T01",
+      "title": "Pre-dev: P01 remote baseline, M02/M19 research, UX/ADR, threat model, tests-first plan",
+      "status": "IN_PROGRESS"
+    },
+    {
+      "id": "P02-T02",
+      "title": "M02 semantic design tokens, dark/light/high-contrast themes and density control",
+      "status": "TODO"
+    },
+    {
+      "id": "P02-T03",
+      "title": "M02 responsive workbench navigation, keyboard shortcuts and accessible command palette",
+      "status": "TODO"
+    },
+    {
+      "id": "P02-T04",
+      "title": "M02 preferences validation, persistence, recovery and guarded native boundary",
+      "status": "TODO"
+    },
+    {
+      "id": "P02-T05",
+      "title": "M02 shared UI states and accessible component gallery; real Windows UX proof",
+      "status": "TODO"
+    },
+    {
+      "id": "P02-T06",
+      "title": "M19 versioned offline help registry, source validation and searchable index",
+      "status": "TODO"
+    },
+    {
+      "id": "P02-T07",
+      "title": "M19 Help Home, article reader, guided onboarding and troubleshooting flows",
+      "status": "TODO"
+    },
+    {
+      "id": "P02-T08",
+      "title": "M02/M19 option reference, Help/Wiki mapping and real screenshot evidence",
+      "status": "TODO"
+    },
+    {
+      "id": "P02-T09",
+      "title": "P02 integrated Windows build, a11y, usability, recovery and performance gates",
+      "status": "TODO"
+    },
+    {
+      "id": "P02-T10",
+      "title": "P02 final exit gates and protected primary PR merge",
+      "status": "TODO"
+    }
+  ]
+}
