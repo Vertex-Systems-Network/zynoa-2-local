@@ -24,11 +24,24 @@ The actual [Issue #7](https://github.com/Vertex-Systems-Network/zynoa-2-local/is
 
 `{"ci_run_verified":true,"issue_number":7,"fingerprint":"78736ec1d171b9c435d5756698885c8b","status":"UPDATED","run_id":...}`
 
-The reported `run_id` equals that row's failed Governance run. All five later publisher logs explicitly indicate `UPDATED`, **not `CREATED`**; the initial issue-creation job was not traced in this audit. Nonetheless, the remote issue author's bot identity, actual default-branch workflow, successful failed-run listener jobs and readback of the updated issue body independently establish **real automatic CI failure → deduplicated sanitized Issue update**. The collector's prior claim that only manual issue publication exists is now historically outdated.
+The reported `run_id` equals that row's failed Governance run. These **five later** publisher logs indicate `UPDATED`. The *initial* creation has now also been traced independently: see the next section. Together the creation and update receipts establish a real protected-main CI failure → deduplicated sanitized GitHub Issue pipeline.
+
+
+
+### Original automated Issue #7 creation: directly verified
+
+The initial creation was independently traced using actual GitHub run metadata and decoded CI job logs, rather than inferred from the Issue author:
+
+- [Failed Governance run #44963732185](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44963732185) has `event=pull_request`, `conclusion=failure`, and head SHA `22094821c9139a0002711a8ca1aea59fcfd5158b`. Its failing `governance-lint` job **137027982159** reports the controlled probe errors `Missing/empty: CLAUDE.md` and `CLAUDE.md must link AGENTS.md and AI_STRICT_PROTOCOL.md`. This is the intentional [PR #6](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/6) governance failure probe; no user application failure is inferred.
+- The trusted protected-`main` [Developer CI Incident Publisher run #44963750468](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44963750468), `event=workflow_run`, `conclusion=success`, ran from source SHA `f0a1ebbd0d439b5ef3ffa46cf4447f47e512ce8c`. Its `sanitized-incident` job **137028037345** logged the actual verified result: `{"ci_run_verified":true,"fingerprint":"78736ec1d171b9c435d5756698885c8b","issue_number":7,"run_id":44963732185,"status":"CREATED"}`.
+- [Issue #7](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/7) was authored by `github-actions[bot]` at **2026-11-21 23:50:49 UTC**; the job result's `issue_number`, dedup fingerprint and timestamp are consistent with its creation. Five later issue-publisher runs returned `UPDATED` with that same fingerprint, and the remote issue body contains the later failed-run links.
+- This proves **one live automatic creation plus five deduplicated updates** of a sanitized GitHub Issue using the main-hosted listener. It does **not** by itself prove external 24/7 worker hosting or independently resolve [Issue #3](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3). Creation/update provenance is stronger than the previous audit; it is not a blanket reason to relabel or close Issue #5 or #7.
+
+A condensed evidence summary was [posted on Issue #5](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/5#issuecomment-7083951568).
 
 ### Implication for Issue #5 (historical manual write proof)
 
-[Issue #5](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/5) accurately states that **its own** GitHub issue was created manually on 2026-11-20 and could not prove the automatic T22 pipeline *at that time*. **Later evidence now exists**: the active default-branch listener and five real bot-authored Issue #7 updates from failed Governance runs. This materially advances the automatic publication and deduplication acceptance evidence. An independent maintainer should verify whether all remaining T22 contractual gates (e.g., deployed failure attribution, scope, privacy, retry/replay and readback criteria) are satisfied **before** labelling, resolving or closing Issue #5. Do not rewrite history or imply Issue #5 itself was automatically created.
+[Issue #5](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/5) accurately states that **its own** GitHub issue was created manually on 2026-11-20 and could not prove the automatic T22 pipeline *at that time*. **Later evidence now exists**: the active default-branch listener, the original bot-authored Issue #7 `CREATED` result for real Governance run #44963732185, and five real `UPDATED` receipts with matching fingerprint. This directly establishes the live creation and deduplication path for the recorded runs, beyond the original manual-only Issue #5 proof. An independent maintainer should verify whether all remaining T22 contractual gates (e.g., deployed failure attribution, scope, privacy, retry/replay and readback criteria) are satisfied **before** labelling, resolving or closing Issue #5. Do not rewrite history or imply Issue #5 itself was automatically created.
 
 ## Outstanding decisions: no labels, no merge
 
