@@ -2,11 +2,11 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10; current ChatGPT worker continues its existing lease; no merge or P02.
-- **T01–T05 DONE**, see PR task board CI evidence. T05 native-only credential and deny-first policy suite passed Windows #44973840898; production signing and user-grant UI remain P01 exit gates.
-- **T06 IN_PROGRESS:** native-only Rust bounded privacy-scoped append-only diagnostic spool, grouped incident replay, corrupted-file refusal, allowlisted event codes, Python contracts and Windows CI integration. `docs/operations/P01_DIAGNOSTICS.md` states limits.
-- **T06 NOT DONE:** spool is NOT connected to live runtime; M24-scoped persistent path, crash/restart capture, data ownership, permission-safe writes, local report preview and real UI evidence are pending. No T07 yet.
-- Next: inspect Governance v3.2 and P01 Desktop Foundation Windows CI for new Rust source; repair failures; capture task CI evidence and continue T06 integration. Do not mark complete prematurely.
+- **P01 IN_PROGRESS** on `phase/01-foundation`, [draft PR #10](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10). Lease **FREE** at handoff; do not merge or begin P02. No production release exists.
+- **P01-T01 through P01-T05 DONE**, all references in the PR task board. T05 accepted native-only least-privilege and Windows Credential Manager foundation with [real Windows CI #44973840898](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44973840898). This does not prove a signed release, user grant UI or comprehensive OS boundary audit.
+- **P01-T06 IN_PROGRESS, not DONE**: safe native Rust diagnostics spool and Python contract tests pushed in commit `7c0f2cb2fe32342b9cf103ed74c2119683dc7212`. Verified [Governance #44978533782](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44978533782) and [Windows Rust/desktop CI #44978533633](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44978533633): all PASS; task table sync PASS. T06 source is still NOT connected to actual runtime.
+- **Next worker:** acquire a fresh lease with a committed `PHASE.json` change before code edits. Continue only T06 (not T07): authorized app-local data path, native boot/panic/error-class recording, restart/corruption recovery, privacy preview and tests; keep errors text-free, no remote reports, no WebView privilege escalation. Then P01-T06 can be considered for DONE with a new passing Windows CI reference.
+- P01 exit gates still include real window/screenshot evidence, stable user data strategy, consented reporting/privacy, code signing and protected merge; no P02 edits.
 
 
 ## v3.1 agent handoff requirements
