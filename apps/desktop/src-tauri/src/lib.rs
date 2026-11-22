@@ -3,6 +3,7 @@ mod ipc;
 mod security;
 mod secrets;
 mod diagnostics;
+mod vault; // native-only; not available to WebView
 
 use tauri::Manager;
 
