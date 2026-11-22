@@ -52,9 +52,9 @@ export function Workbench({ transport, onNavigate }: {
         </button>
       )}
     </div>
-    <div role="tabpanel" tabIndex={0} id={"workbench-panel-" + active}
-      aria-labelledby={"workbench-tab-" + active} className="workbench-tabpanel">
-      {active === "status" && <div className="workbench-grid">
+    <div role="tabpanel" tabIndex={0} id="workbench-panel-status"
+      aria-labelledby="workbench-tab-status" className="workbench-tabpanel" hidden={active !== "status"}>
+      <div className="workbench-grid">
         <article className="studio-card studio-card-feature">
           <span className="small-caps">LOCAL RUNTIME</span>
           <h2>{transport === "connected" ? "Native bridge available" :
@@ -71,8 +71,11 @@ export function Workbench({ transport, onNavigate }: {
           <p>Project editing belongs to a later verified module. This shared workbench does not fabricate documents or files.</p>
           <button type="button" disabled className="subtle-action">Open canvas</button>
         </article>
-      </div>}
-      {active === "layout" && <div className="studio-card">
+      </div>
+    </div>
+    <div role="tabpanel" tabIndex={0} id="workbench-panel-layout"
+      aria-labelledby="workbench-tab-layout" className="workbench-tabpanel" hidden={active !== "layout"}>
+      <div className="studio-card">
         <div className="flex-between">
           <div><span className="small-caps">M02-OPT-06</span>
             <h2>Adjust the pane split</h2>
@@ -86,8 +89,11 @@ export function Workbench({ transport, onNavigate }: {
           <div><b>Navigation pane</b><small>Adjust with arrow keys</small></div>
           <div><b>Content pane</b><small>Responds to available width</small></div>
         </div>
-      </div>}
-      {active === "keyboard" && <div className="studio-card">
+      </div>
+    </div>
+    <div role="tabpanel" tabIndex={0} id="workbench-panel-keyboard"
+      aria-labelledby="workbench-tab-keyboard" className="workbench-tabpanel" hidden={active !== "keyboard"}>
+      <div className="studio-card">
         <span className="small-caps">ACCESSIBLE BY DEFAULT</span>
         <h2>Keyboard workflow</h2>
         <div className="shortcut-grid">
@@ -101,7 +107,7 @@ export function Workbench({ transport, onNavigate }: {
             <div className="shortcut-line" key={keys}><kbd>{keys}</kbd><span>{label}</span></div>
           )}
         </div>
-      </div>}
+      </div>
     </div>
   </section>;
 }

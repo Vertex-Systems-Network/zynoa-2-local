@@ -114,7 +114,14 @@ jobs:
                 (Test-Path -LiteralPath $registry))
             }
             Write-Output 'Native startup foundations exist; WebView/window visibility still needs independent verification'
-            & (Join-Path $env:GITHUB_WORKSPACE 'scripts\capture_p01_desktop.ps1') -TargetPid $process.Id -OutputDirectory (Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\M01') -SourceSha $env:ZYNOA_HEAD_SHA -BuiltSha $builtSha
+            # Keep immutable P01 screenshot evidence untouched. New P02
+            # candidates go under an isolated, source-run CI namespace while
+            # retaining no-overwrite checks and SHA provenance.
+            $proofOutput = Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\M01'
+            if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
+              $proofOutput = Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\_ci\M01'
+            }
+            & (Join-Path $env:GITHUB_WORKSPACE 'scripts\capture_p01_desktop.ps1') -TargetPid $process.Id -OutputDirectory $proofOutput -SourceSha $env:ZYNOA_HEAD_SHA -BuiltSha $builtSha
           } finally {
             $process.Refresh()
             if (-not $process.HasExited) { Stop-Process -Id $process.Id -Force }
@@ -218,4 +225,10 @@ jobs:
             docs/screenshots/M02/*.capture.json
             docs/screenshots/M19/*.png
             docs/screenshots/M19/*.capture.json
+            docs/screenshots/_ci/M01/*.png
+            docs/screenshots/_ci/M01/*.capture.json
+            docs/screenshots/_ci/M02/*.png
+            docs/screenshots/_ci/M02/*.capture.json
+            docs/screenshots/_ci/M19/*.png
+            docs/screenshots/_ci/M19/*.capture.json
           if-no-files-found: warn

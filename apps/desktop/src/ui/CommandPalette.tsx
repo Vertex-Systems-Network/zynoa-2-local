@@ -85,8 +85,11 @@ export function CommandPalette({ open, onClose, onNavigate }: Props) {
           <input id="command-query" ref={inputRef} value={query} maxLength={100}
             onChange={event => { setQuery(event.target.value); setSelected(0); }}
             autoComplete="off" spellCheck={false}
+            role="combobox" aria-autocomplete="list" aria-expanded={true}
             aria-label="Search available commands"
-            aria-controls="command-results" placeholder="Search views, help, settings…" />
+            aria-controls="command-results"
+            aria-activedescendant={matches.length ? "command-" + matches[Math.min(selected, matches.length - 1)].id : undefined}
+            placeholder="Search views, help, settings…" />
           <kbd>ESC</kbd>
         </label>
         <div className="command-results" id="command-results" role="listbox"

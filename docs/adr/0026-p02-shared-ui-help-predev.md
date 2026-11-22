@@ -36,3 +36,14 @@
 6. Full governance + versioned verifiers + 522+ baseline Python tests; browser-level a11y + screenshot review before P02 module tasks can be declared DONE.
 
 **Retries/rollback:** At most 2 bounded fixes for any new CI root cause before logging a clear blocker and continuing other safe tasks. Never make failing jobs optional merely to force green. Release and merge gates unchanged.
+
+## Additional distinct OpenPencil comparison (official projects)
+
+The repository protocol requires treating these as **two independent projects**, not one interchangeable vendor:
+
+| Source | Independently checked source | Relevant current P02 UI patterns | Explicitly deferred |
+| --- | --- | --- | --- |
+| `open-pencil/open-pencil` | https://github.com/open-pencil/open-pencil | Its Vue 3 / Reka UI component-state preview and token tooling provide examples of interactive design-system states and focus behavior. Source advertises MIT; verify specific version and dependencies before any reuse. | No `.fig` import/export, no design canvas, no Reka UI dependency in P02. Those capabilities belong to P08/P08I. |
+| `ZSeven-W/openpencil` | https://github.com/ZSeven-W/openpencil | Distinct Rust-centered design-as-code/editor architecture offers independent insight about native UI performance and inspectability. | No `.op` parser, orchestration engine, canvas or external adapter in P02. License and API compatibility require separate P08 research. |
+
+Both were separately consulted for **patterns only**, alongside [VS Code](https://code.visualstudio.com/docs/configure/accessibility/accessibility), [Figma variables](https://help.figma.com/hc/en-us/articles/14506821864087-Overview-of-variables-collections-and-modes), [Penpot tokens](https://help.penpot.app/user-guide/design-systems/design-tokens/) and [WAI-ARIA tabs](https://www.w3.org/WAI/ARIA/apg/patterns/tabs/). The selected React/CSS implementation introduces no third-party design editor dependency and never advertises interoperability before P08I acceptance.

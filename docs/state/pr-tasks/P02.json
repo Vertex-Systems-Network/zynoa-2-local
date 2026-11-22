@@ -9,13 +9,14 @@
     {
       "id": "P02-T01",
       "title": "Pre-dev: remote baseline, UX alternatives, M02/M19 ADR, threat and tests-first acceptance",
-      "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/c09d7df33f7eb4ca6ec3ebfa01d683ef66078bd5"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45068687082"
     },
     {
       "id": "P02-T02",
       "title": "M02 design tokens, accessible UI primitives and visual foundations",
-      "status": "TODO"
+      "status": "IN_PROGRESS",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12"
     },
     {
       "id": "P02-T03",
