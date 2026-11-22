@@ -1,5 +1,7 @@
 //! Native transport for P01. No filesystem, user data writes or network commands.
 mod ipc;
+mod security;
+mod secrets;
 
 pub fn run() {
     tauri::Builder::default()

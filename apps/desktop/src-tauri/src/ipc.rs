@@ -86,6 +86,8 @@ pub fn workspace_handshake(
     if window.label() != "main" {
         return Err(denied("ZYN-IPC-006"));
     }
+    crate::security::allow_local_workspace_handshake(window.label())
+        .map_err(|_| denied("ZYN-IPC-006"))?;
     validate(request)
 }
 
