@@ -193,11 +193,13 @@ impl NativeVault {
 mod tests {
     use super::*;
     use std::time::{SystemTime, UNIX_EPOCH};
+    static NEXT_FIXTURE_ID: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
     struct Fixture(PathBuf);
     impl Fixture {
         fn new() -> Self {
             let n = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
-            let root = std::env::temp_dir().join(format!("zynoa-vault-test-{}-{n}", std::process::id()));
+            let seq = NEXT_FIXTURE_ID.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            let root = std::env::temp_dir().join(format!("zynoa-vault-test-{}-{n}-{seq}", std::process::id()));
             fs::create_dir(&root).unwrap();
             Self(root)
         }

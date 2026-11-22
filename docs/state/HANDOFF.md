@@ -2,11 +2,12 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10; current ChatGPT worker holds exclusive lease. Never merge or start P02.
-- **P01-T01 through T07 DONE** with evidence in PR task board; T07 native SQLite transactional vault [Windows #44981325644](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44981325644) and [Governance #44981325655](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44981325655). Full encrypted user backup/screenshots/signing not implemented.
-- **P01-T08 IN_PROGRESS:** new M24 native-only location ownership registry with OS-bound app-local `storage-locations-v1.json`. Categorizes user vault, diagnostics, backup, cache, staging, app-managed model storage and *unresolved external read-only runtimes*. Relative-only identifiers, strict manifest schema, corruption refusal, no move/cleanup authority, Rust negative tests and Windows cold-boot proof added. Fresh CI pending.
-- Next: inspect Windows Rust compilation/real registry smoke and all Governance checks; fix failures, then decide T08 native foundation acceptance. Do not start T09 before T08 DONE.
-- M24 storage migration and path selection UI, real screenshots, external runtime integrations and release signing remain unimplemented.
+- P01 IN_PROGRESS on phase/01-foundation, draft PR #10; current ChatGPT worker holds lease; no merge or P02.
+- P01-T01 through T07 DONE with task-specific links. T07 Windows #44981325644 and Governance #44981325655 PASS.
+- P01-T08 IN_PROGRESS: native M24 registry source e2b261d5ce0e8342a71f0ef60506ddc179136706 categorizes app-owned and external read-only classes; no model movements.
+- Initial Windows #44981878863 RED from an unrelated existing M18 Rust test fixture folder collision (AlreadyExists, same Windows timestamp/PID under parallel tests); 26 tests passed, one test fixture creation failed. Governance PASS; no production data affected.
+- Fix committed for next CI: process-atomic extra unique sequence on M18/M23/M24 disposable test fixture paths. No test is disabled or bypassed. Inspect full Windows/Rust and Governance CI before accepting T08.
+- Full M24 relocation, path selection UI, Help/screenshots and release signing remain unimplemented; T09 must not start before T08 DONE.
 
 ## v3.1 agent handoff requirements
 

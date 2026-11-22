@@ -239,11 +239,13 @@ impl DiagnosticSpool {
 mod tests {
     use super::*;
     use std::time::{SystemTime, UNIX_EPOCH};
+    static NEXT_FIXTURE_ID: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
     struct Fixture(PathBuf);
     impl Fixture {
         fn new() -> Self {
             let ns = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
-            let path = std::env::temp_dir().join(format!("zynoa-m18-{}-{ns}", std::process::id()));
+            let seq = NEXT_FIXTURE_ID.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            let path = std::env::temp_dir().join(format!("zynoa-m18-{}-{ns}-{seq}", std::process::id()));
             fs::create_dir(&path).unwrap();
             Self(path)
         }
