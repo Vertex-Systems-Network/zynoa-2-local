@@ -5,6 +5,7 @@
 - Phase **P01** IN_PROGRESS on `phase/01-foundation`, draft PR #9. P00 closed: `main` `fe34877` (PRs #1, #8).
 - Tasks: `docs/state/pr-tasks/P01.json` (11, all TODO). Next: P01-T01 pre-dev/ADR, then P01-T02 (P00 tools + runner worker hardcode P00).
 - Lease: free. Set `PHASE.json.lease_holder` before editing; clear at handoff.
+- Next agent: copy-paste `docs/agent/NEXT_AGENT_PROMPT.md`.
 - Merges need an explicit owner "merge" message until the owner adds an auto-merge rule to `docs/agent/AI_STRICT_PROTOCOL.md`.
 
 
