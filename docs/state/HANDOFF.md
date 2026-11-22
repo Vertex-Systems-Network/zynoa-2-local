@@ -483,3 +483,7 @@ T15: `tools.local_model_probe` preflight passed before inference (https://github
 ## 2026-11-21 P00 merged and verified
 
 PR #1 merged to `main` at `f0a1ebbd0d43` (owner-authorized). T22: probe PR #6 (empty CLAUDE.md) failed governance-lint; the main-hosted `Developer CI Incident Publisher` run 44963750468 opened bot Issue #7. T24: merge SHA read back from remote `main`. P00 = 32/32 DONE. Next: P01 on `phase/01-*` only (PHASE_SPECS P01). Cleanup left: remote branches `bot/t22-probe`, `bot/p00-worker-*`, `wpe/fervent-turing-kcbww3` (delete blocked from this session).
+
+## 2026-11-22 P01 started
+
+P00 closed: `main` = `fe34877` (PR #8). P01 branch `phase/01-foundation`, task list `docs/state/pr-tasks/P01.json` (11 tasks, all TODO). First real work: P01-T01 pre-dev research/ADR, then P01-T02 (P00 tools still hardcode P00).
