@@ -270,6 +270,14 @@ class PhaseTransitionPublisherTests(unittest.TestCase):
             )
         self.assertEqual(0, self.journal.count())
 
+    def test_trusted_main_unclosed_phase_skips_receipt_job(self):
+        workflow = (Path(__file__).parents[1]
+                    / ".github/workflows/verified-phase-transition.yml").read_text()
+        self.assertIn("id: phase_gate", workflow)
+        self.assertIn('status == "MERGED_VERIFIED"', workflow)
+        self.assertIn("steps.phase_gate.outputs.ready == 'true'", workflow)
+        self.assertIn("Transition receipt SKIPPED", workflow)
+
     def test_workflow_is_main_only_and_not_PR_privileged(self):
         workflow = (Path(__file__).parents[1]
                     / ".github/workflows/verified-phase-transition.yml").read_text()
