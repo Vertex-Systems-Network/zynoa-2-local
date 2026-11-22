@@ -2,11 +2,10 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10; T01-T09 DONE, T10 IN_PROGRESS, T11 TODO. No merge/P02.
-- Windows [#45004462969](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45004462969) passed 32 native Rust tests and built the Windows executable, but screenshot step failed PowerShell parsing after a malformed patch; **no new screenshot accepted**.
-- T10: restored actual PS1 capture source, verified both PR/built SHA recording, added early PowerShell ParseFile gate and static regression checks; M01/M16/M17/M18 Help/Wiki now distinguish tested foundation from unimplemented UI.
-- Previous Windows [#44991398718](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44991398718) artifact #14742127510 is an unreviewed screenshot candidate, not accepted or committed.
-- **Next:** verify new Windows job and independently review genuine PNG/frame/legibility/privacy; commit only accepted screenshot + metadata and update screenshot inventory. T10 remains IN_PROGRESS until proof exists. T11/merge requires independent owner approval.
+- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10; T01-T09 DONE, T10 IN_PROGRESS, T11 TODO. **Lease released at handoff**; do not merge/start P02.
+- Windows [#45005079893](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45005079893) SUCCESS: 32 Rust tests, native build, PowerShell script parse, cold boot, native screenshot capture, local vault/locations/diagnostics/event checks. [Build/screenshot candidate artifact #14747861582](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45005079893/artifacts/14747861582); **not independently visually reviewed, not accepted, no PNG committed**.
+- T10 hardening landed in PR #10: pin actual PR HEAD checkout and built/source SHA equality; fail-fast PS1 parser; correct keyboard Ctrl+non-digit guard; truthful read-only M01/M16/M17/M18 Help/Wiki.
+- **Next:** obtain genuine screenshot PNG + `.capture.json` from Windows artifact, review pixels/privacy/framing/legibility and verify SHA256; if accepted commit reviewed PNG/evidence and update `docs/ui/SCREEN_INVENTORY.csv`. Keep unimplemented options explicitly PENDING. After T10 proof, run exit gates (T11); owner merge instruction is still required.
 
 
 ## v3.1 agent handoff requirements
