@@ -16,7 +16,7 @@ jobs:
         with: { fetch-depth: 2, persist-credentials: false }
       - id: diff
         run: |
-          if git cat-file -e HEAD^ 2>/dev/null && git diff --name-only HEAD^ HEAD | grep -qE '^(apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|tests/test_p01_locations.py|\.github/workflows/p01-desktop.yml)'; then
+          if git cat-file -e HEAD^ 2>/dev/null && git diff --name-only HEAD^ HEAD | grep -qE '^(apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|tests/test_p01_locations.py|tests/test_p01_events.py|\.github/workflows/p01-desktop.yml)'; then
             echo "desktop=true" >> "$GITHUB_OUTPUT"
           else
             echo "desktop=false" >> "$GITHUB_OUTPUT"
@@ -32,7 +32,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: '22' }
       - name: Desktop shell and IPC safety contracts
-        run: python -m unittest tests.test_p01_desktop_shell tests.test_p01_ipc_contract tests.test_p01_native_security tests.test_p01_diagnostics tests.test_p01_vault tests.test_p01_locations -v
+        run: python -m unittest tests.test_p01_desktop_shell tests.test_p01_ipc_contract tests.test_p01_native_security tests.test_p01_diagnostics tests.test_p01_vault tests.test_p01_locations tests.test_p01_events -v
       - name: Resolve pinned dependency inventory and install
         working-directory: apps/desktop
         run: |
@@ -144,6 +144,27 @@ jobs:
           assert keys["external_runtime"]["relative"] is None
           assert keys["external_runtime"]["move_allowed"] is False
           print("Native registry safe ownership and no-move defaults verified")
+          '@ | python -
+      - name: Verify native append-only event DB after real startup
+        shell: pwsh
+        run: |
+          $file = Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop\data\change-events-v1.sqlite'
+          if (-not (Test-Path -LiteralPath $file)) { throw 'ZYN-CHG-101: native audit database absent' }
+          $env:ZYNOA_CI_EVENTS = $file
+          @'
+          import os, sqlite3
+          from pathlib import Path
+          p = Path(os.environ["ZYNOA_CI_EVENTS"])
+          assert p.is_file() and "src-tauri" not in str(p).lower()
+          uri = f"file:{p.as_posix()}?mode=ro"
+          with sqlite3.connect(uri, uri=True) as c:
+              assert c.execute("PRAGMA user_version").fetchone()[0] == 1
+              assert c.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+              assert c.execute("PRAGMA journal_mode").fetchone()[0].lower() == "wal"
+              assert c.execute("SELECT count(*) FROM audit_events").fetchone()[0] == 0
+              triggers = {t[0] for t in c.execute("SELECT name FROM sqlite_master WHERE type='trigger'")}
+              assert {"audit_events_no_update", "audit_events_no_delete"} <= triggers
+          print("Private native event ledger verified: WAL, schema, append-only triggers, zero fabricated events")
           '@ | python -
       - uses: actions/upload-artifact@v4
         if: always()

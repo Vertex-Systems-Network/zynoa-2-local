@@ -2,12 +2,11 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10, with current conversation's ChatGPT-held lease. Never merge or start P02.
-- **P01-T01 through P01-T08 DONE**, links in task board. T08 native-only M24 storage ownership registry accepted with [real Windows desktop #44986611731](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44986611731) and [Governance #44986611713](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44986611713). Native boot now verifies diagnostics spool, SQLite vault and storage-location manifest as separate schema/ownership checks. Tests all PASS.
-- T08 remains a **native foundation only**. Full M24 user-selected paths, inventory/move/stage/hash/rollback, screenshots and external runtime integrations are not implemented; all migration requests are deny-first.
-- **Next: P01-T09 TODO**: M26 native durable privacy-scoped append-only event ledger, tests-first under app-owned storage, no raw content/PII or WebView write grants, idempotent sequence and replay after restart, signed release truth remains separate.
-- P01 exit gates T10/T11 pending; do not claim full M18/M23/M24 release, user-facing Help UI, signed installer or screenshot completion.
-
+- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10, ChatGPT-owned lease from current session; no merge or P02.
+- **T01 through T08 DONE** with evidence in PR board. M24 T08 native location registry passed [Windows #44986611731](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44986611731) and [Governance #44986611713](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44986611713). Full M24 relocation UX and migration stay unimplemented.
+- **T09 IN_PROGRESS**: M26 native-only SQLite WAL event ledger `data/change-events-v1.sqlite` created at OS-resolved app-local root. Append-only SQL triggers, privacy-scoped readers, strict typed no-payload event categories, unique idempotency, monotonic stream sequence and transactional commit-first receipt; Rust negative/recovery/concurrency fixtures and Windows cold-boot database verification. **New CI pending, not DONE.**
+- Next: inspect P01 Windows Rust tests/full native build and M26 ledger file smoke; repair any failure without weakening tests. Accept native T09 only with real evidence. Full M26 changelog/Help UI, signed release, issue bridge and screenshots remain later T10/T11 gates.
+- T10 documentation and real screenshots TODO; T11 P01 exit gate/merge TODO. Do not begin P02.
 
 ## v3.1 agent handoff requirements
 

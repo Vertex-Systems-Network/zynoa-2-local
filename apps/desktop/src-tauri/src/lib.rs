@@ -5,6 +5,7 @@ mod secrets;
 mod diagnostics;
 mod vault;
 mod locations; // native-only; not available to WebView
+mod events; // M26 native-only immutable event ledger
 
 use tauri::Manager;
 
@@ -29,6 +30,10 @@ pub fn run() {
             let storage = vault::NativeVault::open(&app_local)
                 .map_err(|_| std::io::Error::other("ZYN-DAT-001"))?;
             app.manage(std::sync::Mutex::new(storage));
+            // M26 event ledger is native-only, never a WebView invoke command.
+            let ledger = events::NativeEventLedger::open(&app_local)
+                .map_err(|_| std::io::Error::other("ZYN-CHG-001"))?;
+            app.manage(std::sync::Mutex::new(ledger));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![ipc::workspace_handshake])
