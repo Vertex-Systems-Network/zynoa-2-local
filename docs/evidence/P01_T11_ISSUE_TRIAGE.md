@@ -25,6 +25,12 @@ An independent authenticated comparison confirms P00 primary [PR #1](https://git
 
 **Unresolved:** A separate durable phase-controller transition event-journal receipt was not independently retrieved. The manifest and commit history are not an equivalent journal receipt. Issue #4 remains OPEN until that evidence is verified or an authorized maintainer adjudicates the acceptance criterion transparently. Issue #3 and the P01-wide independent label inventory remain untouched; P01-T11 stays IN_PROGRESS and PR #10 stays Draft/unmerged.
 
+## Proven original automatic M22 incident creation (independently verified 2026-11-22 UTC)
+
+The prior forensic audit independently validated five bot `UPDATED` receipts but had not traced the original creation. The missing primary source is now verified: a real failed [Governance run #44963732185](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44963732185) on controlled probe PR #6 triggered protected-main [Developer CI Incident Publisher #44963750468](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44963750468). Decoded `sanitized-incident` job 137028037345 logged `ci_run_verified=true`, `issue_number=7`, fingerprint `78736ec1d171b9c435d5756698885c8b`, source run ID 44963732185 and `status=CREATED`. Issue #7's `github-actions[bot]` author and 2026-11-21 23:50:49 UTC creation timestamp corroborate the result. Five later publisher runs returned `UPDATED` for the identical fingerprint. See the [full forensic dossier](P01_T11_M22_INCIDENT_FORENSICS.md) and [Issue #5 evidence comment](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/5#issuecomment-7083951568).
+
+**Impact:** automated fail-to-Issue **creation and deduplication are now actually demonstrated**, not merely inferred or mock-tested. Historic Issue #5 remains manually authored; open Issue #3 covers a separate infrastructure acceptance question. Issue #5/#7 states and phase/merge labels still need independent maintainer adjudication; no label, close, merge, or P02 action is implied.
+
 ## Safe maintainer resolution procedure
 
 1. Independently review the five issue bodies, the linked CI evidence and the actual branch/merge history. **Prioritize #3 and #7**, then #5 and #4. Do not alter issue states without a documented reason.
