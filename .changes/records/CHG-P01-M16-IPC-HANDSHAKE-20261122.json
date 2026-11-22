@@ -14,18 +14,21 @@
   ],
   "help_paths": [],
   "wiki_paths": [],
-  "test_evidence": [],
-  "commit_sha": null,
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44973070953",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44973070945"
+  ],
+  "commit_sha": "0d4613e99b4ca19ecc55e8bb719987ced8ba8f0f",
   "release": null,
   "verification": {
-    "tests_passed": false,
+    "tests_passed": true,
     "merge_verified": false,
     "release_published": false
   },
   "breaking_change": false,
   "migration_notes": "No persisted IPC state or user data migration.",
   "created_at": "2026-11-22T01:44:52.244Z",
-  "updated_at": "2026-11-22T01:44:52.244Z",
+  "updated_at": "2026-11-22T01:53:24.012Z",
   "version_bump": "none",
   "affected_option_ids": [],
   "docs_impact": true,

@@ -2,10 +2,11 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- Active P01 on `phase/01-foundation`, draft PR #10; worker lease currently held. No merge or P02.
-- T01-T03 DONE with verified CI links in manifest; T03 Windows compiled/booted process [#44972395326](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44972395326), but not an interactive GUI attestation.
-- **P01-T04 IN_PROGRESS**: new bounded Rust `workspace_handshake` and TS `probeWorkspaceStatus()`, explicit main-window ACL/manifest and Rust negative contract tests. UI shows a truthful "not configured" response, never a working workspace. Must pass fresh Governance, frontend/Windows native CI and Rust tests before T04 may be DONE.
-- No source-vault writes, secrets, telemetry, snapshot or backup service is implemented. Future M17/23 tasks own those capabilities.
+- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10; lease held by active worker. Never merge without owner authority. No P02.
+- T01-T03 DONE with verified CI links in manifest. T03 native unsigned EXE compiled, 8-second process boot passed, but no verified GUI screenshot or checked-in lockfiles yet.
+- **P01-T04 DONE**: M01/M16 read-only typed IPC `workspace.status` over main-window capability, bounded serde v1 envelope, rejects unknown commands/scopes/schema/extra fields/oversize and returns `not_configured`; React uses timeout/response validation and never grants writes. [Windows + Rust CI #44973070953](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44973070953) PASS, [Governance #44973070945](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44973070945) PASS; native rebuild and process boot both PASS. No native user data/vault writes or true workspace service exists.
+- **Next P01-T05 TODO**: native security under M17: OS secrets store and least privilege without introducing plaintext credentials. Need M17 dossier, tests first and Windows CI.
+- After T05, T06 diagnostics, then core durable data registry/event tasks. End-user screenshots and signed bundle are not proven. PR remains draft.
 
 
 ## v3.1 agent handoff requirements

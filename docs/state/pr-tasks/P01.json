@@ -27,7 +27,8 @@
     {
       "id": "P01-T04",
       "title": "M16 typed IPC between UI and services",
-      "status": "IN_PROGRESS"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44973070953"
     },
     {
       "id": "P01-T05",
