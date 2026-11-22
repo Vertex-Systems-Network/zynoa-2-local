@@ -117,7 +117,13 @@ class P02UIContractTests(unittest.TestCase):
             value = int(channel, 16) / 255
             return value / 12.92 if value <= 0.04045 else ((value + 0.055) / 1.055) ** 2.4
         def luminance(rgb):
-            return sum(weight * linear(rgb[i:i+2]) for i, weight in ((1, .2126), (3, .7152), (5, .0722)))
+            return sum(weight * linear(rgb[i:i+2]) for i, weight in ((0, .2126), (2, .7152), (4, .0722)))
+        # Independent primaries catch accidental off-by-one RGB channel parsing.
+        self.assertAlmostEqual(luminance("000000"), 0.0)
+        self.assertAlmostEqual(luminance("ffffff"), 1.0)
+        self.assertAlmostEqual(luminance("ff0000"), 0.2126)
+        self.assertAlmostEqual(luminance("00ff00"), 0.7152)
+        self.assertAlmostEqual(luminance("0000ff"), 0.0722)
         for theme in ("light", "dark"):
             block = re.search(r'\.shell\[data-theme="' + theme + r'"\]\s*\{([^}]+)\}', css)
             self.assertIsNotNone(block, theme)
