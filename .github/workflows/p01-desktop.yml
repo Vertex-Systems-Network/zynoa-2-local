@@ -16,7 +16,7 @@ jobs:
         with: { fetch-depth: 2, persist-credentials: false }
       - id: diff
         run: |
-          if git cat-file -e HEAD^ 2>/dev/null && git diff --name-only HEAD^ HEAD | grep -qE '^(apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|tests/test_p01_locations.py|tests/test_p01_events.py|\.github/workflows/p01-desktop.yml)'; then
+          if git cat-file -e HEAD^ 2>/dev/null && git diff --name-only HEAD^ HEAD | grep -qE '^(apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|tests/test_p01_locations.py|tests/test_p01_events.py|tests/test_p01_screenshot_capture.py|\.github/workflows/p01-desktop.yml)'; then
             echo "desktop=true" >> "$GITHUB_OUTPUT"
           else
             echo "desktop=false" >> "$GITHUB_OUTPUT"
@@ -32,7 +32,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: '22' }
       - name: Desktop shell and IPC safety contracts
-        run: python -m unittest tests.test_p01_desktop_shell tests.test_p01_ipc_contract tests.test_p01_native_security tests.test_p01_diagnostics tests.test_p01_vault tests.test_p01_locations tests.test_p01_events -v
+        run: python -m unittest tests.test_p01_desktop_shell tests.test_p01_ipc_contract tests.test_p01_native_security tests.test_p01_diagnostics tests.test_p01_vault tests.test_p01_locations tests.test_p01_events tests.test_p01_screenshot_capture -v
       - name: Resolve pinned dependency inventory and install
         working-directory: apps/desktop
         run: |
@@ -51,6 +51,8 @@ jobs:
         run: npm run tauri -- build --no-bundle
       - name: Verify desktop executable cold boot
         shell: pwsh
+        env:
+          ZYNOA_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
           if (-not (Test-Path -LiteralPath $exe)) { throw 'Desktop binary not built' }
@@ -79,6 +81,7 @@ jobs:
                 (Test-Path -LiteralPath $registry))
             }
             Write-Output 'Native startup foundations exist; WebView/window visibility still needs independent verification'
+            & (Join-Path $env:GITHUB_WORKSPACE 'scripts\capture_p01_desktop.ps1') -TargetPid $process.Id -OutputDirectory (Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\M01') -SourceSha $env:ZYNOA_HEAD_SHA
           } finally {
             $process.Refresh()
             if (-not $process.HasExited) { Stop-Process -Id $process.Id -Force }
@@ -174,4 +177,6 @@ jobs:
             apps/desktop/package-lock.json
             apps/desktop/src-tauri/Cargo.lock
             apps/desktop/src-tauri/target/release/zynoa_desktop.exe
+            docs/screenshots/M01/M01-S01.png
+            docs/screenshots/M01/M01-S01.capture.json
           if-no-files-found: warn

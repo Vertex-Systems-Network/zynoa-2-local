@@ -1,0 +1,34 @@
+"""P01-T10 native screenshot proof is never a mock or browser preview."""
+from pathlib import Path
+import unittest
+
+ROOT=Path(__file__).resolve().parents[1]
+
+class NativeScreenshotCaptureContracts(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.script=(ROOT/"scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        cls.workflow=(ROOT/".github/workflows/p01-desktop.yml").read_text(encoding="utf-8")
+
+    def test_real_native_window_required_and_blank_screen_denied(self):
+        for marker in ("$proc.MainWindowHandle", "IsWindowVisible($hwnd)",
+                       "GetWindowRect($hwnd", "CopyFromScreen(", "SetForegroundWindow",
+                       "ZYN-SCREEN-002", "ZYN-SCREEN-007", "refuse replacing existing image"):
+            self.assertIn(marker, self.script)
+        self.assertNotIn("capture_verified = $true", self.script)
+
+    def test_provenance_with_no_premature_verified_claims(self):
+        for marker in ("source_commit_sha", "sha256", "Get-FileHash",
+                       "capture_verified = $false", "candidate_pending_visual_review",
+                       "M01-S01.capture.json", "Disposable CI fixture"):
+            self.assertIn(marker, self.script)
+
+    def test_windows_ci_invokes_native_capture_while_process_is_alive(self):
+        for marker in ("tests.test_p01_screenshot_capture", "capture_p01_desktop.ps1",
+                       "docs/screenshots/M01/M01-S01.png", "ZYNOA_HEAD_SHA",
+                       "Verify desktop executable cold boot"):
+            self.assertIn(marker, self.workflow)
+        self.assertIn("Native Windows desktop build (no release or signature)", self.workflow)
+
+if __name__=="__main__":
+    unittest.main()

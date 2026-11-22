@@ -2,11 +2,11 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10; current ChatGPT lease active. Do not merge or start P02.
-- **P01-T01 through T09 DONE**, exact source verification in task board. T09 native-only M26 append-only SQLite ledger passed [Windows CI #44988269511](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44988269511), [Governance #44988269504](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44988269504) and PR task-board sync. Eight-thread concurrent first-open test, SQLite sequence, privacy, immutability and real cold-boot event schema verified.
-- Native M26 foundation is **not** user-facing release feed, full M26 UI, signed binary, issue reporter or production privacy consent.
-- **Next: P01-T10 TODO**: truthful P01 Help/Wiki sources and real Windows desktop screenshot capture with provenance, alt text, sensitive-content inspection. Never label browser preview, generated images, or unreviewed artifacts as real screenshot evidence. T11 exit/security/signing/merge gate remains TODO.
-- Preserve PR #10 draft/unmerged until all documented exit checks and owner merge authorization.
+- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10, current ChatGPT lease held; do not merge or start P02.
+- **P01-T01 through T09 DONE** with task evidence in manifest. T09 native append-only event store passed [Windows #44988269511](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44988269511), Governance and PR table sync.
+- **P01-T10 IN_PROGRESS:** truthful M01/M16/M17/M18 Help and Wiki subsets now distinguish tested native foundation from planned unimplemented UI. A real Tauri Windows CI screenshot capture hook now targets candidate `M01-S01` from the actual native window with image hash, PR head SHA and alt text; **it is not verified or committed**. Documentation: `docs/screenshots/P01_EVIDENCE_STATUS.md`.
+- **Fresh T10 CI pending:** if Windows GUI capture fails or image blank, repair test environment rather than substitute a browser/mock screenshot. Download artifact and visually inspect before marking image verified. Remaining P01 screen/control images and local Help UI not finished; T10 must not be marked DONE.
+- T11 P01 exit/release/signing/PR merge remains TODO. Full M26 release feed, remote incident publishing, user data/restore UI, signed installer and Wiki publication not proven.
 
 
 ## v3.1 agent handoff requirements
