@@ -14,5 +14,7 @@
     "P01-Settings-preview": "77ea700ac32a7b61515aeb40822d29d6ca9b03fcc0d943581404ae13155586e5",
     "P01-Recovery-preview": "621bb118615d3af7cbd547d1c2b740acd1a8b060a5358dc2a4421d6a4229d4ef",
     "P01-Diagnostics-preview": "c7ba39f71068ece02488f47349cf27fbedfb2bc7814aa934a476b1e981c5355e"
-  }
+  },
+  "publisher_retry": 1,
+  "publisher_retry_reason": "GitHub API ZIP redirect must drop bearer Authorization before signed storage"
 }

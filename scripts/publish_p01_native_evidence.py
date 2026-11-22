@@ -13,6 +13,8 @@ import re
 import struct
 import subprocess
 import urllib.request
+import urllib.error
+import urllib.parse
 import zipfile
 
 REPO = "Vertex-Systems-Network/zynoa-2-local"
@@ -98,6 +100,49 @@ def github_get(path: str, *, as_bytes: bool = False):
     return payload if as_bytes else json.loads(payload)
 
 
+
+def trusted_redirect_target(url: str) -> None:
+    parsed = urllib.parse.urlsplit(url)
+    host = (parsed.hostname or "").lower()
+    require(parsed.scheme == "https"
+            and (host.endswith(".blob.core.windows.net")
+                 or host.endswith(".githubusercontent.com")
+                 or host.endswith(".actions.githubusercontent.com")),
+            "artifact redirect left GitHub-managed HTTPS storage")
+
+
+class NoAutomaticRedirect(urllib.request.HTTPRedirectHandler):
+    """Avoid forwarding the GitHub bearer token to signed artifact storage."""
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+def download_approved_artifact(artifact_id: int) -> bytes:
+    token = os.environ.get("GITHUB_TOKEN", "")
+    require(bool(token), "GitHub token unavailable")
+    req = urllib.request.Request(
+        f"https://api.github.com/repos/{REPO}/actions/artifacts/{artifact_id}/zip",
+        headers={"Authorization": "Bearer " + token,
+                 "Accept": "application/vnd.github+json",
+                 "User-Agent": "Zynoa-P01-approved-evidence"},
+    )
+    try:
+        with urllib.request.build_opener(NoAutomaticRedirect).open(req, timeout=60) as r:
+            data = r.read(MAX_ZIP_BYTES + 1)
+    except urllib.error.HTTPError as error:
+        if error.code not in (301, 302, 303, 307, 308):
+            raise
+        location = error.headers.get("Location", "")
+        trusted_redirect_target(location)
+        # Signed Azure/GitHub artifact URLs must NEVER see the GitHub bearer token.
+        with urllib.request.urlopen(urllib.request.Request(
+                location, headers={"User-Agent": "Zynoa-P01-approved-evidence"}),
+                timeout=60) as r:
+            data = r.read(MAX_ZIP_BYTES + 1)
+    require(len(data) <= MAX_ZIP_BYTES, "GitHub artifact exceeds size cap")
+    return data
+
+
 def main() -> None:
     require(os.environ.get("GITHUB_REPOSITORY") == REPO, "wrong repository")
     require(os.environ.get("GITHUB_REF") == "refs/heads/phase/01-foundation",
@@ -124,8 +169,7 @@ def main() -> None:
                 and a["name"] == "p01-desktop-windows-build-evidence"
                 and not a["expired"]]
     require(len(selected) == 1, "reviewed artifact absent from successful run")
-    blob = github_get("/actions/artifacts/" + str(manifest["artifact_id"]) + "/zip",
-                      as_bytes=True)
+    blob = download_approved_artifact(manifest["artifact_id"])
     planned = []
     with zipfile.ZipFile(io.BytesIO(blob)) as archive:
         for shot in sorted(REVIEWED_IDS):

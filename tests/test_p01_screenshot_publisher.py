@@ -5,6 +5,7 @@ import unittest
 
 from scripts.publish_p01_native_evidence import (
     REVIEWED_IDS, validate_approval, validate_png_and_capture,
+    trusted_redirect_target,
 )
 
 
@@ -37,6 +38,15 @@ class ScreenshotEvidencePublisherTests(unittest.TestCase):
         m["sha256_by_screenshot"]["M01-S01"] = "not-a-sha"
         with self.assertRaises(ValueError):
             validate_approval(m)
+
+    def test_redirect_target_never_leaks_github_token_to_untrusted_host(self):
+        trusted_redirect_target("https://example.blob.core.windows.net/ci/asset?sig=abc")
+        trusted_redirect_target("https://results.actions.githubusercontent.com/asset")
+        for url in ("http://example.blob.core.windows.net/asset",
+                    "https://evil.example.com/asset",
+                    "https://blob.core.windows.net.evil.example/asset"):
+            with self.assertRaises(ValueError):
+                trusted_redirect_target(url)
 
     def test_provenance_mismatch_or_fake_image_rejected(self):
         payload = b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\x0DIHDR" + struct.pack(">II", 998, 701) + b"x" * 1020
