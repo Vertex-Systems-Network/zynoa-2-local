@@ -46,7 +46,7 @@ class DesktopShellContractTests(unittest.TestCase):
     def test_navigation_keyboard_disabled_pending_features(self):
         frontend = (APP / "src/App.tsx").read_text(encoding="utf-8")
         for marker in ("Overview", "Settings", "Recovery", "Diagnostics",
-                       "No verified backups", "No data stored", "disabled",
+                       "No verified backups", "No workspace data stored", "disabled",
                        "Browser preview", "event.ctrlKey", 'aria-label="Primary navigation"'):
             self.assertIn(marker, frontend)
         self.assertIn('"__TAURI_INTERNALS__" in window', frontend)

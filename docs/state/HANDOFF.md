@@ -2,11 +2,12 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10. ChatGPT holds the active lease for this T06 slice; no merge or P02.
-- P01-T01 through T05 DONE with Windows/Governance evidence in task manifest; production signing, permission-grant UI, screenshots and stable release remain later phase gates.
-- **P01-T06 IN_PROGRESS**: native M18 spool passed Windows/Governance [run #44978533633](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44978533633) and [#44978533782](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44978533782). Runtime integration added: Tauri OS-owned app-local path, boot event, sanitized native panic hook, denied IPC categories, Rust recovery/invalid-root tests, and actual Windows cold-boot spool readback. **Fresh CI pending; not DONE.**
-- Next: inspect Rust/Python/Windows workflow for this runtime integration. Repair failures without skipping tests. Review multi-process file locking and safe retention, ensure native privacy preview, then decide T06 completion. T07 must not begin while T06 IN_PROGRESS.
-- PR #10 stays draft/unmerged. No end-user release, user vault, signed installer or verified screenshot exists.
+- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10, with current ChatGPT-held lease; no merge or P02.
+- **T01–T05 DONE** with task-specific CI references in PR task board. T05's Rust-native credential and deny-first scope passed [Windows #44973840898](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44973840898). Full production signing and user grant UI remain P01 exit gates.
+- **T06 IN_PROGRESS**: native diagnostics spool integrated at Tauri startup with an OS-provided app-local directory, sanitized panic hook, denied IPC event types and actual Windows cold-boot record. Green [Governance #44979498370](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44979498370) / [Windows #44979498386](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44979498386).
+- **Newest pending T06 hardening:** exclusive Windows writer guard (fail closed on concurrent process; OS releases on exit), real panic payload redaction fixture and honest diagnostics UI / footer copy. Await fresh GitHub-hosted Windows and governance CI. No changes to frontend native privileges.
+- Next: inspect CI; fix failures. Decide whether T06 native-spine task can be accepted with advanced retention, user privacy preview, screenshot, signed installer and remote issue/reporting explicitly reserved for T10/T11; do not mark M18 full module as complete. Never begin T07 while T06 remains IN_PROGRESS.
+- PR is draft/unmerged; no release or user data vault.
 
 
 ## v3.1 agent handoff requirements

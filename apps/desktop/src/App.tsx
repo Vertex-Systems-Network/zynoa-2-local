@@ -63,13 +63,17 @@ function Recovery() {
   );
 }
 
-function Diagnostics() {
+function Diagnostics({ transport }: { transport: TransportState }) {
+  const nativeReady = transport === "connected";
   return (
     <section className="detail" aria-labelledby="diagnostics-title">
       <p className="eyebrow">SYSTEM / VISIBILITY</p><h1 id="diagnostics-title">Diagnostics<span className="period">.</span></h1>
-      <p className="lead">The native diagnostic spine is not yet connected. This shell does not upload logs, errors or telemetry.</p>
-      <div className="diagnostic-grid"><div className="metric"><span>Local logs</span><strong>Not enabled</strong><small>Native diagnostics pending</small></div><div className="metric"><span>Background services</span><strong>Not started</strong><small>Typed transport pending</small></div></div>
-      <div className="notice" role="status">These labels describe available features, not a health scan of your device.</div>
+      <p className="lead">{nativeReady ? "Native diagnostics record only fixed local event categories. No crash messages, file paths, passwords or document contents are collected. This view does not read stored logs or send reports." : "Live diagnostics are unavailable in this browser or while the native transport is disconnected. No remote telemetry is sent."}</p>
+      <div className="diagnostic-grid">
+        <div className="metric"><span>Local event spool</span><strong>{nativeReady ? "Native-only" : "Not verified"}</strong><small>{nativeReady ? "Boot and denied-request classes only" : "Open the local desktop application"}</small></div>
+        <div className="metric"><span>Remote reporting</span><strong>Disabled</strong><small>No automatic issue publishing or telemetry</small></div>
+      </div>
+      <div className="notice" role="status">This is a capability summary, not a live log viewer or complete device health scan.</div>
     </section>
   );
 }
@@ -124,8 +128,8 @@ export function App() {
       </aside>
       <main id="main-content" tabIndex={-1}>
         <header className="topbar"><div className="crumb">Zynoa <span>/</span> <strong>{views.find((page) => page.key === view)?.title}</strong></div><div className="top-actions"><span>PHASE 01</span><span className="avatar" aria-label="Profile not yet configured">Z</span></div></header>
-        <div className="content">{view === "startup" ? <Startup state={startup} transport={transport} /> : view === "settings" ? <Settings /> : view === "recovery" ? <Recovery /> : <Diagnostics />}</div>
-        <footer className="footer"><span>Local desktop foundation</span><span>Native services require verification · <strong>No data stored</strong></span></footer>
+        <div className="content">{view === "startup" ? <Startup state={startup} transport={transport} /> : view === "settings" ? <Settings /> : view === "recovery" ? <Recovery /> : <Diagnostics transport={transport} />}</div>
+        <footer className="footer"><span>Local desktop foundation</span><span>Native services require verification · <strong>No workspace data stored</strong></span></footer>
       </main>
     </div>
   );

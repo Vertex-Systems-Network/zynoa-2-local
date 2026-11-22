@@ -46,6 +46,7 @@ pub(crate) struct DiagnosticSpool {
 #[derive(Clone)]
 pub(crate) struct NativeDiagnostics {
     inner: Arc<Mutex<DiagnosticSpool>>,
+    _instance_guard: Arc<File>,
 }
 
 impl NativeDiagnostics {
@@ -61,9 +62,10 @@ impl NativeDiagnostics {
         reject_linked_directory(os_local_data_root)?;
         let root = create_checked_child(os_local_data_root, "com.zynoa.desktop")?;
         let directory = create_checked_child(&root, "diagnostics")?;
+        let guard = open_exclusive_instance_guard(&directory)?;
         let mut spool = DiagnosticSpool::open(directory.join("events-v1.jsonl"))?;
         spool.record(Module::M01, Severity::Info, Code::BootReady, now_ms())?;
-        Ok(Self { inner: Arc::new(Mutex::new(spool)) })
+        Ok(Self { inner: Arc::new(Mutex::new(spool)), _instance_guard: Arc::new(guard) })
     }
 
     /// Captures only a fixed category. No panic text, path, stack or user content.
@@ -87,6 +89,27 @@ impl NativeDiagnostics {
     fn snapshot(&self) -> Vec<SafeDiagnostic> {
         self.inner.lock().unwrap().grouped_snapshot()
     }
+}
+
+
+fn open_exclusive_instance_guard(directory: &Path) -> Result<File, DiagnosticFault> {
+    let file = directory.join("writer.lock");
+    check_path(&file)?;
+    let mut options = OpenOptions::new();
+    options.write(true).create(true);
+    #[cfg(windows)]
+    {
+        // Kernel-held exclusive handle, automatically released on a crash.
+        // FILE_FLAG_OPEN_REPARSE_POINT avoids following a replaced link.
+        use std::os::windows::fs::OpenOptionsExt;
+        options.share_mode(0).custom_flags(0x0020_0000);
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        options.mode(0o600);
+    }
+    options.open(&file).map_err(|_| DiagnosticFault::Unavailable)
 }
 
 fn now_ms() -> u64 {
@@ -227,6 +250,43 @@ mod tests {
         fn file(&self) -> PathBuf { self.0.join("diagnostics.jsonl") }
     }
     impl Drop for Fixture { fn drop(&mut self) { let _ = fs::remove_dir_all(&self.0); } }
+
+
+    #[cfg(windows)]
+    #[test]
+    fn native_writer_lock_blocks_second_instance_and_recovers_after_exit() {
+        let fixture = Fixture::new();
+        let root = fixture.0.join("com.zynoa.desktop");
+        let first = NativeDiagnostics::initialize(&fixture.0, &root).unwrap();
+        assert!(matches!(
+            NativeDiagnostics::initialize(&fixture.0, &root),
+            Err(DiagnosticFault::Unavailable)
+        ));
+        drop(first);
+        let second = NativeDiagnostics::initialize(&fixture.0, &root).unwrap();
+        let boot = second.snapshot().into_iter()
+            .find(|e| e.code == Code::BootReady).unwrap();
+        assert_eq!(boot.occurrence_count, 2);
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn actual_panic_hook_omits_secret_payload_from_local_spool() {
+        let fixture = Fixture::new();
+        let root = fixture.0.join("com.zynoa.desktop");
+        let runtime = NativeDiagnostics::initialize(&fixture.0, &root).unwrap();
+        let old_hook = std::panic::take_hook();
+        runtime.install_redacted_panic_hook();
+        let result = std::panic::catch_unwind(|| {
+            panic!("NEVER_STORE_SECRET_VALUE_123");
+        });
+        std::panic::set_hook(old_hook);
+        assert!(result.is_err());
+        drop(runtime);
+        let raw = fs::read_to_string(root.join("diagnostics/events-v1.jsonl")).unwrap();
+        assert!(raw.contains("RuntimeFault"));
+        assert!(!raw.contains("NEVER_STORE_SECRET_VALUE_123"));
+    }
 
     #[test]
     fn os_local_boot_creates_app_owned_record_and_replays_without_data_loss() {

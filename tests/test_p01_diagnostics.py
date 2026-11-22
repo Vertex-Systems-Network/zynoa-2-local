@@ -48,6 +48,16 @@ class NativeDiagnosticsContractTests(unittest.TestCase):
         for forbidden in ("#[tauri::command]", "reqwest", "println!", "eprintln!"):
             self.assertNotIn(forbidden, self.source)
 
+    def test_native_writer_exclusivity_and_actual_panic_redaction(self):
+        for marker in ("options.share_mode(0)", "open_exclusive_instance_guard",
+                       "native_writer_lock_blocks_second_instance_and_recovers_after_exit",
+                       "actual_panic_hook_omits_secret_payload_from_local_spool"):
+            self.assertIn(marker, self.source)
+        app = (ROOT / "apps/desktop/src/App.tsx").read_text(encoding="utf-8")
+        self.assertIn("No workspace data stored", app)
+        self.assertIn("No automatic issue publishing", app)
+        self.assertNotIn("The native diagnostic spine is not yet connected", app)
+
     def test_windows_cold_boot_checks_real_local_spool(self):
         self.assertIn("tests.test_p01_diagnostics", self.workflow)
         self.assertIn("cargo test --lib --release", self.workflow)
