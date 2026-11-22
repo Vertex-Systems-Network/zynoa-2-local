@@ -31,3 +31,7 @@
 4. **Remote Wiki remains un-published**, and future-option screenshots are deliberately `PENDING_IMPLEMENTATION` rather than fabricated. These are deferred feature scopes, not proof of present functionality.
 
 **Next authorized step:** finish independent blocker-scope/merge-guard policy under current phase and present a fully audited merge-ready PR; only upon an explicit owner **merge** instruction can the bot attempt protected merge, verify its actual SHA and update the phase checkpoint. Do not use task count or green CI as a merge substitute.
+
+## T11 ruleset fallback hardening (same phase, no merge)
+
+The classic authenticated `/rules/branches/main` endpoint can be unavailable while the active repository ruleset API is readable. The P01 merge evidence gateway now falls back **only** to an authenticated repository-owned, active branch ruleset targeting exactly `refs/heads/main`, with no bypass actors or bypass permission and a complete rule set. Ambiguous/inherited/wildcard policies, inaccessible APIs and incomplete pagination all fail closed. The existing PR requirement, strict `governance-lint` and trusted GitHub Actions App ID 15368 checks remain mandatory. **This does not resolve the separately required P01 independent blocker scope, owner authorization or actual merge.** CI regression evidence for this change must be checked before saying the fallback passed.

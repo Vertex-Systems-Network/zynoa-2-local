@@ -1,0 +1,35 @@
+{
+  "change_id": "CHG-P01-T11-RULESET-FALLBACK-20261122",
+  "module_id": "M26",
+  "kind": "bugfix",
+  "title": "Fail-closed active ruleset fallback for protected main GitHub merge evidence",
+  "summary": "P01 final merge-readiness audit found legacy effective-rules API inaccessible while repository active ruleset #27593065 remains readable. Add exact-target active non-bypass repository ruleset fallback with strict trusted check provider validation. Never infer blocker-scope completeness, authorize PR merge, or publish a release.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10",
+  "docs_paths": [
+    "docs/evidence/P01_T11_PREMERGE_AUDIT.md",
+    "docs/state/HANDOFF.md"
+  ],
+  "help_paths": [],
+  "wiki_paths": [],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45008555925"
+  ],
+  "commit_sha": "3a9ba106d8d50b1001b55907516d6c79a06784b1",
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No data migration, branch protection change or merge; read-only GitHub gate evidence only.",
+  "created_at": "2026-11-22T09:43:15.230Z",
+  "updated_at": "2026-11-22T09:43:15.230Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}

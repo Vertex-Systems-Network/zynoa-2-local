@@ -140,10 +140,69 @@ class GitHubGateway:
         """Read applied GitHub rules, not just a branch.protected boolean."""
         if not re.fullmatch(r"[A-Za-z0-9/_.-]+", branch) or ".." in branch:
             raise GitHubEvidenceError("invalid rules branch")
-        rules = self._get("/rules/branches/" + urllib.parse.quote(branch, safe=""))
+        try:
+            rules = self._get("/rules/branches/" + urllib.parse.quote(branch, safe=""))
+        except GitHubEvidenceError:
+            # GitHub may deny the legacy effective-rules API to an integration
+            # while allowing its repository-scoped active ruleset readback.
+            # Never infer protection from branch.protected or a ruleset name.
+            return self._active_repository_ruleset_fallback(branch)
         if not isinstance(rules, list) or not all(isinstance(rule, dict) for rule in rules):
             raise GitHubEvidenceError("effective rules response unavailable")
         return rules
+
+    def _active_repository_ruleset_fallback(self, branch: str) -> list[dict]:
+        """Fallback only to fully authenticated, enforced, non-bypass main rules.
+
+        Fail closed on incomplete pagination, ambiguous conditions, inherited
+        organization policies, or missing rules. Never waive PR/CI provider
+        validation: _trusted_required_policy still checks those separately.
+        """
+        if branch != "main":
+            raise GitHubEvidenceError("ruleset fallback supports protected main only")
+        rows = self._get("/rulesets", {"includes_parents": "true", "per_page": "100"})
+        if not isinstance(rows, list) or len(rows) >= 100:
+            raise GitHubEvidenceError("ruleset list incomplete or invalid")
+        matching: list[dict] = []
+        for row in rows:
+            if not isinstance(row, dict):
+                raise GitHubEvidenceError("invalid ruleset list entry")
+            if row.get("target") != "branch" or row.get("enforcement") != "active":
+                continue
+            # Without independently checking inheritance and exact target
+            # patterns, unknown potentially applied rules are NOT certified.
+            if row.get("source_type") != "Repository" or row.get("source") != self.repo:
+                raise GitHubEvidenceError("unverified inherited active branch ruleset")
+            rule_id = row.get("id")
+            if type(rule_id) is not int or rule_id <= 0:
+                raise GitHubEvidenceError("active ruleset identifier missing")
+            detail = self._get("/rulesets/" + str(rule_id))
+            if not isinstance(detail, dict) or (
+                detail.get("id") != rule_id
+                or detail.get("target") != "branch"
+                or detail.get("enforcement") != "active"
+                or detail.get("source_type") != "Repository"
+                or detail.get("source") != self.repo
+            ):
+                raise GitHubEvidenceError("ruleset identity or enforcement mismatch")
+            condition = detail.get("conditions")
+            refs = condition.get("ref_name") if isinstance(condition, dict) else None
+            if not isinstance(refs, dict):
+                raise GitHubEvidenceError("ruleset target conditions unavailable")
+            included, excluded = refs.get("include"), refs.get("exclude")
+            if included != ["refs/heads/main"] or excluded != []:
+                raise GitHubEvidenceError("ruleset target ambiguous: cannot certify main")
+            if detail.get("bypass_actors") != [] or detail.get("current_user_can_bypass") != "never":
+                raise GitHubEvidenceError("ruleset bypass not independently denied")
+            rules = detail.get("rules")
+            if not isinstance(rules, list) or not rules or not all(
+                isinstance(rule, dict) for rule in rules
+            ):
+                raise GitHubEvidenceError("effective ruleset contents missing")
+            matching.extend(rules)
+        if not matching:
+            raise GitHubEvidenceError("no applicable enforced non-bypass main ruleset")
+        return matching
 
     @staticmethod
     def _trusted_required_policy(rules: list[dict], required_checks: tuple[str, ...],

@@ -27,6 +27,12 @@ class FakeTransport:
             "check_suite": {"id": self.suite_id},
             "details_url": f"https://github.com/{REPO}/actions/runs/{self.run_id}/job/{self.job_id}",
         }]
+        self.ruleset_active = True
+        self.ruleset_include = ["refs/heads/main"]
+        self.ruleset_bypass = []
+        self.ruleset_user_bypass = "never"
+        self.ruleset_source = REPO
+        self.ruleset_count = 1
         self.rules = [
             {"type": "pull_request", "parameters": {"required_review_thread_resolution": True}},
             {"type": "required_status_checks", "parameters": {
@@ -76,6 +82,23 @@ class FakeTransport:
             # Real GitHub returns a missing-job API error, not a test fixture
             # AssertionError; missing or forged job IDs must fail closed.
             raise GitHubEvidenceError("workflow job not found")
+        if path.endswith("/rulesets"):
+            return [
+                {"id": 27593065, "target": "branch",
+                 "enforcement": "active" if self.ruleset_active else "disabled",
+                 "source_type": "Repository", "source": self.ruleset_source}
+                for _ in range(self.ruleset_count)
+            ]
+        if path.endswith("/rulesets/27593065"):
+            return {
+                "id": 27593065, "target": "branch",
+                "enforcement": "active" if self.ruleset_active else "disabled",
+                "source_type": "Repository", "source": self.ruleset_source,
+                "conditions": {"ref_name": {"include": self.ruleset_include, "exclude": []}},
+                "bypass_actors": self.ruleset_bypass,
+                "current_user_can_bypass": self.ruleset_user_bypass,
+                "rules": self.rules,
+            }
         if path.endswith("/rules/branches/main"):
             return self.rules
         if path.endswith("/branches/main"):
@@ -264,11 +287,62 @@ class GitHubEvidenceTests(unittest.TestCase):
         fake.rules = [fake.rules[0]]
         self.assertFalse(client.observe(STATE)["rules_policy_verified"])
 
+    def test_legacy_rules_api_denial_can_use_exact_enforced_non_bypass_ruleset(self):
+        client, fake = self.build()
+        old = fake.__call__
+        def legacy_forbidden(method, url, headers, body, timeout):
+            if "/rules/branches/" in url:
+                raise GitHubEvidenceError("legacy endpoint forbidden")
+            return old(method, url, headers, body, timeout)
+        client.transport = legacy_forbidden
+        result = client.observe(STATE)
+        self.assertTrue(result["rules_policy_verified"])
+        self.assertTrue(result["checks_passed"])
+        self.assertTrue(result["transition_ready"])
+
+    def test_ruleset_fallback_fails_closed_for_bypass_wrong_target_or_missing_rules(self):
+        for name, modifications in (
+            ("bypass_actor", {"ruleset_bypass": [{"actor_id": 1, "actor_type": "Team"}]}),
+            ("user_can_bypass", {"ruleset_user_bypass": "always"}),
+            ("wrong_target", {"ruleset_include": ["refs/heads/development"]}),
+            ("unknown_pattern", {"ruleset_include": ["~DEFAULT_BRANCH"]}),
+            ("inherited_policy", {"ruleset_source": "different-org"}),
+            ("no_active_policy", {"ruleset_active": False}),
+            ("no_rulesets", {"ruleset_count": 0}),
+            ("incomplete_page", {"ruleset_count": 100}),
+        ):
+            client, fake = self.build()
+            for key, value in modifications.items():
+                setattr(fake, key, value)
+            old = fake.__call__
+            def legacy_forbidden(method, url, headers, body, timeout):
+                if "/rules/branches/" in url:
+                    raise GitHubEvidenceError("legacy endpoint forbidden")
+                return old(method, url, headers, body, timeout)
+            client.transport = legacy_forbidden
+            with self.subTest(name=name):
+                snap = client.observe(STATE)
+                self.assertFalse(snap["rules_policy_verified"])
+                self.assertFalse(snap["transition_ready"])
+
+    def test_ruleset_fallback_never_waives_pinned_trusted_check(self):
+        client, fake = self.build()
+        fake.rules[1]["parameters"]["required_status_checks"][0]["integration_id"] = 1111
+        old = fake.__call__
+        def legacy_forbidden(method, url, headers, body, timeout):
+            if "/rules/branches/" in url:
+                raise GitHubEvidenceError("legacy endpoint forbidden")
+            return old(method, url, headers, body, timeout)
+        client.transport = legacy_forbidden
+        snap = client.observe(STATE)
+        self.assertFalse(snap["rules_policy_verified"])
+        self.assertFalse(snap["transition_ready"])
+
     def test_rules_readback_unavailable_blocks_without_api_write(self):
         client, fake = self.build()
         old = fake.__call__
         def unavailable(method, url, headers, body, timeout):
-            if "/rules/branches/" in url:
+            if "/rules/branches/" in url or "/rulesets" in url:
                 raise GitHubEvidenceError("permissions denied")
             return old(method, url, headers, body, timeout)
         client.transport = unavailable
