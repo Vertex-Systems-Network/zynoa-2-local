@@ -2,11 +2,11 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10; active ChatGPT session continues its existing `chatgpt@2026-11-22T01:32:08.402Z` lease; do not merge or start P02.
-- P01-T01 through P01-T05 **DONE** with task-specific CI evidence in board. **T05 native-only security foundation DONE**: Windows CredMan roundtrip, deny-first scopes, revoke/replay, native IPC ACL and unsigned desktop boot passed [Windows CI #44973840898](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44973840898); all governance checks passed [Governance #44973840786](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44973840786).
-- **Caveat:** T05 acceptance does NOT mean a production-signed installer, end-user grant/revocation UI, full path/network capability authorization or secure release exists. Those remain explicit P01 exit gates in `docs/operations/P01_NATIVE_SECURITY.md`; no user credentials exposed to WebView.
-- **Next: P01-T06 TODO** (M18 diagnostic spine): Rust native-only bounded privacy-safe local diagnostics with CI and regression tests, followed by actual runtime wiring and crash recovery. T07/M23 must not start until T06 is complete.
-- Finish slice with verification, task board sync and lease release; PR remains draft/unmerged.
+- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10; current ChatGPT worker continues its existing lease; no merge or P02.
+- **T01–T05 DONE**, see PR task board CI evidence. T05 native-only credential and deny-first policy suite passed Windows #44973840898; production signing and user-grant UI remain P01 exit gates.
+- **T06 IN_PROGRESS:** native-only Rust bounded privacy-scoped append-only diagnostic spool, grouped incident replay, corrupted-file refusal, allowlisted event codes, Python contracts and Windows CI integration. `docs/operations/P01_DIAGNOSTICS.md` states limits.
+- **T06 NOT DONE:** spool is NOT connected to live runtime; M24-scoped persistent path, crash/restart capture, data ownership, permission-safe writes, local report preview and real UI evidence are pending. No T07 yet.
+- Next: inspect Governance v3.2 and P01 Desktop Foundation Windows CI for new Rust source; repair failures; capture task CI evidence and continue T06 integration. Do not mark complete prematurely.
 
 
 ## v3.1 agent handoff requirements

@@ -2,6 +2,7 @@
 mod ipc;
 mod security;
 mod secrets;
+mod diagnostics; // native-only, no IPC
 
 pub fn run() {
     tauri::Builder::default()

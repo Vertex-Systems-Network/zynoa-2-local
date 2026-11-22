@@ -1,0 +1,33 @@
+{
+  "change_id": "CHG-P01-M18-NATIVE-SPOOL-20261122",
+  "module_id": "M18",
+  "kind": "feature",
+  "title": "P01 native-only bounded diagnostic spool",
+  "summary": "P01-T06 safe allowlisted diagnostic event spool with bounded durable JSONL, duplicate grouping, corruption refusal and Windows Rust fixture tests; runtime not yet wired.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10",
+  "docs_paths": [
+    "docs/operations/P01_DIAGNOSTICS.md",
+    "docs/state/HANDOFF.md"
+  ],
+  "help_paths": [],
+  "wiki_paths": [],
+  "test_evidence": [],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No existing user diagnostics data; no migration or user-data overwrite.",
+  "created_at": "2026-11-22T02:56:00Z",
+  "updated_at": "2026-11-22T02:56:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}
