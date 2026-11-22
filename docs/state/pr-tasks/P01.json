@@ -2,7 +2,7 @@
   "schema_version": 1,
   "phase": "P01",
   "branch": "phase/01-foundation",
-  "pr_number": 9,
+  "pr_number": 10,
   "update_policy": "evidence-gated",
   "source_of_truth": "docs/state/pr-tasks/P01.json",
   "tasks": [

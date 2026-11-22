@@ -2,7 +2,7 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- Phase **P01** IN_PROGRESS on `phase/01-foundation`, draft PR #9. P00 closed: `main` `fe34877` (PRs #1, #8).
+- Phase **P01** IN_PROGRESS on `phase/01-foundation`, draft PR #10. P00 closed: `main` `fe34877` (PRs #1, #8). P01 kickoff merged at `1697ea8` (PR #9, owner-requested).
 - Tasks: `docs/state/pr-tasks/P01.json` (11, all TODO). Next: P01-T01 pre-dev/ADR, then P01-T02 (P00 tools + runner worker hardcode P00).
 - Lease: free. Set `PHASE.json.lease_holder` before editing; clear at handoff.
 - Next agent: copy-paste `docs/agent/NEXT_AGENT_PROMPT.md`.

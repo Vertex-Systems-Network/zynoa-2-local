@@ -3,7 +3,7 @@
   "phase": "P01",
   "phase_status": "IN_PROGRESS",
   "active_branch": "phase/01-foundation",
-  "primary_pr": 9,
+  "primary_pr": 10,
   "last_verified_remote_sha": "fe34877b140c338a3004aae6127df3e831228bcc",
   "worker_running": false,
   "required_documents": [
