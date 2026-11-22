@@ -61,3 +61,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-22 | P01 | Permit only authenticated exact-target active non-bypass repository ruleset readback if the classic effective-rules endpoint is inaccessible; fail closed on ambiguity and preserve independent issue-scope/owner authorization gates | the real main ruleset is independently readable and trusted but legacy branch-rules access can be denied to integrations
 
 2026-11-22 | P01 | Strengthen guarded premerge with explicit independent blocker-policy completeness, an exact integer zero count and verified GitHub Actions provenance | a zero count or green check alone can be fabricated/incomplete and must never authorize protected merge
+
+2026-11-22 | P01 | For P01+ independently classify exhaustively paginated real GitHub open issues by explicit phase + merge-disposition labels and reject arbitrary supplied blocker tuples, including empty | zero issues cannot be self-certified by a caller; unknown/unlabelled issues must fail closed rather than allow a merge

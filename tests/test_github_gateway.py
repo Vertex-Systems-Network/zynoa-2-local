@@ -1,6 +1,6 @@
 """Authenticated GitHub readback tests — no network, no credentials."""
 import unittest
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 from tools.github_gateway import GitHubGateway, GitHubEvidenceError
 
 SHA = "c" * 40
@@ -16,6 +16,7 @@ class FakeTransport:
         self.main_protected = True
         self.main_sha = MERGE
         self.issue_open = False
+        self.open_issues = [{"number": 3, "state": "open", "labels": []}]
         self.run_id = 1234
         self.job_id = 5678
         self.suite_id = 99
@@ -107,6 +108,12 @@ class FakeTransport:
             return {"total_count": len(self.checks), "check_runs": self.checks}
         if path.endswith("/issues/3"):
             return {"number": 3, "state": "open" if self.issue_open else "closed"}
+        if path.endswith("/issues"):
+            query = parse_qs(urlparse(url).query)
+            assert query.get("state") == ["open"]
+            assert query.get("per_page") == ["100"]
+            page = int(query["page"][0])
+            return self.open_issues[(page - 1) * 100:page * 100]
         if path.endswith("/" + REPO):
             return {"full_name": REPO, "allow_auto_merge": True}
         raise AssertionError("Unexpected route: " + path)
@@ -201,13 +208,110 @@ class GitHubEvidenceTests(unittest.TestCase):
         self.assertEqual([], snapshot["blocker_issue_numbers"])
         self.assertFalse(snapshot["blocker_policy_complete"])
         self.assertIsNone(snapshot["open_critical_blockers"])
+        self.assertEqual([3], snapshot["unclassified_issue_numbers"])
         self.assertFalse(snapshot["transition_ready"])
-        # A trusted controller may explicitly configure known issue numbers.
-        configured = client.observe(state, blocker_numbers=(3,))
-        self.assertTrue(configured["blocker_policy_complete"])
-        self.assertEqual([3], configured["blocker_issue_numbers"])
-        self.assertEqual(1, configured["open_critical_blockers"])
-        self.assertFalse(configured["transition_ready"])
+        # Caller-supplied tuples must never become an independent phase policy.
+        for override in ((), (3,), (2, 3)):
+            with self.subTest(override=override), self.assertRaises(GitHubEvidenceError):
+                client.observe(state, blocker_numbers=override)
+
+    @staticmethod
+    def labelled_issue(number, scope, disposition):
+        return {"number": number, "state": "open", "labels": [
+            {"name": "phase:" + scope}, {"name": "merge:" + disposition},
+        ]}
+
+    def test_p01_exhaustive_owner_labelled_inventory_excludes_other_phases(self):
+        client, fake = self.build()
+        fake.pr_number = 10
+        fake.head_ref = "phase/01-foundation"
+        fake.open_issues = [
+            self.labelled_issue(2, "P08I", "nonblocker"),
+            self.labelled_issue(3, "P00", "blocker"),
+            self.labelled_issue(7, "P00", "blocker"),
+            self.labelled_issue(8, "P01", "nonblocker"),
+            {"number": 10, "state": "open", "pull_request": {}, "labels": []},
+        ]
+        state = {"phase": "P01", "active_branch": "phase/01-foundation", "primary_pr": 10}
+        result = client.observe(state)
+        self.assertTrue(result["blocker_policy_complete"])
+        self.assertEqual("authenticated_github_open_issue_labels", result["issue_scope_source"])
+        self.assertEqual([], result["unclassified_issue_numbers"])
+        self.assertEqual([], result["blocker_issue_numbers"])
+        self.assertEqual(0, result["open_critical_blockers"])
+
+    def test_p01_and_global_labelled_blockers_are_not_excluded(self):
+        client, fake = self.build()
+        fake.pr_number = 10
+        fake.head_ref = "phase/01-foundation"
+        fake.open_issues = [
+            self.labelled_issue(11, "P01", "blocker"),
+            self.labelled_issue(12, "global", "blocker"),
+            self.labelled_issue(13, "P00", "blocker"),
+        ]
+        state = {"phase": "P01", "active_branch": "phase/01-foundation", "primary_pr": 10}
+        result = client.observe(state)
+        self.assertTrue(result["blocker_policy_complete"])
+        self.assertEqual([11, 12], result["blocker_issue_numbers"])
+        self.assertEqual(2, result["open_critical_blockers"])
+        self.assertFalse(result["transition_ready"])
+
+    def test_p01_unlabelled_ambiguous_and_fake_scope_remain_incomplete(self):
+        state = {"phase": "P01", "active_branch": "phase/01-foundation", "primary_pr": 10}
+        for labels in ([], [{"name": "phase:P00"}],
+                       [{"name": "merge:nonblocker"}],
+                       [{"name": "phase:P00"}, {"name": "merge:ignore"}],
+                       [{"name": "phase:garbage"}, {"name": "merge:nonblocker"}],
+                       [{"name": "phase:P01"}, {"name": "merge:blocker"},
+                        {"name": "merge:nonblocker"}]):
+            client, fake = self.build()
+            fake.pr_number = 10
+            fake.head_ref = "phase/01-foundation"
+            fake.open_issues = [{"number": 11, "state": "open", "labels": labels}]
+            with self.subTest(labels=labels):
+                result = client.observe(state)
+                self.assertFalse(result["blocker_policy_complete"])
+                self.assertIsNone(result["open_critical_blockers"])
+                self.assertEqual([11], result["unclassified_issue_numbers"])
+                self.assertFalse(result["transition_ready"])
+
+    def test_p01_issue_inventory_paginates_and_rejects_duplicate_or_partial(self):
+        client, fake = self.build()
+        fake.pr_number = 10
+        fake.head_ref = "phase/01-foundation"
+        state = {"phase": "P01", "active_branch": "phase/01-foundation", "primary_pr": 10}
+        fake.open_issues = [
+            self.labelled_issue(i, "P00", "nonblocker") for i in range(1, 102)
+        ]
+        result = client.observe(state)
+        self.assertTrue(result["blocker_policy_complete"])
+        self.assertEqual(0, result["open_critical_blockers"])
+        fake.open_issues[100] = self.labelled_issue(1, "P00", "nonblocker")
+        result = client.observe(state)
+        self.assertFalse(result["blocker_policy_complete"])
+        self.assertIsNone(result["open_critical_blockers"])
+        fake.open_issues = [
+            self.labelled_issue(i + 1, "P00", "nonblocker") for i in range(1000)
+        ]
+        result = client.observe(state)
+        self.assertFalse(result["blocker_policy_complete"])
+        self.assertFalse(result["transition_ready"])
+
+    def test_p01_issue_inventory_inaccessible_is_fail_closed(self):
+        client, fake = self.build()
+        fake.pr_number = 10
+        fake.head_ref = "phase/01-foundation"
+        transport = fake.__call__
+        def unavailable(method, url, headers, body, timeout):
+            if "/issues?" in url:
+                raise GitHubEvidenceError("issues read access denied")
+            return transport(method, url, headers, body, timeout)
+        client.transport = unavailable
+        state = {"phase": "P01", "active_branch": "phase/01-foundation", "primary_pr": 10}
+        result = client.observe(state)
+        self.assertFalse(result["blocker_policy_complete"])
+        self.assertIsNone(result["open_critical_blockers"])
+        self.assertFalse(result["transition_ready"])
 
     def test_invalid_explicit_blocker_scope_fails_closed(self):
         client, fake = self.build()

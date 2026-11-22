@@ -133,6 +133,67 @@ class GitHubGateway:
             raise GitHubEvidenceError("invalid issue number")
         return self._get("/issues/" + str(number))
 
+    def _phase_open_issue_scope(self, phase: str) -> dict:
+        """Classify all open GitHub issues from independent, explicit labels.
+
+        Only issue metadata stored in GitHub (not PR-authored claims or issue
+        titles) may certify an issue's phase and merge-blocking disposition.
+        Unknown/unlabelled issues keep the phase policy incomplete.
+        Pagination and duplicate identities fail closed.
+        """
+        if not re.fullmatch(r"P[0-9]{2}I?", phase):
+            raise GitHubEvidenceError("unsupported phase for open issue classification")
+        seen: set[int] = set()
+        blocking: list[int] = []
+        unclassified: list[int] = []
+        for page in range(1, 11):
+            items = self._get("/issues", {
+                "state": "open", "per_page": "100", "page": str(page),
+            })
+            if not isinstance(items, list) or len(items) > 100:
+                raise GitHubEvidenceError("invalid open-issue inventory")
+            for item in items:
+                if not isinstance(item, dict):
+                    raise GitHubEvidenceError("invalid GitHub issue entry")
+                number = item.get("number")
+                if type(number) is not int or number < 1 or number in seen:
+                    raise GitHubEvidenceError("duplicate or invalid GitHub issue ID")
+                seen.add(number)
+                if item.get("state") != "open":
+                    raise GitHubEvidenceError("GitHub open-issue query returned non-open issue")
+                if "pull_request" in item:  # /issues includes PRs; never use PR labels as issue policy.
+                    continue
+                raw = item.get("labels")
+                if not isinstance(raw, list) or not all(
+                    isinstance(label, dict) and isinstance(label.get("name"), str)
+                    for label in raw
+                ):
+                    unclassified.append(number)
+                    continue
+                names = [label["name"] for label in raw]
+                scopes = [n for n in names if n.startswith("phase:")]
+                dispositions = [n for n in names if n.startswith("merge:")]
+                if (len(names) != len(set(names))
+                        or not scopes
+                        or any(not re.fullmatch(r"phase:(?:P[0-9]{2}I?|global)", n)
+                               for n in scopes)
+                        or len(dispositions) != 1
+                        or dispositions[0] not in ("merge:blocker", "merge:nonblocker")):
+                    unclassified.append(number)
+                    continue
+                if dispositions[0] == "merge:blocker" and (
+                    "phase:" + phase in scopes or "phase:global" in scopes
+                ):
+                    blocking.append(number)
+            if len(items) < 100:
+                return {
+                    "complete": not unclassified,
+                    "blocking": sorted(blocking),
+                    "unclassified": sorted(unclassified),
+                    "issue_count": sum(1 for n in seen),  # includes PR entries in API list
+                }
+        raise GitHubEvidenceError("open-issue inventory pagination exhausted")
+
     def repo_settings(self) -> dict:
         return self._get("")
 
@@ -374,24 +435,40 @@ class GitHubGateway:
             except (GitHubEvidenceError, ValueError, TypeError):
                 workflow_provenance_verified = False
         checks_passed = checks_passed and workflow_provenance_verified
-        # P00 Issue #3 is not a P01 (or future phase) blocker. Without an
-        # independently configured issue scope, keep transition/merge denied.
-        if blocker_numbers is None:
-            blocker_numbers = (3,) if state.get("phase") == "P00" else ()
-            blocker_policy_complete = state.get("phase") == "P00"
-        else:
+        # P00's separately configured historic blocker is retained. For P01+
+        # an arbitrary tuple (including ()) must NOT self-certify that all
+        # issues have been independently classified. GitHub issue labels must
+        # explicitly assign phase and merge disposition for EVERY open issue.
+        phase_id = state.get("phase")
+        unclassified_issues: list[int] = []
+        issue_scope_source = "legacy_trusted_p00_issue_3"
+        if phase_id == "P00":
+            if blocker_numbers is None:
+                blocker_numbers = (3,)
+            if (not isinstance(blocker_numbers, tuple) or not blocker_numbers
+                    or any(type(n) is not int or n < 1 for n in blocker_numbers)):
+                raise GitHubEvidenceError("invalid P00 configured blocker scope")
+            open_blockers = []
+            for issue_number in blocker_numbers:
+                issue = self.issue(issue_number)
+                if issue.get("number") != issue_number or issue.get("state") not in ("open", "closed"):
+                    raise GitHubEvidenceError("blocker issue response ambiguous")
+                if issue["state"] == "open":
+                    open_blockers.append(issue_number)
             blocker_policy_complete = True
-        if not isinstance(blocker_numbers, tuple) or any(
-            type(n) is not int or n < 1 for n in blocker_numbers
-        ):
-            raise GitHubEvidenceError("invalid configured blocker scope")
-        open_blockers = []
-        for issue_number in blocker_numbers:
-            issue = self.issue(issue_number)
-            if issue.get("number") != issue_number or issue.get("state") not in ("open", "closed"):
-                raise GitHubEvidenceError("blocker issue response ambiguous")
-            if issue["state"] == "open":
-                open_blockers.append(issue_number)
+        else:
+            if blocker_numbers is not None:
+                raise GitHubEvidenceError("manual non-P00 blocker tuples are not independent")
+            issue_scope_source = "authenticated_github_open_issue_labels"
+            try:
+                classified = self._phase_open_issue_scope(phase_id)
+                blocker_policy_complete = classified["complete"]
+                open_blockers = classified["blocking"]
+                unclassified_issues = classified["unclassified"]
+            except GitHubEvidenceError:
+                blocker_policy_complete = False
+                open_blockers = []  # No claim of zero unless scope is complete.
+
         repo_settings = self.repo_settings()
         auto_merge_available = repo_settings.get("allow_auto_merge") is True
         branch_protected = main.get("protected") is True
@@ -437,6 +514,8 @@ class GitHubGateway:
             "open_critical_blockers": len(open_blockers) if blocker_policy_complete else None,
             "blocker_issue_numbers": open_blockers,
             "blocker_policy_complete": blocker_policy_complete,
+            "unclassified_issue_numbers": unclassified_issues,
+            "issue_scope_source": issue_scope_source,
             "branch_protected": branch_protected,
             "rules_policy_verified": rules_policy_verified,
             "auto_merge_available": auto_merge_available,
