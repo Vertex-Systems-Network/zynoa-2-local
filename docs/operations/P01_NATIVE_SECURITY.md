@@ -1,6 +1,6 @@
 # P01 M17 native-only security foundation
 
-**Current evidence status:** code under review; Windows tests must pass before this can be accepted. No production release or signed installer exists.
+**Current evidence status:** P01-T05 native-only foundation accepted in [Windows Desktop CI #44973840898](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44973840898) and [Governance CI #44973840786](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44973840786). This accepts only the tested credential adapter and deny-first policy; no production release, signed installer, user-grant UI, or WebView credential operations exist.
 
 **Native authorization boundary:** the default `NativeAccessBroker` holds no grants. The local main Tauri window can obtain only `workspace.status`, a non-mutating and non-persisted status result. Privileged file reads/writes, outbound network and secret operations are never automatically granted. Revocation removes a grant immediately; the frontend cannot assert a native window label or create grants. Tauri's AppManifest explicitly permits just `workspace_handshake`. Remote windows and unregistered commands remain denied.
 

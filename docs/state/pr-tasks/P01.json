@@ -33,7 +33,8 @@
     {
       "id": "P01-T05",
       "title": "M17 native security (secrets store, least privilege, signed boundaries)",
-      "status": "IN_PROGRESS"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44973840898"
     },
     {
       "id": "P01-T06",
