@@ -28,6 +28,12 @@ class NativeEventLedgerContracts(unittest.TestCase):
         self.assertNotIn("ReleasePublished",self.events)
         self.assertIn("generate_handler![ipc::workspace_handshake]",self.lib)
 
+    def test_concurrent_first_open_serializes_schema_without_disabling_wal(self):
+        self.assertIn("static OPEN_INIT_LOCK: Mutex<()>", self.events)
+        self.assertIn("OPEN_INIT_LOCK.lock()", self.events)
+        self.assertIn("simultaneous_first_openers_preserve_every_event_and_stream_sequence", self.events)
+        self.assertIn("Barrier::new(WRITERS)", self.events)
+
     def test_real_rust_tests_cover_replay_privacy_conflict_concurrency(self):
         for s in ("durable_append_replay_and_no_duplicate_acknowledgement",
                   "sql_history_is_physically_append_only_and_scope_limited",

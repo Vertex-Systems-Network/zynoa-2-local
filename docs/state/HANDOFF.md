@@ -2,12 +2,13 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- **P01 IN_PROGRESS** on `phase/01-foundation`, [draft PR #10](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10); exclusive lease **FREE at handoff**. Do not merge or start P02.
-- **P01-T01 through P01-T08 DONE**, task evidence links in board. T08 native storage registry verified in [Windows #44986611731](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44986611731) and [Governance #44986611713](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44986611713). Full M24 relocation/selection UI remains incomplete.
-- **P01-T09 IN_PROGRESS:** M26 native SQLite append-only event ledger in commit `5595ba819c684a9fbd447acdfd7751b26744ed9a`. Implements schema v1, WAL FULL, per-stream sequence in immediate transaction, duplicate-idempotency conflict, SQL update/delete triggers, developer/private visibility, safe fixed event types, no free-form payload, no WebView or cloud commands, native boot-managed DB. Rust fixture tests and Windows cold-boot SQLite checks are included.
-- **T09 verification:** [Governance #44987189610](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44987189610) PASS; [PR task sync #44987189611](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44987189611) PASS. [Windows desktop CI #44987189606](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44987189606) still running native Rust build as of handoff. **Do not mark T09 DONE before real Windows and startup event-store schema verification.**
-- **Next worker:** acquire a fresh lease (commit PHASE.json) before code edits, inspect T09 Windows job and fix any red tests; keep privacy/release gates intact. After verified native T09 acceptance, proceed T10 Help/Wiki and real screenshot evidence. T11 merge/signing/screenshot gates remain unverified.
-- No production signed installer, user-facing released changelog or remote automatic issue publishing. Do not overwrite existing user data.
+- **P01 IN_PROGRESS** on `phase/01-foundation`, [draft PR #10](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10); ChatGPT holds the active lease. Do not merge or start P02.
+- **P01-T01 through T08 DONE** with task-specific CI links in the board; T08 native location registry passed [Windows #44986611731](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44986611731).
+- **P01-T09 IN_PROGRESS:** native-only M26 SQLite WAL privacy-scoped append-only ledger, schema v1, commit-first unique idempotency and per-stream sequences, SQL UPDATE/DELETE deny triggers and bounded private/developer reads. Native CI includes real boot DB verification. No raw event text, WebView event API or release truth publication.
+- **CI failure isolated:** [Windows #44987500956](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44987500956) ran 31 Rust tests: 30 PASS, 1 FAIL at simultaneous first-time event ledger open (`StorageUnavailable`); Governance/PR task sync both PASS. This is not a release-ready result.
+- **New fix pending CI:** a fail-closed in-process initialization lock avoids two fresh SQLite openers racing on partial schema; added an 8-thread barrier regression that verifies all WAL stream sequences survive restart. Event writes remain concurrent/transactional. Do not bypass, skip or weaken tests.
+- **Next:** verify new Windows unit/build/real event DB checks and Governance; fix further errors. Accept T09 only with full passing evidence. Then T10 Help/Wiki and real screenshots; T11 merge/signing gates remain unverified. No P02, no auto-published changelog, no user-data deletion.
+
 
 ## v3.1 agent handoff requirements
 

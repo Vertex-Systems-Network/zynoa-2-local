@@ -3,11 +3,17 @@
 use rusqlite::{params, Connection, ErrorCode, OpenFlags, TransactionBehavior};
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 use std::time::Duration;
 
 const APP_ID: &str = "com.zynoa.desktop";
 const SCHEMA_VERSION: i64 = 1;
 const MAX_READ: usize = 100;
+
+// Database schema discovery/first creation must never race between native
+// connections in the same process. SQLite WAL still serializes append writes
+// independently, including the per-stream sequence allocation transaction.
+static OPEN_INIT_LOCK: Mutex<()> = Mutex::new(());
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub(crate) enum EventFault {
@@ -144,6 +150,11 @@ fn verify_schema(conn: &Connection) -> Result<(), EventFault> {
 
 impl NativeEventLedger {
     pub(crate) fn open(app_root: &Path) -> Result<Self, EventFault> {
+        // A second native opener must not observe a just-created SQLite file
+        // before its schema/trigger transaction commits. This is a fail-closed
+        // process-local bootstrap lock, not a substitute for SQL WAL locks.
+        let _bootstrap_guard = OPEN_INIT_LOCK.lock()
+            .map_err(|_| EventFault::StorageUnavailable)?;
         if !app_root.is_absolute() || app_root.file_name() != Some(std::ffi::OsStr::new(APP_ID)) {
             return Err(EventFault::InvalidLocation);
         }
@@ -343,6 +354,36 @@ mod tests {
         assert_eq!(summary.len(), 2);
         assert!(summary.iter().any(|e| e.sequence == 1));
         assert!(summary.iter().any(|e| e.sequence == 2));
+    }
+
+
+    #[test]
+    fn simultaneous_first_openers_preserve_every_event_and_stream_sequence() {
+        use std::sync::{Arc, Barrier};
+        const WRITERS: usize = 8;
+        let fixture = Fixture::new();
+        let root = fixture.app();
+        let barrier = Arc::new(Barrier::new(WRITERS));
+        let mut threads = Vec::new();
+        for id in 0..WRITERS {
+            let own_root = root.clone();
+            let start = Arc::clone(&barrier);
+            threads.push(std::thread::spawn(move || {
+                start.wait();
+                let mut ledger = NativeEventLedger::open(&own_root).unwrap();
+                let event_id = format!("event_boot_{id:03}");
+                let key = format!("key_boot_{id:03}");
+                ledger.append(&request(&event_id, "stream_first_boot", &key,
+                                       Audience::Developer)).unwrap()
+            }));
+        }
+        let mut sequences: Vec<_> = threads.into_iter()
+            .map(|t| t.join().unwrap()).collect();
+        sequences.sort_unstable();
+        assert_eq!(sequences, (1..=WRITERS as u64).collect::<Vec<_>>());
+        let after_restart = NativeEventLedger::open(&root).unwrap();
+        assert_eq!(after_restart.list_for(Audience::Developer, WRITERS)
+                   .unwrap().len(), WRITERS);
     }
 
     #[test]
