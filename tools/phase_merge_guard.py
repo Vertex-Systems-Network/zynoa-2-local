@@ -83,13 +83,21 @@ class GuardedMerger:
             raise MergeBlocked("PR already merged, draft or not open")
         if observed.get("mergeable") is not True:
             raise MergeBlocked("GitHub has not confirmed PR mergeability")
-        if (observed.get("checks_passed") is not True or observed.get("branch_protected") is not True
+        if (observed.get("checks_passed") is not True
+                or observed.get("workflow_provenance_verified") is not True
+                or observed.get("branch_protected") is not True
                 or observed.get("rules_policy_verified") is not True):
-            raise MergeBlocked("CI or branch protection not verified")
+            raise MergeBlocked("trusted CI provenance or branch protection not verified")
         if observed.get("auto_merge_available") is not True:
             raise MergeBlocked("repository auto-merge policy not enabled")
-        if observed.get("open_critical_blockers") != 0:
-            raise MergeBlocked("open critical blocker issue")
+        # A count of zero is meaningless without an independently configured
+        # phase-scoped blocker policy. Refuse absent, null, or bool values;
+        # P01 has no trusted scope yet and therefore remains unmergeable.
+        if observed.get("blocker_policy_complete") is not True:
+            raise MergeBlocked("independent critical-blocker policy not verified")
+        count = observed.get("open_critical_blockers")
+        if type(count) is not int or count != 0:
+            raise MergeBlocked("critical-blocker inventory missing or nonzero")
         for key in ("pr_head_sha", "base_sha", "main_sha"):
             if not _SHA.fullmatch(str(observed.get(key) or "")):
                 raise MergeBlocked("missing GitHub SHA evidence")

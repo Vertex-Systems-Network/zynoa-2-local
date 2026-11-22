@@ -25,6 +25,8 @@ ELIGIBLE = {
     "pr_state": "open",
     "mergeable": True,
     "checks_passed": True,
+    "workflow_provenance_verified": True,
+    "blocker_policy_complete": True,
     "branch_protected": True,
     "rules_policy_verified": True,
     "auto_merge_available": True,
@@ -117,6 +119,35 @@ class GuardedMergeTests(unittest.TestCase):
         with self.assertRaises(MergeBlocked):
             merger.merge_current(STATE)
         self.assertFalse(transport.calls)
+
+    def test_independent_blocker_scope_must_be_explicitly_complete(self):
+        for missing in (False, None):
+            merger, reader, transport = self.build()
+            reader.current["blocker_policy_complete"] = missing
+            with self.subTest(value=missing), self.assertRaises(MergeBlocked):
+                merger.merge_current(STATE)
+            self.assertFalse(transport.calls)
+        merger, reader, transport = self.build()
+        del reader.current["blocker_policy_complete"]
+        with self.assertRaises(MergeBlocked):
+            merger.merge_current(STATE)
+        self.assertFalse(transport.calls)
+
+    def test_critical_blocker_count_must_be_exact_zero_integer(self):
+        for malformed in (None, False, True, "0", [], -1):
+            merger, reader, transport = self.build()
+            reader.current["open_critical_blockers"] = malformed
+            with self.subTest(value=malformed), self.assertRaises(MergeBlocked):
+                merger.merge_current(STATE)
+            self.assertFalse(transport.calls)
+
+    def test_verified_workflow_provenance_required_even_if_check_says_pass(self):
+        for bad in (False, None):
+            merger, reader, transport = self.build()
+            reader.current["workflow_provenance_verified"] = bad
+            with self.subTest(value=bad), self.assertRaises(MergeBlocked):
+                merger.merge_current(STATE)
+            self.assertFalse(transport.calls)
 
     def test_base_mismatch_rejected(self):
         merger, reader, transport = self.build()
