@@ -2,12 +2,11 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10, continuing existing ChatGPT-owned lease from this conversation. No merge or P02.
-- P01-T01 through T07 DONE with evidence in task board. T08 native M24 registry is **IN_PROGRESS**, no move/cleanup capability or external-runtime mutation.
-- Previous [Windows CI #44982356758](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44982356758): 27/27 native Rust tests and unsigned build pass; executable survived 8s, but missing local diagnostic file (`ZYN-DIAG-101`) failed downstream verification. Merely surviving 8s did not prove native setup readiness.
-- New T08 CI fix: Windows cold boot now waits up to 45s for **all** required native files (diagnostics, SQLite vault, location manifest) while checking process is alive; on failure it reports only presence flags and fails rather than bypassing validation. Existing detailed schema/integrity/privacy checks remain enabled. New regression contract added. **Fresh CI pending, do not mark T08 DONE.**
-- Next: inspect Windows run for native readiness and full registry schema; diagnose any missing files without weakening checks; only accept T08 with green Windows/Governance. Leave T09 TODO until T08 DONE and lease is handed off.
-- Full M24 relocation, user-granted path changes, real screenshots/Help UI and signing remain unimplemented.
+- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10, with current conversation's ChatGPT-held lease. Never merge or start P02.
+- **P01-T01 through P01-T08 DONE**, links in task board. T08 native-only M24 storage ownership registry accepted with [real Windows desktop #44986611731](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44986611731) and [Governance #44986611713](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44986611713). Native boot now verifies diagnostics spool, SQLite vault and storage-location manifest as separate schema/ownership checks. Tests all PASS.
+- T08 remains a **native foundation only**. Full M24 user-selected paths, inventory/move/stage/hash/rollback, screenshots and external runtime integrations are not implemented; all migration requests are deny-first.
+- **Next: P01-T09 TODO**: M26 native durable privacy-scoped append-only event ledger, tests-first under app-owned storage, no raw content/PII or WebView write grants, idempotent sequence and replay after restart, signed release truth remains separate.
+- P01 exit gates T10/T11 pending; do not claim full M18/M23/M24 release, user-facing Help UI, signed installer or screenshot completion.
 
 
 ## v3.1 agent handoff requirements
