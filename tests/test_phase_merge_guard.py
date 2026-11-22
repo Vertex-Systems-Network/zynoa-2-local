@@ -34,6 +34,13 @@ ELIGIBLE = {
     "open_critical_blockers": 0,
 }
 
+OWNER_APPROVAL = {
+    "directive": "EXPLICIT_OWNER_MERGE_APPROVAL",
+    "phase": "P00",
+    "pr_number": 1,
+    "head_sha": SHA,
+}
+
 class FakeReader:
     repo = "Vertex-Systems-Network/zynoa-2-local"
     def __init__(self):
@@ -71,9 +78,51 @@ class GuardedMergeTests(unittest.TestCase):
                              enabled=enabled, transport=transport)
         return merger, reader, transport
 
+    def test_no_separate_owner_approval_cannot_merge(self):
+        merger, reader, transport = self.build()
+        with self.assertRaises(MergeBlocked):
+            merger.merge_current(STATE)
+        self.assertEqual(0, reader.calls)
+        self.assertFalse(transport.calls)
+
+    def test_pr_state_cannot_self_supply_owner_approval(self):
+        merger, reader, transport = self.build()
+        with self.assertRaises(MergeBlocked):
+            merger.merge_current({**STATE, "owner_approval": OWNER_APPROVAL})
+        self.assertEqual(0, reader.calls)
+        self.assertFalse(transport.calls)
+
+    def test_owner_approval_must_bind_phase_pr_and_head_sha(self):
+        variants = [
+            {"directive": "NOT_AUTHORIZED"},
+            {"phase": "P01"},
+            {"pr_number": 2},
+            {"pr_number": True},
+            {"head_sha": "0" * 40},
+            {"head_sha": "unverified"},
+            {"directive": None},
+        ]
+        for variant in variants:
+            merger, reader, transport = self.build()
+            approval = {**OWNER_APPROVAL, **variant}
+            with self.subTest(variant=variant), self.assertRaises(MergeBlocked):
+                merger.merge_current(STATE, owner_approval=approval)
+            self.assertFalse(transport.calls)
+        merger, reader, transport = self.build()
+        with self.assertRaises(MergeBlocked):
+            merger.merge_current(STATE, owner_approval={**OWNER_APPROVAL, "untrusted_extra": True})
+        self.assertFalse(transport.calls)
+
+    def test_owner_approval_stale_against_authenticated_pr_head(self):
+        merger, reader, transport = self.build()
+        reader.current["pr_head_sha"] = "d" * 40
+        with self.assertRaises(MergeBlocked):
+            merger.merge_current(STATE, owner_approval=OWNER_APPROVAL)
+        self.assertFalse(transport.calls)
+
     def test_verified_merge_requires_exact_remote_readback(self):
         merger, reader, transport = self.build()
-        result = merger.merge_current(STATE)
+        result = merger.merge_current(STATE, owner_approval=OWNER_APPROVAL)
         self.assertTrue(result["merge_api_accepted"])
         self.assertTrue(result["remote_merge_verified"])
         self.assertFalse(result["next_phase_started"])
@@ -83,42 +132,42 @@ class GuardedMergeTests(unittest.TestCase):
     def test_disabled_identity_cannot_merge(self):
         merger, _, transport = self.build(enabled=False)
         with self.assertRaises(MergeBlocked):
-            merger.merge_current(STATE)
+            merger.merge_current(STATE, owner_approval=OWNER_APPROVAL)
         self.assertFalse(transport.calls)
 
     def test_draft_rejected(self):
         merger, reader, transport = self.build()
         reader.current["draft"] = True
         with self.assertRaises(MergeBlocked):
-            merger.merge_current(STATE)
+            merger.merge_current(STATE, owner_approval=OWNER_APPROVAL)
         self.assertFalse(transport.calls)
 
     def test_unprotected_main_rejected(self):
         merger, reader, transport = self.build()
         reader.current["branch_protected"] = False
         with self.assertRaises(MergeBlocked):
-            merger.merge_current(STATE)
+            merger.merge_current(STATE, owner_approval=OWNER_APPROVAL)
         self.assertFalse(transport.calls)
 
     def test_protection_without_verified_required_policy_rejected(self):
         merger, reader, transport = self.build()
         reader.current["rules_policy_verified"] = False
         with self.assertRaises(MergeBlocked):
-            merger.merge_current(STATE)
+            merger.merge_current(STATE, owner_approval=OWNER_APPROVAL)
         self.assertFalse(transport.calls)
 
     def test_unmerged_failing_checks_rejected(self):
         merger, reader, transport = self.build()
         reader.current["checks_passed"] = False
         with self.assertRaises(MergeBlocked):
-            merger.merge_current(STATE)
+            merger.merge_current(STATE, owner_approval=OWNER_APPROVAL)
         self.assertFalse(transport.calls)
 
     def test_open_critical_issue_rejected(self):
         merger, reader, transport = self.build()
         reader.current["open_critical_blockers"] = 1
         with self.assertRaises(MergeBlocked):
-            merger.merge_current(STATE)
+            merger.merge_current(STATE, owner_approval=OWNER_APPROVAL)
         self.assertFalse(transport.calls)
 
     def test_independent_blocker_scope_must_be_explicitly_complete(self):
@@ -126,12 +175,12 @@ class GuardedMergeTests(unittest.TestCase):
             merger, reader, transport = self.build()
             reader.current["blocker_policy_complete"] = missing
             with self.subTest(value=missing), self.assertRaises(MergeBlocked):
-                merger.merge_current(STATE)
+                merger.merge_current(STATE, owner_approval=OWNER_APPROVAL)
             self.assertFalse(transport.calls)
         merger, reader, transport = self.build()
         del reader.current["blocker_policy_complete"]
         with self.assertRaises(MergeBlocked):
-            merger.merge_current(STATE)
+            merger.merge_current(STATE, owner_approval=OWNER_APPROVAL)
         self.assertFalse(transport.calls)
 
     def test_critical_blocker_count_must_be_exact_zero_integer(self):
@@ -139,14 +188,14 @@ class GuardedMergeTests(unittest.TestCase):
             merger, reader, transport = self.build()
             reader.current["open_critical_blockers"] = malformed
             with self.subTest(value=malformed), self.assertRaises(MergeBlocked):
-                merger.merge_current(STATE)
+                merger.merge_current(STATE, owner_approval=OWNER_APPROVAL)
             self.assertFalse(transport.calls)
 
     def test_checked_workflow_must_match_main_workflow_source(self):
         merger, reader, transport = self.build()
         reader.current["workflow_source_verified"] = False
         with self.assertRaises(MergeBlocked):
-            merger.merge_current(STATE)
+            merger.merge_current(STATE, owner_approval=OWNER_APPROVAL)
         self.assertFalse(transport.calls)
 
     def test_workflow_changed_during_second_preflight_blocks_merge(self):
@@ -159,7 +208,7 @@ class GuardedMergeTests(unittest.TestCase):
             return snapshot
         reader.observe = workflow_changed
         with self.assertRaises(MergeBlocked):
-            merger.merge_current(STATE)
+            merger.merge_current(STATE, owner_approval=OWNER_APPROVAL)
         self.assertFalse(transport.calls)
 
     def test_verified_workflow_provenance_required_even_if_check_says_pass(self):
@@ -167,21 +216,21 @@ class GuardedMergeTests(unittest.TestCase):
             merger, reader, transport = self.build()
             reader.current["workflow_provenance_verified"] = bad
             with self.subTest(value=bad), self.assertRaises(MergeBlocked):
-                merger.merge_current(STATE)
+                merger.merge_current(STATE, owner_approval=OWNER_APPROVAL)
             self.assertFalse(transport.calls)
 
     def test_base_mismatch_rejected(self):
         merger, reader, transport = self.build()
         reader.current["base_sha"] = "0" * 40
         with self.assertRaises(MergeBlocked):
-            merger.merge_current(STATE)
+            merger.merge_current(STATE, owner_approval=OWNER_APPROVAL)
         self.assertFalse(transport.calls)
 
     def test_main_advances_while_preparing_merge(self):
         merger, reader, transport = self.build()
         reader.main_sha = "0" * 40
         with self.assertRaises(MergeBlocked):
-            merger.merge_current(STATE)
+            merger.merge_current(STATE, owner_approval=OWNER_APPROVAL)
         self.assertFalse(transport.calls)
 
     def test_reobserve_blocks_pr_and_policy_changes_without_remote_merge(self):
@@ -204,7 +253,7 @@ class GuardedMergeTests(unittest.TestCase):
                 return observed
             reader.observe = changed_on_second
             with self.subTest(name=name), self.assertRaises(MergeBlocked):
-                merger.merge_current(STATE)
+                merger.merge_current(STATE, owner_approval=OWNER_APPROVAL)
             self.assertFalse(transport.calls)
 
     def test_p01_issue_label_fingerprint_missing_or_changed_blocks_merge(self):
@@ -224,12 +273,12 @@ class GuardedMergeTests(unittest.TestCase):
                     return observed
                 reader.observe = relabel_after_first
             with self.subTest(scenario=scenario), self.assertRaises(MergeBlocked):
-                merger.merge_current(phase)
+                merger.merge_current(phase, owner_approval={**OWNER_APPROVAL, "phase": "P01"})
             self.assertFalse(transport.calls)
 
     def test_stable_premerge_observes_twice_before_single_mock_merge(self):
         merger, reader, transport = self.build()
-        merger.merge_current(STATE)
+        merger.merge_current(STATE, owner_approval=OWNER_APPROVAL)
         self.assertEqual(3, reader.calls)  # twice premerge, once postmerge
         self.assertEqual(1, len(transport.calls))
 
@@ -237,14 +286,14 @@ class GuardedMergeTests(unittest.TestCase):
         merger, reader, transport = self.build()
         reader.current["authenticated_remote"] = False
         with self.assertRaises(MergeBlocked):
-            merger.merge_current(STATE)
+            merger.merge_current(STATE, owner_approval=OWNER_APPROVAL)
         self.assertFalse(transport.calls)
 
     def test_invalid_merge_response_never_claims_verified(self):
         merger, reader, transport = self.build()
         transport.fail = True
         with self.assertRaises(MergeBlocked):
-            merger.merge_current(STATE)
+            merger.merge_current(STATE, owner_approval=OWNER_APPROVAL)
 
     def test_remote_postcheck_mismatch_not_marked_verified(self):
         merger, reader, transport = self.build()
@@ -256,7 +305,7 @@ class GuardedMergeTests(unittest.TestCase):
             })
             return {"merged": True, "sha": MERGED_SHA}
         merger.transport = false_postcheck
-        out = merger.merge_current(STATE)
+        out = merger.merge_current(STATE, owner_approval=OWNER_APPROVAL)
         self.assertTrue(out["merge_api_accepted"])
         self.assertFalse(out["remote_merge_verified"])
 

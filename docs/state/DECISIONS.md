@@ -69,3 +69,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-22 | P01 | Require two matching authenticated GitHub premerge observations plus SHA-256 of exhaustive independently classified open-issue IDs/labels, refusing changed issue, PR, CI or main evidence | prevents time-of-check/time-of-use acceptance of stale blockers or PR state between initial preflight and protected merge attempt
 
 2026-11-22 | P01 | Verify governance.yml exact GitHub blob equality between pinned protected main and PR head before accepting trusted governance check; require it again in the second merge preflight | the real Actions app and workflow path do not by themselves prove that PR-authored workflow instructions were not weakened
+
+2026-11-22 | P01 | Require a separate explicit owner-merge operator confirmation tied to immutable phase/PR/head before any GitHub write-merge call, on top of trusted branch/CI/issue evidence | a green CI and configured write token do not themselves establish user authorization; current do-not-merge instruction remains binding
