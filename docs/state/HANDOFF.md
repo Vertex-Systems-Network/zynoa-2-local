@@ -2,11 +2,11 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10, with current ChatGPT-owned lease; never merge or start P02.
-- **T01–T06 DONE**; task-specific CI evidence in PR table. T06 native diagnostics Windows [CI #44980027777](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44980027777) passed; full M18 UI and release gates not claimed.
-- **T07 IN_PROGRESS**: native-only SQLite WAL vault added in `a01603f9fdaef467135906310899be6829f103d7`, verified [Windows CI #44980644703](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44980644703) and [Governance #44980644649](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44980644649). Tests cover commit/reopen, duplicate refusal, online backup and disposable restore.
-- **T07 Windows #44981211281 red (resolved contract mismatch):** static guard wrongly disallowed trusted native `vault::NativeVault::open` in `lib.rs`; revised to assert IPC never references vault while native startup is explicitly verified. Fresh CI required. **Newest T07 integration pending CI:** app boot now opens OS-owned `com.zynoa.desktop/data/state.sqlite` without WebView write privileges, refuses linked SQLite sidecars, reserves restore targets without overwrite, and checks real on-disk SQLite schema on Windows cold boot. No user records created by startup; actual UI saving, portable encryption, migration, content-addressed managed files, and persistent real-user restore not done. No T08 yet.
-- Next: inspect Windows Rust/frontend/cold-boot and Governance; fix any failures; record verified evidence. Do not mark T07 DONE before security/recovery acceptance and release lease at handoff.
+- **P01 IN_PROGRESS** on `phase/01-foundation`, draft PR #10. Current ChatGPT worker still holds `chatgpt@2026-11-22T03:25:00.232Z` exclusive lease; do not merge or start P02.
+- **P01-T01 through P01-T07 DONE** with CI evidence in task board. T07 native M23 core passed [Windows #44981325644](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44981325644) and [Governance #44981325655](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44981325655); no actual user content written or WebView vault write/read grant.
+- T07 native scope: OS-local `com.zynoa.desktop/data/state.sqlite` created at app boot outside executable; SQLite WAL FULL and schema/integrity/empty records verified; new-only transaction save acknowledges after commit; duplicate IDs refused; unexpected schema/corrupt DB preserved; SQLite online backup and disposable separate-path restore tested. Native code does not grant frontend backup/restore.
+- **Full M23 NOT complete**: encrypted off-device backups, chat/attachments UI, migration, exhaustive OS crash/disk-full recovery, real screenshots, production signing/uninstall/reinstall not proven. See `docs/operations/P01_NATIVE_VAULT.md`.
+- **Next P01-T08 TODO** — M24 managed data location registry. In-scope native-only OS path ownership categories; external/model runtimes read-only and never silently moved. Add tests and CI; no source paths from WebView, no arbitrary migrations. Keep PR #10 draft, use the same active worker lease until final handoff.
 
 ## v3.1 agent handoff requirements
 

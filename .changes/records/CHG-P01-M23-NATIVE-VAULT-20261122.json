@@ -3,7 +3,7 @@
   "module_id": "M23",
   "kind": "feature",
   "title": "Native SQLite transactional user-data vault foundation",
-  "summary": "P01-T07 Rust-only native SQLite WAL commit/reopen, bounded data ownership, SQLite online backup, disposable restore drill; no frontend or production data writes. Native startup OS-root integration, SQLite sidecar validation and no-overwrite disposable restore are pending new Windows CI. Old static contract initially rejected authorized native-only setup; corrected the test to fail if vault is exposed in IPC, not in trusted native startup.",
+  "summary": "P01-T07 Rust-only native SQLite WAL commit/reopen, bounded data ownership, SQLite online backup, disposable restore drill; no frontend or production data writes. Native startup OS-root integration, SQLite sidecar validation and no-overwrite disposable restore are pending new Windows CI. Old static contract initially rejected authorized native-only setup; corrected the test to fail if vault is exposed in IPC, not in trusted native startup. Native P01-T07 core accepted on real Windows boot: WAL SQLite file outside executable, integrity/schema, new-only commits, online backup and disposable restore tests. Full M23 product/release remains incomplete.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [],
@@ -16,19 +16,21 @@
   "wiki_paths": [],
   "test_evidence": [
     "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44980644703",
-    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44980644649"
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44980644649",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44981325644",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44981325655"
   ],
-  "commit_sha": null,
+  "commit_sha": "5e52362c42ac5872ed507382a8e0daac2483e2f9",
   "release": null,
   "verification": {
-    "tests_passed": false,
+    "tests_passed": true,
     "merge_verified": false,
     "release_published": false
   },
   "breaking_change": false,
   "migration_notes": "New schema v1; no previous native user vault. Unexpected existing schema is refused without migration; do not delete or overwrite any user data.",
   "created_at": "2026-11-22T03:26:15.291Z",
-  "updated_at": "2026-11-22T03:35:06.984Z",
+  "updated_at": "2026-11-22T03:41:20.048Z",
   "version_bump": "none",
   "affected_option_ids": [],
   "docs_impact": true,
