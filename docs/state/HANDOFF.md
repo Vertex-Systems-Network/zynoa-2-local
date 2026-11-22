@@ -2,11 +2,11 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- Phase P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10; lease held for this slice. No permission to merge or advance P02.
-- P01-T01 DONE, evidenced by passing [Governance 44968928750](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44968928750).
-- P01-T02 IN_PROGRESS: guard active phase/branch correspondence; cross-phase PR observation is rejected and corrupt phase state is never logged as P00. P01 regression tests added; code CI pending.
-- Next: check PR #10 full Governance and Windows checks, fix root causes, then examine P00-only fixture runner hardcodes; do not grant P00 model execution rights to P01.
-- No P01 desktop binary, real Windows UI, vault backup, screenshots or release proven.
+- Phase **P01** IN_PROGRESS, `phase/01-foundation`, draft PR #10. Lease held during active task; no merge permission and no P02.
+- **P01-T01 DONE** evidenced by [Governance run #44968928750](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44968928750).
+- **P01-T02 IN_PROGRESS**, code slice 1 [Governance run #44969786422](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44969786422) PASS; code slice 2 adds phase-specific blocker policy and P01 remote readback regressions. Latest CI pending. On passing required tests at latest SHA, mark T02 DONE with that run URL and sync PR task board.
+- Active-phase read-only observer is `tools.phase_worker`; `scripts/runner_worker.py` is the **historical P00-T20 model-fixture isolation test only**, NOT an authorized P01 AI coder. P01 blocker scope is unknown, so phase transition/merge cannot be inferred from zero reported issues.
+- Next after T02 evidence: P01-T03 desktop foundation shell. Do not mark any desktop product, backup/restore, real screenshots or release implemented before proof.
 
 ## v3.1 agent handoff requirements
 

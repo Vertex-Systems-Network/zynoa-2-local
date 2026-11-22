@@ -154,6 +154,7 @@ class PhaseObserver:
             "branch_protected": observation["branch_protected"],
             "draft": observation["draft"],
             "blocking_issue_numbers": observation["blocker_issue_numbers"],
+            "blocker_policy_complete": observation.get("blocker_policy_complete") is True,
             "transition_ready": observation["transition_ready"] and state.get("phase_status") == "MERGED_VERIFIED",
             "action": "OBSERVE_ONLY",
             "next_phase_created": False,

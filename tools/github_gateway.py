@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Authenticated, read-only GitHub evidence gateway for P00.
+"""Authenticated, read-only GitHub evidence gateway for the active phase.
 
 No merge, branch creation, issue posting or remote mutation is performed here.
 A configured token and successful GitHub API roundtrips are required to claim
@@ -258,7 +258,7 @@ class GitHubGateway:
         return True
 
     def observe(self, state: Mapping[str, Any], required_checks: tuple[str, ...] = ("governance-lint",),
-                blocker_numbers: tuple[int, ...] = (3,)) -> dict:
+                blocker_numbers: tuple[int, ...] | None = None) -> dict:
         """Live authoritative observation. Read-only; not a merge authorization.
 
         Requires authenticated API success. Missing/stale/ambiguous checks or
@@ -315,6 +315,17 @@ class GitHubGateway:
             except (GitHubEvidenceError, ValueError, TypeError):
                 workflow_provenance_verified = False
         checks_passed = checks_passed and workflow_provenance_verified
+        # P00 Issue #3 is not a P01 (or future phase) blocker. Without an
+        # independently configured issue scope, keep transition/merge denied.
+        if blocker_numbers is None:
+            blocker_numbers = (3,) if state.get("phase") == "P00" else ()
+            blocker_policy_complete = state.get("phase") == "P00"
+        else:
+            blocker_policy_complete = True
+        if not isinstance(blocker_numbers, tuple) or any(
+            type(n) is not int or n < 1 for n in blocker_numbers
+        ):
+            raise GitHubEvidenceError("invalid configured blocker scope")
         open_blockers = []
         for issue_number in blocker_numbers:
             issue = self.issue(issue_number)
@@ -348,7 +359,7 @@ class GitHubGateway:
         main_matches_merge = bool(merged and main_sha == merge_sha)
         can_proceed = bool(
             merged and main_matches_merge and checks_passed and not open_blockers
-            and branch_protected and rules_policy_verified
+            and blocker_policy_complete and branch_protected and rules_policy_verified
         )
         return {
             "authenticated_remote": True,
@@ -364,8 +375,9 @@ class GitHubGateway:
             "main_matches_merge": main_matches_merge,
             "checks_passed": checks_passed,
             "workflow_provenance_verified": workflow_provenance_verified,
-            "open_critical_blockers": len(open_blockers),
+            "open_critical_blockers": len(open_blockers) if blocker_policy_complete else None,
             "blocker_issue_numbers": open_blockers,
+            "blocker_policy_complete": blocker_policy_complete,
             "branch_protected": branch_protected,
             "rules_policy_verified": rules_policy_verified,
             "auto_merge_available": auto_merge_available,

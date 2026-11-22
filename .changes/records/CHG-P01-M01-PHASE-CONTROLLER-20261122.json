@@ -15,7 +15,9 @@
   ],
   "help_paths": [],
   "wiki_paths": [],
-  "test_evidence": [],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44969786422"
+  ],
   "commit_sha": null,
   "release": null,
   "verification": {
@@ -26,7 +28,7 @@
   "breaking_change": false,
   "migration_notes": "No user data migration; fail closed for phase/branch mismatch.",
   "created_at": "2026-11-22T01:05:16.252Z",
-  "updated_at": "2026-11-22T01:05:16.252Z",
+  "updated_at": "2026-11-22T01:06:45.518Z",
   "version_bump": "none",
   "affected_option_ids": [],
   "docs_impact": true,

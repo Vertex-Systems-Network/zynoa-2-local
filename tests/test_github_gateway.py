@@ -38,6 +38,7 @@ class FakeTransport:
         ]
         self.head = SHA
         self.head_ref = BRANCH
+        self.pr_number = 1
         self.request_count = 0
 
     def __call__(self, method, url, headers, body, timeout):
@@ -47,9 +48,9 @@ class FakeTransport:
         assert url.startswith("https://api.github.com/repos/" + REPO)
         assert headers["Authorization"] == "Bearer fake-token"
         path = urlparse(url).path
-        if path.endswith("/pulls/1"):
+        if path.endswith(f"/pulls/{self.pr_number}"):
             return {
-                "number": 1, "head": {"ref": self.head_ref, "sha": self.head},
+                "number": self.pr_number, "head": {"ref": self.head_ref, "sha": self.head},
                 "base": {"ref": "main"}, "merged": self.pr_merged,
                 "merged_at": "2026-11-18T00:00:00Z" if self.pr_merged else None,
                 "merge_commit_sha": MERGE, "draft": self.pr_draft,
@@ -59,10 +60,10 @@ class FakeTransport:
                 "id": self.run_id, "check_suite_id": self.suite_id,
                 "name": "Governance v3.2", "path": ".github/workflows/governance.yml",
                 "event": "pull_request", "status": "completed", "conclusion": "success",
-                "head_sha": SHA, "head_branch": BRANCH,
+                "head_sha": SHA, "head_branch": self.head_ref,
                 "repository": {"full_name": REPO},
                 "head_repository": {"full_name": REPO},
-                "pull_requests": [{"number": 1}],
+                "pull_requests": [{"number": self.pr_number}],
             }
             return {**data, **self.run_overrides}
         if path.endswith(f"/actions/jobs/{self.job_id}"):
@@ -164,6 +165,33 @@ class GitHubEvidenceTests(unittest.TestCase):
         result = client.observe(STATE)
         self.assertFalse(result["workflow_provenance_verified"])
         self.assertFalse(result["transition_ready"])
+
+    def test_p01_observer_does_not_inherit_p00_issue_or_fake_readiness(self):
+        client, fake = self.build()
+        fake.pr_number = 10
+        fake.head_ref = "phase/01-foundation"
+        fake.issue_open = True
+        state = {"phase": "P01", "active_branch": "phase/01-foundation", "primary_pr": 10}
+        snapshot = client.observe(state)
+        self.assertEqual("P01", snapshot["phase"])
+        self.assertEqual(10, snapshot["pr_number"])
+        self.assertEqual([], snapshot["blocker_issue_numbers"])
+        self.assertFalse(snapshot["blocker_policy_complete"])
+        self.assertIsNone(snapshot["open_critical_blockers"])
+        self.assertFalse(snapshot["transition_ready"])
+        # A trusted controller may explicitly configure known issue numbers.
+        configured = client.observe(state, blocker_numbers=(3,))
+        self.assertTrue(configured["blocker_policy_complete"])
+        self.assertEqual([3], configured["blocker_issue_numbers"])
+        self.assertEqual(1, configured["open_critical_blockers"])
+        self.assertFalse(configured["transition_ready"])
+
+    def test_invalid_explicit_blocker_scope_fails_closed(self):
+        client, fake = self.build()
+        for invalid in ((0,), (True,), ("3",), [3]):
+            with self.subTest(value=invalid):
+                with self.assertRaises(GitHubEvidenceError):
+                    client.observe(STATE, blocker_numbers=invalid)
 
     def test_unmerged_draft_never_advances(self):
         client, fake = self.build()
