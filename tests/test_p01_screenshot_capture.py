@@ -16,6 +16,11 @@ class NativeScreenshotCaptureContracts(unittest.TestCase):
                        "ZYN-SCREEN-002", "ZYN-SCREEN-007", "refuse replacing existing image"):
             self.assertIn(marker, self.script)
         self.assertNotIn("capture_verified = $true", self.script)
+        for marker in ("DwmGetWindowAttribute(", "DWMWA_EXTENDED_FRAME_BOUNDS",
+                       "$visibleBounds", "$bounds = $visibleBounds",
+                       "ZYN-SCREEN-012", "ZYN-SCREEN-013",
+                       "frame_bounds_source = 'DwmGetWindowAttribute"):
+            self.assertIn(marker, self.script)
         for marker in ("System.Windows.Forms.Screen", "WorkingArea", "MoveWindow(",
                        "window still overlaps desktop/taskbar", "window_fully_visible"):
             self.assertIn(marker, self.script)

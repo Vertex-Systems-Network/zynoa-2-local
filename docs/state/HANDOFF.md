@@ -2,12 +2,12 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- P01 IN_PROGRESS on `phase/01-foundation`, [draft PR #10](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10). **Lease FREE** at handoff. No merge, no P02.
-- **P01-T01 through T09 DONE**, task-specific evidence in PR board. T09 native private M26 event ledger verified in [Windows #44988269511](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44988269511); full M26 release feed unfinished.
-- **P01-T10 IN_PROGRESS.** Help and Wiki source for M01/M16/M17/M18 now correctly states tested subset versus unimplemented controls. [Windows CI #44990093642](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44990093642), [Governance #44990093636](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44990093636) and PR board sync all PASS for screenshot capture code, native build, startup and privacy tests.
-- **Real screenshot artifact exists but is NOT verified/committed.** [Artifact #14741119290](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44990093642/artifacts/14741119290) has native M01-S01 1012x708 overview with source head SHA `3ff5ebfc09b1be20a357d0f94f953163e034c201`. The small CI desktop taskbar was removed by MoveWindow, but visual inspection found thin DWM invisible resize/shadow borders still show underlying desktop around 3 edges. See `docs/screenshots/P01_EVIDENCE_STATUS.md`. No screenshot should be marked verified until visible window-only crop (DwmGetWindowAttribute extended frame) and image/alt/hash review.
-- **Next worker:** acquire fresh lease before editing. Fix screenshot native DWM bounding frame or only crop OS border pixels from the exact real artifact, recapture and independently inspect. If image verified, commit real PNG plus metadata and update M01-S01 manifest and Help/Wiki. Add native screen captures for other existing views; unimplemented option/screens remain pending. Full T10 Help UI/wiki publishing and T11 P01 release/signing/merge gates are NOT done.
-- Source code remains on PR #10, no signed installer or released UI, no remote incident reporting, no user data migration, no P02 work.
+- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10; current ChatGPT session holds T10 lease. Do not merge or enter P02.
+- P01-T01 through T09 DONE, task-specific evidence in PR task board. T10 IN_PROGRESS; T11 TODO.
+- P01-T10 Help/Wiki M01/M16/M17/M18 correctly distinguish verified native foundations from unimplemented controls, all source in phase branch.
+- Actual native screenshot from [Windows #44990093642](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44990093642) was rejected for thin underlying CI desktop strips caused by invisible DWM resize margins; no verified screenshot image committed.
+- **New T10 pending CI:** `scripts/capture_p01_desktop.ps1` now uses `DwmGetWindowAttribute(9)` extended visible frame after the real Tauri window is foregrounded and rejects errors/overlap. Strict image and privacy checks stay enabled. Examine the new artifact visually; only accept and commit image/provenance if genuine clean visible native pixels, no desktop strips and readable controls. No browser/CGI substitute.
+- Source screenshots, Help UI, option capture and Wiki publication are not all complete; T11 signing/merge/release gates remain TODO. Do not claim P01 exit done.
 
 
 ## v3.1 agent handoff requirements

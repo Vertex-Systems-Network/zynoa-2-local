@@ -22,6 +22,9 @@ public static class ZynoaScreenWin32 {
     public static extern bool SetForegroundWindow(IntPtr hwnd);
     [DllImport("user32.dll", SetLastError=true)]
     public static extern bool MoveWindow(IntPtr hwnd, int x, int y, int width, int height, bool repaint);
+    // DWMWA_EXTENDED_FRAME_BOUNDS=9 excludes invisible Win10/11 resize/shadow margins.
+    [DllImport("dwmapi.dll", PreserveSig=true)]
+    public static extern int DwmGetWindowAttribute(IntPtr hwnd, int attribute, out Rect rect, int size);
 }
 '@
 $proc = Get-Process -Id $TargetPid -ErrorAction Stop
@@ -66,6 +69,23 @@ if (-not [ZynoaScreenWin32]::SetForegroundWindow($hwnd)) {
     throw 'ZYN-SCREEN-006: native window cannot become foreground'
 }
 Start-Sleep -Milliseconds 800
+# GetWindowRect includes invisible DWM resize margins. Never capture desktop
+# pixels through those margins or pretend cropping a browser preview is proof.
+$visibleBounds = [ZynoaScreenWin32+Rect]::new()
+$sizeOfRect = [System.Runtime.InteropServices.Marshal]::SizeOf([ZynoaScreenWin32+Rect])
+$dwmStatus = [ZynoaScreenWin32]::DwmGetWindowAttribute(
+    $hwnd, 9, [ref]$visibleBounds, $sizeOfRect)
+if ($dwmStatus -ne 0) {
+    throw 'ZYN-SCREEN-012: DWM visible frame bounds unavailable'
+}
+$bounds = $visibleBounds
+$width = $bounds.Right - $bounds.Left
+$height = $bounds.Bottom - $bounds.Top
+if ($width -lt 880 -or $height -lt 600 -or
+    $bounds.Left -lt $workArea.Left -or $bounds.Top -lt $workArea.Top -or
+    $bounds.Right -gt $workArea.Right -or $bounds.Bottom -gt $workArea.Bottom) {
+    throw 'ZYN-SCREEN-013: visible native frame outside display working area'
+}
 $bitmap = [System.Drawing.Bitmap]::new($width, $height)
 try {
     $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
@@ -99,6 +119,7 @@ $meta = [ordered]@{
     window_width = $width
     window_height = $height
     window_fully_visible = $true
+    frame_bounds_source = 'DwmGetWindowAttribute DWMWA_EXTENDED_FRAME_BOUNDS (9)'
     desktop_work_area = "$($workArea.Width)x$($workArea.Height)"
     sha256 = $hash
     alt_text = 'Zynoa native desktop Overview with local startup and disabled workspace creation'
