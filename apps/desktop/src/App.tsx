@@ -1,0 +1,116 @@
+import { useEffect, useState } from "react";
+
+type View = "startup" | "settings" | "recovery" | "diagnostics";
+type StartupState = "starting" | "desktop" | "browser";
+const views: { key: View; title: string; shortcut: string; icon: string }[] = [
+  { key: "startup", title: "Overview", shortcut: "1", icon: "⌂" },
+  { key: "settings", title: "Settings", shortcut: "2", icon: "⚙" },
+  { key: "recovery", title: "Recovery", shortcut: "3", icon: "↺" },
+  { key: "diagnostics", title: "Diagnostics", shortcut: "4", icon: "◎" },
+];
+
+function Startup({ state }: { state: StartupState }) {
+  return (
+    <>
+      <p className="eyebrow">DESKTOP FOUNDATION / P01</p>
+      <h1>One workspace.<br /><em>Built to last.</em></h1>
+      <p className="lead">A local-first environment for projects and files. This early desktop shell is ready for native services that will be introduced in later foundation steps.</p>
+      <div className="hero-grid">
+        <section className="panel emphasis" aria-label="Startup status">
+          <div className="panel-head">Startup status <span className={state === "starting" ? "dot pending" : "dot healthy"} /></div>
+          <h2>{state === "starting" ? "Preparing interface" : state === "desktop" ? "Native window displayed" : "Browser preview"}</h2>
+          <p>{state === "desktop" ? "The bundled interface is running inside Tauri. The IPC bridge, storage and service health have not yet been verified." : state === "browser" ? "The browser preview cannot establish native runtime readiness. Use the Windows executable to check desktop startup." : "Initializing locally without a cloud connection."}</p>
+          <div className="status-strip"><span className="status-pill">Offline interface</span><span className="status-muted">No cloud account required</span></div>
+        </section>
+        <section className="panel" aria-label="Workspace status">
+          <div className="panel-head">Your workspace <span className="muted-symbol">↗</span></div>
+          <h2>Nothing opened yet</h2>
+          <p>Project creation and persistent workspace storage are not enabled in the foundation shell.</p>
+          <button type="button" disabled title="Workspace service is not implemented">Create workspace <span>↗</span></button>
+        </section>
+      </div>
+      <div className="section-top"><h3>Foundation progress</h3><span>Verification stages</span></div>
+      <div className="checklist">
+        <div className="check-item"><b>01</b><div><strong>Local desktop shell</strong><small>Bundled React view and Tauri window</small></div><span className="check-info">In verification</span></div>
+        <div className="check-item"><b>02</b><div><strong>Native service transport</strong><small>Typed commands and workspace boundaries</small></div><span className="check-pending">Planned</span></div>
+        <div className="check-item"><b>03</b><div><strong>Durable storage and recovery</strong><small>User-owned vault, backups and diagnostics</small></div><span className="check-pending">Planned</span></div>
+      </div>
+    </>
+  );
+}
+
+function Settings() {
+  return (
+    <section className="detail" aria-labelledby="settings-title">
+      <p className="eyebrow">PREFERENCES / RESTRICTED</p><h1 id="settings-title">Settings<span className="period">.</span></h1>
+      <p className="lead">Preferences are view-only until the native configuration service has been implemented and tested.</p>
+      <div className="setting-row"><div><strong>Interface appearance</strong><p>Theme changes are not available yet.</p></div><select disabled aria-label="Interface appearance" value="dark" onChange={() => undefined}><option value="dark">Dark foundation</option></select></div>
+      <div className="setting-row"><div><strong>Application storage</strong><p>Local folder registration will be introduced with the data registry.</p></div><button type="button" disabled>Choose folder</button></div>
+      <div className="notice" role="status">This build does not write settings or user data.</div>
+    </section>
+  );
+}
+
+function Recovery() {
+  return (
+    <section className="detail" aria-labelledby="recovery-title">
+      <p className="eyebrow">DATA / SAFETY</p><h1 id="recovery-title">Recovery<span className="period">.</span></h1>
+      <p className="lead">Your files belong outside the app executable. Backup and restore will remain disabled until a vault and a real restore drill are verified.</p>
+      <div className="panel wide"><div className="panel-head">Recovery center <span className="status-muted">Not configured</span></div><h2>No verified backups</h2><p>This build has no user vault or backup inventory. We will not suggest your files are protected without evidence.</p><button type="button" disabled>Restore from backup</button></div>
+    </section>
+  );
+}
+
+function Diagnostics() {
+  return (
+    <section className="detail" aria-labelledby="diagnostics-title">
+      <p className="eyebrow">SYSTEM / VISIBILITY</p><h1 id="diagnostics-title">Diagnostics<span className="period">.</span></h1>
+      <p className="lead">The native diagnostic spine is not yet connected. This shell does not upload logs, errors or telemetry.</p>
+      <div className="diagnostic-grid"><div className="metric"><span>Local logs</span><strong>Not enabled</strong><small>Native diagnostics pending</small></div><div className="metric"><span>Background services</span><strong>Not started</strong><small>Typed transport pending</small></div></div>
+      <div className="notice" role="status">These labels describe available features, not a health scan of your device.</div>
+    </section>
+  );
+}
+
+export function App() {
+  const [view, setView] = useState<View>("startup");
+  const [startup, setStartup] = useState<StartupState>("starting");
+  useEffect(() => {
+    const nativeHostPresent = "__TAURI_INTERNALS__" in window;
+    const frame = window.requestAnimationFrame(() => setStartup(nativeHostPresent ? "desktop" : "browser"));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return;
+      const target = Number(event.key) - 1;
+      if (target < 0 || target >= views.length) return;
+      event.preventDefault();
+      setView(views[target].key);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  return (
+    <div className="shell">
+      <aside className="sidebar" aria-label="Primary navigation">
+        <div className="brand"><span className="brand-symbol" aria-hidden="true">Z</span><span className="brand-word">ZYNOA<small>DESKTOP ENVIRONMENT</small></span></div>
+        <p className="nav-label">WORKSPACE</p>
+        <nav aria-label="Application sections">
+          {views.map((page) => (
+            <button key={page.key} className={"nav-link " + (view === page.key ? "selected" : "")} aria-current={view === page.key ? "page" : undefined} type="button" onClick={() => setView(page.key)}>
+              <span className="nav-icon" aria-hidden="true">{page.icon}</span><span>{page.title}</span><kbd>⌃{page.shortcut}</kbd>
+            </button>
+          ))}
+        </nav>
+        <div className="sidebar-bottom"><span className="version">FOUNDATION BUILD · 0.1.0</span><div className="offline"><span className="dot healthy" /> Local-first shell</div></div>
+      </aside>
+      <main id="main-content" tabIndex={-1}>
+        <header className="topbar"><div className="crumb">Zynoa <span>/</span> <strong>{views.find((page) => page.key === view)?.title}</strong></div><div className="top-actions"><span>PHASE 01</span><span className="avatar" aria-label="Profile not yet configured">Z</span></div></header>
+        <div className="content">{view === "startup" ? <Startup state={startup} /> : view === "settings" ? <Settings /> : view === "recovery" ? <Recovery /> : <Diagnostics />}</div>
+        <footer className="footer"><span>Local desktop foundation</span><span>Native services require verification · <strong>No data stored</strong></span></footer>
+      </main>
+    </div>
+  );
+}
