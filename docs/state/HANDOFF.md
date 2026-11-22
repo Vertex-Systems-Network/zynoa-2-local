@@ -3,11 +3,11 @@
 ## CURRENT (read this first; history below is archive)
 
 - Phase **P01** IN_PROGRESS on `phase/01-foundation`, draft PR #10; remote main `1697ea8488b2da089da22951de64f5254a48b71f`.
-- Task **P01-T01 IN_PROGRESS**: pre-development ADR-0025, baseline research, threat review, tests-first matrix and regression tests committed for CI verification. Do not mark DONE until a passing PR CI run link is attached in the P01 task manifest.
-- Next task after T01 passes: **P01-T02**, generalise the P00-only phase controller/runner without weakening existing safeguards.
-- P01-T04 naming conflict: task calls M16 typed IPC, but M16 dossier is workspace manager. Scope IPC as M01/M16 workspace transport; do not relabel M16 or enlarge scope.
-- Lease held for current slice; clear it before handoff. No desktop binary, native Windows run, screenshots, user vault restore, or release proven yet.
-- PR #10 remains draft and MUST NOT be merged without explicit owner authorization. No P02 work.
+- **P01-T01 IN_PROGRESS (not DONE)**: ADR-0025 and tests-first contract committed in `a64eb6aeb961fb1bf33b240752aea4bbe584b412`; task manifest and PR board synchronized. Baseline prior Governance [44968410424](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44968410424) was green, but does not test the new T01 change.
+- **Verification pending**: [Governance run 44968687573](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44968687573) was pending with zero jobs assigned at the handoff; prior governance job [44968680144](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44968680144) was still in progress despite superseding commits. PR board sync and P00 Runner Worker on the T01 test commit succeeded. No T01 passing CI run yet; do not mark DONE until verified.
+- Next safe action: reconcile fresh PR #10 HEAD and CI. If the new T01 code/test suite passes, update P01-T01 to DONE **with that passing run link**, regenerate PR board and then start P01-T02. If red, fix root cause without weakening tests.
+- P01-T04 naming conflict recorded in ADR-0025 and DECISIONS: task says M16 typed IPC; M16 dossier is workspace manager. Keep transport scoped to M01/M16 operations.
+- Lease: **free** after this handoff. Do not start P02. Do not merge draft PR #10 without owner instruction or owner-written rule.
 
 ## v3.1 agent handoff requirements
 
