@@ -163,6 +163,55 @@ class GuardedMergeTests(unittest.TestCase):
             merger.merge_current(STATE)
         self.assertFalse(transport.calls)
 
+    def test_reobserve_blocks_pr_and_policy_changes_without_remote_merge(self):
+        for name, key, value in (
+            ("PR became draft", "draft", True),
+            ("new critical blocker", "open_critical_blockers", 1),
+            ("issue triage invalidated", "blocker_policy_complete", False),
+            ("CI invalidated", "checks_passed", False),
+            ("trusted workflow lost", "workflow_provenance_verified", False),
+            ("ruleset relaxed", "rules_policy_verified", False),
+            ("PR SHA advanced", "pr_head_sha", "d" * 40),
+            ("base advanced", "base_sha", "d" * 40),
+        ):
+            merger, reader, transport = self.build()
+            initial_observe = reader.observe
+            def changed_on_second(state):
+                observed = initial_observe(state)
+                if reader.calls == 2:
+                    observed[key] = value
+                return observed
+            reader.observe = changed_on_second
+            with self.subTest(name=name), self.assertRaises(MergeBlocked):
+                merger.merge_current(STATE)
+            self.assertFalse(transport.calls)
+
+    def test_p01_issue_label_fingerprint_missing_or_changed_blocks_merge(self):
+        phase = {**STATE, "phase": "P01"}
+        for scenario in ("missing", "changed"):
+            merger, reader, transport = self.build()
+            reader.current["phase"] = "P01"
+            reader.current["issue_inventory_fingerprint"] = "a" * 64
+            if scenario == "missing":
+                reader.current["issue_inventory_fingerprint"] = None
+            else:
+                prior = reader.observe
+                def relabel_after_first(state):
+                    observed = prior(state)
+                    if reader.calls == 2:
+                        observed["issue_inventory_fingerprint"] = "b" * 64
+                    return observed
+                reader.observe = relabel_after_first
+            with self.subTest(scenario=scenario), self.assertRaises(MergeBlocked):
+                merger.merge_current(phase)
+            self.assertFalse(transport.calls)
+
+    def test_stable_premerge_observes_twice_before_single_mock_merge(self):
+        merger, reader, transport = self.build()
+        merger.merge_current(STATE)
+        self.assertEqual(3, reader.calls)  # twice premerge, once postmerge
+        self.assertEqual(1, len(transport.calls))
+
     def test_no_authenticated_evidence_rejected(self):
         merger, reader, transport = self.build()
         reader.current["authenticated_remote"] = False

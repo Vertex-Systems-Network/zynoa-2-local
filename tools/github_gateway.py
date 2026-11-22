@@ -7,6 +7,7 @@ authenticated_remote. An unverified or incomplete response fails closed.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -146,6 +147,7 @@ class GitHubGateway:
         seen: set[int] = set()
         blocking: list[int] = []
         unclassified: list[int] = []
+        classified_labels: list[tuple[int, tuple[str, ...]]] = []
         for page in range(1, 11):
             items = self._get("/issues", {
                 "state": "open", "per_page": "100", "page": str(page),
@@ -181,16 +183,25 @@ class GitHubGateway:
                         or dispositions[0] not in ("merge:blocker", "merge:nonblocker")):
                     unclassified.append(number)
                     continue
+                classified_labels.append((number, tuple(sorted(names))))
                 if dispositions[0] == "merge:blocker" and (
                     "phase:" + phase in scopes or "phase:global" in scopes
                 ):
                     blocking.append(number)
             if len(items) < 100:
+                # Only a fully classified inventory earns an immutable
+                # fingerprint. A caller cannot pass an arbitrary count of zero
+                # or hide newly opened/relabelled issues between observations.
+                fingerprint = None
+                if not unclassified:
+                    canonical = json.dumps(sorted(classified_labels), separators=(",", ":"))
+                    fingerprint = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
                 return {
                     "complete": not unclassified,
                     "blocking": sorted(blocking),
                     "unclassified": sorted(unclassified),
-                    "issue_count": sum(1 for n in seen),  # includes PR entries in API list
+                    "issue_count": len(seen),  # GitHub /issues also includes PRs
+                    "fingerprint": fingerprint,
                 }
         raise GitHubEvidenceError("open-issue inventory pagination exhausted")
 
@@ -441,6 +452,7 @@ class GitHubGateway:
         # explicitly assign phase and merge disposition for EVERY open issue.
         phase_id = state.get("phase")
         unclassified_issues: list[int] = []
+        issue_inventory_fingerprint = None
         issue_scope_source = "legacy_trusted_p00_issue_3"
         if phase_id == "P00":
             if blocker_numbers is None:
@@ -465,6 +477,7 @@ class GitHubGateway:
                 blocker_policy_complete = classified["complete"]
                 open_blockers = classified["blocking"]
                 unclassified_issues = classified["unclassified"]
+                issue_inventory_fingerprint = classified["fingerprint"]
             except GitHubEvidenceError:
                 blocker_policy_complete = False
                 open_blockers = []  # No claim of zero unless scope is complete.
@@ -516,6 +529,7 @@ class GitHubGateway:
             "blocker_policy_complete": blocker_policy_complete,
             "unclassified_issue_numbers": unclassified_issues,
             "issue_scope_source": issue_scope_source,
+            "issue_inventory_fingerprint": issue_inventory_fingerprint,
             "branch_protected": branch_protected,
             "rules_policy_verified": rules_policy_verified,
             "auto_merge_available": auto_merge_available,

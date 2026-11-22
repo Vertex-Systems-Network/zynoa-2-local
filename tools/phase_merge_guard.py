@@ -95,6 +95,10 @@ class GuardedMerger:
         # P01 has no trusted scope yet and therefore remains unmergeable.
         if observed.get("blocker_policy_complete") is not True:
             raise MergeBlocked("independent critical-blocker policy not verified")
+        if state.get("phase") != "P00" and not re.fullmatch(
+            r"[0-9a-f]{64}", str(observed.get("issue_inventory_fingerprint") or "")
+        ):
+            raise MergeBlocked("independent phase issue inventory fingerprint missing")
         count = observed.get("open_critical_blockers")
         if type(count) is not int or count != 0:
             raise MergeBlocked("critical-blocker inventory missing or nonzero")
@@ -114,6 +118,23 @@ class GuardedMerger:
         main_sha = (self.reader.branch("main").get("commit") or {}).get("sha")
         if main_sha != observed["main_sha"]:
             raise MergeBlocked("main advanced during merge preflight")
+        # Re-fetch PR, trusted checks/rules and every independently labelled
+        # open issue immediately before the write. A changing PR, a newly
+        # opened blocker, or a relabelled nonblocker must invalidate this
+        # attempt; GitHub's head SHA parameter additionally rejects a stale
+        # head at the merge endpoint itself.
+        fresh = self.reader.observe(state)
+        self.verify_premerge(state, fresh)
+        unchanged = (
+            "pr_head_sha", "base_sha", "main_sha",
+            "head_branch", "base_branch", "pr_number",
+            "blocker_policy_complete", "open_critical_blockers",
+            "blocker_issue_numbers", "unclassified_issue_numbers",
+            "issue_scope_source", "issue_inventory_fingerprint",
+        )
+        if any(fresh.get(key) != observed.get(key) for key in unchanged):
+            raise MergeBlocked("GitHub PR or issue-scope evidence changed during merge preflight")
+        observed = fresh
         url = (
             "https://api.github.com/repos/" + self.reader.repo
             + "/pulls/" + str(state["primary_pr"]) + "/merge"

@@ -240,6 +240,38 @@ class GitHubEvidenceTests(unittest.TestCase):
         self.assertEqual([], result["blocker_issue_numbers"])
         self.assertEqual(0, result["open_critical_blockers"])
 
+    def test_phase_issue_inventory_fingerprint_is_stable_but_sensitive_to_labels(self):
+        client, fake = self.build()
+        fake.pr_number = 10
+        fake.head_ref = "phase/01-foundation"
+        state = {"phase": "P01", "active_branch": "phase/01-foundation", "primary_pr": 10}
+        fake.open_issues = [
+            self.labelled_issue(2, "P00", "blocker"),
+            self.labelled_issue(3, "P01", "nonblocker"),
+        ]
+        first = client.observe(state)
+        self.assertTrue(first["blocker_policy_complete"])
+        self.assertRegex(first["issue_inventory_fingerprint"], r"^[0-9a-f]{64}$")
+        fake.open_issues.reverse()
+        second = client.observe(state)
+        self.assertEqual(first["issue_inventory_fingerprint"],
+                         second["issue_inventory_fingerprint"])
+        fake.open_issues[0] = self.labelled_issue(3, "P01", "blocker")
+        third = client.observe(state)
+        self.assertNotEqual(first["issue_inventory_fingerprint"],
+                            third["issue_inventory_fingerprint"])
+        self.assertEqual(1, third["open_critical_blockers"])
+
+    def test_unclassified_issue_has_no_trusted_fingerprint(self):
+        client, fake = self.build()
+        fake.pr_number = 10
+        fake.head_ref = "phase/01-foundation"
+        fake.open_issues = [{"number": 7, "state": "open", "labels": []}]
+        state = {"phase": "P01", "active_branch": "phase/01-foundation", "primary_pr": 10}
+        result = client.observe(state)
+        self.assertFalse(result["blocker_policy_complete"])
+        self.assertIsNone(result["issue_inventory_fingerprint"])
+
     def test_p01_and_global_labelled_blockers_are_not_excluded(self):
         client, fake = self.build()
         fake.pr_number = 10
