@@ -318,6 +318,31 @@ class GitHubGateway:
                 return False
         return True
 
+    def _governance_workflow_matches_protected_main(self, head_sha: str, main_sha: str) -> bool:
+        """Require PR and protected-main governance workflow blobs to be identical.
+
+        A check signed by the real GitHub Actions app can still have been
+        produced by workflow code edited within the pull request itself.
+        Compare both immutable GitHub file blob IDs using commit SHA refs,
+        not mutable branch names or a PR-provided checksum.
+        """
+        path = "/contents/.github/workflows/governance.yml"
+        blob_ids = []
+        for ref in (main_sha, head_sha):
+            if not isinstance(ref, str) or not _SHA_PATTERN.fullmatch(ref):
+                raise GitHubEvidenceError("workflow verification requires pinned commit SHAs")
+            item = self._get(path, {"ref": ref})
+            if (not isinstance(item, dict) or item.get("type") != "file"
+                    or item.get("path") != ".github/workflows/governance.yml"
+                    or item.get("name") != "governance.yml"
+                    or not isinstance(item.get("size"), int)
+                    or item["size"] <= 0
+                    or not isinstance(item.get("sha"), str)
+                    or not _SHA_PATTERN.fullmatch(item["sha"])):
+                raise GitHubEvidenceError("governance workflow identity unavailable")
+            blob_ids.append(item["sha"])
+        return blob_ids[0] == blob_ids[1]
+
     def _verify_actions_provenance(
         self, observed_checks: Mapping[str, list[dict]],
         required_checks: tuple[str, ...], head_sha: str,
@@ -445,7 +470,15 @@ class GitHubGateway:
                 )
             except (GitHubEvidenceError, ValueError, TypeError):
                 workflow_provenance_verified = False
-        checks_passed = checks_passed and workflow_provenance_verified
+        workflow_source_verified = False
+        if checks_passed and workflow_provenance_verified:
+            try:
+                workflow_source_verified = self._governance_workflow_matches_protected_main(
+                    head_sha, main_sha
+                )
+            except (GitHubEvidenceError, ValueError, TypeError):
+                workflow_source_verified = False
+        checks_passed = checks_passed and workflow_provenance_verified and workflow_source_verified
         # P00's separately configured historic blocker is retained. For P01+
         # an arbitrary tuple (including ()) must NOT self-certify that all
         # issues have been independently classified. GitHub issue labels must
@@ -524,6 +557,7 @@ class GitHubGateway:
             "main_matches_merge": main_matches_merge,
             "checks_passed": checks_passed,
             "workflow_provenance_verified": workflow_provenance_verified,
+            "workflow_source_verified": workflow_source_verified,
             "open_critical_blockers": len(open_blockers) if blocker_policy_complete else None,
             "blocker_issue_numbers": open_blockers,
             "blocker_policy_complete": blocker_policy_complete,

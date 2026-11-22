@@ -85,6 +85,7 @@ class GuardedMerger:
             raise MergeBlocked("GitHub has not confirmed PR mergeability")
         if (observed.get("checks_passed") is not True
                 or observed.get("workflow_provenance_verified") is not True
+                or observed.get("workflow_source_verified") is not True
                 or observed.get("branch_protected") is not True
                 or observed.get("rules_policy_verified") is not True):
             raise MergeBlocked("trusted CI provenance or branch protection not verified")
@@ -131,6 +132,7 @@ class GuardedMerger:
             "blocker_policy_complete", "open_critical_blockers",
             "blocker_issue_numbers", "unclassified_issue_numbers",
             "issue_scope_source", "issue_inventory_fingerprint",
+            "workflow_source_verified",
         )
         if any(fresh.get(key) != observed.get(key) for key in unchanged):
             raise MergeBlocked("GitHub PR or issue-scope evidence changed during merge preflight")

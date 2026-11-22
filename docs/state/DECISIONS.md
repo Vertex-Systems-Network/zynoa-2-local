@@ -67,3 +67,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-22 | P01 | Maintain an evidence-backed issue-by-issue triage dossier instead of silently marking legacy open P00/M22 incidents nonblocking after PR #1 merged | issue #3 still explicitly claims P00 premerge blocker and issue #7 has actual P01-era Governance CI failures; only independent maintainer can resolve relevance, not the branch author
 
 2026-11-22 | P01 | Require two matching authenticated GitHub premerge observations plus SHA-256 of exhaustive independently classified open-issue IDs/labels, refusing changed issue, PR, CI or main evidence | prevents time-of-check/time-of-use acceptance of stale blockers or PR state between initial preflight and protected merge attempt
+
+2026-11-22 | P01 | Verify governance.yml exact GitHub blob equality between pinned protected main and PR head before accepting trusted governance check; require it again in the second merge preflight | the real Actions app and workflow path do not by themselves prove that PR-authored workflow instructions were not weakened

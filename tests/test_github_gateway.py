@@ -34,6 +34,9 @@ class FakeTransport:
         self.ruleset_user_bypass = "never"
         self.ruleset_source = REPO
         self.ruleset_count = 1
+        self.workflow_blob_main = "1" * 40
+        self.workflow_blob_pr = "1" * 40
+        self.workflow_content_missing = False
         self.rules = [
             {"type": "pull_request", "parameters": {"required_review_thread_resolution": True}},
             {"type": "required_status_checks", "parameters": {
@@ -83,6 +86,17 @@ class FakeTransport:
             # Real GitHub returns a missing-job API error, not a test fixture
             # AssertionError; missing or forged job IDs must fail closed.
             raise GitHubEvidenceError("workflow job not found")
+        if path.endswith("/contents/.github/workflows/governance.yml"):
+            query = parse_qs(urlparse(url).query)
+            ref = query.get("ref", [None])[0]
+            assert ref in (self.main_sha, self.head)
+            if self.workflow_content_missing:
+                raise GitHubEvidenceError("workflow contents readback missing")
+            return {
+                "type": "file", "path": ".github/workflows/governance.yml",
+                "name": "governance.yml", "size": 8700,
+                "sha": self.workflow_blob_main if ref == self.main_sha else self.workflow_blob_pr,
+            }
         if path.endswith("/rulesets"):
             return [
                 {"id": 27593065, "target": "branch",
@@ -379,6 +393,30 @@ class GitHubEvidenceTests(unittest.TestCase):
         self.assertTrue(snapshot["branch_protected"])
         self.assertFalse(snapshot["rules_policy_verified"])
         self.assertFalse(snapshot["transition_ready"])
+
+    def test_trusted_actions_run_with_modified_pr_workflow_is_rejected(self):
+        client, fake = self.build()
+        fake.workflow_blob_pr = "2" * 40
+        observed = client.observe(STATE)
+        self.assertTrue(observed["workflow_provenance_verified"])
+        self.assertFalse(observed["workflow_source_verified"])
+        self.assertFalse(observed["checks_passed"])
+        self.assertFalse(observed["rules_policy_verified"])
+        self.assertFalse(observed["transition_ready"])
+
+    def test_governance_workflow_source_missing_fails_closed(self):
+        client, fake = self.build()
+        fake.workflow_content_missing = True
+        observed = client.observe(STATE)
+        self.assertFalse(observed["workflow_source_verified"])
+        self.assertFalse(observed["checks_passed"])
+        self.assertFalse(observed["transition_ready"])
+
+    def test_exact_protected_main_workflow_blob_is_verified(self):
+        client, fake = self.build()
+        observed = client.observe(STATE)
+        self.assertTrue(observed["workflow_source_verified"])
+        self.assertTrue(observed["checks_passed"])
 
     def test_required_check_without_pinned_app_blocks(self):
         client, fake = self.build()

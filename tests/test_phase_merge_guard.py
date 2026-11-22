@@ -26,6 +26,7 @@ ELIGIBLE = {
     "mergeable": True,
     "checks_passed": True,
     "workflow_provenance_verified": True,
+    "workflow_source_verified": True,
     "blocker_policy_complete": True,
     "branch_protected": True,
     "rules_policy_verified": True,
@@ -140,6 +141,26 @@ class GuardedMergeTests(unittest.TestCase):
             with self.subTest(value=malformed), self.assertRaises(MergeBlocked):
                 merger.merge_current(STATE)
             self.assertFalse(transport.calls)
+
+    def test_checked_workflow_must_match_main_workflow_source(self):
+        merger, reader, transport = self.build()
+        reader.current["workflow_source_verified"] = False
+        with self.assertRaises(MergeBlocked):
+            merger.merge_current(STATE)
+        self.assertFalse(transport.calls)
+
+    def test_workflow_changed_during_second_preflight_blocks_merge(self):
+        merger, reader, transport = self.build()
+        base_observe = reader.observe
+        def workflow_changed(state):
+            snapshot = base_observe(state)
+            if reader.calls == 2:
+                snapshot["workflow_source_verified"] = False
+            return snapshot
+        reader.observe = workflow_changed
+        with self.assertRaises(MergeBlocked):
+            merger.merge_current(STATE)
+        self.assertFalse(transport.calls)
 
     def test_verified_workflow_provenance_required_even_if_check_says_pass(self):
         for bad in (False, None):
