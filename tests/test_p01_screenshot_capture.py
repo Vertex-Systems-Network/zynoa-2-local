@@ -36,6 +36,16 @@ class NativeScreenshotCaptureContracts(unittest.TestCase):
                        "M01-S01.capture.json", "Disposable CI fixture", "ZYN-SCREEN-015"):
             self.assertIn(marker, self.script)
 
+    def test_actual_native_secondary_views_not_fake_previews(self):
+        for token in ("Save-NativeFollowup", "SendKeys]::SendWait",
+                      "M01-S01-continued", "P01-Settings-preview",
+                      "P01-Recovery-preview", "P01-Diagnostics-preview",
+                      "ZYN-SCREEN-017", "ZYN-SCREEN-019",
+                      "candidate_pending_visual_review", "capture_verified = $false"):
+            self.assertIn(token, self.script)
+        self.assertIn("docs/screenshots/M01/*.png", self.workflow)
+        self.assertIn("docs/screenshots/M01/*.capture.json", self.workflow)
+
     def test_windows_ci_invokes_native_capture_while_process_is_alive(self):
         for marker in ("tests.test_p01_screenshot_capture", "capture_p01_desktop.ps1",
                        "docs/screenshots/M01/M01-S01.png", "ZYNOA_HEAD_SHA",

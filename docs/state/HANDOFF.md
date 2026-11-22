@@ -5,7 +5,8 @@
 - P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10; T01-T09 DONE, T10 IN_PROGRESS, T11 TODO. **Lease released at handoff**; do not merge/start P02.
 - Windows [#45005079893](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45005079893) SUCCESS: 32 Rust tests, native build, PowerShell script parse, cold boot, native screenshot capture, local vault/locations/diagnostics/event checks. [Build/screenshot candidate artifact #14747861582](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45005079893/artifacts/14747861582); **not independently visually reviewed, not accepted, no PNG committed**.
 - T10 hardening landed in PR #10: pin actual PR HEAD checkout and built/source SHA equality; fail-fast PS1 parser; correct keyboard Ctrl+non-digit guard; truthful read-only M01/M16/M17/M18 Help/Wiki.
-- **Next:** obtain genuine screenshot PNG + `.capture.json` from Windows artifact, review pixels/privacy/framing/legibility and verify SHA256; if accepted commit reviewed PNG/evidence and update `docs/ui/SCREEN_INVENTORY.csv`. Keep unimplemented options explicitly PENDING. After T10 proof, run exit gates (T11); owner merge instruction is still required.
+- **Current T10 visual review:** run #45005079893 Overview native PNG was authentic/hash-matched but rejected for white WebView scrollbar and missing scrolled continuation. New dark native scrollbar/viewport CSS and real PageDown + Settings/Recovery/Diagnostics screenshots are pending a fresh Windows capture and pixel review.
+- **Next:** obtain fresh genuine screenshot PNG + `.capture.json` from Windows artifact, review pixels/privacy/framing/legibility and verify SHA256; if accepted commit reviewed PNG/evidence and update `docs/ui/SCREEN_INVENTORY.csv`. Keep unimplemented options explicitly PENDING. After T10 proof, run exit gates (T11); owner merge instruction is still required.
 
 
 ## v3.1 agent handoff requirements

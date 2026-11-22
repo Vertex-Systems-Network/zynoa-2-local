@@ -133,3 +133,70 @@ $meta = [ordered]@{
 $meta | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (
     Join-Path $OutputDirectory 'M01-S01.capture.json') -Encoding UTF8
 Write-Output 'Candidate native screenshot captured, human verification remains pending'
+# Capture additional views from the same *real* Tauri window: no browser/mock fallback.
+# Keep supplementary P01 preview IDs distinct from unimplemented final screen IDs.
+$script:previousFrameHash = $hash
+function Save-NativeFollowup {
+    param(
+        [Parameter(Mandatory = $true)][string]$ScreenshotId,
+        [Parameter(Mandatory = $true)][string]$Shortcut,
+        [Parameter(Mandatory = $true)][string]$ScreenTitle,
+        [Parameter(Mandatory = $true)][string]$Description
+    )
+    $proc.Refresh()
+    if ($proc.HasExited -or -not [ZynoaScreenWin32]::IsWindowVisible($hwnd)) {
+        throw 'ZYN-SCREEN-016: native window is no longer running and visible'
+    }
+    [System.Windows.Forms.SendKeys]::SendWait($Shortcut)
+    Start-Sleep -Milliseconds 900
+    $viewBitmap = [System.Drawing.Bitmap]::new($width, $height)
+    try {
+        $viewGraphics = [System.Drawing.Graphics]::FromImage($viewBitmap)
+        try {
+            $viewGraphics.CopyFromScreen($bounds.Left, $bounds.Top, 0, 0,
+                [System.Drawing.Size]::new($width, $height))
+        } finally { $viewGraphics.Dispose() }
+        $colors = [System.Collections.Generic.HashSet[int]]::new()
+        for ($x = 0; $x -lt 12; $x++) {
+            for ($y = 0; $y -lt 10; $y++) {
+                $px = [int][Math]::Min($width - 1, [Math]::Floor(($x + 0.5) * $width / 12))
+                $py = [int][Math]::Min($height - 1, [Math]::Floor(($y + 0.5) * $height / 10))
+                [void]$colors.Add($viewBitmap.GetPixel($px, $py).ToArgb())
+            }
+        }
+        if ($colors.Count -lt 6) { throw 'ZYN-SCREEN-017: blank native follow-up frame' }
+        $out = Join-Path $OutputDirectory ($ScreenshotId + '.png')
+        if (Test-Path -LiteralPath $out) { throw 'ZYN-SCREEN-018: refuse replacing native evidence' }
+        $viewBitmap.Save($out, [System.Drawing.Imaging.ImageFormat]::Png)
+    } finally { $viewBitmap.Dispose() }
+    $viewHash = (Get-FileHash -LiteralPath $out -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($viewHash -eq $script:previousFrameHash) {
+        throw ('ZYN-SCREEN-019: native view navigation/scroll did not change pixels: ' + $ScreenshotId)
+    }
+    $script:previousFrameHash = $viewHash
+    $viewMeta = [ordered]@{
+        screenshot_id = $ScreenshotId
+        source_commit_sha = $SourceSha
+        built_commit_sha = $BuiltSha
+        source = 'GitHub Windows Actions actual Tauri process'
+        screen = $ScreenTitle
+        capture_status = 'candidate_pending_visual_review'
+        capture_verified = $false
+        window_width = $width
+        window_height = $height
+        window_fully_visible = $true
+        frame_bounds_source = 'DwmGetWindowAttribute DWMWA_EXTENDED_FRAME_BOUNDS (9)'
+        desktop_work_area = "$($workArea.Width)x$($workArea.Height)"
+        sha256 = $viewHash
+        alt_text = $Description
+        privacy = 'Disposable CI fixture with no user content or secrets'
+    }
+    $viewMeta | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (
+        Join-Path $OutputDirectory ($ScreenshotId + '.capture.json')) -Encoding UTF8
+    Write-Output ('Native candidate captured: ' + $ScreenshotId)
+}
+Save-NativeFollowup -ScreenshotId 'M01-S01-continued' -Shortcut '{PGDN}' -ScreenTitle 'Overview (continued below fold)' -Description 'Zynoa native Overview foundation progress, lower scroll position and footer'
+Save-NativeFollowup -ScreenshotId 'P01-Settings-preview' -Shortcut '^{2}' -ScreenTitle 'Settings (disabled P01 controls)' -Description 'Zynoa native Settings foundation screen with intentionally unavailable preferences'
+Save-NativeFollowup -ScreenshotId 'P01-Recovery-preview' -Shortcut '^{3}' -ScreenTitle 'Recovery (no verified backups)' -Description 'Zynoa native Recovery foundation screen with disabled restore action'
+Save-NativeFollowup -ScreenshotId 'P01-Diagnostics-preview' -Shortcut '^{4}' -ScreenTitle 'Diagnostics (capability summary)' -Description 'Zynoa native Diagnostics read-only summary with remote reporting disabled'
+
