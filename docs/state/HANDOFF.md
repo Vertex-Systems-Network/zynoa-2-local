@@ -2,11 +2,10 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10; lease held by active worker. Never merge without owner authority. No P02.
-- T01-T03 DONE with verified CI links in manifest. T03 native unsigned EXE compiled, 8-second process boot passed, but no verified GUI screenshot or checked-in lockfiles yet.
-- **P01-T04 DONE**: M01/M16 read-only typed IPC `workspace.status` over main-window capability, bounded serde v1 envelope, rejects unknown commands/scopes/schema/extra fields/oversize and returns `not_configured`; React uses timeout/response validation and never grants writes. [Windows + Rust CI #44973070953](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44973070953) PASS, [Governance #44973070945](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44973070945) PASS; native rebuild and process boot both PASS. No native user data/vault writes or true workspace service exists.
-- **Next P01-T05 TODO**: native security under M17: OS secrets store and least privilege without introducing plaintext credentials. Need M17 dossier, tests first and Windows CI.
-- After T05, T06 diagnostics, then core durable data registry/event tasks. End-user screenshots and signed bundle are not proven. PR remains draft.
+- Active P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10, lease claimed. Never merge without owner permission; no P02.
+- T01-T04 DONE, latest T04 [Windows/Rust CI #44973070953](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44973070953) and [Gov #44973070945](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44973070945) green. Read-only typed workspace.status IPC only.
+- **P01-T05 IN_PROGRESS**: add native deny-first M17 capability broker with revoke; Windows Credential Manager keychain adapter behind Rust-only interface; secrets never returned through IPC, plain-text files or debug logs. Rust and Windows tests including keychain fixture roundtrip are acceptance gates; no production signing attestation or installer credential exists.
+- Next: verify native Windows security tests and full Governance; if green, record task evidence and continue to T06. No P01 data vault or user-visible secret-management UI yet.
 
 
 ## v3.1 agent handoff requirements

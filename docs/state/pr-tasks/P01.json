@@ -33,7 +33,7 @@
     {
       "id": "P01-T05",
       "title": "M17 native security (secrets store, least privilege, signed boundaries)",
-      "status": "TODO"
+      "status": "IN_PROGRESS"
     },
     {
       "id": "P01-T06",
