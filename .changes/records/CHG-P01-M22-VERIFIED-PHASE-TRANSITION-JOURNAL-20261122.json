@@ -18,18 +18,23 @@
   ],
   "help_paths": [],
   "wiki_paths": [],
-  "test_evidence": [],
-  "commit_sha": null,
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45062629465",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45062629517",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45062629539",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45062629610"
+  ],
+  "commit_sha": "b2ed7cb2915e85879a3d8de8ed448ce8d1471650",
   "release": null,
   "verification": {
-    "tests_passed": false,
+    "tests_passed": true,
     "merge_verified": false,
     "release_published": false
   },
   "breaking_change": false,
   "migration_notes": "New opt-in local SQLite journal API only. No migration or modification of existing persistent user data. Does not create historical events.",
   "created_at": "2026-11-22T19:45:53.847Z",
-  "updated_at": "2026-11-22T19:45:53.847Z",
+  "updated_at": "2026-11-22T19:47:33.000Z",
   "version_bump": "none",
   "affected_option_ids": [],
   "docs_impact": true,
