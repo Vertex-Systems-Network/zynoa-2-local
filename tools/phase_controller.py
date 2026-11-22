@@ -52,6 +52,59 @@ def validate_snapshot(state: Mapping[str, Any]) -> list[str]:
     return problems
 
 
+
+# The P00 model-fixture runner is NOT an active-phase code-edit worker.
+# P01 may run only the separate read-only observer.
+_P00_FIXTURE_PATHS = frozenset({
+    "scripts/runner_worker.py", ".github/workflows/p00-runner-worker.yml",
+    "tools/dev_fixture_functional_repair_loop.py", "tools/dev_model_planner.py",
+    "tools/local_fixture_drafter.py", "tools/local_model_probe.py",
+    "tools/docker_syntax_broker.py", "tools/docker_fixture_runtime_broker.py",
+    "tools/workspace_policy.py", "tools/fixture_draft_stager.py",
+})
+_P01_OBSERVER_PATHS = frozenset({
+    ".github/workflows/p00-runner-worker.yml",
+    "tools/phase_controller.py", "tools/phase_worker.py",
+    "tools/github_gateway.py", "tests/test_phase_controller.py",
+    "tests/test_phase_worker.py", "tests/test_github_gateway.py",
+})
+
+
+def runner_job_plan(
+    state: Mapping[str, Any], changed_paths: list[str] | tuple[str, ...], *,
+    event: str, head_branch: str, pr_number: int | None = None,
+) -> dict[str, bool]:
+    """Phase/PR-constrained CI scheduling; never grants model or merge authority."""
+    problems = validate_snapshot(state)
+    if problems:
+        raise PhasePolicyError("; ".join(problems))
+    if state.get("phase_status") != "IN_PROGRESS":
+        raise PhasePolicyError("runner requires active in-progress phase")
+    if (not state.get("active_branch") or not state.get("primary_pr")
+            or head_branch != state["active_branch"]):
+        raise PhasePolicyError("runner branch/PR identity mismatch")
+    if event not in ("pull_request", "workflow_dispatch"):
+        raise PhasePolicyError("unsupported runner event")
+    if event == "pull_request" and (
+        type(pr_number) is not int or pr_number != state["primary_pr"]
+    ):
+        raise PhasePolicyError("runner primary PR mismatch")
+    if not isinstance(changed_paths, (tuple, list)) or any(
+        not isinstance(path, str) or not path or "\0" in path
+        for path in changed_paths
+    ):
+        raise PhasePolicyError("runner changed-path list invalid")
+    touched = set(changed_paths)
+    return {
+        "p00_fixture": state["phase"] == "P00" and (
+            event == "workflow_dispatch" or bool(touched & _P00_FIXTURE_PATHS)
+        ),
+        "phase_observer": state["phase"] == "P01" and (
+            event == "workflow_dispatch" or bool(touched & _P01_OBSERVER_PATHS)
+        ),
+    }
+
+
 def next_phase(phase: str) -> str | None:
     if phase not in PHASE_ORDER:
         raise PhasePolicyError("Unknown phase: " + phase)

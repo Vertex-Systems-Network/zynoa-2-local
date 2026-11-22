@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from tools.phase_controller import (
     EventJournal, PHASE_ORDER, PhasePolicyError, authorize_next_phase,
-    next_phase, validate_snapshot,
+    next_phase, runner_job_plan, validate_snapshot,
 )
 
 SHA = "f" * 40
@@ -100,6 +100,88 @@ class PhaseControllerPolicyTests(unittest.TestCase):
         snapshot["active_branch"] = "phase/01-foundation"
         snapshot["primary_pr"] = 10
         self.assertEqual([], validate_snapshot(snapshot))
+
+
+    def test_p01_runner_never_inherits_p00_model_execution(self):
+        state = fixture("P01", status="IN_PROGRESS")
+        state.update(active_branch="phase/01-foundation", primary_pr=10)
+        for changed in (
+            ["scripts/runner_worker.py"],
+            [".github/workflows/p00-runner-worker.yml"],
+            ["tools/phase_worker.py"],
+            ["tools/phase_controller.py", "scripts/runner_worker.py"],
+        ):
+            with self.subTest(changed=changed):
+                plan = runner_job_plan(
+                    state, changed, event="pull_request",
+                    head_branch="phase/01-foundation", pr_number=10,
+                )
+                self.assertFalse(plan["p00_fixture"])
+                self.assertEqual(
+                    bool(set(changed) & {
+                        ".github/workflows/p00-runner-worker.yml",
+                        "tools/phase_worker.py", "tools/phase_controller.py",
+                    }), plan["phase_observer"],
+                )
+        self.assertEqual(
+            {"p00_fixture": False, "phase_observer": True},
+            runner_job_plan(state, [], event="workflow_dispatch",
+                            head_branch="phase/01-foundation"),
+        )
+        self.assertEqual(
+            {"p00_fixture": False, "phase_observer": False},
+            runner_job_plan(state, ["docs/state/HANDOFF.md"], event="pull_request",
+                            head_branch="phase/01-foundation", pr_number=10),
+        )
+
+    def test_p00_fixture_runner_remains_p00_only(self):
+        state = fixture("P00", status="IN_PROGRESS")
+        self.assertEqual(
+            {"p00_fixture": True, "phase_observer": False},
+            runner_job_plan(state, ["scripts/runner_worker.py"], event="pull_request",
+                            head_branch="phase/00-governance", pr_number=22),
+        )
+        self.assertEqual(
+            {"p00_fixture": False, "phase_observer": False},
+            runner_job_plan(state, ["docs/state/HANDOFF.md"], event="pull_request",
+                            head_branch="phase/00-governance", pr_number=22),
+        )
+
+    def test_runner_denies_spoofed_phase_pr_event_and_dispatch(self):
+        valid = fixture("P01", status="IN_PROGRESS")
+        valid.update(active_branch="phase/01-foundation", primary_pr=10)
+        cases = (
+            (dict(valid, phase="P00"), "pull_request", "phase/01-foundation", 10),
+            (dict(valid), "pull_request", "phase/00-governance", 10),
+            (dict(valid), "pull_request", "phase/01-foundation", 1),
+            (dict(valid), "pull_request", "phase/01-foundation", None),
+            (dict(valid), "push", "phase/01-foundation", 10),
+            (dict(valid, phase_status="MERGED_VERIFIED"), "pull_request", "phase/01-foundation", 10),
+            (dict(valid), "workflow_dispatch", "main", None),
+        )
+        for snapshot, event, branch, pr in cases:
+            with self.subTest(event=event, branch=branch, phase=snapshot["phase"]):
+                with self.assertRaises(PhasePolicyError):
+                    runner_job_plan(snapshot, ["tools/phase_worker.py"],
+                                    event=event, head_branch=branch, pr_number=pr)
+
+    def test_runner_rejects_invalid_path_list(self):
+        state = fixture("P01", status="IN_PROGRESS")
+        state.update(active_branch="phase/01-foundation", primary_pr=10)
+        for bad in (None, "tools/phase_worker.py", [None], [""], ["x\0evil"]):
+            with self.subTest(bad=bad), self.assertRaises(PhasePolicyError):
+                runner_job_plan(state, bad, event="pull_request",
+                                head_branch="phase/01-foundation", pr_number=10)
+
+    def test_runner_workflow_never_executes_p00_fixture_for_p01(self):
+        content = (ROOT / ".github/workflows/p00-runner-worker.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("runner_job_plan(", content)
+        self.assertIn("needs.changes.outputs.p00_fixture == 'true'", content)
+        self.assertIn("needs.changes.outputs.phase_observer == 'true'", content)
+        self.assertIn("python -m tools.phase_worker --once", content)
+        self.assertIn("needs.worker.result == 'success'", content)
 
     def test_working_snapshot_has_no_worker_claim(self):
         p = fixture()

@@ -2,11 +2,12 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- Active P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10. Lease **free** at handoff; do not merge without owner-written auto-merge rule or owner saying "merge". P02 forbidden.
-- **P01-T01 DONE**: [Governance #44968928750](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44968928750). PR table and change record synced.
-- **P01-T02 IN_PROGRESS, NOT DONE**: two safe code slices committed (`8e7c234e938cae092521de8d19f34e6904abff8b`, `5ab12a8e92c4066ea8e747072436612daa029bfd`). Verified Linux governance-lint, all three kit scripts, full Python unittests, task-board checker, and Windows job passed [Governance #44969903225](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44969903225); PR table sync passed.
-- T02 now has correct P01 branch/PR verification, no invalid-state P00 event misattribution, and phase-scoped blocker-policy unknown/fail-closed observation. P00 `scripts/runner_worker.py` still hardcodes P00-T20 fixture model execution and MUST NOT be promoted to P01 source edits by changing identifiers.
-- **Next agent step:** T02 remaining work: reconcile runner dispatch/CI for the active phase without granting P00 fixture execution authority to P01; add negative tests, run full checks, and only then mark T02 DONE with a green CI run reference. Do not start T03 yet. No actual desktop app, screenshots or user vault implemented.
+- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10; lease held for current slice. No permission to merge or start P02.
+- P01-T01 DONE with [Governance #44968928750](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44968928750).
+- P01-T02 IN_PROGRESS: phase/PR identity and fail-closed observer passed [Governance #44970019874](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44970019874). P01 read-only observer/P00 isolated fixture runner dispatch and negative tests now committed for fresh CI. Do not mark DONE until newest Governance and phase-observer jobs pass.
+- Next: inspect PR #10 CI, fix red jobs, mark P01-T02 DONE with passing run URL, sync PR board and clear lease. T03 can follow only after T02 acceptance.
+- No actual P01 desktop app, screenshots, vault backup/restore or release yet.
+
 
 ## v3.1 agent handoff requirements
 
