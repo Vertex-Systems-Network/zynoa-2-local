@@ -69,7 +69,8 @@
     {
       "id": "P01-T11",
       "title": "P01 exit gates and policy-compliant merge",
-      "status": "TODO"
+      "status": "IN_PROGRESS",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45008304983"
     }
   ]
 }

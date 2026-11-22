@@ -55,3 +55,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-22 | P01 | Bind screenshot evidence to the actual checked-out PR HEAD and fail fast on PowerShell parser errors; keep unreviewed native PNG as candidate only | prior synthetic-merge SHA ambiguity and Windows parser failure needed explicit reproducible proof and no premature visual acceptance
 
 2026-11-22 | P01 | Source-control only authentic SHA-pinned and independently reviewed native CI PNGs; keep all unimplemented full-module option screens explicitly pending | preserves exact source/visual provenance without falsely claiming P02 Help/UI or production features
+
+2026-11-22 | P01 | Record T11 separately as IN_PROGRESS; preserve draft/no-merge owner constraint while confirming effective trusted main ruleset #27593065 via rulesets API | a green CI/task board and `protected=true` do not imply permission to merge; blocker scope and post-merge SHA must be independently verified

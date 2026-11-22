@@ -1,12 +1,14 @@
-# Status — 2026-11-18
+# Status — 2026-11-22
 
 ## CURRENT (read this first; history below is archive)
 
-- Phase **P01** IN_PROGRESS on `phase/01-foundation`, draft PR #10. P00 closed: `main` `fe34877` (PRs #1, #8).
-- Tasks: `docs/state/pr-tasks/P01.json` (11, all TODO). Next: P01-T01 pre-dev/ADR, then P01-T02 (P00 tools + runner worker hardcode P00).
-- Lease: free. Set `PHASE.json.lease_holder` before editing; clear at handoff.
-- Merges need an explicit owner "merge" message until the owner adds an auto-merge rule to `docs/agent/AI_STRICT_PROTOCOL.md`.
+- P01 IN_PROGRESS · `phase/01-foundation` · [PR #10](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10) **Draft and unmerged**. T01–T10 DONE; **T11 IN_PROGRESS** (pre-merge exit checks; owner authorization and protected merge pending).
+- [P01-T11 read-only gate audit](../evidence/P01_T11_PREMERGE_AUDIT.md) confirms main SHA `1697ea8488b2da089da22951de64f5254a48b71f`, active [trusted ruleset #27593065](https://github.com/Vertex-Systems-Network/zynoa-2-local/rules/27593065), 473 passing tests in [governance CI](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45008304983), and authentic native screenshot proof from P01-T10.
+- **Do not merge** until owner explicitly requests merge, independently scoped blockers are evaluated, and GitHub verifies current required checks. No P02 or shipped release.
+- T10 Help/Wiki content is source-controlled; the GitHub Wiki is not published. Future option screens and full module UI remain pending.
+- Agent lease is a temporary development lock only; see `PHASE.json` for live holder and `HANDOFF.md` for the latest checkpoint.
 
+## Historical status (archive below)
 
 **Specification status:** v3 expanded planning kit generated locally. **Application implemented:** NO. **GitHub phase branch/PR:** NOT VERIFIED/NOT CREATED by this action. **Persistent development worker:** NOT INSTALLED. **User Help screenshots:** PENDING REAL APP. **GitHub Wiki publication:** PENDING REPOSITORY CONFIGURATION. **Issue bridge:** local sanitization demo only, remote GitHub integration not deployed.
 

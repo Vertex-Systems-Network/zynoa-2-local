@@ -2,10 +2,11 @@
 
 ## CURRENT (read this first; history below is archive)
 
-- P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10. T01–**T10 DONE** with evidence-gated native tests/screenshots and truthful Help/Wiki; **T11 TODO**. No merge or P02.
-- [Windows CI #45006477419](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45006477419): PASS, 32 native Rust tests, Windows executable, real boot, five native screenshots and private local foundations. [SHA-pinned screenshot publisher](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45007283638): PASS. [Original PNGs + capture/review metadata committed](https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/1b582a6d5968b105de3143d3f5294aac7d4cd0de).
-- [Screenshot evidence summary](../screenshots/M01/README.md) distinguishes implemented read-only views from planned full M01/M16/M17/M18 option screens. Unimplemented controls remain explicitly PENDING. GitHub Wiki is source-only, **not published**.
-- Worker lease cleared at this handoff (`PHASE.json.lease_holder=null`, `worker_running=false`). Next: P01-T11 exit gates and owner-authorized PR merge only; verify remote SHA before advancing phase. Do not mark any release or start P02.
+- P01 IN_PROGRESS on `phase/01-foundation`, [draft PR #10](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10); T01–T10 DONE, **T11 IN_PROGRESS** after pre-merge audit. No merge, P02 or release.
+- [T11 source-of-truth audit](../evidence/P01_T11_PREMERGE_AUDIT.md): `main` at `1697ea8488b2da089da22951de64f5254a48b71f`; active trusted GitHub ruleset [#27593065](https://github.com/Vertex-Systems-Network/zynoa-2-local/rules/27593065), non-bypass and pinned trusted `governance-lint` App ID 15368. The old branch-protection API is inaccessible to this integration (403), but the ruleset was separately retrieved and inspected.
+- [Latest governance CI #45008304983](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45008304983) PASS (including all 473 Python tests); actual [Windows Tauri native CI #45006477419](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45006477419) PASS, with five SHA-verified screenshots source-controlled and [indexed](../screenshots/M01/README.md). Remote Wiki not published; future options still pending.
+- Final T11 conditions still unsatisfied: owner previously directed **do not merge**; PR remains Draft, and P01 merge guard's independent critical-blocker issue-scope must be configured/verified before merge. Post-merge exact SHA and phase checkpoint cannot be pre-claimed.
+- **Next:** reconcile blocker scope safely without weakening protected merge. Then on explicit owner merge authorization, verify live checks/rules once more, merge through authorized policy and verify exact remote `main` SHA before any `MERGED_VERIFIED`/P02 transition.
 
 
 ## v3.1 agent handoff requirements
