@@ -17,8 +17,9 @@ class CheckPrTaskBoardTests(unittest.TestCase):
         self.addCleanup(shutil.rmtree, tmp)
         (tmp / "docs/state/pr-tasks").mkdir(parents=True)
         shutil.copy(ROOT / "docs/state/pr-tasks/P00.json", tmp / "docs/state/pr-tasks/P00.json")
-        phase = json.loads((ROOT / "docs/state/PHASE.json").read_text())
-        phase["phase_status"] = status
+        # Self-contained P00 state; must not depend on whichever phase is live.
+        phase = {"phase": "P00", "phase_status": status,
+                 "active_branch": "phase/00-governance", "primary_pr": 1}
         (tmp / "docs/state/PHASE.json").write_text(json.dumps(phase))
         cwd = os.getcwd()
         os.chdir(tmp)

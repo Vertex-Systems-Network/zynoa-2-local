@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "phase": "P01",
+  "branch": "phase/01-foundation",
+  "pr_number": 9,
+  "update_policy": "evidence-gated",
+  "source_of_truth": "docs/state/pr-tasks/P01.json",
+  "tasks": [
+    {
+      "id": "P01-T01",
+      "title": "Pre-dev: baseline, desktop stack research/ADR, threat review, tests-first plan",
+      "status": "TODO"
+    },
+    {
+      "id": "P01-T02",
+      "title": "Generalise P00-only controller/worker tools to the active phase",
+      "status": "TODO"
+    },
+    {
+      "id": "P01-T03",
+      "title": "M01 bootable desktop client shell",
+      "status": "TODO"
+    },
+    {
+      "id": "P01-T04",
+      "title": "M16 typed IPC between UI and services",
+      "status": "TODO"
+    },
+    {
+      "id": "P01-T05",
+      "title": "M17 native security (secrets store, least privilege, signed boundaries)",
+      "status": "TODO"
+    },
+    {
+      "id": "P01-T06",
+      "title": "M18 diagnostic spine (structured logs, crash capture, redaction)",
+      "status": "TODO"
+    },
+    {
+      "id": "P01-T07",
+      "title": "M23 core transactional user data vault outside the binary",
+      "status": "TODO"
+    },
+    {
+      "id": "P01-T08",
+      "title": "M24 managed data location registry",
+      "status": "TODO"
+    },
+    {
+      "id": "P01-T09",
+      "title": "M26 durable privacy-scoped append-only event store",
+      "status": "TODO"
+    },
+    {
+      "id": "P01-T10",
+      "title": "Help, Wiki source and real screenshots for P01 modules",
+      "status": "TODO"
+    },
+    {
+      "id": "P01-T11",
+      "title": "P01 exit gates and policy-compliant merge",
+      "status": "TODO"
+    }
+  ]
+}
