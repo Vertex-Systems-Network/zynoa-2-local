@@ -15,6 +15,9 @@ class NativeScreenshotCaptureContracts(unittest.TestCase):
                        "GetWindowRect($hwnd", "CopyFromScreen(", "SetForegroundWindow",
                        "ZYN-SCREEN-002", "ZYN-SCREEN-007", "refuse replacing existing image"):
             self.assertIn(marker, self.script)
+        self.assertIn("if ($SourceSha -notmatch '^[0-9a-f]{40}$') { throw", self.script)
+        self.assertIn("if ($BuiltSha -notmatch '^[0-9a-f]{40}$' -or $BuiltSha -ne $SourceSha)", self.script)
+        self.assertIn('Add-Type -TypeDefinition @\'\nusing System;', self.script)
         self.assertIn('SizeOf($visibleBounds)', self.script)
         self.assertNotIn('SizeOf([ZynoaScreenWin32+Rect])', self.script)
         self.assertNotIn("capture_verified = $true", self.script)
@@ -45,6 +48,8 @@ class NativeScreenshotCaptureContracts(unittest.TestCase):
         self.assertIn('changed="$(git diff --name-only HEAD^ HEAD)"', self.workflow)
         self.assertIn('changed="$(git diff --name-only FETCH_HEAD HEAD)"', self.workflow)
         self.assertIn("ZYN-SCREEN-014", self.workflow)
+        self.assertIn("[System.Management.Automation.Language.Parser]::ParseFile", self.workflow)
+        self.assertIn("ZYN-SCREEN-PARSE", self.workflow)
         self.assertIn("-BuiltSha $builtSha", self.workflow)
 
 if __name__=="__main__":

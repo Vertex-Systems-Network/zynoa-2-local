@@ -3,9 +3,10 @@
 ## CURRENT (read this first; history below is archive)
 
 - P01 IN_PROGRESS on `phase/01-foundation`, draft PR #10; T01-T09 DONE, T10 IN_PROGRESS, T11 TODO. No merge/P02.
-- Native Windows [#44991398718](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44991398718) passed. Its M01-S01 PNG is a CI candidate in [artifact #14742127510](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44991398718/artifacts/14742127510), **not visually accepted or committed**.
-- T10 hardening slice: build from actual PR HEAD, enforce SHA agreement in screenshot metadata, watch capture script in CI path gate, reject Ctrl+non-digit navigation, clarify implemented read-only subset in M01 Help/Wiki/UI.
-- **Next:** inspect fresh native screenshot artifact pixels, correct any frame/privacy/legibility issue, then only commit verified real PNG and evidence. Finish T10 and run all exit gates before T11. PR merge requires owner instruction.
+- Windows [#45004462969](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45004462969) passed 32 native Rust tests and built the Windows executable, but screenshot step failed PowerShell parsing after a malformed patch; **no new screenshot accepted**.
+- T10: restored actual PS1 capture source, verified both PR/built SHA recording, added early PowerShell ParseFile gate and static regression checks; M01/M16/M17/M18 Help/Wiki now distinguish tested foundation from unimplemented UI.
+- Previous Windows [#44991398718](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/44991398718) artifact #14742127510 is an unreviewed screenshot candidate, not accepted or committed.
+- **Next:** verify new Windows job and independently review genuine PNG/frame/legibility/privacy; commit only accepted screenshot + metadata and update screenshot inventory. T10 remains IN_PROGRESS until proof exists. T11/merge requires independent owner approval.
 
 
 ## v3.1 agent handoff requirements
