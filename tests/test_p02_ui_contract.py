@@ -48,6 +48,13 @@ class P02UIContractTests(unittest.TestCase):
         app = (APP/"src/App.tsx").read_text(encoding="utf-8")
         self.assertIn('event.key.toLowerCase() === "p"', app)
         self.assertIn('event.key === "F1"', app)
+        self.assertIn('if (paletteOpen) {', app)
+        self.assertIn('}, [paletteOpen]);', app)
+        self.assertIn('inert={paletteOpen}', app)
+        self.assertIn('paletteOpenerRef.current = event.currentTarget', app)
+        self.assertIn('returnFocusTarget={paletteOpenerRef.current}', app)
+        self.assertIn('navigationRef.current = true', palette)
+        self.assertIn('returnFocusTarget?.isConnected', palette)
 
     def test_real_help_catalog_bundled_and_does_not_render_raw_html(self):
         catalog = (APP/"src/ui/help-catalog.ts").read_text(encoding="utf-8")

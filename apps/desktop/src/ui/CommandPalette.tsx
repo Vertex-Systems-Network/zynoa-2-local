@@ -1,24 +1,39 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { appCommands, findCommands, type AppView } from "./commands";
 
-type Props = { open: boolean; onClose: () => void; onNavigate: (view: AppView) => void };
+type Props = {
+  open: boolean;
+  onClose: () => void;
+  onNavigate: (view: AppView) => void;
+  returnFocusTarget?: HTMLElement | null;
+};
 
-export function CommandPalette({ open, onClose, onNavigate }: Props) {
+export function CommandPalette({ open, onClose, onNavigate, returnFocusTarget }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
+  const navigationRef = useRef(false);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(0);
   const matches = useMemo(() => findCommands(query), [query]);
 
   useEffect(() => {
     if (!open) return;
-    returnFocusRef.current =
+    navigationRef.current = false;
+    returnFocusRef.current = returnFocusTarget?.isConnected ? returnFocusTarget :
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const frame = window.requestAnimationFrame(() => inputRef.current?.focus());
     return () => {
       window.cancelAnimationFrame(frame);
-      returnFocusRef.current?.focus({ preventScroll: true });
+      if (navigationRef.current) {
+        // Even same-view navigation must focus the destination rather than a stale opener.
+        window.requestAnimationFrame(() =>
+          document.getElementById("main-content")?.focus({ preventScroll: true }));
+      } else if (returnFocusRef.current?.isConnected) {
+        returnFocusRef.current?.focus({ preventScroll: true });
+      } else {
+        document.getElementById("main-content")?.focus({ preventScroll: true });
+      }
     };
   }, [open]);
 
@@ -30,7 +45,11 @@ export function CommandPalette({ open, onClose, onNavigate }: Props) {
   }, [open]);
 
   if (!open) return null;
-  const execute = (view: AppView) => { onNavigate(view); onClose(); };
+  const execute = (view: AppView) => {
+    navigationRef.current = true;
+    onNavigate(view);
+    onClose();
+  };
 
   const onDialogKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Escape") {

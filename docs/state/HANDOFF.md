@@ -2,6 +2,8 @@
 
 ## CURRENT (read this first; history below is archive)
 
+- **P02 M02 modal keyboard isolation (2026-11-22T23:17:02.582Z):** On real primary PR #12, Command Palette now guards background F1/Ctrl+1..6 while open, marks sidebar/main inert and coordinates opener/destination focus return. Python source contracts added. Actual native Windows keyboard/a11y state capture remains pending; do not accept T04/T10 yet. Source SHA and CI proof must be checked after commit.
+
 - **P02 M19 reader consistency regression (2026-11-22T23:14:31.586Z):** Actual source on primary PR #12 now selects only within filtered offline help results, clears conflicting filters for related/contextual navigation, renders a proper empty reader on zero hits, tests the behavior in Node and source contracts and fixes M02 Wiki anchor. Verification on real Windows runner and full documentation/screenshots remains pending; no T08/T09 DONE or P03/merge claim.
 
 - **P02 M02 defect correction — remote CI pending (2026-11-22T23:12:16.022Z):** Same-agent worker lease resumed only after exact primary PR head check and `worker_running=false`; source regression fixes on existing Draft PR #12 include exact-key Ctrl+1–6 allowlist, separate Windows TypeScript/UI/bundle fail-closed steps, and WCAG AA-safe light/dark tertiary labels. Expanded Node/Python regression tests and linked [Issue #14](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/14) / [Issue #15](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/15). Commit/CI evidence must be verified before either issue resolves; M02/M19 native screenshots, keyboard a11y and final P02 merge remain PENDING. No P03 work.\n

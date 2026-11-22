@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { probeWorkspaceStatus } from "./ipc";
 import { CommandPalette } from "./ui/CommandPalette";
 import { Workbench, ComponentGallery } from "./ui/Workbench";
@@ -115,6 +115,7 @@ export function App() {
   const [startup, setStartup] = useState<StartupState>("starting");
   const [transport, setTransport] = useState<TransportState>("pending");
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const paletteOpenerRef = useRef<HTMLElement | null>(null);
   const [theme, setTheme] = useState<ThemePreference>("system");
   const [density, setDensity] = useState<DensityPreference>("comfortable");
   const [systemDark, setSystemDark] = useState(true);
@@ -161,7 +162,19 @@ export function App() {
         !event.altKey && !event.metaKey && event.key.toLowerCase() === "p";
       if (command) {
         event.preventDefault();
+        if (!paletteOpen) {
+          paletteOpenerRef.current =
+            document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        }
         setPaletteOpen(open => !open);
+        return;
+      }
+      // Modal controls own focus and navigation; global background shortcuts stay blocked.
+      if (paletteOpen) {
+        if (event.key === "F1" ||
+            (event.ctrlKey && !event.altKey && !event.metaKey && /^[1-6]$/.test(event.key))) {
+          event.preventDefault();
+        }
         return;
       }
       if (event.key === "F1" && !event.altKey && !event.ctrlKey && !event.metaKey) {
@@ -195,7 +208,7 @@ export function App() {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [paletteOpen]);
 
   // Each view starts at the top; focus the native scroll surface for keyboard PageDown.
   useEffect(() => {
@@ -208,7 +221,7 @@ export function App() {
 
   return (
     <div className="shell" data-theme={effectiveTheme(theme, systemDark)} data-density={density}>
-      <aside className="sidebar" aria-label="Primary navigation">
+      <aside className="sidebar" aria-label="Primary navigation" inert={paletteOpen}>
         <div className="brand"><span className="brand-symbol" aria-hidden="true">Z</span><span className="brand-word">ZYNOA<small>DESKTOP ENVIRONMENT</small></span></div>
         <nav aria-label="Application sections">
           {["WORKSPACE", "EXPLORE", "SYSTEM"].map(section =>
@@ -227,11 +240,14 @@ export function App() {
         </nav>
         <div className="sidebar-bottom"><span className="version">SHARED UI / P02 · 0.1.0</span><div className="offline"><span className="dot healthy" /> Local-first interface</div></div>
       </aside>
-      <main id="main-content" tabIndex={-1}>
+      <main id="main-content" tabIndex={-1} inert={paletteOpen}>
         <header className="topbar">
           <div className="crumb">Zynoa <span>/</span> <strong>{views.find(page => page.key === view)?.title}</strong></div>
           <div className="top-actions">
-            <button className="top-command" type="button" onClick={() => setPaletteOpen(true)}
+            <button className="top-command" type="button" onClick={event => {
+              paletteOpenerRef.current = event.currentTarget;
+              setPaletteOpen(true);
+            }}
               aria-haspopup="dialog" aria-keyshortcuts="Control+Shift+P">⌕ <span>Search or run a command</span> <kbd>Ctrl ⇧ P</kbd></button>
             <button className="top-help" type="button" onClick={openContextHelp} aria-label="Open contextual help (F1)">?</button>
             <span className="avatar" aria-label="Profile not yet configured">Z</span>
@@ -247,7 +263,8 @@ export function App() {
         </div>
         <footer className="footer"><span>Local-first shared interface · P02</span><span>Native services require verification · <strong>No workspace data stored</strong></span></footer>
       </main>
-      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} onNavigate={setView} />
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)}
+        onNavigate={setView} returnFocusTarget={paletteOpenerRef.current} />
     </div>
   );
 }
