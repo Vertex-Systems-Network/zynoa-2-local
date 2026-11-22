@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "phase": "P01",
+  "decision": "ACCEPTED_NATIVE_FOUNDATION_ONLY",
+  "reviewer": "ChatGPT independent visual inspection",
+  "reviewed_at": "2026-11-22T09:21:40.129Z",
+  "review_notes": "Independently opened all five 998x701 real Tauri Windows screenshots. DWM frame excludes desktop/taskbar, native titlebar is expected, right scrollbar is dark, PageDown continuation visibly exposes previously below-fold content and footer. Settings/Recovery/Diagnostics navigate correctly and show disabled/read-only foundation states. Text is legible and no personal content, credentials or user paths are present. Previews are not proof that the future M16/M17/M18 options or backup/restore are implemented.",
+  "run_id": 45006477419,
+  "artifact_id": 14748113338,
+  "source_commit_sha": "f9929443740a1740b8fd904058ab0790fadb7163",
+  "sha256_by_screenshot": {
+    "M01-S01": "990ea3f00bc9129cd75fc846b9fd123c115cb6abc8bf2ad2d3499133f9dd99cf",
+    "M01-S01-continued": "40f8cf64be0524366f22f350d4ece5467c91dbb16c500930a3192917adff4de7",
+    "P01-Settings-preview": "77ea700ac32a7b61515aeb40822d29d6ca9b03fcc0d943581404ae13155586e5",
+    "P01-Recovery-preview": "621bb118615d3af7cbd547d1c2b740acd1a8b060a5358dc2a4421d6a4229d4ef",
+    "P01-Diagnostics-preview": "c7ba39f71068ece02488f47349cf27fbedfb2bc7814aa934a476b1e981c5355e"
+  }
+}
