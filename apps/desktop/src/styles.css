@@ -355,3 +355,20 @@ main:focus{outline:none}
   .shell .properties-heading { flex-wrap:wrap; }
   .shell .properties-heading .subtle-action { min-height:40px; }
 }
+
+
+/* M02-OPT-04 session-only shortcut assignments with swap-safe accessible selects. */
+.shell .shortcut-mapping { margin-top:26px; border-top:1px solid var(--line); padding-top:24px; }
+.shell .shortcut-mapping h3 { font-size:18px; margin:10px 0; color:var(--text-primary); }
+.shell .shortcut-mapping p { max-width:700px; }
+.shell .shortcut-mapping-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:18px 0; }
+.shell .shortcut-mapping-row { display:flex; align-items:center; justify-content:space-between;
+  gap:12px; padding:12px 14px; background:var(--surface-raised); border:1px solid var(--line);
+  border-radius:9px; font-size:12px; color:var(--text-primary); min-width:0; }
+.shell .shortcut-mapping-row select { font:inherit; color:var(--text-primary); background:var(--canvas);
+  border:1px solid var(--line); border-radius:7px; padding:9px 10px; min-width:100px; }
+.shell .shortcut-mapping-row select:focus-visible { outline:2px solid var(--outline); outline-offset:3px; }
+@media (max-width:950px) {
+  .shell .shortcut-mapping-grid { grid-template-columns:minmax(0,1fr); }
+  .shell .shortcut-mapping-row { flex-wrap:wrap; }
+}
