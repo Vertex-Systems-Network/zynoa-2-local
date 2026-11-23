@@ -1,20 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
 import { findHelpArticle, helpArticles, resolveVisibleHelpArticle, type HelpCategory } from "./help-catalog";
 import { LocalArticleReport, HelpWorkflows } from "./HelpWorkflows";
+import { findHelpOption } from "./help-options";
+import type { HelpDestination } from "./unified-search";
 import { offlineHelpContract, requestOfflineHelp, type HelpWorkflowMode } from "./help-workflows";
 
-type Props = { contextArticle?: string };
+type Props = { contextArticle?: string; destination?: HelpDestination | null };
 
 const categories: readonly (HelpCategory | "All")[] = [
   "All", "Get started", "Interface", "Privacy", "Troubleshooting",
 ];
 
-export function HelpCenter({ contextArticle }: Props) {
+export function HelpCenter({ contextArticle, destination }: Props) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<HelpCategory | "All">("All");
-  const [articleId, setArticleId] = useState(contextArticle || "quick-start");
+  const [articleId, setArticleId] = useState(destination?.kind === "article" ? destination.articleId : (contextArticle || "quick-start"));
   const [showGlossary, setShowGlossary] = useState(false);
-  const [mode, setMode] = useState<HelpWorkflowMode>("articles");
+  const [mode, setMode] = useState<HelpWorkflowMode>(destination?.kind === "option" ? "options" : "articles");
   const searchResponse = useMemo(() => requestOfflineHelp({
     schema_version: 1, catalog_version: offlineHelpContract.catalog_version,
     query, category, limit: 50,
@@ -29,8 +31,15 @@ export function HelpCenter({ contextArticle }: Props) {
   };
 
   useEffect(() => {
-    if (contextArticle && findHelpArticle(contextArticle)) openArticle(contextArticle);
-  }, [contextArticle]);
+    if (destination?.kind === "article" && findHelpArticle(destination.articleId)) {
+      openArticle(destination.articleId);
+    } else if (destination?.kind === "option" && findHelpOption(destination.optionId)) {
+      setMode("options");
+    }
+  }, [destination]);
+  useEffect(() => {
+    if (!destination && contextArticle && findHelpArticle(contextArticle)) openArticle(contextArticle);
+  }, [contextArticle, destination]);
 
   return <section className="help-page" aria-labelledby="help-title">
     <div className="help-hero">
@@ -142,6 +151,7 @@ export function HelpCenter({ contextArticle }: Props) {
         <p>Try a different search term or clear the category filter to browse bundled offline guidance.</p>
       </article>}
     </div>
-    </> : <HelpWorkflows mode={mode} onOpenArticle={openArticle} />}
+    </> : <HelpWorkflows mode={mode} onOpenArticle={openArticle}
+      initialOptionId={destination?.kind === "option" ? destination.optionId : undefined} />}
   </section>;
 }

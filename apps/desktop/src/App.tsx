@@ -1,3 +1,4 @@
+import type { HelpDestination } from "./ui/unified-search";
 import { useEffect, useRef, useState } from "react";
 import { probeWorkspaceStatus } from "./ipc";
 import { CommandPalette } from "./ui/CommandPalette";
@@ -132,6 +133,7 @@ export function App() {
   const [systemDark, setSystemDark] = useState(true);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [helpTopic, setHelpTopic] = useState("quick-start");
+  const [helpDestination, setHelpDestination] = useState<HelpDestination | null>(null);
   const [shortcuts, setShortcuts] = useState<ShortcutAssignments>(defaultShortcuts);
   const [navigationCollapsed, setNavigationCollapsed] = useState(false);
 
@@ -162,7 +164,9 @@ export function App() {
     return () => query.removeEventListener("change", update);
   }, []);
 
+  const navigateView = (next: View) => { setHelpDestination(null); setView(next); };
   const openContextHelp = () => {
+    setHelpDestination(null);
     const topics: Record<View, string> = {
       startup: "quick-start", workbench: "commands", gallery: "appearance",
       help: "quick-start", settings: "appearance", recovery: "privacy",
@@ -221,6 +225,7 @@ export function App() {
       }
       if (event.key === "F1" && !event.altKey && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
+        setHelpDestination(null);
         setView(current => {
           const topics: Record<View, string> = {
             startup: "quick-start", workbench: "commands", gallery: "appearance",
@@ -239,6 +244,7 @@ export function App() {
       const target = viewForShortcut(event.key, shortcuts);
       if (!target) return;
       event.preventDefault();
+      setHelpDestination(null);
       setView(target);
     };
     window.addEventListener("keydown", onKeyDown);
@@ -276,7 +282,7 @@ export function App() {
                   aria-label={page.title + " (" + (page.key === "help" ? "F1" : "Ctrl+" + shortcutForView(page.key, shortcuts)) + ")"}
                   aria-keyshortcuts={page.key === "help" ? "F1" : "Control+" + shortcutForView(page.key, shortcuts)}
                   type="button"
-                  onClick={() => setView(page.key)}>
+                  onClick={() => navigateView(page.key)}>
                   <span className="nav-icon" aria-hidden="true">{page.icon}</span>
                   <span className="nav-link-title">{page.title}</span><kbd>{page.key === "help" ? "F1" : "⌃" + shortcutForView(page.key, shortcuts)}</kbd>
                 </button>
@@ -304,19 +310,21 @@ export function App() {
         </header>
         <div className="content">
           {view === "startup" ? <Startup state={startup} transport={transport} /> :
-            view === "workbench" ? <Workbench transport={transport} onNavigate={setView}
+            view === "workbench" ? <Workbench transport={transport} onNavigate={navigateView}
               shortcuts={shortcuts}
               onRemapShortcut={(target, key) => setShortcuts(current => remapShortcut(current, target, key))}
               onResetShortcuts={() => setShortcuts(defaultShortcuts)} /> :
             view === "gallery" ? <ComponentGallery /> :
-            view === "help" ? <HelpCenter contextArticle={helpTopic} /> :
+            view === "help" ? <HelpCenter contextArticle={helpTopic} destination={helpDestination} /> :
             view === "settings" ? <Settings theme={theme} onTheme={setTheme} density={density} onDensity={setDensity} systemDark={systemDark} reducedMotion={reducedMotion} onReset={() => { setTheme("system"); setDensity("comfortable"); }} onHelp={openContextHelp} /> :
             view === "recovery" ? <Recovery /> : <Diagnostics transport={transport} />}
         </div>
         <footer className="footer"><span>Local-first shared interface · P02</span><span>Native services require verification · <strong>No workspace data stored</strong></span></footer>
       </main>
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)}
-        onNavigate={setView} shortcuts={shortcuts} returnFocusTarget={paletteOpenerRef.current} />
+        onNavigate={navigateView}
+        onOpenHelp={target => { setHelpDestination(target); setView("help"); }}
+        shortcuts={shortcuts} returnFocusTarget={paletteOpenerRef.current} />
     </div>
   );
 }

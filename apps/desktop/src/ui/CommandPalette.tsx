@@ -1,23 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { appCommands, findCommands, type AppView } from "./commands";
-import { shortcutForView, type ShortcutAssignments } from "./shortcut-map";
+import type { AppView } from "./commands";
+import type { ShortcutAssignments } from "./shortcut-map";
+import { searchWorkspace, type HelpDestination, type PaletteResult } from "./unified-search";
 
 type Props = {
   open: boolean;
   onClose: () => void;
   onNavigate: (view: AppView) => void;
+  onOpenHelp: (target: HelpDestination) => void;
   returnFocusTarget?: HTMLElement | null;
   shortcuts: ShortcutAssignments;
 };
 
-export function CommandPalette({ open, onClose, onNavigate, returnFocusTarget, shortcuts }: Props) {
+export function CommandPalette({ open, onClose, onNavigate, onOpenHelp, returnFocusTarget, shortcuts }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const navigationRef = useRef(false);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(0);
-  const matches = useMemo(() => findCommands(query, shortcuts), [query, shortcuts]);
+  const matches = useMemo(() => searchWorkspace(query, shortcuts), [query, shortcuts]);
 
   useEffect(() => {
     if (!open) return;
@@ -47,9 +49,10 @@ export function CommandPalette({ open, onClose, onNavigate, returnFocusTarget, s
   }, [open]);
 
   if (!open) return null;
-  const execute = (view: AppView) => {
+  const execute = (entry: PaletteResult) => {
     navigationRef.current = true;
-    onNavigate(view);
+    if (entry.destination.kind === "view") onNavigate(entry.destination.view);
+    else onOpenHelp(entry.destination);
     onClose();
   };
 
@@ -71,7 +74,7 @@ export function CommandPalette({ open, onClose, onNavigate, returnFocusTarget, s
     }
     if (event.key === "Enter" && matches.length && event.target === inputRef.current) {
       event.preventDefault();
-      execute(matches[Math.min(selected, matches.length - 1)].view);
+      execute(matches[Math.min(selected, matches.length - 1)]);
       return;
     }
     if (event.key === "Tab" && dialogRef.current) {
@@ -107,24 +110,24 @@ export function CommandPalette({ open, onClose, onNavigate, returnFocusTarget, s
             onChange={event => { setQuery(event.target.value); setSelected(0); }}
             autoComplete="off" spellCheck={false}
             role="combobox" aria-autocomplete="list" aria-expanded={true}
-            aria-label="Search available commands"
+            aria-label="Search available commands and offline Help"
             aria-controls="command-results"
             aria-activedescendant={matches.length ? "command-" + matches[Math.min(selected, matches.length - 1)].id : undefined}
             placeholder="Search views, help, settings…" />
           <kbd>ESC</kbd>
         </label>
         <div className="command-results" id="command-results" role="listbox"
-          aria-label="Available navigation commands">
+          aria-label="Available commands and bundled Help results">
           {matches.length ? matches.map((command, index) =>
             <button key={command.id} type="button"
               id={"command-" + command.id}
               role="option" aria-selected={selected === index}
-              className={"command-result " + (selected === index ? "active" : "")}
+              className={"command-result " + (selected === index ? "active" : "")} data-kind={command.kind}
               onMouseEnter={() => setSelected(index)}
-              onClick={() => execute(command.view)}>
+              onClick={() => execute(command)}>
               <span className="command-glyph" aria-hidden="true">{command.symbol}</span>
               <span><strong>{command.title}</strong><small>{command.description}</small></span>
-              <kbd>{command.view === "help" ? command.keys : "Ctrl+" + shortcutForView(command.view, shortcuts)}</kbd>
+              <kbd>{command.keys}</kbd>
             </button>
           ) : <div className="empty-state" role="status">
             <strong>No matching commands</strong><p>Try “help”, “workbench” or “preferences”.</p>
@@ -132,7 +135,7 @@ export function CommandPalette({ open, onClose, onNavigate, returnFocusTarget, s
         </div>
         <footer className="command-dialog-foot">
           <span>↑ ↓ navigate</span><span>↵ open</span><span>Esc close</span>
-          <span className="command-count">{matches.length} / {appCommands.length} commands</span>
+          <span className="command-count" role="status">{matches.length} local results</span>
         </footer>
       </div>
     </div>

@@ -516,3 +516,10 @@ main:focus{outline:none}
 .shell .help-option-detail button { margin-top:12px; }
 .shell .help-option-route-checker { border-top:1px solid var(--line); margin-top:20px; padding-top:20px; }
 @media (max-width:950px) { .shell .help-option-layout { grid-template-columns:minmax(0,1fr); } .shell .help-option-filters { grid-template-columns:minmax(0,1fr); } .shell .help-option-list { max-height:260px; } }
+
+/* M02/M19 unified offline discovery: result provenance and long labels. */
+.shell .command-result[data-kind="article"] .command-glyph { border-style:dashed; }
+.shell .command-result[data-kind="option"] .command-glyph { border-width:2px; }
+.shell .command-result>span:nth-child(2) { min-width:0; flex:1; }
+.shell .command-result strong, .shell .command-result small { overflow-wrap:anywhere; }
+.shell .command-result kbd { flex-shrink:0; }

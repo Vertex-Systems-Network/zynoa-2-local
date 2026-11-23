@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { helpOptionReferences, optionHelpRoute, resolveOptionHelpRoute, searchHelpOptions } from "./help-options";
+import { useEffect, useState } from "react";
+import { findHelpOption, helpOptionReferences, optionHelpRoute, resolveOptionHelpRoute, searchHelpOptions } from "./help-options";
 import {
   getWizardIssue, getWizardStep, getGuidedTourStep, guidedTourSteps, helpFaq, helpGlossary, helpRoute,
   localBrokenArticleReport, nextWizardStep, offlineHelpContract,
@@ -52,13 +52,14 @@ export function LocalArticleReport({ articleId }: { articleId: string }) {
 type WorkflowsProps = {
   mode: Exclude<HelpWorkflowMode, "articles">;
   onOpenArticle: (articleId: string) => void;
+  initialOptionId?: string;
 };
 
-export function HelpWorkflows({ mode, onOpenArticle }: WorkflowsProps) {
+export function HelpWorkflows({ mode, onOpenArticle, initialOptionId }: WorkflowsProps) {
   const [issueId, setIssueId] = useState(wizardIssues[0].id);
   const [optionQuery, setOptionQuery] = useState("");
   const [optionModule, setOptionModule] = useState<"All" | "M02" | "M19">("All");
-  const [selectedOptionId, setSelectedOptionId] = useState("M02-OPT-01");
+  const [selectedOptionId, setSelectedOptionId] = useState(initialOptionId && findHelpOption(initialOptionId) ? initialOptionId : "M02-OPT-01");
   const [optionRouteText, setOptionRouteText] = useState("help://option/M02-OPT-01");
   const [tourIndex, setTourIndex] = useState(0);
   const [index, setIndex] = useState(0);
@@ -67,6 +68,15 @@ export function HelpWorkflows({ mode, onOpenArticle }: WorkflowsProps) {
   const [routeText, setRouteText] = useState("help://article/quick-start");
   const [checkResults, setCheckResults] = useState<readonly string[] | null>(null);
 
+  // Select incoming global-search options even if the Help view is already open.
+  useEffect(() => {
+    if (initialOptionId && findHelpOption(initialOptionId)) {
+      setOptionQuery("");
+      setOptionModule("All");
+      setSelectedOptionId(initialOptionId);
+      setOptionRouteText("help://option/" + initialOptionId);
+    }
+  }, [initialOptionId]);
   const issue = getWizardIssue(issueId);
   const step = getWizardStep(issueId, index);
   const resolvedRoute = resolveHelpRoute(routeText.trim());
