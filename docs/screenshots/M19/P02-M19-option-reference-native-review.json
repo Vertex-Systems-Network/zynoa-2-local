@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "scope": "P02-T08 M19 16-item option directory, source-specific native candidate review",
+  "source_commit_sha": "cf30107a969ad1c15de8bc62cd4928137891a65d",
+  "windows_run_id": 45189322734,
+  "artifact_id": 14825247229,
+  "machine_report": "MACHINE_METADATA_HASH_VALIDATED_ONLY",
+  "native_screenshot_id": "M19-OPTION-REFERENCE-CI",
+  "width": 998,
+  "height": 701,
+  "sha256": "9eeb0acdffc5f52517d05eea9ca3f97568c9527cb4ce445ad352c54fc0cf8dcc",
+  "original_capture_verified": false,
+  "original_capture_status": "candidate_pending_visual_review",
+  "independent_visual_review": true,
+  "review_status": "PASS_SCOPED_OPTION_DIRECTORY_VISUAL_ONLY",
+  "visual_findings": [
+    "Real Windows Tauri Help displays 16 of 16 local M02/M19 option entries; selected M02-OPT-01 and other options visible in scrollable list",
+    "Default, How to use, Limits & privacy, Recovery/undo and related offline guide button are visually distinct and legible",
+    "Search filter and module selector fit the measured 998×701 native viewport without visible horizontal clipping",
+    "This capture proves a real displayed initial option view, not every option selection, full accessibility or hosted Wiki"
+  ],
+  "pending": [
+    "All 14 final M19 screenshot manifest assets",
+    "Full 16-option click/keyboard end-to-end verification and live filtering",
+    "Hosted Wiki sync and remote ticket publication",
+    "Actual screen-reader traversal and measured offline search performance"
+  ],
+  "final_manifest_complete": false,
+  "release_or_merge_verified": false
+}

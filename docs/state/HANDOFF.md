@@ -2,6 +2,9 @@
 
 ## CURRENT (read this first; history below is archive)
 
+- **P02 exact native option guide evidence (2026-11-23):** All checks PASS at [Windows #45189322734](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45189322734) on source SHA `cf30107a`; 30 original native machine frames. Opened `M19-OPTION-REFERENCE-CI` real 998×701 PNG, rehashed source/build receipt and visually confirmed 16 options plus defaults, limitations and recovery. See `docs/screenshots/M19/P02-M19-option-reference-native-review.json`. T07/T09 scoped source tasks approved separately; further four state/FAQ captures need their own rerun and review.
+
+
 - **P02 real Windows T06/T08 state expansion (2026-11-23):** Added three actual Gallery state screenshots (Loading, Empty, Error) to complement Ready/Offline plus an FAQ/glossary Help candidate. Native evidence verifier now requires all 34 PNG/hash/provenance pairs and five distinct Gallery state hashes; source/CI proof pending. Final 15 M02 and 14 M19 manifest screenshots still pending.
 
 
