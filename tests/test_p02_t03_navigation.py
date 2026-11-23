@@ -105,7 +105,10 @@ class P02T03NavigationTests(unittest.TestCase):
         for name in names:
             self.assertIn(f"-ScreenshotId '{name}'", self.capture)
             self.assertIn(f'"{name}"', verifier)
-        self.assertIn("-Shortcut '{F1}^{5}'", self.capture)
+        self.assertIn("[System.Windows.Forms.SendKeys]::SendWait('{F1}')", self.capture)
+        self.assertIn("Start-Sleep -Milliseconds 400", self.capture)
+        rail_start = self.capture.index("-ScreenshotId 'P02-T03-RAIL-COLLAPSED'")
+        self.assertIn("-Shortcut '^{5}'", self.capture[rail_start:rail_start + 170])
         self.assertGreaterEqual(self.capture.count("-Shortcut '%n'"), 2)
         indices = [self.capture.index(f"-ScreenshotId '{name}'") for name in names]
         self.assertEqual(indices, sorted(indices))
