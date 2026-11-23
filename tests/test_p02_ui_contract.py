@@ -368,6 +368,15 @@ class P02UIContractTests(unittest.TestCase):
         self.assertIn('if (view === "help") return null', mapper)
         self.assertNotIn("localStorage", mapper + workbench)
         self.assertNotIn("fetch(", mapper + workbench)
+        native = (ROOT / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        self.assertIn("-ScreenshotId 'M02-OPT-04'", native)
+        self.assertIn("-ScreenshotId 'P02-T02-OPT-04-swapped'", native)
+        self.assertIn("-Shortcut '{TAB}{HOME}{DOWN}{TAB}'", native)
+        self.assertIn("capture_verified = $false", native)
+        evidence = (ROOT / "tools/verify_p02_native_evidence.py").read_text(encoding="utf-8")
+        self.assertIn('"M02-OPT-04"', evidence)
+        self.assertIn('"P02-T02-OPT-04-swapped"', evidence)
+        self.assertIn("shortcut remap preview did not visibly change the capture", evidence)
 
 
 
