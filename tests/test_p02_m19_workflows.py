@@ -19,12 +19,22 @@ class M19OfflineWorkflowTests(unittest.TestCase):
         cls.tests = (ROOT / "apps/desktop/tests/ui-logic.test.mjs").read_text(encoding="utf-8")
 
     def test_real_workflows_are_in_main_help_navigation_not_disabled_previews(self):
-        for name in ("articles", "troubleshoot", "faq", "wiki"):
+        for name in ("articles", "tour", "troubleshoot", "faq", "wiki"):
             self.assertIn(f'["{name}",', self.center)
         self.assertIn('<HelpWorkflows mode={mode} onOpenArticle={openArticle} />', self.center)
         self.assertIn('<LocalArticleReport articleId={selected.id} />', self.center)
         self.assertNotIn('disabled title="Issue reporting service is not enabled"', self.center)
         self.assertIn('setMode("articles")', self.center)
+
+    def test_guided_tour_has_real_bounded_navigation(self):
+        for marker in ('getGuidedTourStep', 'guidedTourSteps', 'Number.isInteger'):
+            self.assertIn(marker, self.domain)
+        for marker in ('mode === "tour"', 'Previous lesson', 'Next lesson',
+                       'Finish guided tour', 'Restart tour', 'Read related offline guide',
+                       'role="status" aria-live="polite"'):
+            self.assertIn(marker, self.widget)
+        self.assertIn('["tour", "Guided tour"]', self.center)
+        self.assertIn('test("M19 guided onboarding', self.tests)
 
     def test_wizard_has_actual_choice_and_transition_controls(self):
         for control in ("help-issue-picker", "This fixed it", "Still stuck — next step",

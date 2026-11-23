@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  getWizardIssue, getWizardStep, helpFaq, helpGlossary, helpRoute,
+  getWizardIssue, getWizardStep, getGuidedTourStep, guidedTourSteps, helpFaq, helpGlossary, helpRoute,
   localBrokenArticleReport, nextWizardStep, offlineHelpContract,
   resolveHelpRoute, validateOfflineHelpCatalog, wikiSourceMappings,
   wizardIssues, type HelpWorkflowMode, type IssueReason,
@@ -55,6 +55,7 @@ type WorkflowsProps = {
 
 export function HelpWorkflows({ mode, onOpenArticle }: WorkflowsProps) {
   const [issueId, setIssueId] = useState(wizardIssues[0].id);
+  const [tourIndex, setTourIndex] = useState(0);
   const [index, setIndex] = useState(0);
   const [resolved, setResolved] = useState(false);
   const [exhausted, setExhausted] = useState(false);
@@ -64,6 +65,30 @@ export function HelpWorkflows({ mode, onOpenArticle }: WorkflowsProps) {
   const issue = getWizardIssue(issueId);
   const step = getWizardStep(issueId, index);
   const resolvedRoute = resolveHelpRoute(routeText.trim());
+  const tourStep = getGuidedTourStep(tourIndex);
+
+  if (mode === "tour") return <section className="help-tool-panel" aria-labelledby="help-tour-title">
+    <p className="eyebrow">M19 / GUIDED LOCAL ONBOARDING</p>
+    <h2 id="help-tour-title">Learn the real interface, step by step.</h2>
+    <p>Five local lessons. No file, account, remote service or window is changed.</p>
+    {tourStep ? <div className="help-tour-card" role="region" aria-label="Current guided tour step">
+      <p className="small-caps">STEP {tourIndex + 1} OF {guidedTourSteps.length}</p>
+      <h3>{tourStep.title}</h3><p>{tourStep.instruction}</p>
+      <button type="button" className="subtle-action" onClick={() => onOpenArticle(tourStep.articleId)}>Read related offline guide</button>
+      <div className="help-wizard-actions">
+        <button type="button" className="text-action" disabled={tourIndex === 0}
+          onClick={() => setTourIndex(current => Math.max(0, current - 1))}>Previous lesson</button>
+        <button type="button" className="gold-action" onClick={() => setTourIndex(current => Math.min(guidedTourSteps.length, current + 1))}>
+          {tourIndex === guidedTourSteps.length - 1 ? "Finish guided tour" : "Next lesson"}</button>
+        <button type="button" className="subtle-action" disabled={tourIndex === 0}
+          onClick={() => setTourIndex(0)}>Restart tour</button>
+      </div>
+    </div> : <div className="help-tour-card" role="status" aria-live="polite">
+      <h3>All five lessons viewed</h3>
+      <p>No workspace, preferences or native services were changed.</p>
+      <button type="button" className="gold-action" onClick={() => setTourIndex(0)}>Restart tour</button>
+    </div>}
+  </section>;
 
   if (mode === "troubleshoot") return <section className="help-tool-panel" aria-labelledby="help-troubleshoot-title">
     <p className="eyebrow">M19 / OFFLINE RECOVERY WIZARD</p>

@@ -31,7 +31,7 @@
   "breaking_change": false,
   "migration_notes": "No native user-storage schema change or migrated data. UI session state only; offline help bundled from curated static source.",
   "created_at": "2026-11-22T20:49:36.088Z",
-  "updated_at": "2026-11-22T23:14:31.586Z",
+  "updated_at": "2026-11-23T13:18:21.616Z",
   "version_bump": "none",
   "affected_option_ids": [
     "M19-OPT-01",

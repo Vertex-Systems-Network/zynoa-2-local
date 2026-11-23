@@ -44,7 +44,7 @@ export function requestOfflineHelp(request: unknown): OfflineHelpSearchResult {
   };
 }
 
-export type HelpWorkflowMode = "articles" | "troubleshoot" | "faq" | "wiki";
+export type HelpWorkflowMode = "articles" | "tour" | "troubleshoot" | "faq" | "wiki";
 export type IssueReason = "broken-reference" | "outdated-instructions" | "unreadable-article";
 
 export type WizardStep = {
@@ -59,6 +59,17 @@ export type WizardIssue = {
   readonly steps: readonly WizardStep[];
 };
 
+/** Five bounded informational lessons. Never drives other windows or native commands. */
+export const guidedTourSteps = [
+  { title: "Start with Overview", instruction: "Use Ctrl+1 or the rail for the read-only native status. No workspace is created.", articleId: "quick-start" },
+  { title: "Explore Workbench", instruction: "Use Ctrl+5. Arrow keys navigate Runtime, Layout and Keyboard tabs; layout previews are session only.", articleId: "navigation" },
+  { title: "Select an appearance", instruction: "Use Ctrl+2 for system, dark or light and comfortable or compact density. Reset when finished.", articleId: "appearance" },
+  { title: "Use offline Help", instruction: "F1 opens contextual Help. Search, glossary, FAQ and local Wiki mapping are bundled.", articleId: "offline" },
+  { title: "Understand unavailable services", instruction: "Workspace creation, backup restore and remote ticket sending are not enabled; do not treat previews as saved files.", articleId: "privacy" },
+] as const;
+export function getGuidedTourStep(index: number): (typeof guidedTourSteps)[number] | null {
+  return Number.isInteger(index) && index >= 0 ? guidedTourSteps[index] ?? null : null;
+}
 export const wizardIssues: readonly WizardIssue[] = [
   { id: "native-connection", title: "Native bridge is unavailable",
     summary: "Determine whether you are in browser preview or the real Windows desktop application.",
@@ -170,6 +181,8 @@ export function validateOfflineHelpCatalog(): readonly string[] {
       errors.push("Invalid local route: " + article.id);
   }
   for (const faq of helpFaq) if (!ids.has(faq.articleId)) errors.push("Invalid FAQ article: " + faq.id);
+  for (const step of guidedTourSteps)
+    if (!ids.has(step.articleId)) errors.push("Invalid guided tour article: " + step.title);
   for (const issue of wizardIssues) {
     if (!issue.steps.length) errors.push("Empty wizard: " + issue.id);
     for (const step of issue.steps)

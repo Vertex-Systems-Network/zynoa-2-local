@@ -494,3 +494,10 @@ main:focus{outline:none}
   .shell .settings-actions,.shell .gallery-state-selector { align-items:stretch; }
   .shell .gallery-state-selector button { flex:1 1 130px; }
 }
+
+/* M19 keyboard-accessible native-bundled informational tour. */
+.shell .help-tour-card { border:1px solid var(--line); border-radius:12px; background:var(--surface-raised); padding:22px; display:grid; gap:14px; max-width:900px; overflow-wrap:anywhere; }
+.shell .help-tour-card h3 { font-size:21px; color:var(--text-primary); margin:0; }
+.shell .help-tour-card p { color:var(--text-secondary); line-height:1.65; margin:0; }
+.shell .help-tour-card .help-wizard-actions { display:flex; flex-wrap:wrap; gap:10px; }
+.shell .help-tour-card .help-wizard-actions button { margin:0; }

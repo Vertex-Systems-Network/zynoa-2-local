@@ -5,7 +5,7 @@ import { componentPreviewStates, isComponentPreviewState, previewStateDetails } 
 import { appCommands, findCommands, shortcutView } from "../.ui-tests/commands.js";
 import { defaultShortcuts, isShortcutKey, remapShortcut, shortcutForView, shortcutKeys, viewForShortcut } from "../.ui-tests/shortcut-map.js";
 import { findHelpArticle, helpArticles, resolveVisibleHelpArticle, searchHelp, helpOptionIds } from "../.ui-tests/help-catalog.js";
-import { offlineHelpContract, requestOfflineHelp, wizardIssues, getWizardIssue, getWizardStep, nextWizardStep, helpFaq, helpGlossary, wikiSourceMappings, helpRoute, resolveHelpRoute, validateOfflineHelpCatalog, localBrokenArticleReport } from "../.ui-tests/help-workflows.js";
+import { offlineHelpContract, requestOfflineHelp, wizardIssues, getWizardIssue, getWizardStep, nextWizardStep, guidedTourSteps, getGuidedTourStep, helpFaq, helpGlossary, wikiSourceMappings, helpRoute, resolveHelpRoute, validateOfflineHelpCatalog, localBrokenArticleReport } from "../.ui-tests/help-workflows.js";
 
 test("theme defaults follow operating system and never coerce unknown values", () => {
   assert.equal(effectiveTheme("system", true), "dark");
@@ -245,4 +245,16 @@ test("M02 interactive state explorer is deterministic, complete and local-only",
     assert.equal(isComponentPreviewState(invalid), false);
   }
   assert.equal(previewStateDetails("unknown").id, "ready");
+});
+
+test("M19 guided onboarding stays bounded and links only real offline articles", () => {
+  assert.equal(guidedTourSteps.length, 5);
+  assert.equal(new Set(guidedTourSteps.map(x => x.title)).size, 5);
+  for (let i = 0; i < guidedTourSteps.length; i++) {
+    const step = getGuidedTourStep(i);
+    assert.equal(step, guidedTourSteps[i]);
+    assert.ok(step.title && step.instruction && findHelpArticle(step.articleId));
+  }
+  for (const invalid of [-1, 1.5, 5, 100, NaN]) assert.equal(getGuidedTourStep(invalid), null);
+  assert.deepEqual(validateOfflineHelpCatalog(), []);
 });
