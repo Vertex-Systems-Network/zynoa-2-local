@@ -12,7 +12,7 @@ import unittest
 import zlib
 
 from tools.verify_p02_native_evidence import (
-    InvalidNativeEvidence, SCREEN_IDS, ORIGIN, STATUS, validate_candidate, verify,
+    InvalidNativeEvidence, SCREEN_IDS, OPTION_REFERENCE_MATRIX, ORIGIN, STATUS, validate_candidate, verify,
 )
 
 SOURCE_SHA = "a" * 40
@@ -59,6 +59,9 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
                 "alt_text": "Synthetic unit-test geometry for independent verifier gates only",
                 "privacy": "Disposable CI fixture with no user content or secrets",
             }
+            if screen_id in OPTION_REFERENCE_MATRIX:
+                meta["option_id"] = screen_id.replace("-T10-REF-OPT-", "-OPT-")
+                meta["interaction"] = "palette:exact-id:enter:option-detail"
             self.receipts[screen_id] = folder / f"{screen_id}.capture.json"
             self._write(screen_id, meta)
 
@@ -73,7 +76,11 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
     def test_all_machine_candidates_validate_but_do_not_self_approve(self):
         result = verify(self.root, SOURCE_SHA)
         self.assertEqual("MACHINE_METADATA_HASH_VALIDATED_ONLY", result["status"])
-        self.assertEqual(38, len(result["screens"]))
+        self.assertEqual(54, len(result["screens"]))
+        self.assertEqual(16, result["option_reference_matrix"]["count"])
+        self.assertEqual("MACHINE_REFERENCE_CAPTURE_ONLY",
+                         result["option_reference_matrix"]["status"])
+        self.assertFalse(result["option_reference_matrix"]["final_29_manifest_assets_verified"])
         self.assertFalse(result["independent_visual_review"])
         self.assertFalse(result["manifest_completed"])
 
@@ -196,6 +203,25 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
         self._mutate(target, "window_width", 998)
         self._mutate(target, "sha256", hashlib.sha256(png).hexdigest())
         with self.assertRaisesRegex(InvalidNativeEvidence, "native narrow window"):
+            verify(self.root, SOURCE_SHA)
+
+    def test_all_sixteen_options_require_exact_identity_proof(self):
+        self.assertEqual(16, len(OPTION_REFERENCE_MATRIX))
+        self._mutate("M19-T10-REF-OPT-06", "option_id", "M19-OPT-07")
+        with self.assertRaisesRegex(InvalidNativeEvidence, "option identity"):
+            verify(self.root, SOURCE_SHA)
+
+    def test_typed_option_keyboard_journey_receipt_required(self):
+        self._mutate("M02-T10-REF-OPT-04", "interaction", "untrusted")
+        with self.assertRaisesRegex(InvalidNativeEvidence, "keyboard journey receipt"):
+            verify(self.root, SOURCE_SHA)
+
+    def test_no_duplicate_native_option_reference_images(self):
+        first = (self.root / "M02" / "M02-T10-REF-OPT-01.png").read_bytes()
+        duplicate_id = "M02-T10-REF-OPT-02"
+        (self.root / "M02" / f"{duplicate_id}.png").write_bytes(first)
+        self._mutate(duplicate_id, "sha256", hashlib.sha256(first).hexdigest())
+        with self.assertRaisesRegex(InvalidNativeEvidence, "duplicate captured pixels"):
             verify(self.root, SOURCE_SHA)
 
     def test_wrong_origin_or_missing_alt_text_rejected(self):

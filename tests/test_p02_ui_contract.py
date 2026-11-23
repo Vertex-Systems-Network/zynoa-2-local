@@ -429,6 +429,20 @@ class P02UIContractTests(unittest.TestCase):
         self.assertIn("capture_verified = $false", capture)
 
 
+    def test_t10_native_option_reference_matrix_is_complete_but_not_final_manifest(self):
+        script = (ROOT / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        gate = (ROOT / "tools/verify_p02_native_evidence.py").read_text(encoding="utf-8")
+        for snippet in ("foreach ($moduleId in", "for ($optionNumber = 1;",
+                        "Save-NativeFollowup -ScreenshotId $referenceId",
+                        " -OptionId $optionId", "SendWait('^+p')"):
+            self.assertIn(snippet, script)
+        for snippet in ("OPTION_REFERENCE_MATRIX", "MACHINE_REFERENCE_CAPTURE_ONLY",
+                        "final_29_manifest_assets_verified",
+                        "captured option identity", "duplicate captured pixels"):
+            self.assertIn(snippet, gate)
+        self.assertIn("capture_verified = $false", script)
+        self.assertIn('"manifest_completed": False', gate)
+
     def test_unified_native_keyboard_e2e_has_provenance_bound_candidates(self):
         capture = (ROOT / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
         verifier = (ROOT / "tools/verify_p02_native_evidence.py").read_text(encoding="utf-8")
