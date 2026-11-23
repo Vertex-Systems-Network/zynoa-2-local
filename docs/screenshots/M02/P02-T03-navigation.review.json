@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "task": "P02-T03",
+  "scope": "adaptive navigation shell at 900px native minimum, Workbench selected, keyboard Alt+N reversible states",
+  "review_status": "ACCEPTED_SCOPED_T03_NATIVE_LAYOUT_ONLY",
+  "reviewed_at": "2026-11-23T12:20:17.794Z",
+  "reviewer": "GPT-6, independent opening and comparison of real Windows Tauri PNGs downloaded from exact-source CI",
+  "source_commit_sha": "b8073122f07eb680f21c2ae42bed72207ef6a2ff",
+  "windows_run_id": 45171909447,
+  "windows_artifact_id": 14816693697,
+  "machine_verifier_status": "MACHINE_METADATA_HASH_VALIDATED_ONLY",
+  "source_build_sha_match": true,
+  "all_png_hashes_recalculated_match_receipts": true,
+  "screenshots": [
+    {
+      "id": "P02-T03-RAIL-COLLAPSED",
+      "width": 898,
+      "height": 653,
+      "sha256": "6b44d38d60babbf91559f6df9d35432d3f5066fbcd6594afbeb1950579d79066",
+      "visual_review": "PASS",
+      "observations": "At 898px native window, navigation uses narrow icon rail with accessible expand indicator visible. Workbench is selected. Breadcrumb, tabs and native runtime card remain visible. No horizontal overflow/clipping evident in screenshot."
+    },
+    {
+      "id": "P02-T03-RAIL-EXPANDED",
+      "width": 898,
+      "height": 653,
+      "sha256": "34db9764b4553f9284ba8d78cfad9062d37e4fe79a1fbdffab99ec3ba97831b2",
+      "visual_review": "PASS",
+      "observations": "Alt+N expands rail to labeled grouped navigation with ZYNOA brand and Collapse navigation control. Workbench remains selected; breadcrumb and main view reflow within viewport. Sidebar gains its own vertical scroll, appropriate for height."
+    },
+    {
+      "id": "P02-T03-RAIL-RESTORED",
+      "width": 898,
+      "height": 653,
+      "sha256": "b02bc29b0cd82b0b5dfff0492b011be51db6c6dafe74e639e6270a3761406931",
+      "visual_review": "PASS",
+      "observations": "Second Alt+N re-collapses rail to icon-only state while retaining same Workbench page and clear content area. Distinct native PNGs with restored visual state."
+    }
+  ],
+  "original_machine_capture_verified": false,
+  "original_machine_capture_status": "candidate_pending_visual_review",
+  "final_screen_manifest_approved": false,
+  "limitations": [
+    "Screenshots are real source-matched native candidates and scoped to T03; not the 15 final M02/M19 release manifest approvals",
+    "Source-level ARIA, keyboard and focus contracts pass; screenshots alone are not a screen-reader-driven accessibility E2E",
+    "No actual editable project/workspace or persisted rail preference is implemented",
+    "P02 parent phase remains IN_PROGRESS and P03 remains locked"
+  ]
+}
