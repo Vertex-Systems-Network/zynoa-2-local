@@ -130,6 +130,20 @@ class M02HelpEvidenceTests(unittest.TestCase):
         assert (ROOT / "docs/evidence/P02_T10_FINAL_29_NATIVE_SCREENSHOTS_20261124.json").is_file()
         proof = json.loads((ROOT / "docs/evidence/P02_T10_FINAL_29_NATIVE_SCREENSHOTS_20261124.json").read_text(encoding="utf-8"))
         self.assertEqual(29, proof["total"])
+        self.assertTrue(proof["image_caption_alt_metadata_complete"])
+        reviewed = {x["asset_id"]: x for x in proof["assets"]}
+        self.assertEqual(29, len(reviewed))
+        for row in self.manifest["required"]:
+            if row["module"] not in ("M02", "M19"):
+                continue
+            self.assertGreater(len(row["alt_text"]), 38, row["asset_id"])
+            self.assertTrue(row["caption"].startswith(row["asset_id"] + " — "))
+            self.assertEqual(row["native_capture_id"], reviewed[row["asset_id"]]["native_capture_id"])
+            self.assertEqual(row["capture_window_width"], reviewed[row["asset_id"]]["window_width"])
+            self.assertEqual(row["capture_window_height"], reviewed[row["asset_id"]]["window_height"])
+            self.assertEqual("NOT_RECORDED", row["device_pixel_ratio"])
+            self.assertEqual("VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE", row["review_scope"])
+            self.assertIn("no user content or secrets", row["sensitive_data_check"])
         self.assertFalse(proof["full_screen_reader_nvda_narrator_approved"])
         self.assertFalse(proof["protected_main_merged"])
 

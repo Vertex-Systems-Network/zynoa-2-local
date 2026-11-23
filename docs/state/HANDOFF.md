@@ -1,5 +1,8 @@
 # Handoff (canonical starter)
 
+- **P02 29 native image screenshot metadata parity (2026-11-24):** 29/29 required M02/M19 final manifest PNGs now have descriptive captions/alt text, exact original capture identity, Windows run ID, measured frame dimensions, hash-bound reviewer record and CI disposable/no-user-data provenance. Unknown original DPI is labelled NOT_RECORDED, never invented. Tests validate each metadata member against the independent 29-image evidence manifest and require 29/29 source-bound screenshot-only state. Full screen-reader E2E, performance budgets, Wiki publishing and protected merge remain open; T02/T10/T11 IN_PROGRESS. Lease held during scoped changes, release at handoff.
+
+
 - **29/29 authentic M02/M19 Windows native PNG images accepted for screenshot-only visual scope (2026-11-24):** Remaining M19-OPT-01 corrected real search/input image from source `c9a874a9` Windows SUCCESS #45274014314 transferred through *read-only* artifact export #45279976526, final blob SHA `8cda88f7d67f4c3d90d301dd80dcca51f78651fa`, source SHA256 `e4b8b013ab2d0d10a6ff4d44717fb153e2f99f07f2d5390bb517c252a9a20bcb`. Replaced old image that clipped search field, reviewed 14/14 M19 and preserved 15/15 M02. Screenshot manifest now 29/29 VERIFIED with image-only review records; full independent NVDA/Narrator, performance budget, hosted Wiki, owner PR approval, protected merge, entire T02/T10/T11 remain outstanding. Temporary read-only evidence transport workflow removed in same atomic commit. Lease to be released null after CI/readback.
 
 

@@ -37,203 +37,409 @@
       "path": "docs/screenshots/M02/M02-OPT-01.png",
       "source_sha256": "090624f1626719c6c40436e10de019392b382020ef4a0f817fd8cf2ad4f04fe9",
       "git_blob_sha": "24f3f7cdeeaefb8f6f50a0b2bb6a1e290b59fbf4",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "P02-T10-CTRL-M02-OPT-01",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Navigation density Compact is selected and visible with current applied navigation in the same live native frame.",
+      "caption": "M02-OPT-01 — Navigation density Compact is selected and visible with current applied navigation in the same live native frame.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M02-OPT-02",
       "path": "docs/screenshots/M02/M02-OPT-02.png",
       "source_sha256": "1bf52182a4a60ad61b91674f1fa255dd7e6ba29da3f192efb7a38e5e97c6bb37",
       "git_blob_sha": "58331a61d8862f888a84d1a8cbeec8241f1c3a09",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "P02-T10-CTRL-M02-OPT-02",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Appearance Light mode selected with readable setting and theme-color tokens; preferences explicit session-only.",
+      "caption": "M02-OPT-02 — Appearance Light mode selected with readable setting and theme-color tokens; preferences explicit session-only.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M02-OPT-03",
       "path": "docs/screenshots/M02/M02-OPT-03.png",
       "source_sha256": "856253036b4c6e6230fbbfe13c55170ed455e2445158449151c22731a4688ee9",
       "git_blob_sha": "8ae8e33abe2117178a77b6bfc0e707be77b8e62e",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "M02-OPT-03",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Compact properties rows preview shows a real pressed preview toggle, not a real project inspector.",
+      "caption": "M02-OPT-03 — Compact properties rows preview shows a real pressed preview toggle, not a real project inspector.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M02-OPT-04",
       "path": "docs/screenshots/M02/M02-OPT-04.png",
       "source_sha256": "c78720ab854190714e0da54cb57853518d2a5b9da5a180fff3c5d3fe351ce35d",
       "git_blob_sha": "dcdee2a433b9880d473f139a5a8183c0bed6b26e",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "M02-OPT-04",
+      "native_ci_run": 45265826578,
+      "window_width": 898,
+      "window_height": 653,
+      "alt_text": "Keyboard guide uses actual Ctrl+1–6 option dropdowns and Restore default shortcuts control, in real dark theme; natural scroll viewport.",
+      "caption": "M02-OPT-04 — Keyboard guide uses actual Ctrl+1–6 option dropdowns and Restore default shortcuts control, in real dark theme; natural scroll viewport.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M02-OPT-05",
       "path": "docs/screenshots/M02/M02-OPT-05.png",
       "source_sha256": "b4e39a3dd1e550abd8095e65f6ee1f9da5f56461ef6469945f40fb6dc726e34c",
       "git_blob_sha": "0515fdc6dbd246a7712ee83ba6446e37c29c2a31",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "P02-T10-CTRL-M02-OPT-05",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Typed Preferences query appears in actual command palette with matching allowlisted navigation.",
+      "caption": "M02-OPT-05 — Typed Preferences query appears in actual command palette with matching allowlisted navigation.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M02-OPT-06",
       "path": "docs/screenshots/M02/M02-OPT-06.png",
       "source_sha256": "2db7e9b3bfc83f400a8858bd9b9853626abd5d7f855ebe4f70af51bc9db19717",
       "git_blob_sha": "0cfabd37ec7b91f82b76ecfc78b0b8d5fe624577",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "P02-T10-CTRL-M02-OPT-06",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Native Workbench Left pane width slider shows live 55% value and two different preview pane widths, with reset.",
+      "caption": "M02-OPT-06 — Native Workbench Left pane width slider shows live 55% value and two different preview pane widths, with reset.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M02-OPT-07",
       "path": "docs/screenshots/M02/M02-OPT-07.png",
       "source_sha256": "cfbf640e65fffbc12df000065dc48596dea3ede64db96f3d2b75711aa9d98d01",
       "git_blob_sha": "246b5c7ed6dd5c94ad3363dc52fc9f93d8aff646",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "M02-OPT-07",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Actual native focus-outline ring clearly surrounds keyboard-focused Workbench content region.",
+      "caption": "M02-OPT-07 — Actual native focus-outline ring clearly surrounds keyboard-focused Workbench content region.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M02-OPT-08",
       "path": "docs/screenshots/M02/M02-OPT-08.png",
       "source_sha256": "d82d264df63070b4a1f69eaa02cf1129c487096f59c2f64b3d943c0ee3133268",
       "git_blob_sha": "4d5e57b791fd56a431e902cd8be4bcd3b240d4a2",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "P02-T10-CTRL-M02-OPT-08",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Focusable Reduced motion status is distinct from appearance selection, visibly read-only and follows Windows accessibility.",
+      "caption": "M02-OPT-08 — Focusable Reduced motion status is distinct from appearance selection, visibly read-only and follows Windows accessibility.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M02-S01",
       "path": "docs/screenshots/M02/M02-S01.png",
       "source_sha256": "db79b5512422b98230f4f39bfba632a566a3db351a14de4ebe47e20220e18363",
       "git_blob_sha": "f0caef894ef074e7f71203a53999921685554c6c",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "P02-T10-CTRL-M02-S01",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Live Windows shell Overview with native-window chrome, clear primary heading and truthful read-only local runtime status; no fake workspace creation.",
+      "caption": "M02-S01 — Live Windows shell Overview with native-window chrome, clear primary heading and truthful read-only local runtime status; no fake workspace creation.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M02-S02",
       "path": "docs/screenshots/M02/M02-S02.png",
       "source_sha256": "6758019260245e044a071c26483232df3b90b917a04223bd37ce55e975e9f38b",
       "git_blob_sha": "005e4a4a62bcf8c5f385d821e33f79172628266e",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "P02-T10-CTRL-M02-S02",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Expanded desktop navigation rail shows grouped named views and active Overview, reflowed content with no central horizontal clipping.",
+      "caption": "M02-S02 — Expanded desktop navigation rail shows grouped named views and active Overview, reflowed content with no central horizontal clipping.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M02-S03",
       "path": "docs/screenshots/M02/M02-S03.png",
       "source_sha256": "ec93af3626620c8d3bface689c79659b9af79a0ab72497556013b6ac0d2e1424",
       "git_blob_sha": "c95ec2e2a71ddf41dc7f67fead00f42a9b27f78e",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "M02-S03",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Workbench tabs and native read-only runtime panel are legible with keyboard-accessible active tab semantics.",
+      "caption": "M02-S03 — Workbench tabs and native read-only runtime panel are legible with keyboard-accessible active tab semantics.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M02-S04",
       "path": "docs/screenshots/M02/M02-S04.png",
       "source_sha256": "2869d9625b22bcc06eaf6f566cc7075b7d51125e2ad7cbccb0e38e965d1fd163",
       "git_blob_sha": "c48b600e28c15cc16c860453233e1a0c431a074c",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "M02-S04",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Actual modal command palette shows available navigation results and readable selected/keyboard focus.",
+      "caption": "M02-S04 — Actual modal command palette shows available navigation results and readable selected/keyboard focus.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M02-S05",
       "path": "docs/screenshots/M02/M02-S05.png",
       "source_sha256": "1a3e93e919d972f8182cbfd96060f27b295bd17e01aa9e5a7fd9a2ff0a33213a",
       "git_blob_sha": "34f141ec145b2e116148017a5f422c1ba174a3b6",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "M02-S05",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Component gallery shows semantic palette, action states, type hierarchy and responsive card layout; lower states are scrollable.",
+      "caption": "M02-S05 — Component gallery shows semantic palette, action states, type hierarchy and responsive card layout; lower states are scrollable.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M02-S06",
       "path": "docs/screenshots/M02/M02-S06.png",
       "source_sha256": "16a20c0a716cad37faf1c0c47fff3b9909339f71f78fd31300855740def6859f",
       "git_blob_sha": "256c766949bf1248728a7bd3d23484c3074af83a",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "M02-S06",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Preferences presents Follow system and Comfortable defaults with clearly labelled session-only scope.",
+      "caption": "M02-S06 — Preferences presents Follow system and Comfortable defaults with clearly labelled session-only scope.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M02-S07",
       "path": "docs/screenshots/M02/M02-S07.png",
       "source_sha256": "ae9f9e3ebc1444f28c711cf975360139869f8b07e656081efb35dd8e6cca9ffc",
       "git_blob_sha": "4f7a4ef883df403c2b166dfd1452e4f71f45bb69",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "M02-S07",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Keyboard guide shows numbered navigation actions, configurable mappings and form controls with focus/legible labels.",
+      "caption": "M02-S07 — Keyboard guide shows numbered navigation actions, configurable mappings and form controls with focus/legible labels.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M19-OPT-01",
       "path": "docs/screenshots/M19/M19-OPT-01.png",
       "source_sha256": "e4b8b013ab2d0d10a6ff4d44717fb153e2f99f07f2d5390bb517c252a9a20bcb",
       "git_blob_sha": "8cda88f7d67f4c3d90d301dd80dcca51f78651fa",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "P02-T10-CTRL-M19-OPT-01",
+      "native_ci_run": 45274014314,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Native Windows Help search with visible typed theme query, matching offline articles and the selected local article.",
+      "caption": "M19-OPT-01 — Native Windows Help search with visible typed theme query, matching offline articles and the selected local article.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M19-OPT-02",
       "path": "docs/screenshots/M19/M19-OPT-02.png",
       "source_sha256": "3f3a1655d8969319de3fc93089211f9da83b068269f930d2fca4b093cfbc1f84",
       "git_blob_sha": "a2e65ff537ac6d072c5223405d61b6486bd78ee3",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "P02-T10-CTRL-M19-OPT-02",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Actual native contextual F1 Help opens relevant bundled themes and interface density article from Preferences context.",
+      "caption": "M19-OPT-02 — Actual native contextual F1 Help opens relevant bundled themes and interface density article from Preferences context.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M19-OPT-03",
       "path": "docs/screenshots/M19/M19-OPT-03.png",
       "source_sha256": "d245bbf30f1fbf4afe8d149338a38f4c782d62ce9dfd37c6f208259d34008eaa",
       "git_blob_sha": "88d01d562e3012c843ab7a91c0ed6b785fc702d2",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "P02-T10-CTRL-M19-OPT-03",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Native recovery wizard option with real issue selector, step label and keyboard-operable safe recovery choices; annotated image overlays remain unsupported.",
+      "caption": "M19-OPT-03 — Native recovery wizard option with real issue selector, step label and keyboard-operable safe recovery choices; annotated image overlays remain unsupported.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M19-OPT-04",
       "path": "docs/screenshots/M19/M19-OPT-04.png",
       "source_sha256": "70af3adb8ddf4c23c905e04e3459a2ea0e9f06775a0894e8b91f14f18491bee4",
       "git_blob_sha": "8c36b40a8277824da34c9a55443104d45315b3e7",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "P02-T10-CTRL-M19-OPT-04",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "FAQ and six-term glossary show clearly labelled local questions/definitions, no remote dictionary.",
+      "caption": "M19-OPT-04 — FAQ and six-term glossary show clearly labelled local questions/definitions, no remote dictionary.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M19-OPT-05",
       "path": "docs/screenshots/M19/M19-OPT-05.png",
       "source_sha256": "57c72ec0acfa8ebcd4e091d44924b0dc3aa1530cb201d1b5ca5bc17a52ff9f9f",
       "git_blob_sha": "2bad9b80fb413564402d487b7326c9a32a6c1fbd",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "P02-T10-CTRL-M19-OPT-05",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "First FAQ disclosure visibly expanded with actual answer, focus outline and linked offline guide; other questions collapsed.",
+      "caption": "M19-OPT-05 — First FAQ disclosure visibly expanded with actual answer, focus outline and linked offline guide; other questions collapsed.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M19-OPT-06",
       "path": "docs/screenshots/M19/M19-OPT-06.png",
       "source_sha256": "c327136893bc3b56782a6cefdd55900a8b3c3788c579c1eca4d71035831bd9d2",
       "git_blob_sha": "fdd571a037198f43b3b23c10a92a5680e66203ee",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "P02-T10-CTRL-M19-OPT-06",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Local Wiki source map, strict help link validation UI, explicit unpublished status; no unsupported remote Wiki claim.",
+      "caption": "M19-OPT-06 — Local Wiki source map, strict help link validation UI, explicit unpublished status; no unsupported remote Wiki claim.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M19-OPT-07",
       "path": "docs/screenshots/M19/M19-OPT-07.png",
       "source_sha256": "daf416025fb46cc9583890e0965b186777184e575c525daba65d5efa767fd7cd",
       "git_blob_sha": "7e1e743bdcb1c6bc3db454512ad6d7b4e0b034e5",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "P02-T10-CTRL-M19-OPT-07",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Local broken-article report copy controls and sanitized JSON, labelled 'Not sent' with no telemetry.",
+      "caption": "M19-OPT-07 — Local broken-article report copy controls and sanitized JSON, labelled 'Not sent' with no telemetry.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M19-OPT-08",
       "path": "docs/screenshots/M19/M19-OPT-08.png",
       "source_sha256": "a2d547d5e5958aab4f8409e759b8204ef65fdb3021d0054a527b4e4f48ee576a",
       "git_blob_sha": "62371d73d4df2ec4a2112fe2229d9da2c4373c68",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "P02-T10-CTRL-M19-OPT-08",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Offline catalog ready indicator, 12 bundled articles and Help workflows without online request.",
+      "caption": "M19-OPT-08 — Offline catalog ready indicator, 12 bundled articles and Help workflows without online request.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M19-S01",
       "path": "docs/screenshots/M19/M19-S01.png",
       "source_sha256": "f603073ee000ac0dccecd86e1a195e55f0994754679f6dd277146a4d7df24fd0",
       "git_blob_sha": "d1176d24b670903373540173c927c8e38ac2750a",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "M19-S01",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Native Tauri Help home: offline catalog, named workflow tabs, locally bundled article inventory and source-only status visibly legible.",
+      "caption": "M19-S01 — Native Tauri Help home: offline catalog, named workflow tabs, locally bundled article inventory and source-only status visibly legible.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M19-S02",
       "path": "docs/screenshots/M19/M19-S02.png",
       "source_sha256": "72ca5b90a4cd82b0a617c71c1841ec1f1f79e4ddb2df8f96f4f84af3a9c9d9ef",
       "git_blob_sha": "688a4357e80d5ceb5c1fa79f5a18e70edf6f3005",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "M19-S02",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Native Help search results for 'theme' with category filter, two local matches and selected local article; keyboard controls visible.",
+      "caption": "M19-S02 — Native Help search results for 'theme' with category filter, two local matches and selected local article; keyboard controls visible.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M19-S03",
       "path": "docs/screenshots/M19/M19-S03.png",
       "source_sha256": "de5b7c7517ff4c635705d80a098b69d423a8270cbad16b58e2dcb287b76109e9",
       "git_blob_sha": "f65235e8de0b12ff72d2e7e18aacf76fb47ddde0",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "M19-S03",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Actual local article reader and results panel in Tauri, descriptive article content rendered with named Help section.",
+      "caption": "M19-S03 — Actual local article reader and results panel in Tauri, descriptive article content rendered with named Help section.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M19-S04",
       "path": "docs/screenshots/M19/M19-S04.png",
       "source_sha256": "f7d23185b63316edc2e7bd7fdcd6090773d71330e3cb054bc3d59a3762a6c3a4",
       "git_blob_sha": "84566d46586a40e1742472e4b3bc5c5dd9c4af56",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "M19-S04",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Guided tour shows current lesson, five-step counter, real Previous/Next/Restart controls and local article link.",
+      "caption": "M19-S04 — Guided tour shows current lesson, five-step counter, real Previous/Next/Restart controls and local article link.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M19-S05",
       "path": "docs/screenshots/M19/M19-S05.png",
       "source_sha256": "0029760e14d9a2d1f4701f46413b4f053767fd1e8a0ed436d26083b1dd8815cf",
       "git_blob_sha": "3a6e95efc39d1807c7f7ec62ce5a6c83f3620227",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "M19-S05",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Working troubleshooting wizard shows native bridge issue, step 1 of 3, informational recovery and real action buttons.",
+      "caption": "M19-S05 — Working troubleshooting wizard shows native bridge issue, step 1 of 3, informational recovery and real action buttons.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     },
     {
       "asset_id": "M19-S06",
       "path": "docs/screenshots/M19/M19-S06.png",
       "source_sha256": "45d5e99e438f5975ca710f94244e18689ce6f9e897e2275f6f88f2d51b8f1c3e",
       "git_blob_sha": "744bce4e518f793fe076184d5b106320e035e1e5",
-      "status": "VERIFIED"
+      "status": "VERIFIED",
+      "native_capture_id": "M19-S06",
+      "native_ci_run": 45265826578,
+      "window_width": 998,
+      "window_height": 701,
+      "alt_text": "Real local Wiki & link checker lists M02/M19 source mappings and known local offline reference; remote Wiki not claimed.",
+      "caption": "M19-S06 — Real local Wiki & link checker lists M02/M19 source mappings and known local offline reference; remote Wiki not claimed.",
+      "review_scope": "VERIFIED_NATIVE_PNG_IMAGE_ONLY_NOT_MODULE_RELEASE"
     }
-  ]
+  ],
+  "image_caption_alt_metadata_complete": true,
+  "all_images_have_versioned_caption_alt_native_ci_source": true,
+  "native_os_dpi_unrecorded_and_not_claimed": true
 }

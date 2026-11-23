@@ -1,5 +1,8 @@
 # P02-T11 — Protected Merge and Final Acceptance Preflight
 
+**Documentation checkpoint (2026-11-24):** All 29 native screenshot manifest assets now include exact capture ID, real Windows CI run, measured viewport geometry, source SHA/Git blob, descriptive alt text, image caption, disposable no-user-data origin and a separate signed-off image-review-record pointer. Device pixel ratio was **not recorded** by the original capture receipts and is explicitly NOT_RECORDED (do not invent DPI). These metadata completeness checks run in existing Windows/Global Governance tests and do not replace NVDA/Narrator or a release verdict.
+
+
 **Latest 2026-11-24 evidence checkpoint:** All 29/29 genuine committed M02/M19 screen/option PNGs now have independent per-image SHA-bound visual review status VERIFIED. The 29th, M19-OPT-01, was re-captured on real Windows Tauri CI #45274014314 and its original binary replaced after read-only artifact-transport proof #45279976526. See [complete screenshot review record](P02_T10_FINAL_29_NATIVE_SCREENSHOTS_20261124.json). **These are screenshot proofs only.** Independent full NVDA/Narrator keyboard and live announcement testing, endorsed performance percentiles/budgets, hosted Wiki publication, owner/current-SHA review, security/issue adjudication and protected merge remain outstanding. T02/T10/T11 still IN_PROGRESS, PR #12 Draft, main unchanged.
 
 
