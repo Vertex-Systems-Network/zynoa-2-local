@@ -54,40 +54,73 @@ function Wait-NativeName {
   return $null
 }
 $results = [ordered]@{}
+$diagnostics = [ordered]@{}
 $issues = [System.Collections.Generic.List[string]]::new()
 $clock = [System.Diagnostics.Stopwatch]::StartNew()
 try {
   # Default shortcut map: probe BEFORE the existing screenshot script remaps keys.
   [System.Windows.Forms.SendKeys]::SendWait('^{2}')
   Start-Sleep -Milliseconds 350
+  $diagnostics['settings_specific_disabled_control_visible'] = $null -ne (Find-NativeName -Label 'Choose folder')
   foreach ($label in @('Interface appearance', 'Navigation density')) {
     $control = Wait-NativeName -Label $label
-    $ok = $null -ne $control -and $control.Current.IsEnabled -and
-      $control.Current.IsKeyboardFocusable
+    $present = $null -ne $control
+    $enabled = if ($present) { [bool]$control.Current.IsEnabled } else { $false }
+    $focusable = if ($present) { [bool]$control.Current.IsKeyboardFocusable } else { $false }
+    $diagnostics[$label] = [ordered]@{
+      present = $present
+      enabled = $enabled
+      keyboard_focusable = $focusable
+    }
+    $ok = $present -and $enabled -and $focusable
     $results[$label] = [bool]$ok
     if (-not $ok) { $issues.Add('Required native accessible preference missing: ' + $label) }
   }
 
   [System.Windows.Forms.SendKeys]::SendWait('^+p')
   $dialog = Wait-NativeName -Label 'Command palette'
-  $input = Wait-NativeName -Label 'Search available commands and offline Help'
+  $searchControl = Wait-NativeName -Label 'Search available commands and offline Help'
   $results['modal_named'] = $null -ne $dialog
-  $results['search_input_named'] = $null -ne $input -and
-    $input.Current.IsEnabled -and $input.Current.IsKeyboardFocusable
+  $results['search_input_named'] = $null -ne $searchControl -and
+    $searchControl.Current.IsEnabled -and $searchControl.Current.IsKeyboardFocusable
+  $diagnostics['search_control_accessibility'] = [ordered]@{
+    present = $null -ne $searchControl
+    focusable = if ($null -ne $searchControl) { [bool]$searchControl.Current.IsKeyboardFocusable } else { $false }
+    enabled = if ($null -ne $searchControl) { [bool]$searchControl.Current.IsEnabled } else { $false }
+  }
   if (-not $results['modal_named']) { $issues.Add('Command palette modal missing accessible name') }
   if (-not $results['search_input_named']) { $issues.Add('Search input missing accessible name/focusability') }
 
   $searchFocused = $false
+  $focusMethod = 'unverified'
+  $observedFocusKind = 'none'
   for ($attempt = 0; $attempt -lt 16; $attempt++) {
     try {
-      $focused = [System.Windows.Automation.AutomationElement]::FocusedElement
-      if ($null -ne $focused -and
-          $focused.Current.Name -eq 'Search available commands and offline Help') {
+      if ($null -ne $searchControl -and $searchControl.Current.HasKeyboardFocus) {
         $searchFocused = $true
+        $focusMethod = 'native_control_has_keyboard_focus'
         break
+      }
+      $focused = [System.Windows.Automation.AutomationElement]::FocusedElement
+      if ($null -ne $focused) {
+        if ($focused.Current.Name -eq 'Search available commands and offline Help') {
+          $searchFocused = $true
+          $focusMethod = 'focused_element_exact_accessible_name'
+          break
+        } elseif ($focused.Current.Name -eq 'Command palette') {
+          $observedFocusKind = 'dialog'
+        } elseif ($focused.Current.Name -ne '') {
+          $observedFocusKind = 'other_named_element'
+        } else {
+          $observedFocusKind = 'unnamed_element'
+        }
       }
     } catch [System.Windows.Automation.ElementNotAvailableException] {}
     Start-Sleep -Milliseconds 250
+  }
+  $diagnostics['search_focus'] = [ordered]@{
+    method = $focusMethod
+    last_focus_kind = $observedFocusKind
   }
   $results['keyboard_focus_enters_modal_search'] = $searchFocused
   if (-not $searchFocused) { $issues.Add('Native keyboard focus did not reach command search') }
@@ -118,6 +151,7 @@ $proof = [ordered]@{
   native_pid_matched = $true
   scope = 'Scoped accessible-name, keyboard focus and dialog dismissal probe'
   results = $results
+  diagnostics = $diagnostics
   issues = @($issues)
   duration_ms = [int64]$clock.ElapsedMilliseconds
   full_screen_reader_verified = $false
