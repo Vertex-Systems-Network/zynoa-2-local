@@ -5,6 +5,7 @@ import { Workbench, ComponentGallery } from "./ui/Workbench";
 import { HelpCenter } from "./ui/HelpCenter";
 import { effectiveTheme, densityOptions, isDensity, isTheme, themeOptions, type ThemePreference, type DensityPreference } from "./ui/theme";
 import type { AppView } from "./ui/commands";
+import { defaultShortcuts, remapShortcut, shortcutForView, viewForShortcut, type ShortcutAssignments } from "./ui/shortcut-map";
 
 type View = AppView;
 type StartupState = "starting" | "desktop" | "browser";
@@ -120,6 +121,7 @@ export function App() {
   const [density, setDensity] = useState<DensityPreference>("comfortable");
   const [systemDark, setSystemDark] = useState(true);
   const [helpTopic, setHelpTopic] = useState("quick-start");
+  const [shortcuts, setShortcuts] = useState<ShortcutAssignments>(defaultShortcuts);
 
   useEffect(() => {
     const query = window.matchMedia("(prefers-color-scheme: dark)");
@@ -194,21 +196,14 @@ export function App() {
       if (element instanceof HTMLElement &&
           element.matches("input,textarea,select,[contenteditable=true]")) return;
       if (!event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return;
-      if (/^[5-6]$/.test(event.key)) {
-        event.preventDefault();
-        setView(event.key === "5" ? "workbench" : "gallery");
-        return;
-      }
-      if (!/^[1-4]$/.test(event.key)) return;
-      const target = Number(event.key) - 1;
-      const legacy: View[] = ["startup", "settings", "recovery", "diagnostics"];
-      if (target >= legacy.length) return;
+      const target = viewForShortcut(event.key, shortcuts);
+      if (!target) return;
       event.preventDefault();
-      setView(legacy[target]);
+      setView(target);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [paletteOpen]);
+  }, [paletteOpen, shortcuts]);
 
   // Each view starts at the top; focus the native scroll surface for keyboard PageDown.
   useEffect(() => {
@@ -232,7 +227,7 @@ export function App() {
                   aria-current={view === page.key ? "page" : undefined} type="button"
                   onClick={() => setView(page.key)}>
                   <span className="nav-icon" aria-hidden="true">{page.icon}</span>
-                  <span>{page.title}</span><kbd>{page.shortcut === "F1" ? "F1" : "⌃" + page.shortcut}</kbd>
+                  <span>{page.title}</span><kbd>{page.key === "help" ? "F1" : "⌃" + shortcutForView(page.key, shortcuts)}</kbd>
                 </button>
               )}
             </div>
@@ -255,7 +250,10 @@ export function App() {
         </header>
         <div className="content">
           {view === "startup" ? <Startup state={startup} transport={transport} /> :
-            view === "workbench" ? <Workbench transport={transport} onNavigate={setView} /> :
+            view === "workbench" ? <Workbench transport={transport} onNavigate={setView}
+              shortcuts={shortcuts}
+              onRemapShortcut={(target, key) => setShortcuts(current => remapShortcut(current, target, key))}
+              onResetShortcuts={() => setShortcuts(defaultShortcuts)} /> :
             view === "gallery" ? <ComponentGallery /> :
             view === "help" ? <HelpCenter contextArticle={helpTopic} /> :
             view === "settings" ? <Settings theme={theme} onTheme={setTheme} density={density} onDensity={setDensity} onHelp={openContextHelp} /> :
@@ -264,7 +262,7 @@ export function App() {
         <footer className="footer"><span>Local-first shared interface · P02</span><span>Native services require verification · <strong>No workspace data stored</strong></span></footer>
       </main>
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)}
-        onNavigate={setView} returnFocusTarget={paletteOpenerRef.current} />
+        onNavigate={setView} shortcuts={shortcuts} returnFocusTarget={paletteOpenerRef.current} />
     </div>
   );
 }
