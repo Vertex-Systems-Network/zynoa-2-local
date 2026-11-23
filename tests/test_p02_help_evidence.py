@@ -3,6 +3,7 @@
 These contracts do not mark unreleased option or screenshot gates complete.
 """
 import json
+import hashlib
 from pathlib import Path
 import re
 import unittest
@@ -69,16 +70,30 @@ class M02HelpEvidenceTests(unittest.TestCase):
         self.assertNotIn("Execute a small real task and review the actual artifact", self.help)
         self.assertNotIn("Report reproducible development errors automatically", self.help)
 
-    def test_screenshot_manifest_remains_explicitly_pending(self):
+    def test_m02_final_native_png_visuals_verified_m19_and_release_pending(self):
         m02 = [x for x in self.manifest["required"] if x["module"] == "M02"]
         m19 = [x for x in self.manifest["required"] if x["module"] == "M19"]
         self.assertEqual(15, len(m02))
         self.assertEqual(14, len(m19))
-        self.assertTrue(all(x["status"] == "PENDING" for x in m02 + m19))
-        self.assertIn("PENDING", self.help)
+        self.assertTrue(all(x["status"] == "VERIFIED" for x in m02))
+        self.assertTrue(all(x["status"] == "PENDING" for x in m19))
+        report = json.loads((ROOT / "docs/screenshots/M02/T02-final-15-native-visual.review.json").read_text(encoding="utf-8"))
+        self.assertEqual("ACCEPTED_M02_15_NATIVE_VISUAL_ONLY", report["review_status"])
+        self.assertEqual(15, len(report["images"]))
+        self.assertFalse(report["full_nvda_narrator_approved"])
+        self.assertFalse(report["full_m02_module_release_approved"])
+        reviewed = {row["asset_id"]: row for row in report["images"]}
+        self.assertEqual({row["asset_id"] for row in m02}, set(reviewed))
+        for row in m02:
+            file = ROOT / row["path"]
+            self.assertTrue(file.is_file(), row["asset_id"])
+            data = file.read_bytes()
+            self.assertEqual(row["source_capture_sha256"], hashlib.sha256(data).hexdigest())
+            self.assertEqual(row["source_capture_sha256"], reviewed[row["asset_id"]]["sha256"])
+            self.assertEqual("PASS_FOR_M02_SCREEN_OPTION_FRAME_ONLY", reviewed[row["asset_id"]]["visual_result"])
+        self.assertIn("15/15", self.help)
         self.assertIn("PENDING", self.wiki)
-        self.assertIn("CI candidates", self.help)
-        self.assertIn("not completed screen/option PNGs", self.help)
+        self.assertIn("unshipped P02 preview", self.help)
 
     def test_f1_catalog_is_distinct_from_unpublished_wiki_source(self):
         self.assertIn('setView("help")', self.app) if 'setView("help")' in self.app else self.assertIn('return "help"', self.app)
