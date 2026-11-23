@@ -217,7 +217,7 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     Save-NativeFollowup -ScreenshotId 'M02-S05' -Shortcut '^{6}' -ScreenTitle 'P02 native component gallery' -Description 'Real Tauri component gallery with semantic token swatches, state chips and interactive input'
     # From focused main after Ctrl+6: Tab toolbar command, Tab help, Tab primary action.
     # Activate primary selection; PageDown reveals the actual button/feedback states.
-    Save-NativeFollowup -ScreenshotId 'P02-T02-06' -Shortcut '{TAB}{TAB}{TAB}{SPACE}{PGDN}' -ScreenTitle 'P02 component interaction states' -Description 'Real Tauri Components page with selected action, disabled example and independent status feedback; candidate awaiting native visual review'
+    Save-NativeFollowup -ScreenshotId 'P02-T02-06' -Shortcut '{TAB}{TAB}{TAB}{ENTER}{PGDN}' -ScreenTitle 'P02 component interaction states' -Description 'Real Tauri Components page with selected action, disabled example and independent status feedback; candidate awaiting native visual review'
     Save-NativeFollowup -ScreenshotId 'M02-S06' -Shortcut '^{2}' -ScreenTitle 'P02 native appearance settings' -Description 'Session-only theme and density selectors with unavailable native relocation labelled'
     Save-NativeFollowup -ScreenshotId 'M02-S04' -Shortcut '^+p' -ScreenTitle 'P02 native command palette' -Description 'Native modal command palette with focusable search and allowlisted navigation commands'
     $OutputDirectory = $m19Output
