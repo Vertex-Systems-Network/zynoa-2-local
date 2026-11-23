@@ -308,7 +308,9 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     # T03 narrow desktop navigation: escape select focus via F1 and return to
     # Workbench Ctrl+5. The 900px native minimum triggers automatic collapse.
     # Alt+N expands then re-collapses the SAME live Tauri navigation rail.
-    Save-NativeFollowup -ScreenshotId 'P02-T03-RAIL-COLLAPSED' -Shortcut '{F1}^{5}' -ScreenTitle 'P02 narrow collapsed navigation rail' -Description 'Real 898px native Tauri workbench with responsive collapsed icon rail, active Workbench and full-width main content'
+    [System.Windows.Forms.SendKeys]::SendWait('{F1}')
+    Start-Sleep -Milliseconds 400
+    Save-NativeFollowup -ScreenshotId 'P02-T03-RAIL-COLLAPSED' -Shortcut '^{5}' -ScreenTitle 'P02 narrow collapsed navigation rail' -Description 'Real 898px native Tauri workbench with responsive collapsed icon rail, active Workbench and full-width main content'
     Save-NativeFollowup -ScreenshotId 'P02-T03-RAIL-EXPANDED' -Shortcut '%n' -ScreenTitle 'P02 narrow expanded navigation rail' -Description 'Real 898px native Tauri after Alt+N expands labelled navigation groups and retains active Workbench'
     Save-NativeFollowup -ScreenshotId 'P02-T03-RAIL-RESTORED' -Shortcut '%n' -ScreenTitle 'P02 narrow navigation rail restored' -Description 'Real 898px native Tauri after Alt+N collapses the sidebar again without navigating away'
 
