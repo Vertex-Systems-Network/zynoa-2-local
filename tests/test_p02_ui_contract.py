@@ -163,6 +163,9 @@ class P02UIContractTests(unittest.TestCase):
             css,
         )
         self.assertEqual(3, workbench.count('role="tabpanel" tabIndex={0}'))
+        self.assertIn('role="tab"', workbench)
+        self.assertIn('aria-selected={active === pane.key}', workbench)
+        self.assertIn('onKeyDown={event => tabKeys(event, index)}', workbench)
         for panel in ("status", "layout", "keyboard"):
             self.assertIn(f'hidden={{active !== "{panel}"}}', workbench)
         self.assertIn("@media (prefers-reduced-motion:reduce)", css)
