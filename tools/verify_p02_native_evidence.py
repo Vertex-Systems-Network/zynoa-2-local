@@ -13,7 +13,7 @@ import re
 import struct
 
 SCREEN_IDS = (
-    "M02-S03", "M02-OPT-07", "M02-S07", "M02-S05", "P02-T02-06",
+    "M02-S03", "M02-OPT-07", "M02-S07", "M02-OPT-03", "M02-S05", "P02-T02-06",
     "M02-S06", "M02-S04", "M19-S01", "P02-T02-07",
     "P02-T02-07-continued", "P02-T02-12-LIGHT", "P02-T02-12-DARK",
 )
