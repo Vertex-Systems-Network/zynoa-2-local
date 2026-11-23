@@ -224,7 +224,9 @@ export function App() {
               <p className="nav-label">{section}</p>
               {views.filter(page => page.section === section).map(page =>
                 <button key={page.key} className={"nav-link " + (view === page.key ? "selected" : "")}
-                  aria-current={view === page.key ? "page" : undefined} type="button"
+                  aria-current={view === page.key ? "page" : undefined}
+                  aria-keyshortcuts={page.key === "help" ? "F1" : "Control+" + shortcutForView(page.key, shortcuts)}
+                  type="button"
                   onClick={() => setView(page.key)}>
                   <span className="nav-icon" aria-hidden="true">{page.icon}</span>
                   <span>{page.title}</span><kbd>{page.key === "help" ? "F1" : "⌃" + shortcutForView(page.key, shortcuts)}</kbd>
