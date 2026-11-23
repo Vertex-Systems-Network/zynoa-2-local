@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import type { AppView } from "./commands";
 import { shortcutForView, shortcutKeys, shortcutTargets, type ShortcutAssignments, type ShortcutTarget } from "./shortcut-map";
+import { componentPreviewStates, previewStateDetails, type ComponentPreviewState } from "./component-states";
 
 type Transport = "pending" | "connected" | "unavailable" | "preview";
 const panes = [
@@ -88,6 +89,8 @@ export function Workbench({ transport, onNavigate, shortcuts, onRemapShortcut, o
           </div>
           <output htmlFor="split-control" className="value-bubble">{split}%</output>
         </div>
+        <button type="button" className="subtle-action" disabled={split === 40}
+          onClick={() => setSplit(40)} aria-label="Restore 40 percent pane split">Reset pane split</button>
         <input id="split-control" aria-label="Left pane width" type="range" min={25} max={65} step={5}
           value={split} aria-valuetext={`${split}% left pane`} onChange={event => setSplit(Number(event.target.value))} />
         <div className="split-preview" role="group" aria-label="Adjustable workspace pane preview"
@@ -99,6 +102,7 @@ export function Workbench({ transport, onNavigate, shortcuts, onRemapShortcut, o
             <b>Content pane</b><small>Responds to available width</small>
           </div>
         </div>
+        <p className="component-helper" role="status" aria-live="polite">Preview pane widths: {split}% navigation and {100 - split}% content. Not saved to a workspace.</p>
       </div>
       <section className="studio-card properties-panel" aria-labelledby="properties-title">
         <div className="flex-between properties-heading">
@@ -175,6 +179,8 @@ export function Workbench({ transport, onNavigate, shortcuts, onRemapShortcut, o
 export function ComponentGallery() {
   const [sampleInput, setSampleInput] = useState("");
   const [selectedAction, setSelectedAction] = useState<"primary" | "secondary" | null>(null);
+  const [previewState, setPreviewState] = useState<ComponentPreviewState>("ready");
+  const visibleState = previewStateDetails(previewState);
   return <section className="studio-page" aria-labelledby="gallery-title">
     <p className="eyebrow">M02 / DESIGN FOUNDATION</p>
     <h1 id="gallery-title">One system.<br /><em>Every detail considered.</em></h1>
@@ -218,6 +224,24 @@ export function ComponentGallery() {
           <div><span className="soft-chip warning-chip">Offline</span><small>Remote action not requested</small></div>
           <div><span className="soft-chip error-chip">Error example</span><small>Recovery instruction required</small></div>
         </div>
+      </section>
+      <section className="studio-card gallery-state-explorer" aria-labelledby="gallery-state-heading">
+        <span className="small-caps">COMPONENTS / INTERACTIVE STATE REFERENCE</span>
+        <h2 id="gallery-state-heading">Empty, loading and recovery states</h2>
+        <p>Switch between five deterministic local examples. These are not live service results.</p>
+        <div className="gallery-state-selector" role="group" aria-label="Choose component state example">
+          {componentPreviewStates.map(item =>
+            <button type="button" key={item.id} aria-pressed={previewState === item.id}
+              className="subtle-action" onClick={() => setPreviewState(item.id)}>{item.label}</button>
+          )}
+        </div>
+        <div className="gallery-state-result" data-preview-state={previewState} role="status" aria-live="polite" aria-atomic="true">
+          <span className="small-caps">ILLUSTRATIVE / {previewState.toUpperCase()}</span>
+          <h3>{visibleState.title}</h3><p>{visibleState.detail}</p>
+          <p className="component-helper">{visibleState.remedy}</p>
+        </div>
+        <button type="button" className="subtle-action" disabled={previewState === "ready"}
+          onClick={() => setPreviewState("ready")}>Show ready example</button>
       </section>
       <section className="studio-card">
         <span className="small-caps">COMPONENTS / TYPE</span><h2>Editorial hierarchy</h2>

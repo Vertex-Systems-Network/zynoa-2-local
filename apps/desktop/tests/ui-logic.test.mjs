@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { effectiveTheme, isTheme, isDensity, themeOptions, densityOptions, uiOptionIds } from "../.ui-tests/theme.js";
+import { componentPreviewStates, isComponentPreviewState, previewStateDetails } from "../.ui-tests/component-states.js";
 import { appCommands, findCommands, shortcutView } from "../.ui-tests/commands.js";
 import { defaultShortcuts, isShortcutKey, remapShortcut, shortcutForView, shortcutKeys, viewForShortcut } from "../.ui-tests/shortcut-map.js";
 import { findHelpArticle, helpArticles, resolveVisibleHelpArticle, searchHelp, helpOptionIds } from "../.ui-tests/help-catalog.js";
@@ -230,4 +231,18 @@ test("M19 versioned local search rejects stale, malformed and oversized requests
   }
   assert.deepEqual(requestOfflineHelp({ ...request, category: "Troubleshooting", limit: 50 }).matches
     .every(article => article.category === "Troubleshooting"), true);
+});
+
+test("M02 interactive state explorer is deterministic, complete and local-only", () => {
+  assert.deepEqual(componentPreviewStates.map(x => x.id), ["ready", "loading", "empty", "error", "offline"]);
+  assert.equal(new Set(componentPreviewStates.map(x => x.id)).size, 5);
+  for (const item of componentPreviewStates) {
+    assert.equal(isComponentPreviewState(item.id), true);
+    assert.deepEqual(previewStateDetails(item.id), item);
+    assert.ok(item.title && item.detail && item.remedy);
+  }
+  for (const invalid of [null, {}, "", "retrying", "__proto__", "READY", 1]) {
+    assert.equal(isComponentPreviewState(invalid), false);
+  }
+  assert.equal(previewStateDetails("unknown").id, "ready");
 });

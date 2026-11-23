@@ -50,10 +50,11 @@ function Startup({ state, transport }: { state: StartupState; transport: Transpo
   );
 }
 
-function Settings({ theme, onTheme, density, onDensity, onHelp }: {
+function Settings({ theme, onTheme, density, onDensity, onHelp, onReset, systemDark, reducedMotion }: {
   theme: ThemePreference; onTheme: (next: ThemePreference) => void;
   density: DensityPreference; onDensity: (next: DensityPreference) => void;
-  onHelp: () => void;
+  onHelp: () => void; onReset: () => void;
+  systemDark: boolean; reducedMotion: boolean;
 }) {
   return (
     <section className="detail settings-page" aria-labelledby="settings-title">
@@ -79,6 +80,15 @@ function Settings({ theme, onTheme, density, onDensity, onHelp }: {
       </div>
       <div className="setting-row"><div><strong>Native storage</strong><p>Data locations are owned by the native runtime. User-selected relocation remains unavailable.</p></div>
         <button type="button" disabled>Choose folder</button>
+      </div>
+      <div className="settings-live-summary" role="status" aria-live="polite">
+        <strong>Current window appearance: {effectiveTheme(theme, systemDark)}</strong>
+        <span>Theme source: {theme === "system" ? "Operating system" : "Manual override"} · Navigation: {density} · Motion: {reducedMotion ? "Reduced by Windows" : "Windows standard"}</span>
+        <small>Values reflect this running window, not saved Windows or account settings.</small>
+      </div>
+      <div className="settings-actions">
+        <button type="button" className="subtle-action" disabled={theme === "system" && density === "comfortable"}
+          onClick={onReset}>Restore interface defaults</button>
       </div>
       <div className="notice" role="status">Changes are not saved to disk or synchronized with any account. A restart returns to the system default.</div>
       <button type="button" className="text-action" onClick={onHelp}>Appearance & keyboard help ↗</button>
@@ -120,6 +130,7 @@ export function App() {
   const [theme, setTheme] = useState<ThemePreference>("system");
   const [density, setDensity] = useState<DensityPreference>("comfortable");
   const [systemDark, setSystemDark] = useState(true);
+  const [reducedMotion, setReducedMotion] = useState(false);
   const [helpTopic, setHelpTopic] = useState("quick-start");
   const [shortcuts, setShortcuts] = useState<ShortcutAssignments>(defaultShortcuts);
   const [navigationCollapsed, setNavigationCollapsed] = useState(false);
@@ -130,6 +141,15 @@ export function App() {
     const change = (event: MediaQueryListEvent) => setSystemDark(event.matches);
     query.addEventListener("change", change);
     return () => query.removeEventListener("change", change);
+  }, []);
+
+  // Watch OS accessibility settings without writing to disk or changing Windows.
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = (event: MediaQueryListEvent) => setReducedMotion(event.matches);
+    setReducedMotion(query.matches);
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
   }, []);
 
   // Match the 900px native minimum with a compact rail; users can override
@@ -290,7 +310,7 @@ export function App() {
               onResetShortcuts={() => setShortcuts(defaultShortcuts)} /> :
             view === "gallery" ? <ComponentGallery /> :
             view === "help" ? <HelpCenter contextArticle={helpTopic} /> :
-            view === "settings" ? <Settings theme={theme} onTheme={setTheme} density={density} onDensity={setDensity} onHelp={openContextHelp} /> :
+            view === "settings" ? <Settings theme={theme} onTheme={setTheme} density={density} onDensity={setDensity} systemDark={systemDark} reducedMotion={reducedMotion} onReset={() => { setTheme("system"); setDensity("comfortable"); }} onHelp={openContextHelp} /> :
             view === "recovery" ? <Recovery /> : <Diagnostics transport={transport} />}
         </div>
         <footer className="footer"><span>Local-first shared interface · P02</span><span>Native services require verification · <strong>No workspace data stored</strong></span></footer>
