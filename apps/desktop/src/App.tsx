@@ -122,6 +122,7 @@ export function App() {
   const [systemDark, setSystemDark] = useState(true);
   const [helpTopic, setHelpTopic] = useState("quick-start");
   const [shortcuts, setShortcuts] = useState<ShortcutAssignments>(defaultShortcuts);
+  const [navigationCollapsed, setNavigationCollapsed] = useState(false);
 
   useEffect(() => {
     const query = window.matchMedia("(prefers-color-scheme: dark)");
@@ -129,6 +130,16 @@ export function App() {
     const change = (event: MediaQueryListEvent) => setSystemDark(event.matches);
     query.addEventListener("change", change);
     return () => query.removeEventListener("change", change);
+  }, []);
+
+  // Match the 900px native minimum with a compact rail; users can override
+  // the rail state for the current window, never writing a preference to disk.
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 1000px)");
+    const update = (event: MediaQueryListEvent) => setNavigationCollapsed(event.matches);
+    setNavigationCollapsed(query.matches);
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
   }, []);
 
   const openContextHelp = () => {
@@ -179,6 +190,15 @@ export function App() {
         }
         return;
       }
+      // Alt+N is a keyboard-accessible rail toggle, not an OS-wide shortcut.
+      if (event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey &&
+          event.key.toLowerCase() === "n" &&
+          !(event.target instanceof HTMLElement &&
+            event.target.matches("input,textarea,select,[contenteditable=true]"))) {
+        event.preventDefault();
+        setNavigationCollapsed(current => !current);
+        return;
+      }
       if (event.key === "F1" && !event.altKey && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
         setView(current => {
@@ -216,20 +236,29 @@ export function App() {
 
   return (
     <div className="shell" data-theme={effectiveTheme(theme, systemDark)} data-density={density}>
-      <aside className="sidebar" aria-label="Primary navigation" inert={paletteOpen}>
+      <aside className="sidebar" aria-label="Primary navigation" data-nav-collapsed={navigationCollapsed} inert={paletteOpen}>
         <div className="brand"><span className="brand-symbol" aria-hidden="true">Z</span><span className="brand-word">ZYNOA<small>DESKTOP ENVIRONMENT</small></span></div>
-        <nav aria-label="Application sections">
+        <button type="button" className="nav-toggle" aria-controls="application-sections"
+          aria-expanded={!navigationCollapsed}
+          aria-label={navigationCollapsed ? "Expand navigation rail (Alt+N)" : "Collapse navigation rail (Alt+N)"}
+          aria-keyshortcuts="Alt+N"
+          onClick={() => setNavigationCollapsed(value => !value)}>
+          <span aria-hidden="true">{navigationCollapsed ? "»" : "«"}</span>
+          <span className="nav-toggle-label">{navigationCollapsed ? "Expand navigation" : "Collapse navigation"}</span>
+        </button>
+        <nav id="application-sections" aria-label="Application sections">
           {["WORKSPACE", "EXPLORE", "SYSTEM"].map(section =>
-            <div className="sidebar-group" key={section}>
+            <div className="sidebar-group" key={section} role="group" aria-label={section + " views"}>
               <p className="nav-label">{section}</p>
               {views.filter(page => page.section === section).map(page =>
                 <button key={page.key} className={"nav-link " + (view === page.key ? "selected" : "")}
                   aria-current={view === page.key ? "page" : undefined}
+                  aria-label={page.title + " (" + (page.key === "help" ? "F1" : "Ctrl+" + shortcutForView(page.key, shortcuts)) + ")"} 
                   aria-keyshortcuts={page.key === "help" ? "F1" : "Control+" + shortcutForView(page.key, shortcuts)}
                   type="button"
                   onClick={() => setView(page.key)}>
                   <span className="nav-icon" aria-hidden="true">{page.icon}</span>
-                  <span>{page.title}</span><kbd>{page.key === "help" ? "F1" : "⌃" + shortcutForView(page.key, shortcuts)}</kbd>
+                  <span className="nav-link-title">{page.title}</span><kbd>{page.key === "help" ? "F1" : "⌃" + shortcutForView(page.key, shortcuts)}</kbd>
                 </button>
               )}
             </div>
@@ -239,7 +268,10 @@ export function App() {
       </aside>
       <main id="main-content" tabIndex={-1} inert={paletteOpen}>
         <header className="topbar">
-          <div className="crumb">Zynoa <span>/</span> <strong>{views.find(page => page.key === view)?.title}</strong></div>
+          <nav className="crumb" aria-label="Breadcrumb">
+            <span>Zynoa</span><span aria-hidden="true">/</span>
+            <strong aria-current="page">{views.find(page => page.key === view)?.title}</strong>
+          </nav>
           <div className="top-actions">
             <button className="top-command" type="button" onClick={event => {
               paletteOpenerRef.current = event.currentTarget;
