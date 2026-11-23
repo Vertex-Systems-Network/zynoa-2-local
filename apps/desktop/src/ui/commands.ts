@@ -1,5 +1,5 @@
 /** M02 allowlisted command navigation; no arbitrary code execution. */
-import { defaultShortcuts, shortcutForView, type ShortcutAssignments } from "./shortcut-map";
+import { defaultShortcuts, shortcutForView, type ShortcutAssignments } from "./shortcut-map.js";
 export type AppView =
   | "startup" | "workbench" | "gallery" | "help" | "settings" | "recovery" | "diagnostics";
 
