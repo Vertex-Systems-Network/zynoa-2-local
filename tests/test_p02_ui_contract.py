@@ -202,5 +202,81 @@ class P02UIContractTests(unittest.TestCase):
         self.assertIn("tests.test_p02_ui_contract -v", workflow)
 
 
+    def test_gallery_interaction_states_keep_input_independent(self):
+        """T02.06: action selection cannot erase typed sample content."""
+        source = (APP / "src/ui/Workbench.tsx").read_text(encoding="utf-8")
+        for marker in (
+            'const [selectedAction, setSelectedAction]',
+            'setSelectedAction("primary")',
+            'setSelectedAction("secondary")',
+            'aria-pressed={selectedAction === "primary"}',
+            'aria-pressed={selectedAction === "secondary"}',
+            'role="group" aria-label="Select a gallery action preview"',
+            'disabled title="Unavailable in this foundation preview"',
+            'role="status"',
+            'role="group" aria-label="Illustrative status states, not live service health"',
+            'value={sampleInput}',
+            'onChange={event => setSampleInput(event.target.value)}',
+        ):
+            self.assertIn(marker, source)
+        self.assertNotIn('setSampleInput("Action preview selected")', source)
+        self.assertNotIn('setSampleInput("Secondary action selected")', source)
+
+    def test_gallery_selected_hover_disabled_css_contracts(self):
+        """T02.06: active, hovered, disabled and feedback examples are distinct."""
+        css = (APP / "src/styles.css").read_text(encoding="utf-8")
+        for token in (
+            '.shell .gold-action:hover:not(:disabled)',
+            '.shell .subtle-action:hover:not(:disabled)',
+            '.shell button:disabled { cursor:not-allowed;',
+            '.shell .component-row button[aria-pressed="true"]',
+            '.shell .component-row button[aria-pressed="true"]::after',
+            '.shell .component-row button:disabled { box-shadow:none; }',
+            '.shell .component-state-list',
+            '.shell .pending-chip', '.shell .warning-chip', '.shell .error-chip',
+        ):
+            self.assertIn(token, css, token)
+        workbench = (APP / "src/ui/Workbench.tsx").read_text(encoding="utf-8")
+        self.assertIn("Nothing is saved.", workbench)
+        self.assertNotIn("fetch(", workbench)
+        self.assertNotIn("localStorage", workbench)
+
+    def test_adaptive_gallery_and_split_panes_at_native_minimum(self):
+        """T02.07: responsive rules cover the 900px native width."""
+        css = (APP / "src/styles.css").read_text(encoding="utf-8")
+        workbench = (APP / "src/ui/Workbench.tsx").read_text(encoding="utf-8")
+        native = json.loads((APP / "src-tauri/tauri.conf.json").read_text(encoding="utf-8"))
+        window = native["app"]["windows"][0]
+        self.assertEqual(900, window["minWidth"])
+        self.assertTrue(window["resizable"])
+        self.assertIn("@media (max-width:950px)", css)
+        self.assertIn(".shell .gallery-grid { grid-template-columns:minmax(0,1fr); }", css)
+        self.assertIn("repeat(auto-fit,minmax(140px,1fr))", css)
+        self.assertIn(".shell .component-state-list>div { flex-wrap:wrap;", css)
+        self.assertIn("overflow-wrap:anywhere;", css)
+        self.assertIn("minmax(0, ", workbench)
+        self.assertIn("100 - split", workbench)
+        self.assertIn("aria-valuetext=", workbench)
+        self.assertIn("min={25} max={65} step={5}", workbench)
+
+    def test_native_gallery_state_and_narrow_capture_is_fail_closed(self):
+        """T02.06/07: native evidence is real and never self-certifying."""
+        capture = (ROOT / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        for name in ("P02-T02-06", "P02-T02-07", "P02-T02-07-continued"):
+            self.assertIn(f"-ScreenshotId '{name}'", capture)
+        self.assertIn("-Shortcut '{TAB}{TAB}{TAB}{SPACE}{PGDN}'", capture)
+        self.assertIn("[ZynoaScreenWin32]::MoveWindow", capture)
+        self.assertIn("DwmGetWindowAttribute", capture)
+        for code in ("ZYN-SCREEN-020", "ZYN-SCREEN-021", "ZYN-SCREEN-022"):
+            self.assertIn(code, capture)
+        self.assertIn("candidate_pending_visual_review", capture)
+        self.assertIn("capture_verified = $false", capture)
+        self.assertLess(capture.index("-ScreenshotId 'M02-S05'"), capture.index("-ScreenshotId 'P02-T02-06'"))
+        self.assertLess(capture.index("-ScreenshotId 'M19-S01'"), capture.index("-ScreenshotId 'P02-T02-07'"))
+        wf = (ROOT / ".github/workflows/p01-desktop.yml").read_text(encoding="utf-8")
+        self.assertIn("tests.test_p02_ui_contract -v", wf)
+        self.assertIn("docs/screenshots/_ci/M02/*.png", wf)
+
+
 if __name__ == "__main__":
     unittest.main()
