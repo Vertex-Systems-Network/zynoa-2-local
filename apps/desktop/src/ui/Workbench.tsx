@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import type { AppView } from "./commands";
+import { shortcutForView, shortcutKeys, shortcutTargets, type ShortcutAssignments, type ShortcutTarget } from "./shortcut-map";
 
 type Transport = "pending" | "connected" | "unavailable" | "preview";
 const panes = [
@@ -8,9 +9,12 @@ const panes = [
   { key: "keyboard", title: "Keyboard guide" },
 ] as const;
 
-export function Workbench({ transport, onNavigate }: {
+export function Workbench({ transport, onNavigate, shortcuts, onRemapShortcut, onResetShortcuts }: {
   transport: Transport;
   onNavigate: (view: AppView) => void;
+  shortcuts: ShortcutAssignments;
+  onRemapShortcut: (view: ShortcutTarget, key: string) => void;
+  onResetShortcuts: () => void;
 }) {
   const [active, setActive] = useState<(typeof panes)[number]["key"]>("status");
   const [split, setSplit] = useState(40);
@@ -131,6 +135,31 @@ export function Workbench({ transport, onNavigate }: {
             <div className="shortcut-line" key={keys}><kbd>{keys}</kbd><span>{label}</span></div>
           )}
         </div>
+        <section className="shortcut-mapping" aria-labelledby="shortcut-mapping-title">
+          <span className="small-caps">M02-OPT-04 / LOCAL SHORTCUTS</span>
+          <h3 id="shortcut-mapping-title">Customize navigation keys</h3>
+          <p>Assign Ctrl+1–6 to the six views. Choosing an occupied key swaps both views;
+            no shortcut can be lost. F1 Help and Ctrl+Shift+P stay reserved.</p>
+          <div className="shortcut-mapping-grid">
+            {shortcutTargets.map(target =>
+              <label className="shortcut-mapping-row" key={target.view}>
+                <span>{target.title}</span>
+                <select aria-label={`Shortcut for ${target.title}`}
+                  value={shortcutForView(target.view, shortcuts) ?? "1"}
+                  onChange={event => onRemapShortcut(target.view, event.target.value)}>
+                  {shortcutKeys.map(key => <option key={key} value={key}>Ctrl+{key}</option>)}
+                </select>
+              </label>
+            )}
+          </div>
+          <button type="button" className="subtle-action" onClick={onResetShortcuts}>
+            Restore default shortcuts
+          </button>
+          <p className="component-helper" role="status">
+            Shortcut changes apply immediately to navigation and the command palette, but
+            are not saved to disk. Restarting restores defaults.
+          </p>
+        </section>
       </div>
     </div>
   </section>;
