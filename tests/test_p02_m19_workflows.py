@@ -73,6 +73,13 @@ class M19OfflineWorkflowTests(unittest.TestCase):
         self.assertIn('offline_only: true', self.domain)
         self.assertIn("catalog " + "{offlineHelpContract.catalog_version}", self.center)
         self.assertIn("src/ui/help-workflows.ts", self.package)
+        self.assertIn("requestOfflineHelp", self.domain)
+        self.assertIn('code: "M19-CATALOG-409"', self.domain)
+        self.assertIn('code: "M19-QUERY-400"', self.domain)
+        self.assertIn("requestOfflineHelp({", self.center)
+        self.assertIn('query, category, limit: 50', self.center)
+        self.assertIn('role="alert" className="help-search-error"', self.center)
+
 
     def test_real_node_tests_verify_negative_cases(self):
         for marker in (
