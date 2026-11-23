@@ -11,6 +11,9 @@ EXPECTED = frozenset({
     "modal_named",
     "search_input_named",
     "keyboard_focus_enters_modal_search",
+    "keyboard_query_filters_to_exact_option",
+    "enter_opens_exact_option_help",
+    "modal_reopens_after_help_navigation",
     "escape_dismisses_modal",
 })
 _SHA = re.compile(r"^[0-9a-f]{40}$")
@@ -44,7 +47,7 @@ def verify(proof: dict, source_sha: str) -> dict:
     if not isinstance(results, dict) or set(results) != EXPECTED or any(
         results.get(key) is not True for key in EXPECTED
     ):
-        raise InvalidUIAEvidence("missing native accessible labels, keyboard focus or Escape")
+        raise InvalidUIAEvidence("missing native accessible names, functional keyboard search/Enter navigation or Escape")
     if proof.get("issues") != []:
         raise InvalidUIAEvidence("native accessibility issues remain")
     duration = proof.get("duration_ms")
@@ -54,6 +57,7 @@ def verify(proof: dict, source_sha: str) -> dict:
         "status": "SCOPED_NATIVE_UIA_PASS",
         "source_commit_sha": source_sha,
         "native_aria_checks": len(EXPECTED),
+        "native_keyboard_journey_verified": True,
         "full_screen_reader_verified": False,
         "final_screenshot_manifest_verified": False,
     }

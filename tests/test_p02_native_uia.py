@@ -30,7 +30,8 @@ def good():
 class NativeUIAContracts(unittest.TestCase):
     def test_scoped_pass_never_becomes_full_screen_reader_signoff(self):
         outcome = verify(good(), SHA)
-        self.assertEqual(6, outcome["native_aria_checks"])
+        self.assertEqual(9, outcome["native_aria_checks"])
+        self.assertTrue(outcome["native_keyboard_journey_verified"])
         self.assertFalse(outcome["full_screen_reader_verified"])
 
     def test_untrusted_native_pid_is_rejected(self):
@@ -44,7 +45,7 @@ class NativeUIAContracts(unittest.TestCase):
             with self.subTest(key=key):
                 proof = good()
                 proof["results"][key] = False
-                with self.assertRaisesRegex(InvalidUIAEvidence, "labels"):
+                with self.assertRaisesRegex(InvalidUIAEvidence, "accessible names"):
                     verify(proof, SHA)
 
     def test_screen_reader_certificate_cannot_be_forged(self):
@@ -85,6 +86,18 @@ class NativeUIAContracts(unittest.TestCase):
         for forbidden in ("Invoke-WebRequest", "http://", "https://", "curl ",
                           "localStorage", "sessionStorage", "Get-Clipboard"):
             self.assertNotIn(forbidden, script)
+
+    def test_real_webview2_focus_probe_requires_actual_input_value_and_navigation(self):
+        script = (ROOT / "scripts/probe_p02_native_a11y.ps1").read_text(encoding="utf-8")
+        for snippet in ("Read-NativeTextInputValue", "ValuePattern",
+                        "M19-OPT-06", "keyboard_query_filters_to_exact_option",
+                        "enter_opens_exact_option_help", "modal_reopens_after_help_navigation",
+                        "Wiki mapping and link checker", "aria_active_descendant_list_item",
+                        "Search available commands and offline Help"):
+            self.assertIn(snippet, script)
+        self.assertIn("$typedInExactInput = $confirmedValue -ceq $probeValue", script)
+        self.assertIn("$paletteGone -and $null -ne $optionHeading", script)
+        self.assertNotIn("$searchFocused = $true", script)
 
     def test_workflow_pins_native_probe_to_live_tauri_boot_and_artifact(self):
         flow = (ROOT / ".github/workflows/p01-desktop.yml").read_text(encoding="utf-8")

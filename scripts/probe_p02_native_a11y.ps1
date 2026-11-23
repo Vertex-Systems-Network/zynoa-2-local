@@ -58,6 +58,36 @@ function Wait-NativeName {
   }
   return $null
 }
+function Read-NativeTextInputValue {
+  param([Parameter(Mandatory=$true)]$Control)
+  # WebView2 may report the active ARIA list option as FocusedElement even
+  # while the HTML combobox itself is receiving keystrokes. Read the *input*
+  # provider's actual ValuePattern: focus labels alone cannot pass this probe.
+  try {
+    $valuePattern = $Control.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+    if ($null -ne $valuePattern) {
+      return [string]$valuePattern.Current.Value
+    }
+  } catch [System.InvalidOperationException] {
+    return $null
+  } catch [System.Windows.Automation.ElementNotAvailableException] {
+    return $null
+  }
+  return $null
+}
+function Find-NativeVisibleNameFragment {
+  param([Parameter(Mandatory=$true)][string]$Fragment)
+  $all = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants,
+                       [System.Windows.Automation.Condition]::TrueCondition)
+  for ($index=0; $index -lt $all.Count; $index++) {
+    try {
+      $element = $all.Item($index)
+      if ($element.Current.IsOffscreen) { continue }
+      if ($element.Current.Name.Contains($Fragment)) { return $element }
+    } catch [System.Windows.Automation.ElementNotAvailableException] {}
+  }
+  return $null
+}
 $results = [ordered]@{}
 $diagnostics = [ordered]@{}
 $issues = [System.Collections.Generic.List[string]]::new()
@@ -96,45 +126,86 @@ try {
   if (-not $results['modal_named']) { $issues.Add('Command palette modal missing accessible name') }
   if (-not $results['search_input_named']) { $issues.Add('Search input missing accessible name/focusability') }
 
-  $searchFocused = $false
-  $focusMethod = 'unverified'
-  $observedFocusKind = 'none'
-  for ($attempt = 0; $attempt -lt 16; $attempt++) {
-    try {
-      if ($null -ne $searchControl -and $searchControl.Current.HasKeyboardFocus) {
-        $searchFocused = $true
-        $focusMethod = 'native_control_has_keyboard_focus'
-        break
+  # Probe real keyboard INPUT, not merely UIA's current aria-activedescendant:
+  # the latter can legitimately be a ListItem with OS-reported keyboard focus.
+  $focusObservation = 'none'
+  try {
+    $focused = [System.Windows.Automation.AutomationElement]::FocusedElement
+    if ($null -ne $focused) {
+      if ($focused.Current.ControlType -eq [System.Windows.Automation.ControlType]::ListItem) {
+        $focusObservation = 'aria_active_descendant_list_item'
+      } elseif ($focused.Current.Name -eq 'Search available commands and offline Help') {
+        $focusObservation = 'named_search_input'
+      } else {
+        $focusObservation = 'other_provider_element'
       }
-      $focused = [System.Windows.Automation.AutomationElement]::FocusedElement
-      if ($null -ne $focused) {
-        if ($focused.Current.Name -eq 'Search available commands and offline Help') {
-          $searchFocused = $true
-          $focusMethod = 'focused_element_exact_accessible_name'
-          break
-        } elseif ($focused.Current.Name -eq 'Command palette') {
-          $observedFocusKind = 'dialog'
-        } elseif ($focused.Current.ControlType -eq [System.Windows.Automation.ControlType]::ListItem) {
-          $observedFocusKind = 'aria_active_descendant_list_item'
-        } elseif ($focused.Current.ControlType -eq [System.Windows.Automation.ControlType]::Edit) {
-          $observedFocusKind = 'other_edit_control'
-        } elseif ($focused.Current.Name -ne '') {
-          $observedFocusKind = 'other_named_element'
-        } else {
-          $observedFocusKind = 'unnamed_element'
-        }
-      }
-    } catch [System.Windows.Automation.ElementNotAvailableException] {}
+    }
+  } catch [System.Windows.Automation.ElementNotAvailableException] {}
+
+  $probeValue = 'M19-OPT-06'  # fixed allowlisted local ID, not private user input
+  [System.Windows.Forms.SendKeys]::SendWait($probeValue)
+  $confirmedValue = $null
+  for ($attempt = 0; $attempt -lt 20; $attempt++) {
+    if ($null -ne $searchControl) {
+      $confirmedValue = Read-NativeTextInputValue -Control $searchControl
+    }
+    if ($confirmedValue -ceq $probeValue) { break }
     Start-Sleep -Milliseconds 250
   }
+  $typedInExactInput = $confirmedValue -ceq $probeValue
   $diagnostics['search_focus'] = [ordered]@{
-    method = $focusMethod
-    last_focus_kind = $observedFocusKind
+    provider_focus_kind = $focusObservation
+    method = 'real_keyboard_text_and_input_ValuePattern'
+    exact_local_probe_id = $probeValue
+    query_reflected_by_input_provider = $typedInExactInput
   }
-  $results['keyboard_focus_enters_modal_search'] = $searchFocused
-  if (-not $searchFocused) { $issues.Add('Native keyboard focus did not reach command search') }
+  $results['keyboard_focus_enters_modal_search'] = [bool]$typedInExactInput
+  if (-not $typedInExactInput) {
+    $issues.Add('Keyboard text did not reach the actual named command search input')
+  }
 
-  [System.Windows.Forms.SendKeys]::SendWait('{ESC}')
+  $optionVisible = $false
+  if ($typedInExactInput) {
+    for ($attempt = 0; $attempt -lt 20; $attempt++) {
+      $optionVisible = $null -ne (Find-NativeVisibleNameFragment -Fragment 'Wiki mapping and link checker')
+      if ($optionVisible) { break }
+      Start-Sleep -Milliseconds 250
+    }
+  }
+  $results['keyboard_query_filters_to_exact_option'] = [bool]$optionVisible
+  if (-not $optionVisible) {
+    $issues.Add('Typed option ID did not expose matching local Help result')
+  }
+
+  $detailVisible = $false
+  if ($optionVisible) {
+    [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+    for ($attempt = 0; $attempt -lt 24; $attempt++) {
+      $paletteGone = $null -eq (Find-NativeName -Label 'Command palette')
+      $optionHeading = Find-NativeVisibleNameFragment -Fragment 'Wiki mapping and link checker'
+      if ($paletteGone -and $null -ne $optionHeading) {
+        $detailVisible = $true
+        break
+      }
+      Start-Sleep -Milliseconds 250
+    }
+  }
+  $results['enter_opens_exact_option_help'] = [bool]$detailVisible
+  if (-not $detailVisible) {
+    $issues.Add('Enter did not open the exact bundled Help option detail')
+  }
+
+  # A separate reopened dialog must still dismiss with Escape; this tests the
+  # modal on its return path after navigation, not only on initial appearance.
+  [System.Windows.Forms.SendKeys]::SendWait('^+p')
+  $reopened = $null -ne (Wait-NativeName -Label 'Command palette')
+  $results['modal_reopens_after_help_navigation'] = [bool]$reopened
+  if (-not $reopened) {
+    $issues.Add('Command modal did not reopen after keyboard Help navigation')
+  }
+  if ($reopened) {
+    [System.Windows.Forms.SendKeys]::SendWait('{ESC}')
+  }
   $modalDismissed = $false
   for ($attempt = 0; $attempt -lt 16; $attempt++) {
     if ($null -eq (Find-NativeName -Label 'Search available commands and offline Help')) {
@@ -144,7 +215,7 @@ try {
     Start-Sleep -Milliseconds 250
   }
   $results['escape_dismisses_modal'] = $modalDismissed
-  if (-not $modalDismissed) { $issues.Add('Escape did not close native command dialog') }
+  if (-not $modalDismissed) { $issues.Add('Escape did not close reopened native command dialog') }
 } finally {
   # Restore the default Overview navigation before the existing screenshot suite.
   [System.Windows.Forms.SendKeys]::SendWait('{ESC}')
