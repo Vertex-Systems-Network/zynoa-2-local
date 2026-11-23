@@ -2,6 +2,9 @@
 
 ## CURRENT (read this first; history below is archive)
 
+- **P02 M02 complete T05/T06 source development batch (2026-11-23):** Built OS-linked theme/reduced-motion feedback, reversible session defaults, five-state interactive Component Gallery, resettable Workbench split; added Node and Python regression tests, M02 Help/Wiki updates and fail-closed native test and npm gates. T05/T06 IN_PROGRESS until exact-source real Windows a11y/screenshot evidence. No preference storage, network calls, release, merge or P03.
+
+
 - **P02 M02 modal keyboard isolation (2026-11-22T23:17:02.582Z):** On real primary PR #12, Command Palette now guards background F1/Ctrl+1..6 while open, marks sidebar/main inert and coordinates opener/destination focus return. Python source contracts added. Actual native Windows keyboard/a11y state capture remains pending; do not accept T04/T10 yet. Source SHA and CI proof must be checked after commit.
 
 - **P02 M19 reader consistency regression (2026-11-22T23:14:31.586Z):** Actual source on primary PR #12 now selects only within filtered offline help results, clears conflicting filters for related/contextual navigation, renders a proper empty reader on zero hits, tests the behavior in Node and source contracts and fixes M02 Wiki anchor. Verification on real Windows runner and full documentation/screenshots remains pending; no T08/T09 DONE or P03/merge claim.

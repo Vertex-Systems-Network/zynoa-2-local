@@ -65,7 +65,7 @@
   "breaking_change": false,
   "migration_notes": "No native user-storage schema change or migrated data. UI session state only; offline help bundled from curated static source.",
   "created_at": "2026-11-22T20:49:36.088Z",
-  "updated_at": "2026-11-23T12:59:18.731Z",
+  "updated_at": "2026-11-23T13:14:24.044Z",
   "version_bump": "none",
   "affected_option_ids": [
     "M02-OPT-01",
@@ -73,7 +73,9 @@
     "M02-OPT-05",
     "M02-OPT-06",
     "M02-OPT-07",
-    "M02-OPT-08"
+    "M02-OPT-08",
+    "M02-OPT-03",
+    "M02-OPT-04"
   ],
   "docs_impact": true,
   "data_migration": false

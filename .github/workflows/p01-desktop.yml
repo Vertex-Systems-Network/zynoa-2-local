@@ -27,7 +27,7 @@ jobs:
           git fetch --no-tags --depth=1 origin "$BASE_SHA"
           changed="$(git diff --name-only FETCH_HEAD HEAD)"
           test -n "$changed" || { echo "::error::Unexpected empty PR diff"; exit 1; }
-          if printf '%s\n' "$changed" | grep -qE '^(scripts/capture_p01_desktop\.ps1|apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|tests/test_p01_locations.py|tests/test_p01_events.py|tests/test_p01_screenshot_capture.py|tests/test_p02_ui_contract.py|tests/test_p02_t03_navigation.py|tests/test_p02_m19_workflows.py|tests/test_p02_native_evidence.py|tests/test_p02_help_evidence.py|tests/test_p02_t02_acceptance.py|tools/verify_p02_native_evidence.py|tools/verify_p02_t02_acceptance.py|docs/screenshots/MANIFEST.json|docs/modules/M02.md|docs/evidence/P02_T03_ACCEPTANCE.md|docs/help/articles/M02.md|docs/help/articles/M19.md|docs/wiki/pages/M02.md|docs/wiki/pages/M19.md|docs/modules/M19.md|\.github/workflows/p01-desktop.yml)'; then
+          if printf '%s\n' "$changed" | grep -qE '^(scripts/capture_p01_desktop\.ps1|apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|tests/test_p01_locations.py|tests/test_p01_events.py|tests/test_p01_screenshot_capture.py|tests/test_p02_ui_contract.py|tests/test_p02_t03_navigation.py|tests/test_p02_m19_workflows.py|tests/test_p02_m02_controls.py|tests/test_p02_native_evidence.py|tests/test_p02_help_evidence.py|tests/test_p02_t02_acceptance.py|tools/verify_p02_native_evidence.py|tools/verify_p02_t02_acceptance.py|docs/screenshots/MANIFEST.json|docs/modules/M02.md|docs/evidence/P02_T03_ACCEPTANCE.md|docs/help/articles/M02.md|docs/help/articles/M19.md|docs/wiki/pages/M02.md|docs/wiki/pages/M19.md|docs/modules/M19.md|\.github/workflows/p01-desktop.yml)'; then
             echo "desktop=true" >> "$GITHUB_OUTPUT"
           else
             echo "desktop=false" >> "$GITHUB_OUTPUT"
@@ -46,6 +46,9 @@ jobs:
         with: { node-version: '22' }
       - name: Desktop shell and IPC safety contracts
         run: python -m unittest tests.test_p01_desktop_shell tests.test_p01_ipc_contract tests.test_p01_native_security tests.test_p01_diagnostics tests.test_p01_vault tests.test_p01_locations tests.test_p01_events tests.test_p01_screenshot_capture -v
+      - name: P02 M02 comprehensive session preferences and state contracts
+        if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
+        run: python -m unittest tests.test_p02_m02_controls -v
       - name: P02 keyboard focus and accessibility contracts
         if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
         run: python -m unittest tests.test_p02_ui_contract -v
@@ -66,7 +69,9 @@ jobs:
         shell: pwsh
         run: |
           python -m unittest tests.test_p02_t02_acceptance -v
+          if ($LASTEXITCODE -ne 0) { throw "P02-T02 Python acceptance tests failed" }
           python -m tools.verify_p02_t02_acceptance --report docs/screenshots/_ci/M02/P02-T02-12-readiness.json
+          if ($LASTEXITCODE -ne 0) { throw "P02-T02 native evidence audit failed" }
       - name: Parse screenshot capture script (fail fast)
         shell: pwsh
         run: |
@@ -77,11 +82,12 @@ jobs:
           if ($parseErrors.Count -gt 0) {
             throw ('ZYN-SCREEN-PARSE: ' + ($parseErrors | ForEach-Object { $_.Message } | Out-String))
           }
-      - name: Resolve pinned dependency inventory and install
+      - name: Resolve pinned dependency inventory
         working-directory: apps/desktop
-        run: |
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-          npm ci --no-audit --no-fund
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Install verified lockfile dependencies
+        working-directory: apps/desktop
+        run: npm ci --no-audit --no-fund
       - name: Frontend TypeScript check
         working-directory: apps/desktop
         run: npm run check
