@@ -1,0 +1,147 @@
+"""P02 fail-closed Windows native PNG provenance contracts.
+
+Generated test PNGs here are synthetic fixtures ONLY for gate unit tests; never
+present them as native screenshots, publish them, or use them for visual review.
+"""
+import hashlib
+import json
+from pathlib import Path
+import struct
+import tempfile
+import unittest
+import zlib
+
+from tools.verify_p02_native_evidence import (
+    InvalidNativeEvidence, SCREEN_IDS, ORIGIN, STATUS, validate_candidate, verify,
+)
+
+SOURCE_SHA = "a" * 40
+
+
+def fixture_png(width: int, height: int, marker: int) -> bytes:
+    def chunk(tag: bytes, payload: bytes) -> bytes:
+        return (struct.pack(">I", len(payload)) + tag + payload +
+                struct.pack(">I", zlib.crc32(tag + payload) & 0xffffffff))
+    scanline = b"\x00" + bytes((marker, marker, marker, 255)) * width
+    return (b"\x89PNG\r\n\x1a\n" +
+            chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0)) +
+            chunk(b"IDAT", zlib.compress(scanline * height)) +
+            chunk(b"IEND", b""))
+
+
+class P02NativeEvidenceGateTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.receipts = {}
+        for index, screen_id in enumerate(SCREEN_IDS):
+            folder = self.root / ("M19" if screen_id.startswith("M19-") else "M02")
+            folder.mkdir(parents=True, exist_ok=True)
+            narrow = screen_id.startswith("P02-T02-07")
+            width, height = (898, 653) if narrow else (998, 701)
+            png = fixture_png(width, height, index + 1)
+            (folder / f"{screen_id}.png").write_bytes(png)
+            meta = {
+                "screenshot_id": screen_id,
+                "source_commit_sha": SOURCE_SHA,
+                "built_commit_sha": SOURCE_SHA,
+                "source": ORIGIN,
+                "capture_status": STATUS,
+                "capture_verified": False,
+                "window_width": width,
+                "window_height": height,
+                "window_fully_visible": True,
+                "frame_bounds_source": "DwmGetWindowAttribute DWMWA_EXTENDED_FRAME_BOUNDS (9)",
+                "sha256": hashlib.sha256(png).hexdigest(),
+                "alt_text": "Synthetic unit-test geometry for independent verifier gates only",
+                "privacy": "Disposable CI fixture with no user content or secrets",
+            }
+            self.receipts[screen_id] = folder / f"{screen_id}.capture.json"
+            self._write(screen_id, meta)
+
+    def _write(self, screen_id, meta):
+        self.receipts[screen_id].write_text(json.dumps(meta), encoding="utf-8")
+
+    def _mutate(self, screen_id, key, value):
+        meta = json.loads(self.receipts[screen_id].read_text(encoding="utf-8"))
+        meta[key] = value
+        self._write(screen_id, meta)
+
+    def test_all_machine_candidates_validate_but_do_not_self_approve(self):
+        result = verify(self.root, SOURCE_SHA)
+        self.assertEqual("MACHINE_METADATA_HASH_VALIDATED_ONLY", result["status"])
+        self.assertEqual(9, len(result["screens"]))
+        self.assertFalse(result["independent_visual_review"])
+        self.assertFalse(result["manifest_completed"])
+
+    def test_malformed_sha_rejected(self):
+        with self.assertRaisesRegex(InvalidNativeEvidence, "invalid PR source SHA"):
+            verify(self.root, "not-a-source-sha")
+
+    def test_mismatched_build_sha_rejected(self):
+        self._mutate("M02-S03", "built_commit_sha", "b" * 40)
+        with self.assertRaisesRegex(InvalidNativeEvidence, "wrong build SHA"):
+            verify(self.root, SOURCE_SHA)
+
+    def test_mismatched_source_sha_rejected(self):
+        self._mutate("M02-S05", "source_commit_sha", "b" * 40)
+        with self.assertRaisesRegex(InvalidNativeEvidence, "wrong source SHA"):
+            verify(self.root, SOURCE_SHA)
+
+    def test_png_hash_change_rejected(self):
+        png = self.root / "M02" / "M02-S05.png"
+        png.write_bytes(png.read_bytes() + b"untrusted trailing bytes")
+        with self.assertRaisesRegex(InvalidNativeEvidence, "PNG hash mismatch"):
+            verify(self.root, SOURCE_SHA)
+
+    def test_png_metadata_geometry_mismatch_rejected(self):
+        self._mutate("P02-T02-07", "window_width", 998)
+        with self.assertRaisesRegex(InvalidNativeEvidence, "geometry does not match"):
+            verify(self.root, SOURCE_SHA)
+
+    def test_never_accept_machine_claim_of_visual_approval(self):
+        self._mutate("M02-OPT-07", "capture_verified", True)
+        with self.assertRaisesRegex(InvalidNativeEvidence, "cannot self-approve"):
+            verify(self.root, SOURCE_SHA)
+
+    def test_missing_screenshot_or_receipt_rejected(self):
+        (self.root / "M02" / "M02-S06.png").unlink()
+        with self.assertRaisesRegex(InvalidNativeEvidence, "missing PNG/capture pair"):
+            verify(self.root, SOURCE_SHA)
+
+    def test_falsely_narrow_native_frame_rejected(self):
+        name = "P02-T02-07"
+        png = fixture_png(998, 653, 8)
+        (self.root / "M02" / f"{name}.png").write_bytes(png)
+        self._mutate(name, "window_width", 998)
+        self._mutate(name, "sha256", hashlib.sha256(png).hexdigest())
+        with self.assertRaisesRegex(InvalidNativeEvidence, "did not become narrower"):
+            verify(self.root, SOURCE_SHA)
+
+    def test_same_narrow_screenshot_rejected_as_fake_scroll(self):
+        first = self.root / "M02" / "P02-T02-07.png"
+        second_name = "P02-T02-07-continued"
+        last = self.root / "M02" / f"{second_name}.png"
+        last.write_bytes(first.read_bytes())
+        self._mutate(second_name, "sha256", hashlib.sha256(first.read_bytes()).hexdigest())
+        with self.assertRaisesRegex(InvalidNativeEvidence, "did not change view pixels"):
+            verify(self.root, SOURCE_SHA)
+
+    def test_wrong_origin_or_missing_alt_text_rejected(self):
+        self._mutate("M19-S01", "source", "mock browser screenshot")
+        with self.assertRaisesRegex(InvalidNativeEvidence, "wrong native capture origin"):
+            verify(self.root, SOURCE_SHA)
+        self._mutate("M19-S01", "source", ORIGIN)
+        self._mutate("M19-S01", "alt_text", "none")
+        with self.assertRaisesRegex(InvalidNativeEvidence, "meaningful alt text missing"):
+            verify(self.root, SOURCE_SHA)
+
+    def test_invisible_native_window_rejected(self):
+        self._mutate("M02-S04", "window_fully_visible", False)
+        with self.assertRaisesRegex(InvalidNativeEvidence, "not fully in desktop"):
+            validate_candidate(self.root, "M02-S04", SOURCE_SHA)
+
+
+if __name__ == "__main__":
+    unittest.main()
