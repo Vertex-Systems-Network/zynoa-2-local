@@ -156,15 +156,37 @@ function Save-NativeFollowup {
             $viewGraphics.CopyFromScreen($bounds.Left, $bounds.Top, 0, 0,
                 [System.Drawing.Size]::new($width, $height))
         } finally { $viewGraphics.Dispose() }
+        # WebView2 can expose a still-visible native HWND before its next view
+        # has painted. Retry only transient compositor blanks, never approve one.
         $colors = [System.Collections.Generic.HashSet[int]]::new()
-        for ($x = 0; $x -lt 12; $x++) {
-            for ($y = 0; $y -lt 10; $y++) {
-                $px = [int][Math]::Min($width - 1, [Math]::Floor(($x + 0.5) * $width / 12))
-                $py = [int][Math]::Min($height - 1, [Math]::Floor(($y + 0.5) * $height / 10))
-                [void]$colors.Add($viewBitmap.GetPixel($px, $py).ToArgb())
+        for ($attempt = 1; $attempt -le 3; $attempt++) {
+            if ($attempt -gt 1) {
+                Start-Sleep -Milliseconds 800
+                $refreshGraphics = [System.Drawing.Graphics]::FromImage($viewBitmap)
+                try {
+                    $refreshGraphics.CopyFromScreen($bounds.Left, $bounds.Top, 0, 0,
+                        [System.Drawing.Size]::new($width, $height))
+                } finally { $refreshGraphics.Dispose() }
             }
+            $colors.Clear()
+            for ($x = 0; $x -lt 12; $x++) {
+                for ($y = 0; $y -lt 10; $y++) {
+                    $px = [int][Math]::Min($width - 1, [Math]::Floor(($x + 0.5) * $width / 12))
+                    $py = [int][Math]::Min($height - 1, [Math]::Floor(($y + 0.5) * $height / 10))
+                    [void]$colors.Add($viewBitmap.GetPixel($px, $py).ToArgb())
+                }
+            }
+            if ($colors.Count -ge 6) { break }
+            Write-Warning ('ZYN-SCREEN-017: blank candidate ' + $ScreenshotId +
+                ' during bounded frame read attempt ' + $attempt + '/3')
         }
-        if ($colors.Count -lt 6) { throw 'ZYN-SCREEN-017: blank native follow-up frame' }
+        if ($colors.Count -lt 6) {
+            # Diagnostic-only frame is neither candidate evidence nor VERIFIED.
+            New-Item -ItemType Directory -Force -Path $OutputDirectory | Out-Null
+            $debugFrame = Join-Path $OutputDirectory ('DEBUG-' + $ScreenshotId + '.png')
+            $viewBitmap.Save($debugFrame, [System.Drawing.Imaging.ImageFormat]::Png)
+            throw 'ZYN-SCREEN-017: blank native follow-up frame'
+        }
         $out = Join-Path $OutputDirectory ($ScreenshotId + '.png')
         if (Test-Path -LiteralPath $out) { throw 'ZYN-SCREEN-018: refuse replacing native evidence' }
         $viewBitmap.Save($out, [System.Drawing.Imaging.ImageFormat]::Png)
