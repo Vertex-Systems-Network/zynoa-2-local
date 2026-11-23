@@ -1,4 +1,5 @@
 """P02-T10 final screenshot readiness tests. Synthetic metadata is NEVER visual proof."""
+import hashlib
 import json
 from pathlib import Path
 import tempfile
@@ -53,6 +54,46 @@ class P02T10ReadinessTests(unittest.TestCase):
         payload = json.loads(path.read_text(encoding="utf-8"))
         fn(payload)
         self._write(path, payload)
+
+    def _attach_committed_native_fixture(self):
+        data = b"\x89PNG\r\n\x1a\n" + b"synthetic-test-bytes-not-visual-proof"
+        path = self.root / "docs/screenshots/M02/M02-S01.png"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+        git_blob = f"blob {len(data)}\0".encode("ascii") + data
+        def attach(payload):
+            row = next(x for x in payload["required"] if x["asset_id"] == "M02-S01")
+            row["source_capture_sha256"] = hashlib.sha256(data).hexdigest()
+            row["source_git_blob_sha"] = hashlib.sha1(git_blob).hexdigest()
+            row["source"] = "WINDOWS_TAURI_CI_RUN_fixture"
+        self._mutate(self.manifest, attach)
+        return path
+
+    def test_committed_native_bytes_validated_without_forged_approval(self):
+        self._attach_committed_native_fixture()
+        result = audit(self.root, SHA)
+        self.assertEqual("NOT_READY", result["status"])
+        self.assertEqual(0, result["final_manifest_verified"])
+
+    def test_committed_native_bytes_tampering_fails_closed(self):
+        path = self._attach_committed_native_fixture()
+        path.write_bytes(path.read_bytes() + b"tampered")
+        with self.assertRaisesRegex(InvalidT10Readiness, "committed PNG SHA-256 mismatch"):
+            audit(self.root, SHA)
+
+    def test_committed_native_origin_metadata_required(self):
+        path = self.root / "docs/screenshots/M02/M02-S01.png"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"\x89PNG\r\n\x1a\n" + b"unproven")
+        with self.assertRaisesRegex(InvalidT10Readiness, "committed source SHA-256 absent"):
+            audit(self.root, SHA)
+
+    def test_committed_native_git_blob_identity_required(self):
+        self._attach_committed_native_fixture()
+        self._mutate(self.manifest, lambda x: next(row for row in x["required"]
+            if row["asset_id"] == "M02-S01").update(source_git_blob_sha="a" * 40))
+        with self.assertRaisesRegex(InvalidT10Readiness, "committed Git blob SHA mismatch"):
+            audit(self.root, SHA)
 
     def test_all_candidates_are_present_but_never_final_approved(self):
         result = audit(self.root, SHA)

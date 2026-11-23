@@ -6,6 +6,7 @@ Candidate screenshots from a native Windows run never imply completion of the
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -53,9 +54,29 @@ def audit(root: Path, source_sha: str) -> dict:
         _need(row.get("path") == expected_path, asset + ": unexpected final screenshot path")
         _need(row.get("status") in ("PENDING", "VERIFIED"),
               asset + ": invalid screenshot status")
+        screenshot = root / expected_path
         if row["status"] == "VERIFIED":
-            _need((root / expected_path).is_file(),
+            _need(screenshot.is_file(),
                   asset + ": verified claim has no committed final PNG")
+        # New committed originals remain PENDING until independent approval,
+        # but their binary/source integrity is mandatory from the first commit.
+        if screenshot.is_file():
+            source_hash = row.get("source_capture_sha256")
+            blob_hash = row.get("source_git_blob_sha")
+            _need(isinstance(source_hash, str) and
+                  bool(re.fullmatch(r"[a-f0-9]{64}", source_hash)),
+                  asset + ": committed source SHA-256 absent")
+            _need(isinstance(blob_hash, str) and
+                  bool(_SHA.fullmatch(blob_hash)),
+                  asset + ": committed Git blob SHA absent")
+            png = screenshot.read_bytes()
+            _need(png.startswith(b"\x89PNG\r\n\x1a\n"),
+                  asset + ": committed screenshot is not a PNG")
+            _need(hashlib.sha256(png).hexdigest() == source_hash,
+                  asset + ": committed PNG SHA-256 mismatch")
+            git_data = f"blob {len(png)}\0".encode("ascii") + png
+            _need(hashlib.sha1(git_data).hexdigest() == blob_hash,
+                  asset + ": committed Git blob SHA mismatch")
     machine = _load(root / "docs/screenshots/_ci/M02/P02-native-machine-review.json")
     _need(machine.get("source_commit_sha") == source_sha,
           "machine review source SHA differs from exact desktop build")
