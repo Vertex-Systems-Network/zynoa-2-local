@@ -302,5 +302,34 @@ class P02UIContractTests(unittest.TestCase):
         self.assertIn("docs/screenshots/_ci/M02/*.png", wf)
 
 
+    def test_compact_properties_preview_is_real_and_accessible(self):
+        """M02-OPT-03: toggle controls real local property row density, not persistent data."""
+        wb = (APP / "src/ui/Workbench.tsx").read_text(encoding="utf-8")
+        css = (APP / "src/styles.css").read_text(encoding="utf-8")
+        for snippet in (
+            'const [compactProperties, setCompactProperties] = useState(false);',
+            'aria-pressed={compactProperties}',
+            'aria-controls="workbench-properties-preview"',
+            'onClick={() => setCompactProperties(current => !current)}',
+            'data-properties-density={compactProperties ? "compact" : "comfortable"}',
+            'id="workbench-properties-preview"',
+            'aria-label="Illustrative properties rows"',
+            'Compact property spacing enabled for this preview.',
+            'Comfortable property spacing enabled for this preview.',
+            'No real project properties are loaded.',
+        ):
+            self.assertIn(snippet, wb, snippet)
+        for rule in (
+            '.shell .properties-heading .subtle-action[aria-pressed="true"]',
+            '.shell .properties-preview[data-properties-density="compact"] .property-preview-row',
+            '@media (max-width:950px)',
+        ):
+            self.assertIn(rule, css)
+        self.assertNotIn("localStorage", wb)
+        self.assertNotIn("sessionStorage", wb)
+        self.assertNotIn("fetch(", wb)
+
+
+
 if __name__ == "__main__":
     unittest.main()
