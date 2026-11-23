@@ -21,8 +21,8 @@
     {
       "id": "P02-T03",
       "title": "M02 adaptive navigation, workspace shell and structured pane layout",
-      "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45171909447"
     },
     {
       "id": "P02-T04",
