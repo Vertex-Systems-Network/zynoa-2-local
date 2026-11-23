@@ -4,7 +4,7 @@ import { effectiveTheme, isTheme, isDensity, themeOptions, densityOptions, uiOpt
 import { appCommands, findCommands, shortcutView } from "../.ui-tests/commands.js";
 import { defaultShortcuts, isShortcutKey, remapShortcut, shortcutForView, shortcutKeys, viewForShortcut } from "../.ui-tests/shortcut-map.js";
 import { findHelpArticle, helpArticles, resolveVisibleHelpArticle, searchHelp, helpOptionIds } from "../.ui-tests/help-catalog.js";
-import { offlineHelpContract, wizardIssues, getWizardIssue, getWizardStep, nextWizardStep, helpFaq, helpGlossary, wikiSourceMappings, helpRoute, resolveHelpRoute, validateOfflineHelpCatalog, localBrokenArticleReport } from "../.ui-tests/help-workflows.js";
+import { offlineHelpContract, requestOfflineHelp, wizardIssues, getWizardIssue, getWizardStep, nextWizardStep, helpFaq, helpGlossary, wikiSourceMappings, helpRoute, resolveHelpRoute, validateOfflineHelpCatalog, localBrokenArticleReport } from "../.ui-tests/help-workflows.js";
 
 test("theme defaults follow operating system and never coerce unknown values", () => {
   assert.equal(effectiveTheme("system", true), "dark");
@@ -197,4 +197,37 @@ test("M19 search resolves all new functional guides completely offline", () => {
   ]) assert.ok(searchHelp(query).some(x => x.id === id), query);
   assert.equal(searchHelp("M19-OPT-07")[0].id, "report-guide");
   assert.equal(searchHelp("M19-OPT-06")[0].id, "wiki-mapping");
+});
+
+
+test("M19 versioned local search rejects stale, malformed and oversized requests", () => {
+  const request = {
+    schema_version: 1, catalog_version: offlineHelpContract.catalog_version,
+    query: "  WiKi  ", category: "All", limit: 3,
+  };
+  const response = requestOfflineHelp(request);
+  assert.equal(response.ok, true);
+  assert.equal(response.schema_version, 1);
+  assert.equal(response.catalog_version, offlineHelpContract.catalog_version);
+  assert.ok(response.matches.length <= 3);
+  assert.ok(response.total >= response.matches.length);
+  assert.ok(response.matches.some(item => item.id === "wiki-mapping"));
+  for (const [invalid, code] of [
+    [null, "M19-SCHEMA-001"],
+    [[], "M19-SCHEMA-001"],
+    [{ ...request, schema_version: 2 }, "M19-SCHEMA-001"],
+    [{ ...request, catalog_version: "stale" }, "M19-CATALOG-409"],
+    [{ ...request, query: "x".repeat(121) }, "M19-QUERY-400"],
+    [{ ...request, category: "Untrusted" }, "M19-QUERY-400"],
+    [{ ...request, limit: 0 }, "M19-QUERY-400"],
+    [{ ...request, limit: 100 }, "M19-QUERY-400"],
+    [{ ...request, limit: NaN }, "M19-QUERY-400"],
+    [{ ...request, query: {} }, "M19-QUERY-400"],
+  ]) {
+    const failure = requestOfflineHelp(invalid);
+    assert.equal(failure.ok, false);
+    assert.equal(failure.code, code);
+  }
+  assert.deepEqual(requestOfflineHelp({ ...request, category: "Troubleshooting", limit: 50 }).matches
+    .every(article => article.category === "Troubleshooting"), true);
 });
