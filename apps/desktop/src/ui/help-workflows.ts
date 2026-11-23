@@ -1,5 +1,5 @@
 /** M19 offline workflows. This module has no network, filesystem or analytics access. */
-import { findHelpArticle, helpArticles, helpOptionIds } from "./help-catalog.js";
+import { findHelpArticle, helpArticles, helpOptionIds, searchHelp, type HelpArticle, type HelpCategory } from "./help-catalog.js";
 
 export const offlineHelpContract = Object.freeze({
   schema_version: 1,
@@ -9,6 +9,40 @@ export const offlineHelpContract = Object.freeze({
   article_count: helpArticles.length,
   m19_option_count: helpOptionIds.length,
 });
+
+/** Typed, bounded and version-pinned local search contract; no network fallback. */
+export type OfflineHelpSearchRequest = Readonly<{
+  schema_version: number;
+  catalog_version: string;
+  query: string;
+  category: HelpCategory | "All";
+  limit: number;
+}>;
+export type OfflineHelpSearchResult =
+  | Readonly<{ ok: true; schema_version: 1; catalog_version: string;
+      total: number; matches: readonly HelpArticle[] }>
+  | Readonly<{ ok: false; code: "M19-SCHEMA-001" | "M19-CATALOG-409" | "M19-QUERY-400";
+      message: string }>;
+
+export function requestOfflineHelp(request: unknown): OfflineHelpSearchResult {
+  if (!request || typeof request !== "object" || Array.isArray(request))
+    return { ok: false, code: "M19-SCHEMA-001", message: "Invalid local search request." };
+  const value = request as Partial<OfflineHelpSearchRequest>;
+  if (value.schema_version !== offlineHelpContract.schema_version)
+    return { ok: false, code: "M19-SCHEMA-001", message: "Unsupported Help search schema." };
+  if (value.catalog_version !== offlineHelpContract.catalog_version)
+    return { ok: false, code: "M19-CATALOG-409", message: "The Help catalog version has changed." };
+  const categories = ["All", "Get started", "Interface", "Privacy", "Troubleshooting"] as const;
+  if (typeof value.query !== "string" || value.query.length > 120 ||
+      !categories.some(category => category === value.category) ||
+      !Number.isInteger(value.limit) || (value.limit ?? 0) < 1 || (value.limit ?? 0) > 50)
+    return { ok: false, code: "M19-QUERY-400", message: "Invalid query, category or result limit." };
+  const matches = searchHelp(value.query, value.category as HelpCategory | "All");
+  return {
+    ok: true, schema_version: 1, catalog_version: offlineHelpContract.catalog_version,
+    total: matches.length, matches: matches.slice(0, value.limit),
+  };
+}
 
 export type HelpWorkflowMode = "articles" | "troubleshoot" | "faq" | "wiki";
 export type IssueReason = "broken-reference" | "outdated-instructions" | "unreadable-article";
