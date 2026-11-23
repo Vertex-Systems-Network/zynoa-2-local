@@ -3,7 +3,7 @@
   "module_id": "M02",
   "kind": "feature",
   "title": "Native shared UI tokens, workbench, keyboard command palette",
-  "summary": "Source implementation of a session-only accessible M02 desktop GUI, design tokens, gallery, theme/density and command routing. Backend features remain disabled; visual acceptance pending. P02 regression follow-up: closed shortcut allowlist, fail-closed Windows CI stage separation and contrast-safe secondary text tokens (merge and native accessibility still pending). Modal isolation update: inert background, keyboard routing guard, stable focus return to opener or destination. P02-T02.04 addresses hidden focus on keyboard-focusable Workbench tabpanels with a theme-aware outline, adds fail-closed Windows Python a11y contracts and candidate native capture; final visual acceptance remains pending.",
+  "summary": "Source implementation of a session-only accessible M02 desktop GUI, design tokens, gallery, theme/density and command routing. Backend features remain disabled; visual acceptance pending. P02 regression follow-up: closed shortcut allowlist, fail-closed Windows CI stage separation and contrast-safe secondary text tokens (merge and native accessibility still pending). Modal isolation update: inert background, keyboard routing guard, stable focus return to opener or destination. P02-T02.04 addresses hidden focus on keyboard-focusable Workbench tabpanels with a theme-aware outline, adds fail-closed Windows Python a11y contracts and candidate native capture; final visual acceptance remains pending. T02.06/07: accessible gallery pressed/hover/disabled/status examples with independent sample input, responsive 900px-native gallery and bounded split-grid columns; screenshot candidates and native E2E review remain pending.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [
@@ -34,7 +34,7 @@
   "breaking_change": false,
   "migration_notes": "No native user-storage schema change or migrated data. UI session state only; offline help bundled from curated static source.",
   "created_at": "2026-11-22T20:49:36.088Z",
-  "updated_at": "2026-11-23T08:37:00.000Z",
+  "updated_at": "2026-11-23T09:09:52.203Z",
   "version_bump": "none",
   "affected_option_ids": [
     "M02-OPT-01",
