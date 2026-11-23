@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { effectiveTheme, isTheme, isDensity, themeOptions, densityOptions, uiOptionIds } from "../.ui-tests/theme.js";
 import { appCommands, findCommands, shortcutView } from "../.ui-tests/commands.js";
+import { defaultShortcuts, isShortcutKey, remapShortcut, shortcutForView, shortcutKeys, viewForShortcut } from "../.ui-tests/shortcut-map.js";
 import { findHelpArticle, helpArticles, resolveVisibleHelpArticle, searchHelp, helpOptionIds } from "../.ui-tests/help-catalog.js";
 
 test("theme defaults follow operating system and never coerce unknown values", () => {
@@ -79,4 +80,34 @@ test("bounded search inputs cannot invent results or throw", () => {
   assert.doesNotThrow(() => searchHelp(overlong));
   assert.equal(findCommands(overlong).length, 0);
   assert.equal(searchHelp(overlong).length, 0);
+});
+
+
+test("M02 shortcut mapping swaps collisions, preserves navigation and reserves F1", () => {
+  assert.deepEqual(shortcutKeys, ["1", "2", "3", "4", "5", "6"]);
+  assert.equal(shortcutForView("help", defaultShortcuts), null);
+  for (const [key, destination] of Object.entries(defaultShortcuts)) {
+    assert.equal(viewForShortcut(key, defaultShortcuts), destination);
+    assert.equal(shortcutForView(destination, defaultShortcuts), key);
+  }
+  let customized = remapShortcut(defaultShortcuts, "workbench", "2");
+  assert.equal(customized["2"], "workbench");
+  assert.equal(customized["5"], "settings");
+  assert.deepEqual(new Set(Object.values(customized)).size, 6);
+  assert.equal(viewForShortcut("2", customized), "workbench");
+  assert.equal(shortcutForView("settings", customized), "5");
+  assert.equal(findCommands("Ctrl+2", customized)[0].view, "workbench");
+  assert.equal(findCommands("Ctrl+5", customized)[0].view, "settings");
+  assert.equal(remapShortcut(customized, "workbench", "2"), customized);
+  assert.equal(remapShortcut(customized, "workbench", "F1"), customized);
+  assert.equal(remapShortcut(customized, "workbench", "__proto__"), customized);
+  for (const key of ["0", "F1", "7", "", "01", "__proto__", null]) {
+    assert.equal(isShortcutKey(key), false);
+    assert.equal(viewForShortcut(String(key), customized), null);
+  }
+  customized = remapShortcut(customized, "workbench", "5");
+  assert.deepEqual(customized, defaultShortcuts);
+  assert.deepEqual(remapShortcut(customized, "gallery", "1"), {
+    ...defaultShortcuts, "1": "gallery", "6": "startup",
+  });
 });
