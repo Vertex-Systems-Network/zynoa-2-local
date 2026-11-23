@@ -121,8 +121,9 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
         before = src.index("-ScreenshotId 'P02-T10-CTRL-M19-OPT-04'")
         after = src.index("-ScreenshotId 'P02-T10-CTRL-M19-OPT-05'")
         self.assertIn(marker, src[before:after])
-        self.assertIn("-ScreenshotId 'P02-T10-CTRL-M19-OPT-05' -Shortcut '{ENTER}{PGDN}'", src)
+        self.assertIn("-ScreenshotId 'P02-T10-CTRL-M19-OPT-05' -Shortcut '{ENTER}'", src)
         self.assertNotIn("-ScreenshotId 'P02-T10-CTRL-M19-OPT-05' -Shortcut '{TAB}{TAB}", src)
+        self.assertNotIn("-ScreenshotId 'P02-T10-CTRL-M19-OPT-05' -Shortcut '{ENTER}{PGDN}'", src)
 
     def test_reduced_motion_uses_real_distinct_keyboard_control(self):
         script = (Path(__file__).resolve().parents[1] / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")

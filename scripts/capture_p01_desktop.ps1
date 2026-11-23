@@ -441,8 +441,9 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     # UIA-focus the real first FAQ <summary>, never guess tab order after
     # React/WebView2 has re-rendered the FAQ section. The actual disclosure
     # must be keyboard focusable or the capture fails closed (ZYN-SCREEN-043).
+    # Do not PageDown after Enter: that moves the expanded answer out of frame.
     Focus-P02NativeControl -AccessibleName 'Does a native connection mean my work is saved?'
-    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-05' -Shortcut '{ENTER}{PGDN}' -ScreenTitle 'M19 actual FAQ expanded question' -Description 'Real native Help FAQ with keyboard-expanded disclosure and linked offline guidance' -FinalCandidateId 'M19-OPT-05'
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-05' -Shortcut '{ENTER}' -ScreenTitle 'M19 actual FAQ expanded question' -Description 'Real native Help FAQ with keyboard-expanded disclosure and linked offline guidance' -FinalCandidateId 'M19-OPT-05'
     [System.Windows.Forms.SendKeys]::SendWait('^{2}')
     [System.Windows.Forms.SendKeys]::SendWait('{F1}')
     Focus-P02NativeControl -AccessibleName 'Wiki & link checker'
