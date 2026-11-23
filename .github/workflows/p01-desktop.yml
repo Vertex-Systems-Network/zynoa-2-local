@@ -60,7 +60,12 @@ jobs:
         run: python -m unittest tests.test_p02_m19_workflows -v
       - name: P02 fail-closed native screenshot verifier contracts
         if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
-        run: python -m unittest tests.test_p02_native_evidence tests.test_p02_t10_readiness -v
+        shell: pwsh
+        run: |
+          python -m unittest tests.test_p02_native_evidence -v
+          if ($LASTEXITCODE -ne 0) { throw 'P02 native provenance verifier contract failure' }
+          python -m unittest tests.test_p02_t10_readiness -v
+          if ($LASTEXITCODE -ne 0) { throw 'P02 T10 readiness contract failure' }
       - name: P02 truthful Help and Wiki contracts
         if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
         run: python -m unittest tests.test_p02_help_evidence -v
