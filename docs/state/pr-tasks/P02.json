@@ -63,7 +63,8 @@
     {
       "id": "P02-T10",
       "title": "Real Windows visual/screenshots, a11y, full Help/Wiki option references and performance",
-      "status": "TODO"
+      "status": "IN_PROGRESS",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12"
     },
     {
       "id": "P02-T11",

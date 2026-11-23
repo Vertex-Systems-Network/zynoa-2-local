@@ -220,6 +220,10 @@ class P02UIContractTests(unittest.TestCase):
         self.assertLess(capture.index("-ScreenshotId 'P02-T02-12-LIGHT'"),
                         capture.index("-ScreenshotId 'P02-T02-12-DARK'"))
         self.assertIn("candidate_pending_visual_review", capture)
+        workflow = (ROOT / ".github/workflows/p01-desktop.yml").read_text(encoding="utf-8")
+        self.assertIn("docs/screenshots/_ci/M02/P02-native-performance.json", workflow)
+        self.assertIn("docs/screenshots/_ci/M02/P02-T10-readiness.json", workflow)
+
         self.assertIn("capture_verified = $false", capture)
 
     def test_gallery_interaction_states_keep_input_independent(self):

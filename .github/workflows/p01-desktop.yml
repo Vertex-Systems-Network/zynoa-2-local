@@ -292,6 +292,8 @@ jobs:
             docs/screenshots/_ci/M02/*.capture.json
             docs/screenshots/_ci/M02/P02-native-machine-review.json
             docs/screenshots/_ci/M02/P02-T02-12-readiness.json
+            docs/screenshots/_ci/M02/P02-native-performance.json
+            docs/screenshots/_ci/M02/P02-T10-readiness.json
             docs/screenshots/_ci/M19/*.png
             docs/screenshots/_ci/M19/*.capture.json
           if-no-files-found: warn
