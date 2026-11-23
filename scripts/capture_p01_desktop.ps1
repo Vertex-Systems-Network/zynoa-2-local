@@ -210,6 +210,10 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     New-Item -ItemType Directory -Force -Path $m02Output, $m19Output | Out-Null
     $OutputDirectory = $m02Output
     Save-NativeFollowup -ScreenshotId 'M02-S03' -Shortcut '^{5}' -ScreenTitle 'P02 native workbench panels' -Description 'Native Windows Zynoa workbench, runtime state and keyboard-accessible tabs'
+    # Actual keyboard navigation from the focused Workbench main region:
+    # Tab 1-2 toolbar, Tab 3 help, Tab 4 active tab, Tab 5 active tabpanel.
+    # Screenshot is candidate evidence only, independently review visible focus ring.
+    Save-NativeFollowup -ScreenshotId 'M02-OPT-07' -Shortcut '{TAB}{TAB}{TAB}{TAB}{TAB}' -ScreenTitle 'Workbench keyboard focus' -Description 'Real Tauri Workbench keyboard-focused active tabpanel with visible focus ring (review pending)'
     Save-NativeFollowup -ScreenshotId 'M02-S05' -Shortcut '^{6}' -ScreenTitle 'P02 native component gallery' -Description 'Real Tauri component gallery with semantic token swatches, state chips and interactive input'
     Save-NativeFollowup -ScreenshotId 'M02-S06' -Shortcut '^{2}' -ScreenTitle 'P02 native appearance settings' -Description 'Session-only theme and density selectors with unavailable native relocation labelled'
     Save-NativeFollowup -ScreenshotId 'M02-S04' -Shortcut '^+p' -ScreenTitle 'P02 native command palette' -Description 'Native modal command palette with focusable search and allowlisted navigation commands'
