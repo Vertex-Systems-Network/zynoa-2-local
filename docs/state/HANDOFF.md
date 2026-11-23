@@ -1,5 +1,8 @@
 # Handoff (canonical starter)
 
+- **2026-11-24 GitHub Wiki preview remote published, read back and write-token workflow removed:** [Windows-independent GitHub Wiki Action #45284338605](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45284338605) added just M02.md and M19.md, source SHA f70705dd, Wiki Git HEAD `13b5a194a26320166b1f8dd5301a0d06c4098f93`; independent fresh clone matched both exact file hashes. Existing Home.md unchanged. [Verifiable receipt](../evidence/P02_T10_WIKI_PREVIEW_PUBLISHED_20261124.md). This closes remote **preview page absence** only. Rendered browser parity, app Wiki link behavior, full NVDA/Narrator, approved performance budget, independent PR review/merge remain pending. The temporary write-enabled Wiki workflow is deleted in this same commit.
+
+
 - **P02 29 native image screenshot metadata parity (2026-11-24):** 29/29 required M02/M19 final manifest PNGs now have descriptive captions/alt text, exact original capture identity, Windows run ID, measured frame dimensions, hash-bound reviewer record and CI disposable/no-user-data provenance. Unknown original DPI is labelled NOT_RECORDED, never invented. Tests validate each metadata member against the independent 29-image evidence manifest and require 29/29 source-bound screenshot-only state. Full screen-reader E2E, performance budgets, Wiki publishing and protected merge remain open; T02/T10/T11 IN_PROGRESS. Lease held during scoped changes, release at handoff.
 
 

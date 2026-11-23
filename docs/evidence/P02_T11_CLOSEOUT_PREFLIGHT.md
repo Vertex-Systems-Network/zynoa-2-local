@@ -1,5 +1,8 @@
 # P02-T11 — Protected Merge and Final Acceptance Preflight
 
+**2026-11-24 remote hosted Wiki evidence:** M02 and M19 original GitHub Wiki **preview** pages were actually pushed and independently cloned back with matching SHA-256 in [CI #45284338605](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45284338605). Original Home.md unchanged. [Receipt](P02_T10_WIKI_PREVIEW_PUBLISHED_20261124.md). This removes the *absence of hosted Wiki pages* blocker; public rendered/browser links, in-app Wiki integration, full assistive-tech testing, independent performance sign-off, exact-head approval and protected merge are not verified. Security hygiene: temporary one-shot Wiki publisher and read-only preflight workflow removed after proof.
+
+
 **Documentation checkpoint (2026-11-24):** All 29 native screenshot manifest assets now include exact capture ID, real Windows CI run, measured viewport geometry, source SHA/Git blob, descriptive alt text, image caption, disposable no-user-data origin and a separate signed-off image-review-record pointer. Device pixel ratio was **not recorded** by the original capture receipts and is explicitly NOT_RECORDED (do not invent DPI). These metadata completeness checks run in existing Windows/Global Governance tests and do not replace NVDA/Narrator or a release verdict.
 
 
