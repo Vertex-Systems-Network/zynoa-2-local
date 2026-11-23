@@ -13,10 +13,11 @@ def sample():
         "schema_version":1,"source_commit_sha":SHA,"github_run_id":"45284349359",
         "target":"Real GitHub Actions Windows Tauri native main-window UIA",
         "executable_sha256":"a"*64,
-        "measurement":"three sequential warm process launches, same executable, visible same-PID UIA HWND",
+        "measurement":"three sequential warm process launches, visible same-PID HWND and connected native IPC status in UIA",
         "samples":[{"sample_index":i,"native_process_id":9000+i,"window_first_visible_ms":ms,
+                    "native_handshake_ready_ms":ready, "real_native_ipc_status_in_uia":True,
                     "real_native_visible_hwnd":True,"native_uia_window_pid_matches":True,
-                    "process_alive_when_sampled":True} for i,ms in enumerate((1250,900,1800),1)],
+                    "process_alive_when_sampled":True} for i,(ms,ready) in enumerate(zip((1250,900,1800),(1650,1100,1950)),1)],
         "sample_count":3,"native_test_environment":"GitHub-hosted Windows runner",
         "full_screen_reader_verified":False,"performance_budget_approved":False,"no_user_data":True,
     }
@@ -27,6 +28,8 @@ class NativePerformanceTests(unittest.TestCase):
         r = verify(sample(), SHA)
         self.assertEqual(r["median_ms"],1250)
         self.assertEqual(r["observed_max_ms"],1800)
+        self.assertEqual(r["native_handshake_median_ms"],1650)
+        self.assertEqual(r["native_handshake_max_ms"],1950)
         self.assertEqual(r["sample_count"],3)
         self.assertFalse(r["approved_performance_budget"])
         self.assertFalse(r["cold_start_budget_verified"])
@@ -49,6 +52,10 @@ class NativePerformanceTests(unittest.TestCase):
                    lambda p:p["samples"][1].update(native_process_id=p["samples"][0]["native_process_id"]),
                    lambda p:p["samples"][0].update(window_first_visible_ms=-1),
                    lambda p:p["samples"][0].update(window_first_visible_ms=60001),
+                   lambda p:p["samples"][0].update(native_handshake_ready_ms=-1),
+                   lambda p:p["samples"][0].update(native_handshake_ready_ms=1200),
+                   lambda p:p["samples"][0].update(native_handshake_ready_ms=60001),
+                   lambda p:p["samples"][0].update(real_native_ipc_status_in_uia=False),
                    lambda p:p["samples"][0].update(real_native_visible_hwnd=False),
                    lambda p:p["samples"][0].update(native_uia_window_pid_matches=False),
                    lambda p:p["samples"][0].update(process_alive_when_sampled=False)]
@@ -59,7 +66,7 @@ class NativePerformanceTests(unittest.TestCase):
     def test_powershell_and_ci_use_real_win32_window(self):
         ps=(ROOT/"scripts/probe_p02_native_performance.ps1").read_text(encoding="utf-8")
         for word in ("Start-Process","IsWindowVisible","MainWindowHandle","AutomationElement",
-                     "ProcessId","Get-FileHash","GITHUB_RUN_ID","Stop-Process",
+                     "ProcessId","Get-FileHash","GITHUB_RUN_ID","Stop-Process","Typed native handshake connected","real_native_ipc_status_in_uia = $true",
                      "full_screen_reader_verified = $false","performance_budget_approved = $false"):
             self.assertIn(word,ps)
         for forbidden in ("Invoke-WebRequest","Get-Clipboard","Remove-Item"):self.assertNotIn(forbidden,ps)

@@ -29,7 +29,7 @@ def verify(proof: dict, source_sha: str) -> dict:
     require(isinstance(proof.get("executable_sha256"), str) and
             bool(SHA64.fullmatch(proof["executable_sha256"])), "unverified executable SHA256")
     require(proof.get("measurement") ==
-            "three sequential warm process launches, same executable, visible same-PID UIA HWND",
+            "three sequential warm process launches, visible same-PID HWND and connected native IPC status in UIA",
             "wrong measurement methodology")
     require(proof.get("native_test_environment") == "GitHub-hosted Windows runner",
             "runner not authenticated")
@@ -39,20 +39,27 @@ def verify(proof: dict, source_sha: str) -> dict:
     samples = proof.get("samples")
     require(proof.get("sample_count") == 3 and isinstance(samples, list) and
             len(samples) == 3, "three original distinct samples are required")
-    pids, ms = [], []
+    pids, ms, native_ready = [], [], []
     for i, sample in enumerate(samples, 1):
         require(isinstance(sample, dict) and sample.get("sample_index") == i,
                 "sample order or identity invalid")
         pid, duration = sample.get("native_process_id"), sample.get("window_first_visible_ms")
+        ready_ms = sample.get("native_handshake_ready_ms")
         require(type(pid) is int and pid > 0, "native PID missing")
-        require(type(duration) is int and 0 < duration <= 60000, "native sample duration invalid")
+        require(type(duration) is int and 0 < duration <= 60000, "native window sample invalid")
+        require(type(ready_ms) is int and duration <= ready_ms <= 60000,
+                "native IPC handshake timing missing or inconsistent")
+        require(sample.get("real_native_ipc_status_in_uia") is True,
+                "connected native IPC not observed in real UIA")
         for flag in ("real_native_visible_hwnd", "native_uia_window_pid_matches",
                      "process_alive_when_sampled"):
             require(sample.get(flag) is True, "missing real native HWND proof: " + flag)
         pids.append(pid)
         ms.append(duration)
+        native_ready.append(ready_ms)
     require(len(set(pids)) == 3, "three distinct native PIDs required")
     ranked = sorted(ms)
+    ready_ranked = sorted(native_ready)
     return {
         "schema_version": 1,
         "status": "THREE_WARM_NATIVE_WINDOW_OBSERVATIONS_ONLY",
@@ -61,8 +68,11 @@ def verify(proof: dict, source_sha: str) -> dict:
         "executable_sha256": proof["executable_sha256"],
         "sample_count": 3,
         "window_first_visible_ms": ms,
+        "native_handshake_ready_ms": native_ready,
         "median_ms": ranked[1],
         "observed_max_ms": ranked[2],
+        "native_handshake_median_ms": ready_ranked[1],
+        "native_handshake_max_ms": ready_ranked[2],
         "approved_performance_budget": False,
         "cold_start_budget_verified": False,
         "screen_reader_verified": False,

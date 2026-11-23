@@ -28,6 +28,8 @@ for ($index=1; $index -le 3; $index++) {
   try {
     $proc = Start-Process -FilePath $Executable -PassThru
     $ready = $false
+    $windowMs = $null
+    $handshakeMs = $null
     $deadline = (Get-Date).AddSeconds(60)
     do {
       Start-Sleep -Milliseconds 125
@@ -38,18 +40,36 @@ for ($index=1; $index -le 3; $index++) {
         try {
           $element = [System.Windows.Automation.AutomationElement]::FromHandle($hwnd)
           if ($null -ne $element -and $element.Current.ProcessId -eq $proc.Id -and -not $element.Current.IsOffscreen) {
-            $ready = $true
-            break
+            if ($null -eq $windowMs) { $windowMs = [int64]$timer.ElapsedMilliseconds }
+            # A native HWND can display before React and typed IPC are ready.
+            # Observe the real connected status inside the live WebView2 UIA tree.
+            $controls = $element.FindAll(
+              [System.Windows.Automation.TreeScope]::Descendants,
+              [System.Windows.Automation.Condition]::TrueCondition)
+            for ($k=0; $k -lt $controls.Count; $k++) {
+              try {
+                $control = $controls.Item($k)
+                if (-not $control.Current.IsOffscreen -and
+                    ([string]$control.Current.Name).Contains('Typed native handshake connected')) {
+                  $ready = $true
+                  $handshakeMs = [int64]$timer.ElapsedMilliseconds
+                  break
+                }
+              } catch [System.Windows.Automation.ElementNotAvailableException] {}
+            }
+            if ($ready) { break }
           }
         } catch [System.Windows.Automation.ElementNotAvailableException] {}
       }
     } until ((Get-Date) -ge $deadline)
     $timer.Stop()
-    if (-not $ready) { throw 'ZYN-PERF-006: no visible same-PID UIA window in 60 seconds' }
+    if (-not $ready) { throw 'ZYN-PERF-006: no real connected native IPC text in UIA within 60 seconds' }
     $samples.Add([ordered]@{
       sample_index = $index
       native_process_id = [int]$proc.Id
-      window_first_visible_ms = [int64]$timer.ElapsedMilliseconds
+      window_first_visible_ms = [int64]$windowMs
+      native_handshake_ready_ms = [int64]$handshakeMs
+      real_native_ipc_status_in_uia = $true
       real_native_visible_hwnd = $true
       native_uia_window_pid_matches = $true
       process_alive_when_sampled = $true
@@ -71,7 +91,7 @@ $receipt = [ordered]@{
   github_run_id = [string]$env:GITHUB_RUN_ID
   target = 'Real GitHub Actions Windows Tauri native main-window UIA'
   executable_sha256 = $exeSha
-  measurement = 'three sequential warm process launches, same executable, visible same-PID UIA HWND'
+  measurement = 'three sequential warm process launches, visible same-PID HWND and connected native IPC status in UIA'
   samples = @($samples.ToArray())
   sample_count = 3
   native_test_environment = 'GitHub-hosted Windows runner'
@@ -82,4 +102,4 @@ $receipt = [ordered]@{
 $dir = Split-Path -Path $OutputPath -Parent
 if ($dir) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
 $receipt | ConvertTo-Json -Depth 7 | Set-Content -LiteralPath $OutputPath -Encoding utf8
-Write-Output 'P02 real sequential native window sample receipt written: budget remains unapproved'
+Write-Output 'P02 actual UIA native IPC-ready timing receipt written; performance budget unapproved'
