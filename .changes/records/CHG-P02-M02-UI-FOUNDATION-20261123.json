@@ -3,7 +3,7 @@
   "module_id": "M02",
   "kind": "feature",
   "title": "Native shared UI tokens, workbench, keyboard command palette",
-  "summary": "Source implementation of a session-only accessible M02 desktop GUI, design tokens, gallery, theme/density and command routing. Backend features remain disabled; visual acceptance pending. P02 regression follow-up: closed shortcut allowlist, fail-closed Windows CI stage separation and contrast-safe secondary text tokens (merge and native accessibility still pending). Modal isolation update: inert background, keyboard routing guard, stable focus return to opener or destination. P02-T02.04 addresses hidden focus on keyboard-focusable Workbench tabpanels with a theme-aware outline, adds fail-closed Windows Python a11y contracts and candidate native capture; final visual acceptance remains pending. T02.06/07: accessible gallery pressed/hover/disabled/status examples with independent sample input, responsive 900px-native gallery and bounded split-grid columns; screenshot candidates and native E2E review remain pending. Scopes T02.06/07 now have passing exact-source Windows CI and direct visual inspection of the SHA-bound native action/898px responsive screenshots (artifact 14804053291); full M02/P02 acceptance and release still pending.",
+  "summary": "Source implementation of a session-only accessible M02 desktop GUI, design tokens, gallery, theme/density and command routing. Backend features remain disabled; visual acceptance pending. P02 regression follow-up: closed shortcut allowlist, fail-closed Windows CI stage separation and contrast-safe secondary text tokens (merge and native accessibility still pending). Modal isolation update: inert background, keyboard routing guard, stable focus return to opener or destination. P02-T02.04 addresses hidden focus on keyboard-focusable Workbench tabpanels with a theme-aware outline, adds fail-closed Windows Python a11y contracts and candidate native capture; final visual acceptance remains pending. T02.06/07: accessible gallery pressed/hover/disabled/status examples with independent sample input, responsive 900px-native gallery and bounded split-grid columns; screenshot candidates and native E2E review remain pending. Scopes T02.06/07 now have passing exact-source Windows CI and direct visual inspection of the SHA-bound native action/898px responsive screenshots (artifact 14804053291); full M02/P02 acceptance and release still pending. T02.09/10/11 scoped acceptance: Windows fail-closed native PNG/metadata verifier and 20 dedicated regression tests, 9 independently inspected SHA-bound real Tauri images and accurate eight-option Help/Wiki docs; full manifest and release remain pending.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [
@@ -15,7 +15,9 @@
     "docs/adr/0026-p02-shared-ui-help-predev.md",
     "docs/evidence/P02_T02_FIRST_REAL_UI_SLICE.md",
     "docs/modules/M02.md",
-    "docs/state/HANDOFF.md"
+    "docs/state/HANDOFF.md",
+    "docs/evidence/P02_T02_09_10_11_VALIDATION.md",
+    "docs/screenshots/M02/T02-visual-foundation.review.json"
   ],
   "help_paths": [
     "docs/help/articles/M02.md"
@@ -25,7 +27,9 @@
   ],
   "test_evidence": [
     "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45145725506",
-    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45145725498"
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45145725498",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45149201009",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45149201165"
   ],
   "commit_sha": null,
   "release": null,
@@ -37,7 +41,7 @@
   "breaking_change": false,
   "migration_notes": "No native user-storage schema change or migrated data. UI session state only; offline help bundled from curated static source.",
   "created_at": "2026-11-22T20:49:36.088Z",
-  "updated_at": "2026-11-23T09:27:39.658Z",
+  "updated_at": "2026-11-23T09:49:57.291Z",
   "version_bump": "none",
   "affected_option_ids": [
     "M02-OPT-01",
