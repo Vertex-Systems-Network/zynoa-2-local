@@ -72,7 +72,7 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
     def test_all_machine_candidates_validate_but_do_not_self_approve(self):
         result = verify(self.root, SOURCE_SHA)
         self.assertEqual("MACHINE_METADATA_HASH_VALIDATED_ONLY", result["status"])
-        self.assertEqual(15, len(result["screens"]))
+        self.assertEqual(18, len(result["screens"]))
         self.assertFalse(result["independent_visual_review"])
         self.assertFalse(result["manifest_completed"])
 
@@ -144,6 +144,22 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
         target.write_bytes(src)
         self._mutate(swap_id, "sha256", hashlib.sha256(src).hexdigest())
         with self.assertRaisesRegex(InvalidNativeEvidence, "did not visibly change"):
+            verify(self.root, SOURCE_SHA)
+
+    def test_command_palette_escape_has_distinct_native_frame(self):
+        name = "P02-T04-ESCAPE"
+        source = (self.root / "M02" / "P02-T04-NO-MATCH.png").read_bytes()
+        (self.root / "M02" / f"{name}.png").write_bytes(source)
+        self._mutate(name, "sha256", hashlib.sha256(source).hexdigest())
+        with self.assertRaisesRegex(InvalidNativeEvidence, "Escape failed"):
+            verify(self.root, SOURCE_SHA)
+
+    def test_enter_navigation_must_leave_help_view(self):
+        name = "P02-T04-ENTER-NAV"
+        source = (self.root / "M19" / "M19-S01.png").read_bytes()
+        (self.root / "M02" / f"{name}.png").write_bytes(source)
+        self._mutate(name, "sha256", hashlib.sha256(source).hexdigest())
+        with self.assertRaisesRegex(InvalidNativeEvidence, "did not visibly navigate"):
             verify(self.root, SOURCE_SHA)
 
     def test_wrong_origin_or_missing_alt_text_rejected(self):
