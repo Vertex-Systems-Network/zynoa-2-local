@@ -30,7 +30,12 @@ class M02InteractiveStateContracts(unittest.TestCase):
             self.assertIn(marker, self.app)
         self.assertIn(".shell .settings-motion:focus-visible", self.css)
         self.assertIn(".shell .settings-motion output", self.css)
-        self.assertNotIn("setReducedMotion(", self.app)
+        # The app MUST observe Windows matchMedia changes. Only the
+        # read-only Preferences presentation must avoid mutating OS motion.
+        settings = self.app.split("function Settings(", 1)[1].split("function Recovery()", 1)[0]
+        self.assertNotIn("setReducedMotion(", settings)
+        self.assertIn("setReducedMotion(query.matches)", self.app)
+        self.assertIn("setReducedMotion(event.matches)", self.app)
 
     def test_gallery_five_truthful_states_and_reset(self):
         for marker in ('componentPreviewStates.map', 'data-preview-state={previewState}',
