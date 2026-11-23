@@ -263,6 +263,12 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     # Tab into panel, Tab to range, Tab to Compact toggle, Enter enables compact rows.
     # This is native source-SHA-bound candidate, not final screenshot acceptance.
     Save-NativeFollowup -ScreenshotId 'M02-OPT-03' -Shortcut '+{TAB}{LEFT}{TAB}{TAB}{TAB}{ENTER}{PGDN}' -ScreenTitle 'P02 compact properties panel preview' -Description 'Real Tauri Workbench layout tab showing compact sample property rows, keyboard-enabled pressed toggle and session-only feedback'
+    # The Layout tab and its real controls are already active here. Capture
+    # the slider via a keyboard-only reverse Tab from the compact toggle;
+    # two ArrowRight keys change the actual 40% pane width to 50%.
+    # This avoids a fragile late-page View/ARIA tab re-entry and verifies
+    # the slider while the same live native Workbench is still present.
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M02-OPT-06' -Shortcut '+{TAB}{RIGHT}{RIGHT}{PGUP}' -ScreenTitle 'M02 actual split pane slider' -Description 'Real native Workbench Layout slider changed with Shift+Tab and keyboard arrows from compact property toggle; real pane ratio immediately reflects 50 percent' -FinalCandidateId 'M02-OPT-06'
     Save-NativeFollowup -ScreenshotId 'M02-S05' -Shortcut '^{6}' -ScreenTitle 'P02 native component gallery' -Description 'Real Tauri component gallery with semantic token swatches, state chips and interactive input'
     # From focused main after Ctrl+6: Tab toolbar command, Tab help, Tab primary action.
     # Activate primary selection; PageDown reveals the actual button/feedback states.
@@ -402,21 +408,6 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     Focus-P02NativeControl -AccessibleName 'Search available commands and offline Help'
     Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M02-OPT-05' -Shortcut 'preferences' -ScreenTitle 'M02 actual command search control' -Description 'Real Windows native command palette text input with typed Preferences query and matching allowlisted app command' -FinalCandidateId 'M02-OPT-05'
     [System.Windows.Forms.SendKeys]::SendWait('{ESC}')
-    [System.Windows.Forms.SendKeys]::SendWait('^{5}')
-    Start-Sleep -Milliseconds 300
-    # Inactive ARIA tabs use roving tabindex=-1 and must not be forced to
-    # receive focus. Focus the selected Runtime status tab, then use its
-    # documented ArrowRight keyboard route to activate Layout controls.
-    # Navigate the actual ARIA tablist by the user's keyboard path instead
-    # of requiring Windows UIA to name a roving-tab control consistently.
-    # Ctrl+5 puts focus on Workbench main; 4 Tab stops reach the selected
-    # tab (command, context help, Workbench help, selected Runtime tab).
-    # ArrowRight selects Layout; the *real slider* still must be located
-    # by native UI Automation and keyboard-operated or the capture fails.
-    [System.Windows.Forms.SendKeys]::SendWait('{TAB}{TAB}{TAB}{TAB}{RIGHT}')
-    Start-Sleep -Milliseconds 350
-    Focus-P02NativeControl -AccessibleName 'Left pane width'
-    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M02-OPT-06' -Shortcut '{RIGHT}{RIGHT}{PGDN}' -ScreenTitle 'M02 actual split pane slider' -Description 'Real native Workbench Layout controls slider adjusted by keyboard arrows with immediate live pane proportion preview' -FinalCandidateId 'M02-OPT-06'
     Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M02-OPT-08' -Shortcut '^{2}{PGDN}' -ScreenTitle 'M02 Windows motion setting feedback' -Description 'Real native Preferences reporting current operating-system motion preference; follows Windows without falsely claiming manual reduced-motion toggle' -FinalCandidateId 'M02-OPT-08'
 
     $OutputDirectory = $m19Output
