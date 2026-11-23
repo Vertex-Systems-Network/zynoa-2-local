@@ -3,7 +3,7 @@
   "module_id": "M19",
   "kind": "enhancement",
   "title": "Make direct option Help keyboard targets visible and focusable",
-  "summary": "Deep-linked M19 option references now scroll and focus their semantic selected-option heading after the command palette closes, allowing keyboard and assistive-tech users to identify where navigation landed. Corrects real Windows UI Automation offscreen heading problem without loosening fail-closed native checks; exact-source CI remains pending.",
+  "summary": "The real M19 direct-option Help route now focuses and scrolls its semantic selected-option heading after command-palette navigation. Independently verified on exact-source Windows Tauri run #45237056822: native UIA 9/9 checks PASS, focus outline and selected option details visibly confirmed from original SHA-matched PNG. Full screen-reader and 29 final screenshot acceptance remain pending.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [],
@@ -20,19 +20,20 @@
     "docs/wiki/pages/M19.md"
   ],
   "test_evidence": [
-    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45234283387"
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45237056822",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45237056843"
   ],
-  "commit_sha": null,
+  "commit_sha": "171cde66b85c9188a57e16e2ae51a700b5fd7939",
   "release": null,
   "verification": {
-    "tests_passed": false,
+    "tests_passed": true,
     "merge_verified": false,
     "release_published": false
   },
   "breaking_change": false,
   "migration_notes": "No app data schema change or native privilege.",
   "created_at": "2026-11-23T18:22:10.712Z",
-  "updated_at": "2026-11-23T18:22:10.712Z",
+  "updated_at": "2026-11-23T18:28:56.832Z",
   "version_bump": "none",
   "affected_option_ids": [
     "M19-OPT-06"

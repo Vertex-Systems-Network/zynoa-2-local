@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "review_type": "SCOPED_INDEPENDENT_NATIVE_VISUAL_AND_UIA",
+  "review_status": "SCOPED_PASS_NOT_FINAL",
+  "module": "M19",
+  "option_id": "M19-OPT-06",
+  "source_commit_sha": "171cde66b85c9188a57e16e2ae51a700b5fd7939",
+  "windows_ci_run": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45237056822",
+  "artifact_id": 14850658096,
+  "source": "Original GitHub Actions Windows real Tauri screenshot ZIP",
+  "screenshot_path_in_artifact": "docs/screenshots/_ci/M19/M19-T10-REF-OPT-06.png",
+  "image_sha256": "68f9f189a07a3ef64abb14106c8a75dff45e9b6065721c13da673a0a0773c771",
+  "window_width": 998,
+  "window_height": 701,
+  "inspected_findings": {
+    "source_and_capture_sha_match": true,
+    "real_tauri_native_window": true,
+    "correct_option_id_visible": true,
+    "correct_option_title_visible": true,
+    "keyboard_focus_ring_visibly_outlines_selected_heading": true,
+    "option_default_and_recovery_legible": true,
+    "visual_clipping_in_inspected_heading": false
+  },
+  "native_uia": {
+    "source_sha_matched": true,
+    "native_pid_matched": true,
+    "check_count": 9,
+    "passed_count": 9,
+    "issues": [],
+    "status": "SCOPED_NATIVE_UIA_PASS",
+    "true_live_keyboard_value_pattern": true,
+    "exact_destination_heading_visible": true,
+    "reopen_and_escape_passed": true
+  },
+  "limitations": {
+    "full_screen_reader_verified": false,
+    "all_option_controls_verified": false,
+    "final_m02_m19_manifest_screenshots_verified": 0,
+    "final_m02_m19_manifest_screenshots_expected": 29,
+    "final_visual_approval": false,
+    "performance_budget_approved": false,
+    "remote_wiki_verified": false,
+    "phase_merged": false,
+    "release_published": false
+  },
+  "summary": "Scoped source-matched direct-option keyboard focus verified from native screenshot and Windows UIA. NOT final P02/M19 or 29-screen asset acceptance."
+}
