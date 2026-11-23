@@ -155,8 +155,10 @@ export function Workbench({ transport, onNavigate, shortcuts, onRemapShortcut, o
           <button type="button" className="subtle-action" onClick={onResetShortcuts}>
             Restore default shortcuts
           </button>
-          <p className="component-helper" role="status">
-            Shortcut changes apply immediately to navigation and the command palette, but
+          <p className="component-helper" role="status" aria-live="polite">
+            {shortcutTargets.map(target =>
+              `${target.title}: Ctrl+${shortcutForView(target.view, shortcuts)}`).join("; ")}.
+            Changes apply immediately to navigation and the command palette, but
             are not saved to disk. Restarting restores defaults.
           </p>
         </section>
