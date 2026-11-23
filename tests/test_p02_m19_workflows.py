@@ -21,7 +21,9 @@ class M19OfflineWorkflowTests(unittest.TestCase):
     def test_real_workflows_are_in_main_help_navigation_not_disabled_previews(self):
         for name in ("articles", "options", "tour", "troubleshoot", "faq", "wiki"):
             self.assertIn(f'["{name}",', self.center)
-        self.assertIn('<HelpWorkflows mode={mode} onOpenArticle={openArticle} />', self.center)
+        self.assertIn('<HelpWorkflows mode={mode} onOpenArticle={openArticle}', self.center)
+        self.assertIn('initialOptionId={destination?.kind', self.center)
+        self.assertIn('findHelpOption(initialOptionId)', self.widget)
         self.assertIn('<LocalArticleReport articleId={selected.id} />', self.center)
         self.assertNotIn('disabled title="Issue reporting service is not enabled"', self.center)
         self.assertIn('setMode("articles")', self.center)

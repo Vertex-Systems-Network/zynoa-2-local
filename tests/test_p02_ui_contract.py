@@ -43,7 +43,8 @@ class P02UIContractTests(unittest.TestCase):
         for item in ('role="dialog"', 'aria-modal="true"', 'returnFocusRef.current?.focus',
                      'inputRef.current?.focus()', 'event.key === "Escape"',
                      'event.key === "Tab"', 'aria-selected={selected === index}',
-                     'onNavigate(view)', "Search available commands"):
+                     'onNavigate(entry.destination.view)', 'onOpenHelp(entry.destination)',
+                     "Search available commands and offline Help"):
             self.assertIn(item, palette)
         app = (APP/"src/App.tsx").read_text(encoding="utf-8")
         self.assertIn('event.key.toLowerCase() === "p"', app)
