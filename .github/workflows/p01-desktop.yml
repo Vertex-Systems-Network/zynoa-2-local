@@ -27,7 +27,7 @@ jobs:
           git fetch --no-tags --depth=1 origin "$BASE_SHA"
           changed="$(git diff --name-only FETCH_HEAD HEAD)"
           test -n "$changed" || { echo "::error::Unexpected empty PR diff"; exit 1; }
-          if printf '%s\n' "$changed" | grep -qE '^(scripts/capture_p01_desktop\.ps1|scripts/probe_p02_native_a11y\.ps1|apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|tests/test_p01_locations.py|tests/test_p01_events.py|tests/test_p01_screenshot_capture.py|tests/test_p02_ui_contract.py|tests/test_p02_t03_navigation.py|tests/test_p02_m19_workflows.py|tests/test_p02_m02_controls.py|tests/test_p02_native_evidence.py|tests/test_p02_native_uia.py|tests/test_p02_visual_review_pack.py|tools/build_p02_visual_review_pack.py|tests/test_p02_help_evidence.py|tests/test_p02_t02_acceptance.py|tools/verify_p02_native_evidence.py|tools/verify_p02_native_uia.py|tools/verify_p02_t02_acceptance.py|docs/screenshots/MANIFEST.json|docs/modules/M02.md|docs/evidence/P02_T03_ACCEPTANCE.md|docs/help/articles/M02.md|docs/help/articles/M19.md|docs/wiki/pages/M02.md|docs/wiki/pages/M19.md|docs/modules/M19.md|\.github/workflows/p01-desktop.yml)'; then
+          if printf '%s\n' "$changed" | grep -qE '^(scripts/capture_p01_desktop\.ps1|scripts/probe_p02_native_a11y\.ps1|apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|tests/test_p01_locations.py|tests/test_p01_events.py|tests/test_p01_screenshot_capture.py|tests/test_p02_ui_contract.py|tests/test_p02_t03_navigation.py|tests/test_p02_m19_workflows.py|tests/test_p02_m02_controls.py|tests/test_p02_native_evidence.py|tests/test_p02_native_uia.py|tests/test_p02_visual_review_pack.py|tools/build_p02_visual_review_pack.py|tests/test_p02_staged_native_assets.py|tools/stage_p02_native_assets.py|tests/test_p02_help_evidence.py|tests/test_p02_t02_acceptance.py|tools/verify_p02_native_evidence.py|tools/verify_p02_native_uia.py|tools/verify_p02_t02_acceptance.py|docs/screenshots/MANIFEST.json|docs/modules/M02.md|docs/evidence/P02_T03_ACCEPTANCE.md|docs/help/articles/M02.md|docs/help/articles/M19.md|docs/wiki/pages/M02.md|docs/wiki/pages/M19.md|docs/modules/M19.md|\.github/workflows/p01-desktop.yml)'; then
             echo "desktop=true" >> "$GITHUB_OUTPUT"
           else
             echo "desktop=false" >> "$GITHUB_OUTPUT"
@@ -68,6 +68,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'P02 T10 readiness contract failure' }
           python -m unittest tests.test_p02_visual_review_pack -v
           if ($LASTEXITCODE -ne 0) { throw 'P02 native visual review pack contracts failure' }
+          python -m unittest tests.test_p02_staged_native_assets -v
+          if ($LASTEXITCODE -ne 0) { throw 'P02 actual source-bound screenshot ZIP staging contracts failure' }
       - name: P02 native Windows UI Automation source and negative contracts
         if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
         run: python -m unittest tests.test_p02_native_uia -v
@@ -209,6 +211,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "P02 native Windows accessibility audit failed" }
           python -m tools.build_p02_visual_review_pack --root . --source-sha $env:ZYNOA_HEAD_SHA --out docs/screenshots/_ci/M02
           if ($LASTEXITCODE -ne 0) { throw "P02 29-target real Windows review pack audit failed" }
+          python -m tools.stage_p02_native_assets --root . --source-sha $env:ZYNOA_HEAD_SHA --out docs/screenshots/_ci/M02
+          if ($LASTEXITCODE -ne 0) { throw "P02 exact-path 29-native-image staging ZIP denied by fail-closed reviewer gate" }
       - name: Verify native boot wrote only allowlisted diagnostic metadata
         shell: pwsh
         run: |
@@ -318,6 +322,7 @@ jobs:
             docs/screenshots/_ci/M02/P02-T10-readiness.json
             docs/screenshots/_ci/M02/P02-T10-29-review-index.json
             docs/screenshots/_ci/M02/P02-T10-69-native-review.html
+            docs/screenshots/_ci/M02/P02-T10-29-native-review-candidates.zip
             docs/screenshots/_ci/M02/*.html
             docs/screenshots/_ci/M02/P02-native-uia.capture.json
             docs/screenshots/_ci/M02/P02-native-uia.verify.json

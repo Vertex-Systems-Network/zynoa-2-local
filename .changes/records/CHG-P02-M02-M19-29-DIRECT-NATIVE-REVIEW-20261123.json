@@ -3,7 +3,7 @@
   "module_id": "M02",
   "kind": "enhancement",
   "title": "Source-SHA-bound complete P02 native control review candidate matrix",
-  "summary": "Extend the running Windows Tauri screenshot harness with 15 directly interacted control/screen candidates for full 29-target review mapping, plus 16 separately labelled Help-only reference images. Generate a self-contained offline HTML visual review artifact and refuse any automatic final acceptance.",
+  "summary": "Extend the running Windows Tauri screenshot harness with 15 directly interacted control/screen candidates for full 29-target review mapping, plus 16 separately labelled Help-only reference images. Generate a self-contained offline HTML visual review artifact and refuse any automatic final acceptance. It now additionally exports a fail-closed, exact-path 29-image native candidate ZIP with source-bound PNG hashes, per-control receipts and a human review checklist; it does not commit or approve final images.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [],
@@ -51,7 +51,7 @@
   "breaking_change": false,
   "migration_notes": "No durable user data or native application schema changes.",
   "created_at": "2026-11-23T18:54:44.538Z",
-  "updated_at": "2026-11-23T19:58:14.833Z",
+  "updated_at": "2026-11-23T20:10:12.090Z",
   "version_bump": "none",
   "docs_impact": true,
   "data_migration": false
