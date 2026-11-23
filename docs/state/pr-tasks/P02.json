@@ -33,14 +33,14 @@
     {
       "id": "P02-T05",
       "title": "M02 theme/light-dark-system, density, user preference boundaries",
-      "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45256580719"
     },
     {
       "id": "P02-T06",
       "title": "M02 component gallery, split panes, empty/loading/error/offline states",
-      "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45256580719"
     },
     {
       "id": "P02-T07",
