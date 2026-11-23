@@ -331,6 +331,10 @@ class P02UIContractTests(unittest.TestCase):
         native = (ROOT / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
         self.assertIn("-ScreenshotId 'M02-OPT-03'", native)
         self.assertIn("-Shortcut '+{TAB}{LEFT}{TAB}{TAB}{TAB}{ENTER}{PGDN}'", native)
+        self.assertLess(native.index("-ScreenshotId 'M02-S07'"),
+                        native.index("-ScreenshotId 'M02-OPT-03'"))
+        self.assertLess(native.index("-ScreenshotId 'M02-OPT-03'"),
+                        native.index("-ScreenshotId 'M02-S05'"))
         verifier = (ROOT / "tools/verify_p02_native_evidence.py").read_text(encoding="utf-8")
         self.assertIn('"M02-OPT-03"', verifier)
 
