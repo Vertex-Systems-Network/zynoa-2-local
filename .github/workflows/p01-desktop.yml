@@ -22,15 +22,11 @@ jobs:
           PR_ACTION: ${{ github.event.action }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          # Initial PR creation checks the full PR diff; later updates only the new commit.
-          if [ "$PR_ACTION" = "opened" ] || [ "$PR_ACTION" = "reopened" ]; then
-            git fetch --no-tags --depth=1 origin "$BASE_SHA"
-            changed="$(git diff --name-only FETCH_HEAD HEAD)"
-          elif git cat-file -e HEAD^ 2>/dev/null; then
-            changed="$(git diff --name-only HEAD^ HEAD)"
-          else
-            changed=""
-          fi
+          # Always verify the complete PR delta, not merely HEAD^..HEAD:
+          # docs-only handoff commits must never suppress required Windows gates.
+          git fetch --no-tags --depth=1 origin "$BASE_SHA"
+          changed="$(git diff --name-only FETCH_HEAD HEAD)"
+          test -n "$changed" || { echo "::error::Unexpected empty PR diff"; exit 1; }
           if printf '%s\n' "$changed" | grep -qE '^(scripts/capture_p01_desktop\.ps1|apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|tests/test_p01_locations.py|tests/test_p01_events.py|tests/test_p01_screenshot_capture.py|tests/test_p02_ui_contract.py|tests/test_p02_t03_navigation.py|tests/test_p02_m19_workflows.py|tests/test_p02_native_evidence.py|tests/test_p02_help_evidence.py|tests/test_p02_t02_acceptance.py|tools/verify_p02_native_evidence.py|tools/verify_p02_t02_acceptance.py|docs/screenshots/MANIFEST.json|docs/modules/M02.md|docs/evidence/P02_T03_ACCEPTANCE.md|docs/help/articles/M02.md|docs/help/articles/M19.md|docs/wiki/pages/M02.md|docs/wiki/pages/M19.md|docs/modules/M19.md|\.github/workflows/p01-desktop.yml)'; then
             echo "desktop=true" >> "$GITHUB_OUTPUT"
           else
