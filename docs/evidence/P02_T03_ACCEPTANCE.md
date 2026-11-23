@@ -22,6 +22,8 @@
 - An independent visual reviewer must confirm the first and last image have the icon rail and that the middle image has readable text labels, with the Workbench active and no horizontal clipping at narrow width. Original machine receipts remain `capture_verified=false`; review is a separate source-controlled record.
 - Only after the exact-source CI and visual review, `P02-T03` may become DONE. `P02-T02`, screenshot manifest final M02/M19 option approvals and T05–T11 remain separate incomplete tasks. No P03 work is permitted without verified P02 merge.
 
+**Manifest boundary:** All 15 final M02 manifest entries remain PENDING, and the M19 screenshots are separate T10 release requirements. T03 scoped candidate images never self-approve final asset paths.
+
 **Status at authoring:** IMPLEMENTED IN SOURCE — NATIVE RUN AND REVIEW PENDING.
 
 **Rollback:** Revert App, Workbench, CSS, native capture, source tests, verifier, Help/Wiki and this evidence in same PR. No persistent user data migration was introduced.
