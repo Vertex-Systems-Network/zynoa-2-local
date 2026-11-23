@@ -1,4 +1,5 @@
-/** M02 fixed allowlisted command navigation; no arbitrary code execution. */
+/** M02 allowlisted command navigation; no arbitrary code execution. */
+import { defaultShortcuts, shortcutForView, type ShortcutAssignments } from "./shortcut-map";
 export type AppView =
   | "startup" | "workbench" | "gallery" | "help" | "settings" | "recovery" | "diagnostics";
 
@@ -22,14 +23,16 @@ export const appCommands: readonly AppCommand[] = [
   { id: "go.diagnostics", title: "Diagnostics", description: "Read-only local system status", section: "System", view: "diagnostics", keys: "Ctrl+4", symbol: "◎" },
 ] as const;
 
-export function findCommands(query: string): AppCommand[] {
+export function findCommands(query: string, shortcuts: ShortcutAssignments = defaultShortcuts): AppCommand[] {
   const normalized = query.trim().toLocaleLowerCase().slice(0, 100);
   const words = normalized.split(/\s+/).filter(Boolean);
   if (!words.length) return [...appCommands];
   return appCommands
     .map(command => {
       const title = command.title.toLocaleLowerCase();
-      const haystack = [command.title, command.description, command.section, command.keys]
+      const effectiveKeys = command.view === "help" ? command.keys :
+        "Ctrl+" + shortcutForView(command.view, shortcuts);
+      const haystack = [command.title, command.description, command.section, effectiveKeys]
         .join(" ").toLocaleLowerCase();
       if (!words.every(word => haystack.includes(word))) return null;
       const score = (title === normalized ? 100 : title.startsWith(normalized) ? 50 : 0)
