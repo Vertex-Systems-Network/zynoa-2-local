@@ -47,7 +47,7 @@ class T02FinalAcceptanceGateTests(unittest.TestCase):
         self.assertIn("15 M02 final screenshot PNGs not committed", result["blockers"])
         self.assertIn("15 M02 screenshot entries not VERIFIED", result["blockers"])
         self.assertNotIn("M02-OPT-03 functionality explicitly not implemented", result["blockers"])
-        self.assertIn("M02-OPT-04 functionality explicitly not implemented", result["blockers"])
+        self.assertNotIn("M02-OPT-04 functionality explicitly not implemented", result["blockers"])
         self.assertFalse(result["remote_ci_and_merge_verified"])
 
     def test_premature_done_is_a_failing_gate(self):
