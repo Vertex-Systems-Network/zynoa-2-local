@@ -38,7 +38,7 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
         for index, screen_id in enumerate(SCREEN_IDS):
             folder = self.root / ("M19" if screen_id.startswith("M19-") else "M02")
             folder.mkdir(parents=True, exist_ok=True)
-            narrow = screen_id.startswith("P02-T02-07")
+            narrow = screen_id.startswith("P02-T02-07") or screen_id.startswith("P02-T02-12")
             width, height = (898, 653) if narrow else (998, 701)
             png = fixture_png(width, height, index + 1)
             (folder / f"{screen_id}.png").write_bytes(png)
@@ -71,7 +71,7 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
     def test_all_machine_candidates_validate_but_do_not_self_approve(self):
         result = verify(self.root, SOURCE_SHA)
         self.assertEqual("MACHINE_METADATA_HASH_VALIDATED_ONLY", result["status"])
-        self.assertEqual(9, len(result["screens"]))
+        self.assertEqual(12, len(result["screens"]))
         self.assertFalse(result["independent_visual_review"])
         self.assertFalse(result["manifest_completed"])
 
@@ -126,6 +126,14 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
         last.write_bytes(first.read_bytes())
         self._mutate(second_name, "sha256", hashlib.sha256(first.read_bytes()).hexdigest())
         with self.assertRaisesRegex(InvalidNativeEvidence, "did not change view pixels"):
+            verify(self.root, SOURCE_SHA)
+
+    def test_identical_light_dark_images_are_rejected(self):
+        name = "P02-T02-12-DARK"
+        light = (self.root / "M02" / "P02-T02-12-LIGHT.png").read_bytes()
+        (self.root / "M02" / f"{name}.png").write_bytes(light)
+        self._mutate(name, "sha256", hashlib.sha256(light).hexdigest())
+        with self.assertRaisesRegex(InvalidNativeEvidence, "identical pixels"):
             verify(self.root, SOURCE_SHA)
 
     def test_wrong_origin_or_missing_alt_text_rejected(self):
