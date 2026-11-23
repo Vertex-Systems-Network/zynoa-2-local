@@ -13,9 +13,9 @@ import re
 import struct
 
 SCREEN_IDS = (
-    "M02-S03", "M02-OPT-07", "M02-S05", "P02-T02-06",
+    "M02-S03", "M02-OPT-07", "M02-S07", "M02-S05", "P02-T02-06",
     "M02-S06", "M02-S04", "M19-S01", "P02-T02-07",
-    "P02-T02-07-continued",
+    "P02-T02-07-continued", "P02-T02-12-LIGHT", "P02-T02-12-DARK",
 )
 _SHA = re.compile(r"^[0-9a-f]{40}$")
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
@@ -96,6 +96,12 @@ def verify(root: Path, source_sha: str) -> dict:
     _require(by_id["P02-T02-07"]["sha256"] !=
              by_id["P02-T02-07-continued"]["sha256"],
              "responsive PageDown did not change view pixels")
+    for name in ("P02-T02-12-LIGHT", "P02-T02-12-DARK"):
+        _require(by_id[name]["width"] <= 920,
+                 f"{name}: theme candidate must be captured in real native narrow frame")
+    _require(by_id["P02-T02-12-LIGHT"]["sha256"] !=
+             by_id["P02-T02-12-DARK"]["sha256"],
+             "light/dark capture has identical pixels (theme change not demonstrated)")
     return {"schema_version": 1,
             "status": "MACHINE_METADATA_HASH_VALIDATED_ONLY",
             "source_commit_sha": source_sha,
