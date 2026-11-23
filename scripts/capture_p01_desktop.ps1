@@ -169,10 +169,12 @@ function Save-NativeFollowup {
                 } finally { $refreshGraphics.Dispose() }
             }
             $colors.Clear()
-            for ($x = 0; $x -lt 12; $x++) {
-                for ($y = 0; $y -lt 10; $y++) {
-                    $px = [int][Math]::Min($width - 1, [Math]::Floor(($x + 0.5) * $width / 12))
-                    $py = [int][Math]::Min($height - 1, [Math]::Floor(($y + 0.5) * $height / 10))
+            # Clean, mostly uniform layouts legitimately have fewer than six colors
+            # on a 12x10 grid. 24x16 still rejects monochrome/blank frames.
+            for ($x = 0; $x -lt 24; $x++) {
+                for ($y = 0; $y -lt 16; $y++) {
+                    $px = [int][Math]::Min($width - 1, [Math]::Floor(($x + 0.5) * $width / 24))
+                    $py = [int][Math]::Min($height - 1, [Math]::Floor(($y + 0.5) * $height / 16))
                     [void]$colors.Add($viewBitmap.GetPixel($px, $py).ToArgb())
                 }
             }
