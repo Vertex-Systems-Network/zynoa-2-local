@@ -31,13 +31,14 @@ jobs:
           python -m unittest tests.test_p02_reviewdog -v
           python -m tools.p02_reviewdog > "${RUNNER_TEMP}/p02-reviewdog.txt"
           cat "${RUNNER_TEMP}/p02-reviewdog.txt"
-      - name: Check changed lines for whitespace errors
+      - name: Check changed P02 UI source lines for whitespace errors
         shell: bash
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           set -euo pipefail
-          git diff --check "$BASE_SHA" HEAD
+          # Existing Markdown uses intentional two-space hard line breaks; reviewdog is a source-code check.
+          git diff --check "$BASE_SHA" HEAD -- apps/desktop/src tools/p02_reviewdog.py tests/test_p02_reviewdog.py .github/workflows/reviewdog-p02.yml
       - name: Setup reviewdog
         uses: reviewdog/action-setup@v1.5.0
         with:
