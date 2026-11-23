@@ -1,5 +1,8 @@
 # Handoff (canonical starter)
 
+- **29/29 authentic M02/M19 Windows native PNG images accepted for screenshot-only visual scope (2026-11-24):** Remaining M19-OPT-01 corrected real search/input image from source `c9a874a9` Windows SUCCESS #45274014314 transferred through *read-only* artifact export #45279976526, final blob SHA `8cda88f7d67f4c3d90d301dd80dcca51f78651fa`, source SHA256 `e4b8b013ab2d0d10a6ff4d44717fb153e2f99f07f2d5390bb517c252a9a20bcb`. Replaced old image that clipped search field, reviewed 14/14 M19 and preserved 15/15 M02. Screenshot manifest now 29/29 VERIFIED with image-only review records; full independent NVDA/Narrator, performance budget, hosted Wiki, owner PR approval, protected merge, entire T02/T10/T11 remain outstanding. Temporary read-only evidence transport workflow removed in same atomic commit. Lease to be released null after CI/readback.
+
+
 - **M19 genuine native screenshots 13/14 accepted (2026-11-24):** Source-verified 13 M19 screen/option PNG files in the active P02 branch have per-frame visual review and manifest status VERIFIED (`docs/screenshots/M19/T10-final-13-native-visual.review.json`). The **one remaining M19-OPT-01** committed screenshot shows the search result/reader but scrolled the actual typed input off frame; corrected true native Tauri frame exists in successful [#45274014314](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45274014314), needs original Git binary replacement and source hash update first. M02 15/15 VERIFIED; current screenshot-only total 28/29 VERIFIED; official P02-T02/T10/T11 remain IN_PROGRESS due full screen-reader, budgets, Wiki, independent owner/pr approval and protected merge not done. Current GitHub scope only; lease must be cleared at handoff.
 
 

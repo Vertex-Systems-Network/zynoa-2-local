@@ -1972,10 +1972,10 @@
       "kind": "control",
       "module": "M19",
       "path": "docs/screenshots/M19/M19-OPT-01.png",
-      "status": "PENDING",
-      "source": "WINDOWS_TAURI_CI_RUN_45265826578_SHA_80bb8fde422cc887667de27af3860be1809b4aaa",
-      "source_capture_sha256": "9e449d472b78c74da16d5400b32a8683d840408c0c96b7be6ffb9eefac9ac9c8",
-      "source_git_blob_sha": "c675391bf6d3e5fb6cc5bf0e9b787cec3ab4fad0"
+      "status": "VERIFIED",
+      "source": "WINDOWS_TAURI_CI_RUN_45274014314_SHA_c9a874a9638c1bac41e582d3f0e1f315bb570662",
+      "source_capture_sha256": "e4b8b013ab2d0d10a6ff4d44717fb153e2f99f07f2d5390bb517c252a9a20bcb",
+      "source_git_blob_sha": "8cda88f7d67f4c3d90d301dd80dcca51f78651fa"
     },
     {
       "asset_id": "M19-OPT-02",

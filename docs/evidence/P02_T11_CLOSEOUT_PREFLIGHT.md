@@ -1,5 +1,8 @@
 # P02-T11 — Protected Merge and Final Acceptance Preflight
 
+**Latest 2026-11-24 evidence checkpoint:** All 29/29 genuine committed M02/M19 screen/option PNGs now have independent per-image SHA-bound visual review status VERIFIED. The 29th, M19-OPT-01, was re-captured on real Windows Tauri CI #45274014314 and its original binary replaced after read-only artifact-transport proof #45279976526. See [complete screenshot review record](P02_T10_FINAL_29_NATIVE_SCREENSHOTS_20261124.json). **These are screenshot proofs only.** Independent full NVDA/Narrator keyboard and live announcement testing, endorsed performance percentiles/budgets, hosted Wiki publication, owner/current-SHA review, security/issue adjudication and protected merge remain outstanding. T02/T10/T11 still IN_PROGRESS, PR #12 Draft, main unchanged.
+
+
 **Latest 2026-11-24 checkpoint:** Authentic committed native screenshot assets total 29/29; scoped M02 image review 15 VERIFIED and scoped M19 review 13 VERIFIED, leaving **M19-OPT-01 final image 1 PENDING**. The corrected native M19 search control is source/hash validated on passing [Windows CI #45274014314](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45274014314) but not yet substituted into the versioned final path. Governance/Reviewdog/task-board checks passed on the same source head. Exact phase closeout **still blocked**: full NVDA/Narrator, approved performance budget, hosted Wiki publication, independent current-SHA owner review, all gates and protected merge. Main untouched, P03/release forbidden.
 
 
