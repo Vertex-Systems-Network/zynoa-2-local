@@ -3,7 +3,7 @@
   "module_id": "M02",
   "kind": "feature",
   "title": "Native shared UI tokens, workbench, keyboard command palette",
-  "summary": "Source implementation of a session-only accessible M02 desktop GUI, design tokens, gallery, theme/density and command routing. Backend features remain disabled; visual acceptance pending. P02 regression follow-up: closed shortcut allowlist, fail-closed Windows CI stage separation and contrast-safe secondary text tokens (merge and native accessibility still pending). Modal isolation update: inert background, keyboard routing guard, stable focus return to opener or destination. P02-T02.04 addresses hidden focus on keyboard-focusable Workbench tabpanels with a theme-aware outline, adds fail-closed Windows Python a11y contracts and candidate native capture; final visual acceptance remains pending. T02.06/07: accessible gallery pressed/hover/disabled/status examples with independent sample input, responsive 900px-native gallery and bounded split-grid columns; screenshot candidates and native E2E review remain pending. Scopes T02.06/07 now have passing exact-source Windows CI and direct visual inspection of the SHA-bound native action/898px responsive screenshots (artifact 14804053291); full M02/P02 acceptance and release still pending. T02.09/10/11 scoped acceptance: Windows fail-closed native PNG/metadata verifier and 20 dedicated regression tests, 9 independently inspected SHA-bound real Tauri images and accurate eight-option Help/Wiki docs; full manifest and release remain pending. T02.12 readiness gate rejects false parent DONE, captures independent real native light/dark/keyboard-guide evidence and logs explicit NOT_READY blockers for 15 final M02 screenshots plus M02-OPT-03/04. Full M02 acceptance still unverified. Reviewdog P02 same-repository PR static review added with line-specific high-confidence diagnostics and isolated publication token; M02-OPT-03 compact properties spacing preview is now implemented as keyboard-accessible session-only React state. Actual editor, custom shortcut remapping, all screenshots, full P02 module acceptance and release remain pending.",
+  "summary": "Source implementation of a session-only accessible M02 desktop GUI, design tokens, gallery, theme/density and command routing. Backend features remain disabled; visual acceptance pending. P02 regression follow-up: closed shortcut allowlist, fail-closed Windows CI stage separation and contrast-safe secondary text tokens (merge and native accessibility still pending). Modal isolation update: inert background, keyboard routing guard, stable focus return to opener or destination. P02-T02.04 addresses hidden focus on keyboard-focusable Workbench tabpanels with a theme-aware outline, adds fail-closed Windows Python a11y contracts and candidate native capture; final visual acceptance remains pending. T02.06/07: accessible gallery pressed/hover/disabled/status examples with independent sample input, responsive 900px-native gallery and bounded split-grid columns; screenshot candidates and native E2E review remain pending. Scopes T02.06/07 now have passing exact-source Windows CI and direct visual inspection of the SHA-bound native action/898px responsive screenshots (artifact 14804053291); full M02/P02 acceptance and release still pending. T02.09/10/11 scoped acceptance: Windows fail-closed native PNG/metadata verifier and 20 dedicated regression tests, 9 independently inspected SHA-bound real Tauri images and accurate eight-option Help/Wiki docs; full manifest and release remain pending. T02.12 readiness gate rejects false parent DONE, captures independent real native light/dark/keyboard-guide evidence and logs explicit NOT_READY blockers for 15 final M02 screenshots plus M02-OPT-03/04. Full M02 acceptance still unverified. Reviewdog P02 same-repository PR static review added with line-specific high-confidence diagnostics and isolated publication token; M02-OPT-03 compact properties spacing preview is now implemented as keyboard-accessible session-only React state. Actual editor, custom shortcut remapping, all screenshots, full P02 module acceptance and release remain pending. M02-OPT-03 illustrative compact properties toggle has passed Windows native screenshot visual review (SHA bound), and Reviewdog reporter passed scoped P02 static checks; full screenshot manifest and M02 module acceptance remain unfinished.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [
@@ -21,7 +21,8 @@
     "docs/evidence/P02_T02_12_ACCEPTANCE.md",
     "docs/screenshots/M02/T02-12-appearance-keyboard.review.json",
     "docs/help/articles/M02.md",
-    "docs/wiki/pages/M02.md"
+    "docs/wiki/pages/M02.md",
+    "docs/screenshots/M02/M02-OPT-03.review.json"
   ],
   "help_paths": [
     "docs/help/articles/M02.md"
@@ -35,7 +36,9 @@
     "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45149201009",
     "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45149201165",
     "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45153183376",
-    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45153183441"
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45153183441",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45157184158",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45157184419"
   ],
   "commit_sha": null,
   "release": null,
@@ -47,7 +50,7 @@
   "breaking_change": false,
   "migration_notes": "No native user-storage schema change or migrated data. UI session state only; offline help bundled from curated static source.",
   "created_at": "2026-11-22T20:49:36.088Z",
-  "updated_at": "2026-11-23T10:30:41.759Z",
+  "updated_at": "2026-11-23T10:42:38.187Z",
   "version_bump": "none",
   "affected_option_ids": [
     "M02-OPT-01",
