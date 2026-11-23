@@ -250,6 +250,8 @@ class P02UIContractTests(unittest.TestCase):
         self.assertEqual(900, window["minWidth"])
         self.assertTrue(window["resizable"])
         self.assertIn("@media (max-width:950px)", css)
+        self.assertIn("@media (max-width:850px)", css)
+        self.assertNotIn(".shell .gallery-metrics { grid-template-columns:repeat(3,minmax(0,1fr)); }", css)
         self.assertIn(".shell .gallery-grid { grid-template-columns:minmax(0,1fr); }", css)
         self.assertIn("repeat(auto-fit,minmax(140px,1fr))", css)
         self.assertIn(".shell .component-state-list>div { flex-wrap:wrap;", css)
@@ -267,6 +269,9 @@ class P02UIContractTests(unittest.TestCase):
         self.assertIn("-Shortcut '{TAB}{TAB}{TAB}{SPACE}{PGDN}'", capture)
         self.assertIn("[ZynoaScreenWin32]::MoveWindow", capture)
         self.assertIn("DwmGetWindowAttribute", capture)
+        self.assertIn("$narrowWidth -gt 920", capture)
+        self.assertIn("$narrowWidth -ge $priorWidth", capture)
+        self.assertIn("$script:bounds = $narrowVisible", capture)
         for code in ("ZYN-SCREEN-020", "ZYN-SCREEN-021", "ZYN-SCREEN-022"):
             self.assertIn(code, capture)
         self.assertIn("candidate_pending_visual_review", capture)
