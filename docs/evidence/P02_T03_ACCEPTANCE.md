@@ -1,6 +1,6 @@
 # P02-T03 — Adaptive navigation, workspace shell and pane layout
 
-**Task board:** `P02-T03` is IN_PROGRESS until its exact-source Windows CI and independent native visual review are accepted. This is a **whole official task** acceptance record, not a separate phase or additional P02 child ID.
+**Task board:** `P02-T03` is **DONE**, following exact-source successful Windows CI and independent native visual review. This is a **whole official task** acceptance record, not a separate phase or additional P02 child ID.
 
 **Primary work location:** existing Draft [PR #12](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12), `phase/02-shared-ui`. Source-only changes do not imply a real user workspace service or merge/release.
 
