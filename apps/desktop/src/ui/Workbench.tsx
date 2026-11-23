@@ -14,6 +14,7 @@ export function Workbench({ transport, onNavigate }: {
 }) {
   const [active, setActive] = useState<(typeof panes)[number]["key"]>("status");
   const [split, setSplit] = useState(40);
+  const [compactProperties, setCompactProperties] = useState(false);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const activate = (index: number) => {
     const next = panes[index];
@@ -90,6 +91,29 @@ export function Workbench({ transport, onNavigate }: {
           <div><b>Content pane</b><small>Responds to available width</small></div>
         </div>
       </div>
+      <section className="studio-card properties-panel" aria-labelledby="properties-title">
+        <div className="flex-between properties-heading">
+          <div><span className="small-caps">M02-OPT-03 / LAYOUT PREVIEW</span>
+            <h2 id="properties-title">Properties panel density</h2>
+            <p>Preview comfortable or compact property rows. No real project properties are loaded.</p>
+          </div>
+          <button className="subtle-action" type="button" aria-controls="workbench-properties-preview"
+            aria-pressed={compactProperties} onClick={() => setCompactProperties(current => !current)}>
+            {compactProperties ? "Compact on" : "Compact off"}
+          </button>
+        </div>
+        <div id="workbench-properties-preview" className="properties-preview"
+          data-properties-density={compactProperties ? "compact" : "comfortable"}
+          aria-label="Illustrative properties rows">
+          <div className="property-preview-row"><span>Selection</span><strong>Nothing selected</strong></div>
+          <div className="property-preview-row"><span>Mode</span><strong>Foundation preview</strong></div>
+          <div className="property-preview-row"><span>Storage</span><strong>Session only</strong></div>
+        </div>
+        <p className="component-helper" role="status">
+          {compactProperties ? "Compact property spacing enabled for this preview." :
+            "Comfortable property spacing enabled for this preview."}
+        </p>
+      </section>
     </div>
     <div role="tabpanel" tabIndex={0} id="workbench-panel-keyboard"
       aria-labelledby="workbench-tab-keyboard" className="workbench-tabpanel" hidden={active !== "keyboard"}>
