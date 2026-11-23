@@ -3,7 +3,7 @@
   "module_id": "M02",
   "kind": "enhancement",
   "title": "Source-SHA-bound complete P02 native control review candidate matrix",
-  "summary": "Extend the running Windows Tauri screenshot harness with 15 directly interacted control/screen candidates for full 29-target review mapping, plus 16 separately labelled Help-only reference images. Generate a self-contained offline HTML visual review artifact and refuse any automatic final acceptance. It now additionally exports a fail-closed, exact-path 29-image native candidate ZIP with source-bound PNG hashes, per-control receipts and a human review checklist; it does not commit or approve final images. The real Windows source-bound Tauri capture and independently inspected actual light/dark preference, gallery and five-state images support scoped T05/T06 functional acceptance. Those tasks are DONE; final screenshot manifest, full screen-reader and release gates remain incomplete. Follow-up native FAQ screenshot path now explicitly focuses the actual first keyboard-accessible disclosure by UIAutomation rather than relying on render-sensitive relative Tab order; new source regression tests retain fail-closed capture with no mock or synthesized frame. Corrected latest exact-source FAQ candidate composition: preserve expanded answer in the viewport by removing PageDown after keyboard disclosure activation; the real UIA named-control focus requirement and fail-closed screenshot hash gate remain unchanged.",
+  "summary": "Extend the running Windows Tauri screenshot harness with 15 directly interacted control/screen candidates for full 29-target review mapping, plus 16 separately labelled Help-only reference images. Generate a self-contained offline HTML visual review artifact and refuse any automatic final acceptance. It now additionally exports a fail-closed, exact-path 29-image native candidate ZIP with source-bound PNG hashes, per-control receipts and a human review checklist; it does not commit or approve final images. The real Windows source-bound Tauri capture and independently inspected actual light/dark preference, gallery and five-state images support scoped T05/T06 functional acceptance. Those tasks are DONE; final screenshot manifest, full screen-reader and release gates remain incomplete. Follow-up native FAQ screenshot path now explicitly focuses the actual first keyboard-accessible disclosure by UIAutomation rather than relying on render-sensitive relative Tab order; new source regression tests retain fail-closed capture with no mock or synthesized frame. Corrected latest exact-source FAQ candidate composition: preserve expanded answer in the viewport by removing PageDown after keyboard disclosure activation; the real UIA named-control focus requirement and fail-closed screenshot hash gate remain unchanged. 2026-11-24: 29/29 authentic original M02/M19 Windows Tauri PNGs were committed to canonical final paths with Git tree readback; manifest remains PENDING until independent all-state accessibility/visual and release gates are accepted.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [],
@@ -31,7 +31,9 @@
     "docs/modules/M19.md",
     "docs/evidence/P02_T10_29_CI_STAGED_EXPORT_20261123.json",
     "docs/evidence/P02_T05_T06_SCOPED_ACCEPTANCE_20261124.md",
-    "docs/state/pr-tasks/P02.json"
+    "docs/state/pr-tasks/P02.json",
+    "docs/evidence/P02_T10_NATIVE_29_COMMITTED_20261124.json",
+    "docs/screenshots/MANIFEST.json"
   ],
   "help_paths": [
     "docs/help/articles/M02.md",
@@ -43,7 +45,8 @@
   ],
   "test_evidence": [
     "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45252195376",
-    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45256580719"
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45256580719",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45265826578"
   ],
   "commit_sha": "b52c2800fc7bee3ed773755a1d93cc783a51ad44",
   "release": null,
@@ -55,7 +58,7 @@
   "breaking_change": false,
   "migration_notes": "No durable user data or native application schema changes.",
   "created_at": "2026-11-23T18:54:44.538Z",
-  "updated_at": "2026-11-24T02:00:00Z",
+  "updated_at": "2026-11-23T21:26:12.490Z",
   "version_bump": "none",
   "docs_impact": true,
   "data_migration": false

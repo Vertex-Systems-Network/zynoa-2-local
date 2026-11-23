@@ -2,6 +2,8 @@
 
 ## CURRENT (read this first; history below is archive)
 
+**Latest P02 update (2026-11-24):** All 29 required M02/M19 original native Windows PNGs are now committed on PR #12 at [`4c6c97f079`](https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/4c6c97f0799070825348913fe90cacc7e529d55e), real Git blob readback 29/29. Two exact-source Windows CI attempts passed. Manifest **0/29 final VERIFIED** (independent visual, full NVDA/Narrator, approved performance budgets pending); T02/T10/T11 still IN_PROGRESS. Owner review, hosted Wiki and protected merge remain unverified. Lease `null`, worker false. [Evidence](../evidence/P02_T10_NATIVE_29_COMMITTED_20261124.json).
+
 **P02 current exact-source candidate evidence (2026-11-23):** [Windows #45252195376](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45252195376) passed all 69 genuine native screenshot candidate/hash/keyboard UIA checks. [29-target evidence and open final gates](../evidence/P02_T10_69_NATIVE_PROVENANCE_20261123.md). P02 remains IN_PROGRESS, 0/29 final PNGs VERIFIED, PR #12 draft, lease null, no merge or P03.
 
 
