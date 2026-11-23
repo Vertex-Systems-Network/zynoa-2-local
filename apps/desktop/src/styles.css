@@ -523,3 +523,7 @@ main:focus{outline:none}
 .shell .command-result>span:nth-child(2) { min-width:0; flex:1; }
 .shell .command-result strong, .shell .command-result small { overflow-wrap:anywhere; }
 .shell .command-result kbd { flex-shrink:0; }
+
+/* P02 native Help deep-link: a programmatically focused option heading is
+   visible, scroll-reachable and announces the actual destination. */
+.shell .help-option-detail h3:focus-visible { outline: 2px solid var(--outline); outline-offset: 4px; border-radius: 3px; }

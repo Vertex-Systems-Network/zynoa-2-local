@@ -125,6 +125,14 @@ class NativeUIAContracts(unittest.TestCase):
         self.assertIn("exact_option_heading_visible_in_native_tree", script)
         self.assertNotIn("$searchFocused = $true", script)
 
+    def test_help_destination_focus_is_a_real_html_heading(self):
+        widget = (ROOT / "apps/desktop/src/ui/HelpWorkflows.tsx").read_text(encoding="utf-8")
+        app = (ROOT / "apps/desktop/src/App.tsx").read_text(encoding="utf-8")
+        self.assertIn('tabIndex={-1} ref={selectedOptionHeadingRef}', widget)
+        self.assertIn('aria-labelledby="help-selected-option-title"', widget)
+        self.assertIn("selectedOptionHeadingRef.current?.focus({ preventScroll: false })", widget)
+        self.assertIn('helpDestination?.kind !== "option"', app)
+
     def test_workflow_pins_native_probe_to_live_tauri_boot_and_artifact(self):
         flow = (ROOT / ".github/workflows/p01-desktop.yml").read_text(encoding="utf-8")
         self.assertIn("scripts\\probe_p02_native_a11y.ps1", flow)

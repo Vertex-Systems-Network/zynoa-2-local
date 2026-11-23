@@ -127,6 +127,27 @@ class M19OfflineWorkflowTests(unittest.TestCase):
         self.assertIn("+{TAB}+{TAB}+{TAB}+{TAB}+{TAB}{ENTER}",capture)
         self.assertIn("M19 option reference must differ",verifier)
 
+    def test_palette_option_deep_link_focuses_actual_visible_help_heading(self):
+        """Keyboard Enter must place focus on the opened Help option, not a stale modal."""
+        app = (ROOT / "apps/desktop/src/App.tsx").read_text(encoding="utf-8")
+        source = self.widget
+        css = self.css
+        for snippet in (
+            'useRef<HTMLHeadingElement>(null)',
+            'selectedOptionHeadingRef.current?.focus({ preventScroll: false })',
+            'window.requestAnimationFrame(() => {',
+            'window.cancelAnimationFrame(firstFrame)',
+            'secondFrame = window.requestAnimationFrame(',
+            '[mode, initialOptionId, selectedOptionId]',
+            'role="region" aria-labelledby="help-selected-option-title"',
+            'id="help-selected-option-title" tabIndex={-1} ref={selectedOptionHeadingRef}',
+        ):
+            self.assertIn(snippet, source)
+        self.assertIn('view !== "help" || helpDestination?.kind !== "option"', app)
+        self.assertIn('.shell .help-option-detail h3:focus-visible', css)
+        self.assertNotIn("setTimeout", source)
+        self.assertNotIn("localStorage", source)
+
     def test_windows_ci_cannot_skip_m19_from_docs_only_final_commit(self):
         workflow = (ROOT / ".github/workflows/p01-desktop.yml").read_text(encoding="utf-8")
         self.assertIn("git diff --name-only FETCH_HEAD HEAD", workflow)

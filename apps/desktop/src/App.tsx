@@ -256,9 +256,13 @@ export function App() {
     const surface = document.getElementById("main-content");
     if (surface) {
       surface.scrollTop = 0;
-      surface.focus({ preventScroll: true });
+      // A direct Help option route owns focus via its selected heading;
+      // focusing the general scroll pane would steal screen-reader context.
+      if (view !== "help" || helpDestination?.kind !== "option") {
+        surface.focus({ preventScroll: true });
+      }
     }
-  }, [view]);
+  }, [view, helpDestination]);
 
   return (
     <div className="shell" data-theme={effectiveTheme(theme, systemDark)} data-density={density}>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { findHelpOption, helpOptionReferences, optionHelpRoute, resolveOptionHelpRoute, searchHelpOptions } from "./help-options";
 import {
   getWizardIssue, getWizardStep, getGuidedTourStep, guidedTourSteps, helpFaq, helpGlossary, helpRoute,
@@ -56,6 +56,7 @@ type WorkflowsProps = {
 };
 
 export function HelpWorkflows({ mode, onOpenArticle, initialOptionId }: WorkflowsProps) {
+  const selectedOptionHeadingRef = useRef<HTMLHeadingElement>(null);
   const [issueId, setIssueId] = useState(wizardIssues[0].id);
   const [optionQuery, setOptionQuery] = useState("");
   const [optionModule, setOptionModule] = useState<"All" | "M02" | "M19">("All");
@@ -77,6 +78,26 @@ export function HelpWorkflows({ mode, onOpenArticle, initialOptionId }: Workflow
       setOptionRouteText("help://option/" + initialOptionId);
     }
   }, [initialOptionId]);
+  // Deep-linked option Help is a keyboard destination, not just a visual
+  // filter change. Move focus to the actual selected heading after both the
+  // app view-focus effect and palette-unmount recovery have completed.
+  // This keeps the destination discoverable by Windows UI Automation and
+  // by assistive technology rather than leaving focus on stale search results.
+  useEffect(() => {
+    if (mode !== "options" || !initialOptionId ||
+        selectedOptionId !== initialOptionId || !findHelpOption(initialOptionId)) return;
+    let secondFrame = 0;
+    const firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(() => {
+        selectedOptionHeadingRef.current?.focus({ preventScroll: false });
+      });
+    });
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      if (secondFrame) window.cancelAnimationFrame(secondFrame);
+    };
+  }, [mode, initialOptionId, selectedOptionId]);
+
   const issue = getWizardIssue(issueId);
   const step = getWizardStep(issueId, index);
   const resolvedRoute = resolveHelpRoute(routeText.trim());
@@ -114,9 +135,9 @@ export function HelpWorkflows({ mode, onOpenArticle, initialOptionId }: Workflow
           </button>)}
         {!optionResults.length && <p role="status">No matching options. Clear the text and choose All modules.</p>}
       </div>
-      {selectedOption ? <article className="help-option-detail" aria-label="Selected option reference">
+      {selectedOption ? <article className="help-option-detail" role="region" aria-labelledby="help-selected-option-title">
         <span className="small-caps">{selectedOption.id} / {selectedOption.availability.toUpperCase()}</span>
-        <h3>{selectedOption.title}</h3>
+        <h3 id="help-selected-option-title" tabIndex={-1} ref={selectedOptionHeadingRef}>{selectedOption.title}</h3>
         <dl>
           <dt>Default</dt><dd>{selectedOption.defaultState}</dd>
           <dt>How to use</dt><dd>{selectedOption.interaction}</dd>
