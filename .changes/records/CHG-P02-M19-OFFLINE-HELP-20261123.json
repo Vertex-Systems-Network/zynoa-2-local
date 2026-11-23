@@ -3,7 +3,7 @@
   "module_id": "M19",
   "kind": "feature",
   "title": "Bundled offline Help Center and local article search",
-  "summary": "Source implementation of M19 curated bundled help index, deterministic local search, FAQ/glossary and accessible article reader; no server, wiki write or telemetry. Native visuals pending. Reader selection now follows filtered results; zero-hit search shows an explicit empty reader; related/contextual navigation restores visible selection. M02 Wiki source anchor corrected.",
+  "summary": "Source implementation of M19 curated bundled help index, deterministic local search, FAQ/glossary and accessible article reader; no server, wiki write or telemetry. Native visuals pending. Reader selection now follows filtered results; zero-hit search shows an explicit empty reader; related/contextual navigation restores visible selection. M02 Wiki source anchor corrected. P02-T08 offline contextual reader, FAQ, glossary and wizard implementation passed a separate scoped Windows-native functional review and was accepted as T08 DONE, without final module screenshots, screenshot-hotspot tours, published Wiki or P02 protected merge.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [],
@@ -12,7 +12,9 @@
     "docs/adr/0026-p02-shared-ui-help-predev.md",
     "docs/evidence/P02_T02_FIRST_REAL_UI_SLICE.md",
     "docs/modules/M19.md",
-    "docs/state/HANDOFF.md"
+    "docs/state/HANDOFF.md",
+    "docs/evidence/P02_T08_SCOPED_ACCEPTANCE_20261124.md",
+    "docs/state/pr-tasks/P02.json"
   ],
   "help_paths": [
     "docs/help/articles/M19.md"
@@ -20,18 +22,21 @@
   "wiki_paths": [
     "docs/wiki/pages/M19.md"
   ],
-  "test_evidence": [],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45262533924",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45262533548"
+  ],
   "commit_sha": null,
   "release": null,
   "verification": {
-    "tests_passed": false,
+    "tests_passed": true,
     "merge_verified": false,
     "release_published": false
   },
   "breaking_change": false,
   "migration_notes": "No native user-storage schema change or migrated data. UI session state only; offline help bundled from curated static source.",
   "created_at": "2026-11-22T20:49:36.088Z",
-  "updated_at": "2026-11-23T13:53:00Z",
+  "updated_at": "2026-11-24T02:20:00Z",
   "version_bump": "none",
   "affected_option_ids": [
     "M19-OPT-01",

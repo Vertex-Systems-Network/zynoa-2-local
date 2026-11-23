@@ -51,8 +51,8 @@
     {
       "id": "P02-T08",
       "title": "M19 contextual help reader, FAQ, glossary and troubleshooting",
-      "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45262533924"
     },
     {
       "id": "P02-T09",
