@@ -93,9 +93,9 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
 
     def test_workbench_native_control_navigation_respects_roving_tabindex(self):
         script = (Path(__file__).resolve().parents[1] / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
-        self.assertIn("Focus-P02NativeControl -AccessibleName 'Runtime status'", script)
-        self.assertIn("[System.Windows.Forms.SendKeys]::SendWait('{RIGHT}')", script)
+        self.assertIn("[System.Windows.Forms.SendKeys]::SendWait('{TAB}{TAB}{TAB}{TAB}{RIGHT}')", script)
         self.assertIn("Focus-P02NativeControl -AccessibleName 'Left pane width'", script)
+        self.assertNotIn("Focus-P02NativeControl -AccessibleName 'Runtime status'", script)
         self.assertNotIn("Focus-P02NativeControl -AccessibleName 'Layout controls'", script)
 
     def test_real_control_candidate_identity_is_required(self):

@@ -407,9 +407,14 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     # Inactive ARIA tabs use roving tabindex=-1 and must not be forced to
     # receive focus. Focus the selected Runtime status tab, then use its
     # documented ArrowRight keyboard route to activate Layout controls.
-    Focus-P02NativeControl -AccessibleName 'Runtime status'
-    [System.Windows.Forms.SendKeys]::SendWait('{RIGHT}')
-    Start-Sleep -Milliseconds 300
+    # Navigate the actual ARIA tablist by the user's keyboard path instead
+    # of requiring Windows UIA to name a roving-tab control consistently.
+    # Ctrl+5 puts focus on Workbench main; 4 Tab stops reach the selected
+    # tab (command, context help, Workbench help, selected Runtime tab).
+    # ArrowRight selects Layout; the *real slider* still must be located
+    # by native UI Automation and keyboard-operated or the capture fails.
+    [System.Windows.Forms.SendKeys]::SendWait('{TAB}{TAB}{TAB}{TAB}{RIGHT}')
+    Start-Sleep -Milliseconds 350
     Focus-P02NativeControl -AccessibleName 'Left pane width'
     Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M02-OPT-06' -Shortcut '{RIGHT}{RIGHT}{PGDN}' -ScreenTitle 'M02 actual split pane slider' -Description 'Real native Workbench Layout controls slider adjusted by keyboard arrows with immediate live pane proportion preview' -FinalCandidateId 'M02-OPT-06'
     Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M02-OPT-08' -Shortcut '^{2}{PGDN}' -ScreenTitle 'M02 Windows motion setting feedback' -Description 'Real native Preferences reporting current operating-system motion preference; follows Windows without falsely claiming manual reduced-motion toggle' -FinalCandidateId 'M02-OPT-08'
