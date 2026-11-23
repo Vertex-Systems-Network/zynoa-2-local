@@ -1,0 +1,94 @@
+"""Source and negative tests for the native Windows UIA audit."""
+from pathlib import Path
+import unittest
+
+from tools.verify_p02_native_uia import verify, EXPECTED, InvalidUIAEvidence
+
+ROOT = Path(__file__).resolve().parents[1]
+SHA = "a" * 40
+
+
+def good():
+    return {
+        "schema_version": 1,
+        "module": "M02",
+        "source_commit_sha": SHA,
+        "target": "Real Windows Tauri WebView2 UI Automation HWND",
+        "native_pid_matched": True,
+        "scope": "Scoped accessible-name, keyboard focus and dialog dismissal probe",
+        "results": {key: True for key in EXPECTED},
+        "issues": [],
+        "duration_ms": 1600,
+        "full_screen_reader_verified": False,
+        "all_option_controls_verified": False,
+        "final_screenshot_manifest_verified": False,
+        "no_user_data": True,
+        "status": "SCOPED_NATIVE_UIA_PASS",
+    }
+
+
+class NativeUIAContracts(unittest.TestCase):
+    def test_scoped_pass_never_becomes_full_screen_reader_signoff(self):
+        outcome = verify(good(), SHA)
+        self.assertEqual(6, outcome["native_aria_checks"])
+        self.assertFalse(outcome["full_screen_reader_verified"])
+
+    def test_untrusted_native_pid_is_rejected(self):
+        proof = good()
+        proof["native_pid_matched"] = False
+        with self.assertRaisesRegex(InvalidUIAEvidence, "origin"):
+            verify(proof, SHA)
+
+    def test_accessible_input_name_or_focus_failure_rejected(self):
+        for key in EXPECTED:
+            with self.subTest(key=key):
+                proof = good()
+                proof["results"][key] = False
+                with self.assertRaisesRegex(InvalidUIAEvidence, "labels"):
+                    verify(proof, SHA)
+
+    def test_screen_reader_certificate_cannot_be_forged(self):
+        proof = good()
+        proof["full_screen_reader_verified"] = True
+        with self.assertRaisesRegex(InvalidUIAEvidence, "scope boundary"):
+            verify(proof, SHA)
+
+    def test_bad_sha_and_fake_origin_rejected(self):
+        proof = good()
+        with self.assertRaisesRegex(InvalidUIAEvidence, "source SHA"):
+            verify(proof, "b" * 40)
+        proof["target"] = "HTML screenshot fixture"
+        with self.assertRaisesRegex(InvalidUIAEvidence, "native Windows Tauri"):
+            verify(proof, SHA)
+
+    def test_duration_and_no_user_data_are_required(self):
+        proof = good()
+        proof["duration_ms"] = 0
+        with self.assertRaisesRegex(InvalidUIAEvidence, "duration"):
+            verify(proof, SHA)
+        proof = good()
+        proof["no_user_data"] = False
+        with self.assertRaisesRegex(InvalidUIAEvidence, "privacy"):
+            verify(proof, SHA)
+
+    def test_source_uses_actual_process_ui_automation_with_bounded_probes(self):
+        script = (ROOT / "scripts/probe_p02_native_a11y.ps1").read_text(encoding="utf-8")
+        for snippet in ("UIAutomationClient", "UIAutomationTypes", "AutomationElement",
+                        "MainWindowHandle", "SetForegroundWindow", "SourceSha",
+                        "Find-NativeName", "keyboard_focus_enters_modal_search",
+                        "escape_dismisses_modal", "full_screen_reader_verified = $false"):
+            self.assertIn(snippet, script)
+        for forbidden in ("Invoke-WebRequest", "http://", "https://", "curl ",
+                          "localStorage", "sessionStorage", "Get-Clipboard"):
+            self.assertNotIn(forbidden, script)
+
+    def test_workflow_pins_native_probe_to_live_tauri_boot_and_artifact(self):
+        flow = (ROOT / ".github/workflows/p01-desktop.yml").read_text(encoding="utf-8")
+        self.assertIn("scripts\\probe_p02_native_a11y.ps1", flow)
+        self.assertIn("python -m tools.verify_p02_native_uia", flow)
+        self.assertIn("P02-native-uia.capture.json", flow)
+        self.assertIn("P02-native-uia.verify.json", flow)
+
+
+if __name__ == "__main__":
+    unittest.main()
