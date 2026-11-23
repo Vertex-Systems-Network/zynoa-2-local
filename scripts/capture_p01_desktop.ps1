@@ -215,8 +215,37 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     # Screenshot is candidate evidence only, independently review visible focus ring.
     Save-NativeFollowup -ScreenshotId 'M02-OPT-07' -Shortcut '{TAB}{TAB}{TAB}{TAB}{TAB}' -ScreenTitle 'Workbench keyboard focus' -Description 'Real Tauri Workbench keyboard-focused active tabpanel with visible focus ring (review pending)'
     Save-NativeFollowup -ScreenshotId 'M02-S05' -Shortcut '^{6}' -ScreenTitle 'P02 native component gallery' -Description 'Real Tauri component gallery with semantic token swatches, state chips and interactive input'
+    # From focused main after Ctrl+6: Tab toolbar command, Tab help, Tab primary action.
+    # Activate primary selection; PageDown reveals the actual button/feedback states.
+    Save-NativeFollowup -ScreenshotId 'P02-T02-06' -Shortcut '{TAB}{TAB}{TAB}{SPACE}{PGDN}' -ScreenTitle 'P02 component interaction states' -Description 'Real Tauri Components page with selected action, disabled example and independent status feedback; candidate awaiting native visual review'
     Save-NativeFollowup -ScreenshotId 'M02-S06' -Shortcut '^{2}' -ScreenTitle 'P02 native appearance settings' -Description 'Session-only theme and density selectors with unavailable native relocation labelled'
     Save-NativeFollowup -ScreenshotId 'M02-S04' -Shortcut '^+p' -ScreenTitle 'P02 native command palette' -Description 'Native modal command palette with focusable search and allowlisted navigation commands'
     $OutputDirectory = $m19Output
     Save-NativeFollowup -ScreenshotId 'M19-S01' -Shortcut '{ESC}{F1}' -ScreenTitle 'P02 native offline Help Center' -Description 'Bundled offline Help Center article library and searchable local help interface'
+
+    # T02.07: verify real native narrow viewport without falsifying responsive screenshots.
+    # Tauri enforces a 900px minimum width; the CI desktop starts wider (~998px visible).
+    $priorWidth = $width
+    $targetWidth = [int][Math]::Min(912, $workArea.Width - 12)
+    $targetHeight = [int][Math]::Min(660, $workArea.Height - 12)
+    if (-not [ZynoaScreenWin32]::MoveWindow($hwnd, $workArea.Left + 6, $workArea.Top + 6, $targetWidth, $targetHeight, $true)) {
+        throw 'ZYN-SCREEN-020: cannot resize real native window for responsive visual proof'
+    }
+    Start-Sleep -Milliseconds 900
+    $narrowVisible = [ZynoaScreenWin32+Rect]::new()
+    $narrowStatus = [ZynoaScreenWin32]::DwmGetWindowAttribute($hwnd, 9, [ref]$narrowVisible, $sizeOfRect)
+    if ($narrowStatus -ne 0) { throw 'ZYN-SCREEN-021: narrow native DWM frame unavailable' }
+    $narrowWidth = $narrowVisible.Right - $narrowVisible.Left
+    $narrowHeight = $narrowVisible.Bottom - $narrowVisible.Top
+    if ($narrowWidth -gt 920 -or $narrowWidth -ge $priorWidth -or $narrowWidth -lt 880 -or $narrowHeight -lt 600 -or
+        $narrowVisible.Left -lt $workArea.Left -or $narrowVisible.Top -lt $workArea.Top -or
+        $narrowVisible.Right -gt $workArea.Right -or $narrowVisible.Bottom -gt $workArea.Bottom) {
+        throw 'ZYN-SCREEN-022: resized frame did not meet real narrow native viewport requirements'
+    }
+    $script:bounds = $narrowVisible
+    $script:width = $narrowWidth
+    $script:height = $narrowHeight
+    $OutputDirectory = $m02Output
+    Save-NativeFollowup -ScreenshotId 'P02-T02-07' -Shortcut '^{6}' -ScreenTitle 'P02 narrow native gallery' -Description 'Real Tauri resizable window near the 900px minimum, gallery adaptive layout and component metrics'
+    Save-NativeFollowup -ScreenshotId 'P02-T02-07-continued' -Shortcut '{PGDN}' -ScreenTitle 'P02 narrow gallery continued' -Description 'Real native narrow window after PageDown, component cards and swatches responsive without horizontal clipping'
 }
