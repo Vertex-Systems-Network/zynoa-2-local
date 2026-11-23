@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "screenshot_id": "M02-OPT-03",
+  "review_status": "ACCEPTED_NATIVE_COMPACT_PROPERTIES_PREVIEW_SLICE_ONLY",
+  "reviewer": "GPT-6 independently inspected real Windows Tauri CI screenshot",
+  "reviewed_at": "2026-11-23T10:42:01.812Z",
+  "source_commit_sha": "a3ee329288215672a6a7568b5e0cf67e28fa5d12",
+  "native_run_id": 45157184158,
+  "native_artifact_id": 14808583975,
+  "png_sha256": "5b538a9e85cf8d90a77df44d51a1e3ff74048312acf7b3f1ec0a283c96cf9b23",
+  "width": 998,
+  "height": 701,
+  "source_build_sha_match": true,
+  "source_capture_status": "candidate_pending_visual_review",
+  "source_capture_verified": false,
+  "scoped_visual_findings": [
+    "Compact on button is visibly selected and has keyboard focus ring",
+    "Three sample property rows show compact spacing and all values remain legible",
+    "Polite feedback states that compact spacing is enabled for this preview",
+    "No project properties, real editor or stored user preferences are implied",
+    "Actual Windows window, navigation and footer are visible with no horizontal clipping"
+  ],
+  "screenshot_committed_to_manifest_path": false,
+  "final_option_gate_complete": false,
+  "limits": "Reviewed only the functional UI foundation preview. Keyboard focus, compact row density and local feedback were visible; final PNG docs/screenshots/M02/M02-OPT-03.png and complete per-option released documentation/screenshot gates remain PENDING. Native source capture receipt remains immutable and unverified."
+}
