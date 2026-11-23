@@ -158,7 +158,7 @@ main:focus{outline:none}
 .shell .workbench-tabs button[aria-selected="true"] { background:var(--surface-raised); border-color:var(--line); color:var(--text-primary); }
 .shell .workbench-tabs button:hover { color:var(--text-primary); }
 .shell .workbench-tabpanel { margin-top:20px; }
-.shell .workbench-tabpanel:focus { outline:none; }
+.shell .workbench-tabpanel:focus-visible { outline: 2px solid var(--outline); outline-offset: 3px; }
 .shell .workbench-grid { display:grid; grid-template-columns:1.3fr 1fr; gap:17px; }
 .shell .studio-card .subtle-action { margin-top:18px; }
 .shell .flex-between { display:flex; justify-content:space-between; align-items:center; gap:16px; }
