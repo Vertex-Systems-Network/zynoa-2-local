@@ -518,3 +518,14 @@ P00 closed: `main` = `fe34877` (PR #8). P01 branch `phase/01-foundation`, task l
 - Real Tauri keyboard-focus image is present in Windows artifact ID 14801194918, exact SHA-256 `7264e280cc391c4ed92b4b66bf8e9126990f341edd45d927af35a174288c63e1`; visible focus ring independently inspected. See `docs/screenshots/M02/M02-OPT-07.review.json` and `docs/evidence/P02_T02_FIRST_REAL_UI_SLICE.md`.
 - Documentation review is **slice-only**. The final manifest PNG `docs/screenshots/M02/M02-OPT-07.png`, other M02/M19 screenshots, and full P02 acceptance are still pending. Do not mark T02 parent, T10, T11 or PR merged.
 - Previous inactive session lease was owner-authorized recovered; handoff releases `docs/state/PHASE.json.lease_holder` to JSON `null`. No persistent worker is claimed.
+
+
+## 2026-11-23 P02-T02.06 / T02.07 native review
+
+- Phase P02, branch `phase/02-shared-ui`, primary Draft PR [#12](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12); protected main unchanged. Parent P02-T02 remains IN_PROGRESS; child UI foundation slices **T02.06 and T02.07 scoped-verified**, not separate entries in `P02.json`.
+- Fixes: ComponentGallery action previews use `aria-pressed`, selected styling and screen-reader status, leave typed sample input independent, and distinguish disabled/static status examples; responsive 900px-native minimum with one-column gallery, wrapping badges/metrics and bounded Workbench split grid.
+- Exact tested code SHA `949aad79680340302fada820434e4308cc203234`: Windows Tauri [CI 45145725506](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45145725506) PASS, Governance [45145725498](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45145725498) PASS, PR task sync [45145725464](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45145725464) PASS, P00 worker [45145725465](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45145725465) PASS. Python UI contracts, Node UI tests, TS, Rust native, real Tauri build/cold boot and screenshot capture passed.
+- Reviewed actual Windows artifact `14804053291`: `P02-T02-06` selected/disabled/feedback 998x701; `P02-T02-07` and `P02-T02-07-continued` responsive 898x653, no horizontal clipping, source/build SHA and PNG hashes match. Exact hashes, screenshot limits and prior invalid SendKeys repair in [P02 evidence](../evidence/P02_T02_FIRST_REAL_UI_SLICE.md).
+- Help/Wiki M02 updated with true steps, no runtime/persistence claims. Screenshots remain native CI candidates (`capture_verified=false`) and the 29 M02/M19 final manifest assets remain pending. Full module P02-T02, remaining P02 tasks, independent mouse hover E2E and protected merge are not done. No P03 work.
+- Release worker lease to `null` in `PHASE.json` at handoff. Next authorized worker continues on **same PR** with T02 remaining acceptance/screenshot coverage; never fabricate completion.
+
