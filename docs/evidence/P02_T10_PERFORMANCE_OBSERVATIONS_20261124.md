@@ -1,5 +1,11 @@
 # P02 native Windows performance observations — not approved release budgets
 
+**New native repeat evidence — 2026-11-24:** [Windows CI #45286192929](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45286192929) **SUCCESS** on `d0a8a3a7a3a9c8b69cf3353b4c48cc5c8677bc85`: three distinct real Tauri process launches had **first OS-visible native HWND 250, 133 and 139 ms** (median **139 ms**; maximum **250 ms**). The original verified GitHub job log contains the executable SHA-256 and exact-source receipt; Windows native build/boot/screenshot and negative Python contracts passed. **These values are only first visible shell, not ready-to-interact or native IPC latency** and must not be called product startup SLA or an approved budget.
+
+**Stronger follow-up now implemented:** [source commit `fffb510`](https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/fffb5101473908ebc393841d98a4daa6cbbebe15) keeps both first-visible-window timings and a separate **native IPC connected UIA readiness** duration, by inspecting actual WebView2 accessibility-tree status text `Typed native handshake connected`. It rejects missing status, nonmatching HWND PID, inconsistent timings, fewer/duplicate native processes and fake approved budget; adds negative fixtures. Its exact-head Windows run remains **NOT YET VERIFIED** at this checkpoint and must be read from CI. These are **three warm process** observations, not statistically reliable P95 or repeatable cold-start. The earlier real 42,582 ms native metadata outlier below remains in the baseline; do not hide it.
+
+**Policy:** `performance_budget_approved=false`, `full_screen_reader_verified=false`, T10 IN_PROGRESS until approved thresholds, repeated cold/warm measurements and NVDA/Narrator signoff.
+
 **Status:** UNAPPROVED_OBSERVATION_ONLY. This is not a T10 performance acceptance certificate.
 
 ## Actual source-bound Windows measurements

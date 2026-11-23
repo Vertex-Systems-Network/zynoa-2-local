@@ -1,0 +1,50 @@
+{
+  "change_id": "CHG-P02-WIKI-REAL-WARM-IPC-PERF-20261124",
+  "module_id": "M19",
+  "kind": "enhancement",
+  "title": "Real hosted P02 Wiki preview and native three-run visible-window and IPC readiness timing",
+  "summary": "Safely published M02/M19 preview pages only to existing GitHub Wiki after a verified preflight, hash-bound remote git readback and zero modification to Home; removed one-shot credential-enabled CI workflow. Added three real Tauri Windows native warm-process first-window evidence with source/executable hash and fail-closed tests. First run 45286192929 passed with window first visible 250/133/139 ms; these are not native IPC or approved performance. Follow-up native performance script requires explicit native UIA 'Typed native handshake connected' before readiness timing and rejects fabricated timing/provenance. Full screen-reader, cold-start performance budgets, final module, release and protected merge remain pending.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12",
+  "affected_option_ids": [
+    "M02-OPT-02",
+    "M19-OPT-06"
+  ],
+  "docs_paths": [
+    "docs/evidence/P02_T10_WIKI_PREVIEW_PUBLISHED_20261124.md",
+    "docs/evidence/P02_T10_PERFORMANCE_OBSERVATIONS_20261124.md",
+    "docs/evidence/P02_T11_CLOSEOUT_PREFLIGHT.md",
+    "docs/state/HANDOFF.md",
+    "docs/state/DECISIONS.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M02.md",
+    "docs/help/articles/M19.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M02.md",
+    "docs/wiki/pages/M19.md"
+  ],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45284338605",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45286192929",
+    "tests/test_p02_native_performance.py",
+    "scripts/probe_p02_native_performance.ps1"
+  ],
+  "commit_sha": "fffb5101473908ebc393841d98a4daa6cbbebe15",
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "GitHub Wiki two new preview pages, unchanged original Home. CI warm Tauri sample process instances disposable, no user data or native vault deletion. No install/update.",
+  "created_at": "2026-11-24",
+  "updated_at": "2026-11-24",
+  "version_bump": "none",
+  "docs_impact": true,
+  "data_migration": false
+}
