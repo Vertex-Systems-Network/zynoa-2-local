@@ -29,3 +29,17 @@ Source commit [`6b0048e`](https://github.com/Vertex-Systems-Network/zynoa-2-loca
 - Capture [d71ff6f](https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/d71ff6fb9f0bb5d87e94163615de1b48c4cac058): real Tauri `M02-OPT-07` candidate after keyboard Tab traversal; metadata remains `candidate_pending_visual_review` and `capture_verified=false` until a separate visual inspection.
 - Help and Wiki M02-OPT-07 instructions updated. No stored preferences, user data migrations, external services or new dependencies.
 - **Checkpoint:** code and native evidence instrumentation committed. Windows CI and independent visible focus ring inspection determine acceptance. P02-T02 parent task remains IN_PROGRESS; no P02 merge/release claim.
+
+
+## P02-T02.04 acceptance checkpoint — verified on real Windows Tauri (2026-11-23)
+
+**Slice status: DONE for the keyboard-focus bugfix only.** The parent `P02-T02` remains IN_PROGRESS.
+
+- Fixed native Workbench panel focus with `:focus-visible` 2px `--outline` and 3px offset; no focus suppression or user-data impact.
+- Exact tested source SHA: [5382719148e2](https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/5382719148e22aac8c2245a6efedbdcd95b46ef4).
+- Windows desktop CI [run #45140383789](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45140383789): **SUCCESS**, including P02 Python accessibility regression tests, TypeScript/UI tests, Rust native tests, Tauri executable build and actual cold boot/capture.
+- Governance CI [run #45140383972](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45140383972): **SUCCESS**, Linux governance lint and Windows workspace checks; PR task-board and runner checks successful.
+- Real native screenshot `M02-OPT-07.png` from Actions artifact ID `14801194918`, source/build SHA `5382719148e2`, image SHA-256 `7264e280cc391c4ed92b4b66bf8e9126990f341edd45d927af35a174288c63e1`. Independently opened the 998×701 PNG; visible gold outer focus ring surrounds the active Workbench panel, not a browser mock.
+- Screenshot review record: [M02-OPT-07.review.json](../screenshots/M02/M02-OPT-07.review.json), **ACCEPTED_NATIVE_FOCUS_SLICE_ONLY**. The capture's machine status remains `candidate_pending_visual_review` and `capture_verified=false`; do not silently rewrite original capture metadata.
+- **Remaining P02 gates (not part of this narrow fix):** commit final screenshot PNG at required manifest path, verify additional screen/option states, finish parent T02 and T03–T11. The screenshots manifest remains PENDING until those independent requirements are satisfied.
+- Reversible change; no new dependencies, persistence, migration or remote user reporting.
