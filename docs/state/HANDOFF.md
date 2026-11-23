@@ -2,6 +2,10 @@
 
 ## CURRENT (read this first; history below is archive)
 
+- **P02 current Windows native review (2026-11-23, commit da648baa):** Windows desktop + all native receipt/hash checks PASS at [run 45186464263](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45186464263). Opened and rehashed five M02 appearance/gallery screens and six M19 Help screens; scoped review records are `docs/screenshots/M02/P02-T05-T06-native-review.json` and `docs/screenshots/M19/P02-M19-six-screen-review.json`. 29 machine candidate captures do not satisfy 15 M02 + 14 M19 final screenshot assets. M02 T02 readiness remains NOT_READY. No phase merge or release.
+
+
+
 - **P02 T05/T06 native selection repair (2026-11-23):** Windows run [#45185041014](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45185041014) confirmed TypeScript, UI, Rust and Tauri build passed, including 20 real native screenshot frames, but the new Gallery Offline combined SendKeys string was rejected at capture time. Fixed by dispatching separate Ctrl+2/Ctrl+6 with bounded ten Tab key events, and added source regression. No false screenshot acceptance; native CI rerun mandatory.
 
 
