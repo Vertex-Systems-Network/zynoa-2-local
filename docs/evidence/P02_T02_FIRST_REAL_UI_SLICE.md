@@ -43,3 +43,17 @@ Source commit [`6b0048e`](https://github.com/Vertex-Systems-Network/zynoa-2-loca
 - Screenshot review record: [M02-OPT-07.review.json](../screenshots/M02/M02-OPT-07.review.json), **ACCEPTED_NATIVE_FOCUS_SLICE_ONLY**. The capture's machine status remains `candidate_pending_visual_review` and `capture_verified=false`; do not silently rewrite original capture metadata.
 - **Remaining P02 gates (not part of this narrow fix):** commit final screenshot PNG at required manifest path, verify additional screen/option states, finish parent T02 and T03–T11. The screenshots manifest remains PENDING until those independent requirements are satisfied.
 - Reversible change; no new dependencies, persistence, migration or remote user reporting.
+
+
+## P02-T02.06 and T02.07 — accessible gallery states and responsive layout
+
+**Scope and limits:** These are independent acceptance slices under the already-existing P02-T02 parent task, not M02-OPT-06/07 option IDs or separate phase tasks. The parent remains IN_PROGRESS until all T02 gates pass.
+
+| Subtask | Implementation | Test/visual evidence | Completion |
+| --- | --- | --- | --- |
+| T02.06 | Gallery Primary/Secondary selection has explicit aria-pressed, semantic selection feedback, immutable sample input, disabled action and illustrative status groups; selected, hover and disabled styles use shared tokens | `tests.test_p02_ui_contract`; real Tauri `P02-T02-06` screenshot candidate | PENDING exact-head native validation and visual review |
+| T02.07 | 950px adaptive gallery/card grid, wrapping metrics/status text, bounded `minmax(0,...)` split panes and accessible slider percentage; Tauri native minimum remains 900px | `tests.test_p02_ui_contract`; real resized Tauri `P02-T02-07` and `P02-T02-07-continued` candidates | PENDING exact-head native validation and visual review |
+
+**Evidence integrity:** Native screenshots are captured from the actual Windows Tauri process with a source/build commit SHA and SHA256; `capture_status=candidate_pending_visual_review`, `capture_verified=false` until independent inspection. The resize must use real Windows `MoveWindow` and DWM extended frame bounds; a wrong/unchanged/window-outside-desktop width fails with ZYN-SCREEN-020..022. The gallery actions are local demonstration UI only: no backend, no new dependency, no user data persisted or sent.
+
+**Rollback:** Revert the scoped T02.06/07 Workbench, styles, capture script, Python tests and Help/Wiki changes on the same P02 PR. P01 native state and user data stay unchanged. Native screenshot review, source CI and PR task-board readback must be recorded before declaring either subtask DONE.
