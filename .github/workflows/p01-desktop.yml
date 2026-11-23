@@ -317,6 +317,7 @@ jobs:
             docs/screenshots/_ci/M02/P02-native-performance.json
             docs/screenshots/_ci/M02/P02-T10-readiness.json
             docs/screenshots/_ci/M02/P02-T10-29-review-index.json
+            docs/screenshots/_ci/M02/P02-T10-69-native-review.html
             docs/screenshots/_ci/M02/*.html
             docs/screenshots/_ci/M02/P02-native-uia.capture.json
             docs/screenshots/_ci/M02/P02-native-uia.verify.json
