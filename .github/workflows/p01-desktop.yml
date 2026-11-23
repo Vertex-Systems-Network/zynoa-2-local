@@ -31,7 +31,7 @@ jobs:
           else
             changed=""
           fi
-          if printf '%s\n' "$changed" | grep -qE '^(scripts/capture_p01_desktop\.ps1|apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|tests/test_p01_locations.py|tests/test_p01_events.py|tests/test_p01_screenshot_capture.py|tests/test_p02_ui_contract.py|tests/test_p02_native_evidence.py|tests/test_p02_help_evidence.py|tests/test_p02_t02_acceptance.py|tools/verify_p02_native_evidence.py|tools/verify_p02_t02_acceptance.py|docs/screenshots/MANIFEST.json|docs/modules/M02.md|docs/help/articles/M02.md|docs/wiki/pages/M02.md|\.github/workflows/p01-desktop.yml)'; then
+          if printf '%s\n' "$changed" | grep -qE '^(scripts/capture_p01_desktop\.ps1|apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|tests/test_p01_locations.py|tests/test_p01_events.py|tests/test_p01_screenshot_capture.py|tests/test_p02_ui_contract.py|tests/test_p02_t03_navigation.py|tests/test_p02_native_evidence.py|tests/test_p02_help_evidence.py|tests/test_p02_t02_acceptance.py|tools/verify_p02_native_evidence.py|tools/verify_p02_t02_acceptance.py|docs/screenshots/MANIFEST.json|docs/modules/M02.md|docs/help/articles/M02.md|docs/wiki/pages/M02.md|\.github/workflows/p01-desktop.yml)'; then
             echo "desktop=true" >> "$GITHUB_OUTPUT"
           else
             echo "desktop=false" >> "$GITHUB_OUTPUT"
@@ -53,6 +53,9 @@ jobs:
       - name: P02 keyboard focus and accessibility contracts
         if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
         run: python -m unittest tests.test_p02_ui_contract -v
+      - name: P02-T03 adaptive rail and named-pane source contracts
+        if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
+        run: python -m unittest tests.test_p02_t03_navigation -v
       - name: P02 fail-closed native screenshot verifier contracts
         if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
         run: python -m unittest tests.test_p02_native_evidence -v
