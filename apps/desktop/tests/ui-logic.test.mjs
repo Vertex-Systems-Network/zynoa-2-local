@@ -4,6 +4,7 @@ import { effectiveTheme, isTheme, isDensity, themeOptions, densityOptions, uiOpt
 import { appCommands, findCommands, shortcutView } from "../.ui-tests/commands.js";
 import { defaultShortcuts, isShortcutKey, remapShortcut, shortcutForView, shortcutKeys, viewForShortcut } from "../.ui-tests/shortcut-map.js";
 import { findHelpArticle, helpArticles, resolveVisibleHelpArticle, searchHelp, helpOptionIds } from "../.ui-tests/help-catalog.js";
+import { offlineHelpContract, wizardIssues, getWizardIssue, getWizardStep, nextWizardStep, helpFaq, helpGlossary, wikiSourceMappings, helpRoute, resolveHelpRoute, validateOfflineHelpCatalog, localBrokenArticleReport } from "../.ui-tests/help-workflows.js";
 
 test("theme defaults follow operating system and never coerce unknown values", () => {
   assert.equal(effectiveTheme("system", true), "dark");
@@ -110,4 +111,90 @@ test("M02 shortcut mapping swaps collisions, preserves navigation and reserves F
   assert.deepEqual(remapShortcut(customized, "gallery", "1"), {
     ...defaultShortcuts, "1": "gallery", "6": "startup",
   });
+});
+
+
+test("M19 offline catalog has a pinned schema, version and valid internal references", () => {
+  assert.equal(offlineHelpContract.schema_version, 1);
+  assert.match(offlineHelpContract.catalog_version, /^2026\.\d+-p02$/);
+  assert.equal(offlineHelpContract.offline_only, true);
+  assert.equal(offlineHelpContract.publication, "source-preview-not-published");
+  assert.equal(offlineHelpContract.article_count, helpArticles.length);
+  assert.ok(helpArticles.length >= 12);
+  assert.equal(offlineHelpContract.m19_option_count, 8);
+  assert.deepEqual(validateOfflineHelpCatalog(), []);
+});
+
+test("M19 typed internal Help routes never allow traversal, prototypes or external links", () => {
+  for (const item of helpArticles) {
+    const route = helpRoute(item.id);
+    assert.equal(route, "help://article/" + item.id);
+    assert.equal(resolveHelpRoute(route), item.id);
+  }
+  for (const input of [
+    "https://github.com", "file:///etc/passwd", "help://article/../../secrets",
+    "help://wiki/M02", "help://article/__proto__", "help://article/constructor",
+    "help://article/%2e%2e%2f", "help://article/", "help://article/quick-start?x=1",
+    "help://article/quick-start#top", "help://article/QUICK-START",
+  ]) assert.equal(resolveHelpRoute(input), null, input);
+  assert.equal(helpRoute("constructor"), null);
+});
+
+test("M19 recovery wizard has functional bounded step transitions and article targets", () => {
+  assert.equal(wizardIssues.length, 4);
+  const ids = new Set(wizardIssues.map(item => item.id));
+  assert.equal(ids.size, wizardIssues.length);
+  for (const issue of wizardIssues) {
+    assert.equal(getWizardIssue(issue.id), issue);
+    assert.ok(issue.steps.length >= 3);
+    for (let i = 0; i < issue.steps.length; i++) {
+      const step = getWizardStep(issue.id, i);
+      assert.equal(step, issue.steps[i]);
+      assert.ok(findHelpArticle(step.articleId));
+      assert.equal(nextWizardStep(issue.id, i), i + 1 < issue.steps.length ? i + 1 : null);
+    }
+    assert.equal(getWizardStep(issue.id, -1), null);
+    assert.equal(getWizardStep(issue.id, 1000), null);
+    assert.equal(nextWizardStep(issue.id, -1), null);
+    assert.equal(nextWizardStep(issue.id, 1.5), null);
+  }
+  assert.equal(getWizardIssue("__proto__"), undefined);
+  assert.equal(getWizardStep("not-real", 0), null);
+  assert.equal(nextWizardStep("not-real", 0), null);
+});
+
+test("M19 FAQ, glossary and source-only Wiki mappings are genuinely linked", () => {
+  assert.ok(helpFaq.length >= 5);
+  assert.ok(helpGlossary.length >= 6);
+  assert.equal(new Set(helpFaq.map(x => x.id)).size, helpFaq.length);
+  assert.equal(new Set(helpGlossary.map(x => x.term)).size, helpGlossary.length);
+  for (const item of helpFaq) assert.ok(findHelpArticle(item.articleId), item.id);
+  assert.deepEqual(wikiSourceMappings.map(x => x.id), ["M02", "M19"]);
+  for (const map of wikiSourceMappings) {
+    assert.match(map.source, /^docs\/wiki\/pages\/[A-Za-z0-9-]+\.md$/);
+    assert.ok(findHelpArticle(map.articleId));
+    assert.equal(map.published, false);
+  }
+});
+
+test("M19 local report includes only allowlisted metadata, never user content or transmission", () => {
+  const report = localBrokenArticleReport("native-troubleshooting", "broken-reference");
+  assert.ok(report);
+  assert.deepEqual(JSON.parse(report), {
+    schema_version: 1, module: "M19", catalog_version: offlineHelpContract.catalog_version,
+    article_id: "native-troubleshooting", reason: "broken-reference", transmitted: false,
+  });
+  assert.equal(localBrokenArticleReport("__proto__", "broken-reference"), null);
+  assert.equal(localBrokenArticleReport("quick-start", "invalid"), null);
+  assert.ok(!report.includes("http://") && !report.includes("https://"));
+});
+
+test("M19 search resolves all new functional guides completely offline", () => {
+  for (const [query, id] of [
+    ["rail sidebar", "navigation"], ["wizard recover", "wizard-guide"],
+    ["glossary definition", "faq-glossary"], ["wiki broken", "wiki-mapping"],
+    ["report issue", "report-guide"],
+  ]) assert.ok(searchHelp(query).some(x => x.id === id), query);
+  assert.equal(searchHelp("M19-OPT-07")[0].id, "report-guide");
+  assert.equal(searchHelp("M19-OPT-06")[0].id, "wiki-mapping");
 });
