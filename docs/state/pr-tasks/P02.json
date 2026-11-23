@@ -69,7 +69,8 @@
     {
       "id": "P02-T11",
       "title": "P02 final CI, security/privacy review, issue gates and policy-compliant verified merge",
-      "status": "TODO"
+      "status": "IN_PROGRESS",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12"
     }
   ]
 }

@@ -1,0 +1,56 @@
+{
+  "change_id": "CHG-P02-M02-M19-29-DIRECT-NATIVE-REVIEW-20261123",
+  "module_id": "M02",
+  "kind": "enhancement",
+  "title": "Source-SHA-bound complete P02 native control review candidate matrix",
+  "summary": "Extend the running Windows Tauri screenshot harness with 15 directly interacted control/screen candidates for full 29-target review mapping, plus 16 separately labelled Help-only reference images. Generate a self-contained offline HTML visual review artifact and refuse any automatic final acceptance.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12",
+  "affected_option_ids": [
+    "M02-OPT-01",
+    "M02-OPT-02",
+    "M02-OPT-05",
+    "M02-OPT-06",
+    "M02-OPT-08",
+    "M19-OPT-01",
+    "M19-OPT-02",
+    "M19-OPT-03",
+    "M19-OPT-04",
+    "M19-OPT-05",
+    "M19-OPT-06",
+    "M19-OPT-07",
+    "M19-OPT-08"
+  ],
+  "docs_paths": [
+    "docs/evidence/P02_T10_REVIEW_PACK.md",
+    "docs/evidence/P02_T11_CLOSEOUT_PREFLIGHT.md",
+    "docs/state/HANDOFF.md",
+    "docs/modules/M02.md",
+    "docs/modules/M19.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M02.md",
+    "docs/help/articles/M19.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M02.md",
+    "docs/wiki/pages/M19.md"
+  ],
+  "test_evidence": [],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No durable user data or native application schema changes.",
+  "created_at": "2026-11-23T18:54:44.538Z",
+  "updated_at": "2026-11-23T18:54:44.538Z",
+  "version_bump": "none",
+  "docs_impact": true,
+  "data_migration": false
+}
