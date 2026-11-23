@@ -23,3 +23,7 @@
 Confirmed active GitHub branch/PR/main/ruleset, current phase lease, task inventory, source-compiled real Windows Tauri/9-of-9 scoped native UIA baseline and live issue inventory. No data schema, native permissions, remote telemetry, API secrets, production release or external publishing changed in this slice. Revert review/capture code on the existing PR to roll back; preserve real user data and original screenshots.
 
 **Result: NOT_READY_FOR_MERGE.** T11 is IN_PROGRESS, other unfinished tasks remain truthful; no protected rule weakening, self-approval, issue closure, next phase or release.
+
+## Exact source 69-frame evidence checkpoint (2026-11-23)
+
+[Windows #45252195376](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45252195376) **SUCCESS** on `f2835a2a497ee0ad0f5a032f7bcd1069e9fd6ac9`. Original [GitHub artifact #14857775294](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45252195376/artifacts/14857775294) independently downloaded and validated: **69 PNG hash receipts matched, 15 unique native direct controls, all 29 final target IDs mapped to source-bound candidate images**, native UIA 9/9. Performance sample 7,168ms local metadata boot / 92,672ms complete 69-capture suite (one run, no budget). [Source-bound report](P02_T10_69_NATIVE_PROVENANCE_20261123.md). **No screenshot manifest entries promoted**; full visual/screen-reader, actual hosted Wiki, reviewer/owner-intent and protected merge gates still open. PR remains draft and T11 IN_PROGRESS.

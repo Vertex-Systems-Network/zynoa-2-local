@@ -2,6 +2,9 @@
 
 ## CURRENT (read this first; history below is archive)
 
+**P02 current exact-source candidate evidence (2026-11-23):** [Windows #45252195376](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45252195376) passed all 69 genuine native screenshot candidate/hash/keyboard UIA checks. [29-target evidence and open final gates](../evidence/P02_T10_69_NATIVE_PROVENANCE_20261123.md). P02 remains IN_PROGRESS, 0/29 final PNGs VERIFIED, PR #12 draft, lease null, no merge or P03.
+
+
 **Postmerge verified 2026-11-22:** Owner requested T11 completion to enable sequential progress. Authenticated PR #10 and main both report merge SHA `c5fca7106942e96be2c6d07ff9938a61e7854780`; [main Governance+Windows #45065695753](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45065695753) SUCCESS. Issue inventory explicitly classified: #2 P08I blocker, #3 P00 blocker OPEN, #4/#5 P00 nonblockers OPEN, #7 P01 nonblocker OPEN. The initial postmerge receipt job [#45065695769](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45065695769) exited BLOCKED on the still-IN_PROGRESS phase snapshot; new closeout workflow gate skips such snapshots and retains fail-closed behavior when an actual verified transition publishes. Do not confuse source T11 completion with protected closeout merge; next phase opens only after latter is remotely verified.
 
 - **P01 primary merge confirmed:** [PR #10](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/10) has actually merged as [`c5fca71069`](https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/c5fca7106942e96be2c6d07ff9938a61e7854780) on protected main. P01-T11 is **DONE, 11/11 tasks** in the proposed closeout, with P01/MERGED_VERIFIED and exact remote SHA; these take effect on main only when the protected closeout PR merges. P02 not started, no release claimed. Issue #3 remains OPEN as P00 infrastructure blocker.

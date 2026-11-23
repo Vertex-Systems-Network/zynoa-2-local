@@ -1,0 +1,20 @@
+# P02-T10 verified 69-frame native Windows candidate inventory — source f2835a2a497e
+
+**Scope:** exact-source running Windows Tauri screenshot provenance, local Help/a11y journeys, 29 candidate review mapping. **Status: MACHINE_PASS, FINAL_SCREENSHOT_ACCEPTANCE_NOT_READY.**
+
+## Independent GitHub and original artifact readback
+
+- Actual Windows [run #45252195376](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45252195376) **SUCCESS** on commit `f2835a2a497ee0ad0f5a032f7bcd1069e9fd6ac9`. Windows Tauri release executable build, real cold boot, source/TS/Rust tests, screenshot acquisition, provenance, native UI Automation and local data safety tests passed. Same-source Governance [#45252195146](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45252195146), Reviewdog and PR Task Board Sync were **SUCCESS**.
+- Original downloadable [GitHub artifact #14857775294](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45252195376/artifacts/14857775294) contains **69** real Windows Tauri `_ci/M02` + `_ci/M19` screenshot PNG/receipt pairs; independent ZIP readback found **69 SHA-256/image matches**, 69 unique screen IDs. Candidate matrix consists of **54 prior views/references** plus **15 additional direct actual controls**, with 16 Help-reference images separately classified (not used as control screenshots).
+- Strict native gate rejected no duplicate direct controls: **15/15 distinct** hashes; M02-OPT-02 theme `07d1fdaa781ad50f4a1ae8fe14b0ad2106c426725a4eafac7b1e0429e22ea859` and M02-OPT-08 reduced motion `572f58b98eda8b6bcf43bba56c5feecc9830a791a5dcb5ba8613c488b64c7925` are independently different actual native controls. M02-OPT-08 shows a labelled read-only OS motion result and visible keyboard focus ring; no fake switch, saved setting or OS privilege.
+- The Windows-generated `P02-T10-29-review-index.json` maps **exactly 29/29 final manifest targets to original, source-bound live screen/control candidates** (14 prior direct screen captures + 15 newly added controls), with each PNG SHA recorded, and `P02-T10-69-native-review.html` embeds all 29 plus 16 separate Help-only references as a standalone **3.24 MB offline review tool**. Original 29-index SHA-256 `feba86b3d2907b2d4a7cea9db94ca880fda275a60bf8155785d2511960f7243a`.
+- Native UI Automation report: `SCOPED_NATIVE_UIA_PASS`, **9/9** real Windows checks, exact source matched, true typed option and Enter-to-Help navigation. It explicitly states `full_screen_reader_verified=false`.
+- Windows performance observation **7,168 ms** native local metadata-ready startup and **92,672 ms** full 69-frame capture suite. Single run, **no approved budget** and not a general user-interaction benchmark. Do not compare 54-frame vs 69-frame timings as a controlled regression test.
+
+## Provisional visual inspection, not an independent acceptance signature
+
+Reviewed the 29-frame original source-matched contact sheet and opened selected full-size original native frames. Layouts have readable primary labels, distinguishable selected controls, correct module content and actual Windows Tauri chrome. M02-OPT-08's actual focused motion group and M02-OPT-06's adjustable split pane have clear focus presentation. M19-OPT-05 shows an expanded FAQ answer at a scrolled viewport. **This is agent preliminary visual QA, not an independent full contrast/clipping/screen-reader certificate.** Images are source-only candidates and not committed to the 29 required final `docs/screenshots/M02|M19/` PNG paths.
+
+## Remaining release and phase blockers
+
+**Manifest: 0/29 VERIFIED**, 29 source-bound candidate paths mapped but no final per-image independent acceptance or committed PNGs. Full NVDA/Narrator test suite and named control coverage, multi-run approved performance budgets, verified hosted Wiki publication, protected final PR review/owner-intent and remote merge verification remain open. Source image evidence cannot self-promote. P02 and P02-T10 remain IN_PROGRESS; P03 and release are not authorized.
