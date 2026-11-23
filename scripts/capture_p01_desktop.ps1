@@ -227,8 +227,17 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     Save-NativeFollowup -ScreenshotId 'P02-T02-06' -Shortcut '{TAB}{TAB}{TAB}{ENTER}{PGDN}' -ScreenTitle 'P02 component interaction states' -Description 'Real Tauri Components page with selected action, disabled example and independent status feedback; candidate awaiting native visual review'
     Save-NativeFollowup -ScreenshotId 'M02-S06' -Shortcut '^{2}' -ScreenTitle 'P02 native appearance settings' -Description 'Session-only theme and density selectors with unavailable native relocation labelled'
     Save-NativeFollowup -ScreenshotId 'M02-S04' -Shortcut '^+p' -ScreenTitle 'P02 native command palette' -Description 'Native modal command palette with focusable search and allowlisted navigation commands'
+    # T04: native keyboard-only no-matches and Escape recovery from the palette.
+    # These remain candidate captures; focus restoration also has source regressions.
+    Save-NativeFollowup -ScreenshotId 'P02-T04-NO-MATCH' -Shortcut 'zzzznotacommand' -ScreenTitle 'P02 command palette empty search state' -Description 'Real Windows Tauri command palette with unmatched local search query and no matching commands message'
+    Save-NativeFollowup -ScreenshotId 'P02-T04-ESCAPE' -Shortcut '{ESC}' -ScreenTitle 'P02 command palette dismissed by Escape' -Description 'Real Tauri Preferences after keyboard Escape dismisses command palette and returns focus to connected opener'
     $OutputDirectory = $m19Output
     Save-NativeFollowup -ScreenshotId 'M19-S01' -Shortcut '{ESC}{F1}' -ScreenTitle 'P02 native offline Help Center' -Description 'Bundled offline Help Center article library and searchable local help interface'
+    # T04: open palette from Help, type allowlisted view and execute with Enter.
+    # Focus moves to destination main on palette navigation; never run arbitrary code.
+    $OutputDirectory = $m02Output
+    Save-NativeFollowup -ScreenshotId 'P02-T04-ENTER-NAV' -Shortcut '^+pworkbench{ENTER}' -ScreenTitle 'P02 palette keyboard navigation to Workbench' -Description 'Real Windows Tauri Workbench navigated by opening Ctrl+Shift+P palette, entering workbench and pressing Enter'
+    $OutputDirectory = $m19Output
 
     # T02.07: verify real native narrow viewport without falsifying responsive screenshots.
     # Tauri enforces a 900px minimum width; the CI desktop starts wider (~998px visible).
