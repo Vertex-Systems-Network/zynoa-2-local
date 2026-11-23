@@ -15,10 +15,7 @@
     "docs/adr/0026-p02-shared-ui-help-predev.md",
     "docs/evidence/P02_T02_FIRST_REAL_UI_SLICE.md",
     "docs/modules/M02.md",
-    "docs/state/HANDOFF.md",
-    "scripts/capture_p01_desktop.ps1",
-    "tests/test_p02_ui_contract.py",
-    ".github/workflows/p01-desktop.yml"
+    "docs/state/HANDOFF.md"
   ],
   "help_paths": [
     "docs/help/articles/M02.md"
@@ -37,7 +34,7 @@
   "breaking_change": false,
   "migration_notes": "No native user-storage schema change or migrated data. UI session state only; offline help bundled from curated static source.",
   "created_at": "2026-11-22T20:49:36.088Z",
-  "updated_at": "2026-11-23T08:31:22.000Z",
+  "updated_at": "2026-11-23T08:37:00.000Z",
   "version_bump": "none",
   "affected_option_ids": [
     "M02-OPT-01",
