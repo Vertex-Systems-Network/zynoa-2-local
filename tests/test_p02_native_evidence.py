@@ -166,16 +166,16 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
     def test_unified_palette_results_must_open_distinct_real_native_destinations(self):
         result = "M19-UNIFIED-OPTION-RESULTS"
         destination = "M19-UNIFIED-OPTION-DEST"
-        png = (self.root / "M02" / f"{result}.png").read_bytes()
-        (self.root / "M02" / f"{destination}.png").write_bytes(png)
+        png = (self.root / "M19" / f"{result}.png").read_bytes()
+        (self.root / "M19" / f"{destination}.png").write_bytes(png)
         self._mutate(destination, "sha256", hashlib.sha256(png).hexdigest())
         with self.assertRaisesRegex(InvalidNativeEvidence, "Unified search Enter failed"):
             verify(self.root, SOURCE_SHA)
 
     def test_unified_palette_article_option_targets_must_be_distinct(self):
-        src = (self.root / "M02" / "M19-UNIFIED-OPTION-DEST.png").read_bytes()
+        src = (self.root / "M19" / "M19-UNIFIED-OPTION-DEST.png").read_bytes()
         target = "M19-UNIFIED-ARTICLE-DEST"
-        (self.root / "M02" / f"{target}.png").write_bytes(src)
+        (self.root / "M19" / f"{target}.png").write_bytes(src)
         self._mutate(target, "sha256", hashlib.sha256(src).hexdigest())
         with self.assertRaisesRegex(InvalidNativeEvidence, "visually distinct Help destinations"):
             verify(self.root, SOURCE_SHA)
