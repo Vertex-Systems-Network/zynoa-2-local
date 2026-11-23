@@ -432,8 +432,8 @@ class P02UIContractTests(unittest.TestCase):
     def test_unified_native_keyboard_e2e_has_provenance_bound_candidates(self):
         capture = (ROOT / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
         verifier = (ROOT / "tools/verify_p02_native_evidence.py").read_text(encoding="utf-8")
-        for sid in ("P02-UNIFIED-OPTION-RESULTS", "P02-UNIFIED-OPTION-DEST",
-                    "P02-UNIFIED-ARTICLE-RESULTS", "P02-UNIFIED-ARTICLE-DEST"):
+        for sid in ("M19-UNIFIED-OPTION-RESULTS", "M19-UNIFIED-OPTION-DEST",
+                    "M19-UNIFIED-ARTICLE-RESULTS", "M19-UNIFIED-ARTICLE-DEST"):
             self.assertIn(f"-ScreenshotId '{sid}'", capture)
             self.assertIn(f'"{sid}"', verifier)
         self.assertIn("-Shortcut 'M19-OPT-06'", capture)

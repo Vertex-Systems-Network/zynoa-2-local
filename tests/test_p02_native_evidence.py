@@ -164,8 +164,8 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
             verify(self.root, SOURCE_SHA)
 
     def test_unified_palette_results_must_open_distinct_real_native_destinations(self):
-        result = "P02-UNIFIED-OPTION-RESULTS"
-        destination = "P02-UNIFIED-OPTION-DEST"
+        result = "M19-UNIFIED-OPTION-RESULTS"
+        destination = "M19-UNIFIED-OPTION-DEST"
         png = (self.root / "M02" / f"{result}.png").read_bytes()
         (self.root / "M02" / f"{destination}.png").write_bytes(png)
         self._mutate(destination, "sha256", hashlib.sha256(png).hexdigest())
@@ -173,8 +173,8 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
             verify(self.root, SOURCE_SHA)
 
     def test_unified_palette_article_option_targets_must_be_distinct(self):
-        src = (self.root / "M02" / "P02-UNIFIED-OPTION-DEST.png").read_bytes()
-        target = "P02-UNIFIED-ARTICLE-DEST"
+        src = (self.root / "M02" / "M19-UNIFIED-OPTION-DEST.png").read_bytes()
+        target = "M19-UNIFIED-ARTICLE-DEST"
         (self.root / "M02" / f"{target}.png").write_bytes(src)
         self._mutate(target, "sha256", hashlib.sha256(src).hexdigest())
         with self.assertRaisesRegex(InvalidNativeEvidence, "visually distinct Help destinations"):

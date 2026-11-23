@@ -22,8 +22,8 @@ SCREEN_IDS = (
     "P02-T03-RAIL-COLLAPSED", "P02-T03-RAIL-EXPANDED", "P02-T03-RAIL-RESTORED",
     "P02-T06-GALLERY-READY", "P02-T06-GALLERY-OFFLINE", "P02-T06-GALLERY-LOADING",
     "P02-T06-GALLERY-EMPTY", "P02-T06-GALLERY-ERROR", "P02-T05-PREFERENCES-LIVE",
-    "P02-UNIFIED-OPTION-RESULTS", "P02-UNIFIED-OPTION-DEST",
-    "P02-UNIFIED-ARTICLE-RESULTS", "P02-UNIFIED-ARTICLE-DEST",
+    "M19-UNIFIED-OPTION-RESULTS", "M19-UNIFIED-OPTION-DEST",
+    "M19-UNIFIED-ARTICLE-RESULTS", "M19-UNIFIED-ARTICLE-DEST",
 )
 _SHA = re.compile(r"^[0-9a-f]{40}$")
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
@@ -123,13 +123,13 @@ def verify(root: Path, source_sha: str) -> dict:
              by_id["M19-S01"]["sha256"],
              "Enter command did not visibly navigate away from Help")
     for result_id, dest_id in (
-        ("P02-UNIFIED-OPTION-RESULTS", "P02-UNIFIED-OPTION-DEST"),
-        ("P02-UNIFIED-ARTICLE-RESULTS", "P02-UNIFIED-ARTICLE-DEST"),
+        ("M19-UNIFIED-OPTION-RESULTS", "M19-UNIFIED-OPTION-DEST"),
+        ("M19-UNIFIED-ARTICLE-RESULTS", "M19-UNIFIED-ARTICLE-DEST"),
     ):
         _require(by_id[result_id]["sha256"] != by_id[dest_id]["sha256"],
                  "Unified search Enter failed to change the native frame: " + dest_id)
-    _require(by_id["P02-UNIFIED-OPTION-DEST"]["sha256"] !=
-             by_id["P02-UNIFIED-ARTICLE-DEST"]["sha256"],
+    _require(by_id["M19-UNIFIED-OPTION-DEST"]["sha256"] !=
+             by_id["M19-UNIFIED-ARTICLE-DEST"]["sha256"],
              "Option and article selections must open visually distinct Help destinations")
     gallery_ids = ("P02-T06-GALLERY-READY", "P02-T06-GALLERY-LOADING",
                    "P02-T06-GALLERY-EMPTY", "P02-T06-GALLERY-ERROR",
