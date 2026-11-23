@@ -266,7 +266,7 @@ class P02UIContractTests(unittest.TestCase):
         capture = (ROOT / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
         for name in ("P02-T02-06", "P02-T02-07", "P02-T02-07-continued"):
             self.assertIn(f"-ScreenshotId '{name}'", capture)
-        self.assertIn("-Shortcut '{TAB}{TAB}{TAB}{SPACE}{PGDN}'", capture)
+        self.assertIn("-Shortcut '{TAB}{TAB}{TAB}{ENTER}{PGDN}'", capture)
         self.assertIn("[ZynoaScreenWin32]::MoveWindow", capture)
         self.assertIn("DwmGetWindowAttribute", capture)
         self.assertIn("$narrowWidth -gt 920", capture)
