@@ -49,7 +49,7 @@ class P02UIContractTests(unittest.TestCase):
         self.assertIn('event.key.toLowerCase() === "p"', app)
         self.assertIn('event.key === "F1"', app)
         self.assertIn('if (paletteOpen) {', app)
-        self.assertIn('}, [paletteOpen]);', app)
+        self.assertIn('}, [paletteOpen, shortcuts]);', app)
         self.assertIn('inert={paletteOpen}', app)
         self.assertIn('paletteOpenerRef.current = event.currentTarget', app)
         self.assertIn('returnFocusTarget={paletteOpenerRef.current}', app)
@@ -337,6 +337,37 @@ class P02UIContractTests(unittest.TestCase):
                         native.index("-ScreenshotId 'M02-S05'"))
         verifier = (ROOT / "tools/verify_p02_native_evidence.py").read_text(encoding="utf-8")
         self.assertIn('"M02-OPT-03"', verifier)
+
+
+
+    def test_session_shortcut_mapping_is_dynamic_swap_safe_and_reserved(self):
+        """M02-OPT-04: real Ctrl+1..6 remapping while F1/palette remain fixed."""
+        app = (APP / "src/App.tsx").read_text(encoding="utf-8")
+        workbench = (APP / "src/ui/Workbench.tsx").read_text(encoding="utf-8")
+        palette = (APP / "src/ui/CommandPalette.tsx").read_text(encoding="utf-8")
+        mapper = (APP / "src/ui/shortcut-map.ts").read_text(encoding="utf-8")
+        for marker in (
+            'const [shortcuts, setShortcuts] = useState<ShortcutAssignments>(defaultShortcuts)',
+            'const target = viewForShortcut(event.key, shortcuts)',
+            'setShortcuts(current => remapShortcut(current, target, key))',
+            'onResetShortcuts={() => setShortcuts(defaultShortcuts)}',
+            'shortcutForView(page.key, shortcuts)',
+        ):
+            self.assertIn(marker, app)
+        for marker in (
+            'aria-label={`Shortcut for ${target.title}`}',
+            'onChange={event => onRemapShortcut(target.view, event.target.value)}',
+            'Restore default shortcuts',
+            'M02-OPT-04 / LOCAL SHORTCUTS',
+            'are not saved to disk.',
+        ):
+            self.assertIn(marker, workbench)
+        self.assertIn('findCommands(query, shortcuts)', palette)
+        self.assertIn('shortcutForView(command.view, shortcuts)', palette)
+        self.assertIn('previousKey]: current[requestedKey]', mapper)
+        self.assertIn('if (view === "help") return null', mapper)
+        self.assertNotIn("localStorage", mapper + workbench)
+        self.assertNotIn("fetch(", mapper + workbench)
 
 
 
