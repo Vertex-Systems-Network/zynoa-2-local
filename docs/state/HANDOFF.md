@@ -2,6 +2,9 @@
 
 ## CURRENT (read this first; history below is archive)
 
+- **P02 option Help search CI repair (2026-11-23):** Windows #45188853600 correctly failed 1/18 Node UI tests (typed `theme` synonym not returned); source search now includes linked bundled Help article keyword/title index and regression tests cover theme/glossary and module isolation. Failure is not waived. Exact-source Windows rerun required before declaring option directory verified.
+
+
 - **P02 option reference native capture (2026-11-23):** Added M19-OPTION-REFERENCE-CI real Windows screenshot flow, adjusted M19 six-mode keyboard capture navigation, and expanded metadata/hash/test suite from 29 to 30 candidates. Must run exact-head CI after this change and visually verify the new route; no native screenshot marked final.
 
 

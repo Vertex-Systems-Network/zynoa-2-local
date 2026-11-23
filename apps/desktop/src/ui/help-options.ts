@@ -199,10 +199,13 @@ export function resolveOptionHelpRoute(route: string): HelpOptionReference | nul
 }
 export function searchHelpOptions(query: string, module: "All" | "M02" | "M19" = "All"): HelpOptionReference[] {
   const normalized = query.trim().slice(0,100).toLocaleLowerCase();
-  return helpOptionReferences.filter(option =>
-    (module === "All" || option.module === module) &&
-    [option.id, option.title, option.defaultState, option.interaction, option.limits, option.recovery]
-      .some(value => value.toLocaleLowerCase().includes(normalized)));
+  return helpOptionReferences.filter(option => {
+    const article = findHelpArticle(option.articleId);
+    return (module === "All" || option.module === module) &&
+      [option.id, option.title, option.defaultState, option.interaction, option.limits, option.recovery,
+       article?.title ?? "", ...(article?.keywords ?? [])]
+        .some(value => value.toLocaleLowerCase().includes(normalized));
+  });
 }
 export function validateHelpOptionReferences(): readonly string[] {
   const expected = [...uiOptionIds, ...helpOptionIds];

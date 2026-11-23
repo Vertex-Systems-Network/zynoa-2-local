@@ -279,5 +279,8 @@ test("M02/M19 all sixteen option guides resolve locally and fail closed", () => 
   assert.equal(searchHelpOptions("", "M02").length, 8);
   assert.equal(searchHelpOptions("", "M19").length, 8);
   assert.ok(searchHelpOptions("theme").some(x => x.id === "M02-OPT-02"));
+  assert.ok(searchHelpOptions("theme","M02").some(x => x.id === "M02-OPT-02"));
+  assert.ok(searchHelpOptions("glossary","M19").some(x => x.id === "M19-OPT-04"));
+  assert.equal(searchHelpOptions("theme","M19").every(x => x.module === "M19"), true);
   assert.deepEqual(searchHelpOptions("unmatched-token-zzzzz"), []);
 });
