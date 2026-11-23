@@ -73,7 +73,7 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
     def test_all_machine_candidates_validate_but_do_not_self_approve(self):
         result = verify(self.root, SOURCE_SHA)
         self.assertEqual("MACHINE_METADATA_HASH_VALIDATED_ONLY", result["status"])
-        self.assertEqual(34, len(result["screens"]))
+        self.assertEqual(38, len(result["screens"]))
         self.assertFalse(result["independent_visual_review"])
         self.assertFalse(result["manifest_completed"])
 
@@ -161,6 +161,23 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
         (self.root / "M02" / f"{name}.png").write_bytes(source)
         self._mutate(name, "sha256", hashlib.sha256(source).hexdigest())
         with self.assertRaisesRegex(InvalidNativeEvidence, "did not visibly navigate"):
+            verify(self.root, SOURCE_SHA)
+
+    def test_unified_palette_results_must_open_distinct_real_native_destinations(self):
+        result = "P02-UNIFIED-OPTION-RESULTS"
+        destination = "P02-UNIFIED-OPTION-DEST"
+        png = (self.root / "M02" / f"{result}.png").read_bytes()
+        (self.root / "M02" / f"{destination}.png").write_bytes(png)
+        self._mutate(destination, "sha256", hashlib.sha256(png).hexdigest())
+        with self.assertRaisesRegex(InvalidNativeEvidence, "Unified search Enter failed"):
+            verify(self.root, SOURCE_SHA)
+
+    def test_unified_palette_article_option_targets_must_be_distinct(self):
+        src = (self.root / "M02" / "P02-UNIFIED-OPTION-DEST.png").read_bytes()
+        target = "P02-UNIFIED-ARTICLE-DEST"
+        (self.root / "M02" / f"{target}.png").write_bytes(src)
+        self._mutate(target, "sha256", hashlib.sha256(src).hexdigest())
+        with self.assertRaisesRegex(InvalidNativeEvidence, "visually distinct Help destinations"):
             verify(self.root, SOURCE_SHA)
 
     def test_rail_collapse_and_expand_must_really_change_native_pixels(self):

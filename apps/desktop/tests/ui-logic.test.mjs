@@ -293,8 +293,8 @@ test("unified command palette discovers bundled articles and exact M02/M19 optio
   const theme = searchWorkspace("theme");
   assert.ok(theme.some(item => item.kind === "article" && item.destination.articleId === "appearance"));
   assert.ok(theme.some(item => item.kind === "option" && item.destination.optionId === "M02-OPT-02"));
-  assert.ok(searchWorkspace("M19-OPT-06").some(item =>
-    item.destination.kind === "option" && item.destination.optionId === "M19-OPT-06"));
+  assert.equal(searchWorkspace("M19-OPT-06")[0].destination.optionId, "M19-OPT-06");
+  assert.equal(searchWorkspace("Data and diagnostics boundaries")[0].destination.articleId, "privacy");
   assert.ok(searchWorkspace("offline").some(item => item.kind === "article"));
   assert.equal(searchWorkspace("NOT_A_REAL_ROUTE_13283").length, 0);
   assert.ok(searchWorkspace("theme").length <= 20);

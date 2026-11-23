@@ -305,7 +305,17 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     [System.Windows.Forms.SendKeys]::SendWait('^+p')
     Start-Sleep -Milliseconds 500
     Save-NativeFollowup -ScreenshotId 'P02-T04-ENTER-NAV' -Shortcut 'workbench{ENTER}' -ScreenTitle 'P02 palette keyboard navigation to Workbench' -Description 'Real Windows Tauri Workbench navigated by opening Ctrl+Shift+P palette, entering workbench and pressing Enter'
+    # P02 unified local search: real keyboard query -> exact option -> article.
+    # Native images are machine candidates, never final visual certification.
     $OutputDirectory = $m19Output
+    [System.Windows.Forms.SendKeys]::SendWait('^+p')
+    Start-Sleep -Milliseconds 500
+    Save-NativeFollowup -ScreenshotId 'P02-UNIFIED-OPTION-RESULTS' -Shortcut 'M19-OPT-06' -ScreenTitle 'P02 unified palette exact option lookup' -Description 'Running Windows Tauri command palette with actual local result for exact M19-OPT-06 Wiki option'
+    Save-NativeFollowup -ScreenshotId 'P02-UNIFIED-OPTION-DEST' -Shortcut '{ENTER}{PGDN}' -ScreenTitle 'P02 unified palette opens exact option' -Description 'Running Windows Tauri Help option reference opened by selecting the exact M19-OPT-06 palette result'
+    [System.Windows.Forms.SendKeys]::SendWait('^+p')
+    Start-Sleep -Milliseconds 500
+    Save-NativeFollowup -ScreenshotId 'P02-UNIFIED-ARTICLE-RESULTS' -Shortcut 'Data and diagnostics boundaries' -ScreenTitle 'P02 unified palette offline article search' -Description 'Running Windows Tauri command palette with locally indexed Data and diagnostics boundaries article result'
+    Save-NativeFollowup -ScreenshotId 'P02-UNIFIED-ARTICLE-DEST' -Shortcut '{ENTER}{PGDN}' -ScreenTitle 'P02 unified palette opens offline article' -Description 'Running Windows Tauri Help reader opened from the exact offline Data and diagnostics boundaries article search'
 
     # T02.07: verify real native narrow viewport without falsifying responsive screenshots.
     # Tauri enforces a 900px minimum width; the CI desktop starts wider (~998px visible).

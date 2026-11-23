@@ -429,6 +429,19 @@ class P02UIContractTests(unittest.TestCase):
         self.assertIn("capture_verified = $false", capture)
 
 
+    def test_unified_native_keyboard_e2e_has_provenance_bound_candidates(self):
+        capture = (ROOT / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        verifier = (ROOT / "tools/verify_p02_native_evidence.py").read_text(encoding="utf-8")
+        for sid in ("P02-UNIFIED-OPTION-RESULTS", "P02-UNIFIED-OPTION-DEST",
+                    "P02-UNIFIED-ARTICLE-RESULTS", "P02-UNIFIED-ARTICLE-DEST"):
+            self.assertIn(f"-ScreenshotId '{sid}'", capture)
+            self.assertIn(f'"{sid}"', verifier)
+        self.assertIn("-Shortcut 'M19-OPT-06'", capture)
+        self.assertIn("-Shortcut 'Data and diagnostics boundaries'", capture)
+        self.assertIn("Unified search Enter failed", verifier)
+        self.assertIn("candidate_pending_visual_review", capture)
+        self.assertIn("capture_verified = $false", capture)
+
     def test_unified_local_search_routes_commands_articles_and_options_without_network(self):
         app = (APP / "src/App.tsx").read_text(encoding="utf-8")
         palette = (APP / "src/ui/CommandPalette.tsx").read_text(encoding="utf-8")

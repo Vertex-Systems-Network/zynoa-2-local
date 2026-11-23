@@ -28,6 +28,20 @@ export function searchWorkspace(query: string, shortcuts: ShortcutAssignments = 
     description: option.id + " · " + option.limits, symbol: "◫", keys: "OPTION",
     destination: { kind: "option", optionId: option.id },
   }));
-  // Keep traversal finite and show view actions before offline article/option entries.
-  return [...commands, ...articles, ...options].slice(0, 20);
+  // Exact option IDs or titles outrank incidental body/description matches;
+  // stable ties still keep the curated view/article/option ordering.
+  const needle = normalized.toLocaleLowerCase();
+  const score = (entry: PaletteResult): number => {
+    if (entry.destination.kind === "option" &&
+        entry.destination.optionId.toLocaleLowerCase() === needle) return 1000;
+    if (entry.title.toLocaleLowerCase() === needle) return 900;
+    if (entry.title.toLocaleLowerCase().startsWith(needle)) return 600;
+    if (entry.destination.kind === "view") return 300;
+    if (entry.destination.kind === "article") return 200;
+    return 100;
+  };
+  // Keep traversal finite, predictable and independent of network/cache state.
+  return [...commands, ...articles, ...options]
+    .sort((a, b) => score(b) - score(a))
+    .slice(0, 20);
 }
