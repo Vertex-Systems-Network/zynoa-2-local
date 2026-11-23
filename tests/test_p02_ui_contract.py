@@ -380,5 +380,51 @@ class P02UIContractTests(unittest.TestCase):
 
 
 
+    def test_t04_palette_keyboard_navigation_and_focus_recovery(self):
+        """T04: modal must own focus, use bounded navigation and restore opener or destination."""
+        app = (APP / "src/App.tsx").read_text(encoding="utf-8")
+        palette = (APP / "src/ui/CommandPalette.tsx").read_text(encoding="utf-8")
+        wb = (APP / "src/ui/Workbench.tsx").read_text(encoding="utf-8")
+        capture = (ROOT / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        evidence = (ROOT / "tools/verify_p02_native_evidence.py").read_text(encoding="utf-8")
+        self.assertIn('aria-keyshortcuts={page.key === "help" ? "F1" : "Control+" + shortcutForView(page.key, shortcuts)}', app)
+        self.assertIn('role="status" aria-live="polite"', wb)
+        self.assertIn('shortcutTargets.map(target =>', wb)
+        for snippet in (
+            'role="dialog" aria-modal="true"',
+            'returnFocusRef.current?.focus({ preventScroll: true })',
+            'document.getElementById("main-content")?.focus({ preventScroll: true })',
+            'window.requestAnimationFrame(() => inputRef.current?.focus())',
+            'if (event.key === "Escape")',
+            'if (event.key === "Tab" && dialogRef.current)',
+            'if (event.key === "ArrowDown" || event.key === "ArrowUp")',
+            'event.key === "Enter" && matches.length',
+            'navigationRef.current = true',
+            'aria-activedescendant={matches.length',
+        ):
+            self.assertIn(snippet, palette, snippet)
+        self.assertIn('inert={paletteOpen}', app)
+        self.assertIn('paletteOpenerRef.current = event.currentTarget', app)
+        self.assertIn('returnFocusTarget={paletteOpenerRef.current}', app)
+        self.assertIn('maxLength={100}', palette)
+        self.assertIn('No matching commands', palette)
+        self.assertIn('onChange={event => { setQuery(event.target.value); setSelected(0); }}', palette)
+        ids = ('M02-S04', 'P02-T04-NO-MATCH', 'P02-T04-ESCAPE',
+               'M19-S01', 'P02-T04-ENTER-NAV')
+        for a, b in zip(ids, ids[1:]):
+            self.assertLess(capture.index(f"-ScreenshotId '{a}'"),
+                            capture.index(f"-ScreenshotId '{b}'"))
+        self.assertIn("-Shortcut 'zzzznotacommand'", capture)
+        self.assertIn("-Shortcut '{ESC}'", capture)
+        self.assertIn("SendWait('^+p')", capture)
+        self.assertIn("-Shortcut 'workbench{ENTER}'", capture)
+        for screen in ids[1:3] + ids[4:]:
+            self.assertIn(f'"{screen}"', evidence)
+        self.assertIn("Escape failed to visibly dismiss", evidence)
+        self.assertIn("Enter command did not visibly navigate", evidence)
+        self.assertIn("candidate_pending_visual_review", capture)
+        self.assertIn("capture_verified = $false", capture)
+
+
 if __name__ == "__main__":
     unittest.main()
