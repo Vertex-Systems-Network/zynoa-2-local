@@ -83,7 +83,8 @@ function Find-NativeVisibleNameFragment {
     try {
       $element = $all.Item($index)
       if ($element.Current.IsOffscreen) { continue }
-      if ($element.Current.Name.Contains($Fragment)) { return $element }
+      $accessibleName = [string]$element.Current.Name
+      if ($accessibleName.Contains($Fragment)) { return $element }
     } catch [System.Windows.Automation.ElementNotAvailableException] {}
   }
   return $null
@@ -178,17 +179,30 @@ try {
   }
 
   $detailVisible = $false
+  $searchInputGone = $false
+  $helpHeadingVisible = $false
+  $paletteTitleGone = $false
   if ($optionVisible) {
     [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
     for ($attempt = 0; $attempt -lt 24; $attempt++) {
-      $paletteGone = $null -eq (Find-NativeName -Label 'Command palette')
+      # React removes the search input as the modal unmounts. WebView2 UIA
+      # may retain stale *static heading* nodes after a navigation, so require
+      # the interactive combobox to disappear instead of a heading name.
+      $searchInputGone = $null -eq (Find-NativeName -Label 'Search available commands and offline Help')
+      $paletteTitleGone = $null -eq (Find-NativeName -Label 'Command palette')
       $optionHeading = Find-NativeVisibleNameFragment -Fragment 'Wiki mapping and link checker'
-      if ($paletteGone -and $null -ne $optionHeading) {
+      $helpHeadingVisible = $null -ne $optionHeading
+      if ($searchInputGone -and $helpHeadingVisible) {
         $detailVisible = $true
         break
       }
       Start-Sleep -Milliseconds 250
     }
+  }
+  $diagnostics['help_navigation'] = [ordered]@{
+    search_input_removed_from_native_tree = [bool]$searchInputGone
+    exact_option_heading_visible_in_native_tree = [bool]$helpHeadingVisible
+    static_palette_title_removed = [bool]$paletteTitleGone
   }
   $results['enter_opens_exact_option_help'] = [bool]$detailVisible
   if (-not $detailVisible) {

@@ -120,7 +120,9 @@ class NativeUIAContracts(unittest.TestCase):
                         "Search available commands and offline Help"):
             self.assertIn(snippet, script)
         self.assertIn("$typedInExactInput = $confirmedValue -ceq $probeValue", script)
-        self.assertIn("$paletteGone -and $null -ne $optionHeading", script)
+        self.assertIn("$searchInputGone -and $helpHeadingVisible", script)
+        self.assertIn("search_input_removed_from_native_tree", script)
+        self.assertIn("exact_option_heading_visible_in_native_tree", script)
         self.assertNotIn("$searchFocused = $true", script)
 
     def test_workflow_pins_native_probe_to_live_tauri_boot_and_artifact(self):
