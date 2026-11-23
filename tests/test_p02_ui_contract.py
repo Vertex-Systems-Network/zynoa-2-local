@@ -153,5 +153,48 @@ class P02UIContractTests(unittest.TestCase):
                 self.assertGreaterEqual(ratio, 4.5, f"{theme} tertiary text on {name}: {ratio:.2f}:1")
 
 
+    def test_workbench_keyboard_focus_visible_on_real_tabpanels(self):
+        """M02-OPT-07: native Workbench tabpanels show keyboard focus."""
+        css = (APP / "src/styles.css").read_text(encoding="utf-8")
+        workbench = (APP / "src/ui/Workbench.tsx").read_text(encoding="utf-8")
+        self.assertNotIn(".shell .workbench-tabpanel:focus { outline:none; }", css)
+        self.assertIn(
+            ".shell .workbench-tabpanel:focus-visible { outline: 2px solid var(--outline); outline-offset: 3px; }",
+            css,
+        )
+        self.assertEqual(3, workbench.count('role="tabpanel" tabIndex={0}'))
+        for panel in ("status", "layout", "keyboard"):
+            self.assertIn(f'hidden={{active !== "{panel}"}}', workbench)
+        self.assertIn("@media (prefers-reduced-motion:reduce)", css)
+
+    def test_workbench_focus_ring_contrast_both_themes(self):
+        """M02-OPT-07: focus outline has >=3:1 contrast on all semantic surfaces."""
+        import re
+        css = (APP / "src/styles.css").read_text(encoding="utf-8")
+        def luminance(value):
+            channels = [int(value[i:i+2], 16) / 255 for i in (1, 3, 5)]
+            linear = [c / 12.92 if c <= .04045 else ((c + .055) / 1.055) ** 2.4
+                      for c in channels]
+            return sum(c * w for c, w in zip(linear, (.2126, .7152, .0722)))
+        for theme in ("light", "dark"):
+            block = re.search(r'\.shell\[data-theme="' + theme + r'"\]\s*\{([^}]+)\}', css)
+            self.assertIsNotNone(block, theme)
+            tokens = dict(re.findall(r'--([a-z-]+):\s*(#[0-9a-fA-F]{6})', block.group(1)))
+            foreground = luminance(tokens["outline"])
+            for background_key in ("canvas", "rail", "surface", "surface-raised", "surface-hover"):
+                background = luminance(tokens[background_key])
+                ratio = (max(foreground, background) + .05) / (min(foreground, background) + .05)
+                self.assertGreaterEqual(ratio, 3, f"{theme} focus on {background_key}: {ratio:.2f}:1")
+
+    def test_native_focus_capture_requires_review(self):
+        native = (ROOT / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        workflow = (ROOT / ".github/workflows/p01-desktop.yml").read_text(encoding="utf-8")
+        self.assertIn("-ScreenshotId 'M02-OPT-07'", native)
+        self.assertIn("candidate_pending_visual_review", native)
+        self.assertIn("capture_verified = $false", native)
+        self.assertIn("docs/screenshots/_ci/M02/*.png", workflow)
+        self.assertIn("tests.test_p02_ui_contract -v", workflow)
+
+
 if __name__ == "__main__":
     unittest.main()
