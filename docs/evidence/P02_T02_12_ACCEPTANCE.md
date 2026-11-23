@@ -44,3 +44,14 @@ This gate is intentionally **local preflight only**, not evidence of verified re
 - Only then run the exact-head CI, full governance/Python regression suite, and remote GitHub proof; update the official `P02-T02` board from `IN_PROGRESS` to `DONE` *only after all conditions pass*, and synchronize the PR task-table block. Do not merge/advance phase as a substitute.
 
 **Roll-back:** Revert T02.12's capture/guard/tests/docs changes on the same P02 branch; no user data, preferences or native storage migration was introduced. The source PR remains Draft until its own merger/phase gates pass.
+
+
+## Exact-source Windows CI and independently inspected candidate closeout (2026-11-23)
+
+- **Source SHA:** `e22d51d52d47ea08eba3594579f54104c78e392a`.
+- [Windows CI #45153183376](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45153183376) **SUCCESS**: P02 focus/contrast, 13 fail-closed native evidence tests, 8 Help/Wiki accuracy tests, **8 final-readiness regression tests**, TypeScript/UI algorithms, Rust native tests, actual Tauri binary build/cold boot, 12 real native screenshot pairs and post-boot PNG/source SHA integrity report.
+- [Real native visual review](../screenshots/M02/T02-12-appearance-keyboard.review.json): `M02-S07` (998×701) keyboard guide selected with visible gold focus outline; `P02-T02-12-LIGHT` (898×653) Appearance=Light with light palette; `P02-T02-12-DARK` (898×653) Appearance=Dark with charcoal palette. All three source/build SHA and PNG SHA256 values match original candidate receipts. The screenshot verifier asserts Light and Dark frames cannot have identical pixels.
+- Machine receipt `P02-native-machine-review.json`: `MACHINE_METADATA_HASH_VALIDATED_ONLY`, `independent_visual_review=false`, `manifest_completed=false`. The human review is a *separate* scoped record, and the source receipts remain `capture_verified=false`. No final screenshots have been committed under mandatory `docs/screenshots/M02/M02-*.png` paths.
+- CI-generated `P02-T02-12-readiness.json`: **`NOT_READY`**, `official_task_status=IN_PROGRESS`, `verified_manifest_screenshot_count=0`. It lists six blockers: 15 M02 final PNGs absent; 15 manifest entries not VERIFIED; scope-only visual review; M02-OPT-03/04 not implemented; M02 contract NOT YET VERIFIED.
+- **Result:** T02.12 finalization protection and additional live visual coverage implemented/tested; **T02.12 full task closure remains IN_PROGRESS**, and the official parent `P02-T02` remains `IN_PROGRESS`. Full phase closure/PR merge is not implied. Future acceptance must close the documented blockers using the current main/branch and exact-source GitHub receipts.
+
