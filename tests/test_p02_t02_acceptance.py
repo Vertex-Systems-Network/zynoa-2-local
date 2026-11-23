@@ -45,7 +45,7 @@ class T02FinalAcceptanceGateTests(unittest.TestCase):
         self.assertEqual(15, result["expected_final_screenshot_count"])
         self.assertEqual(0, result["verified_manifest_screenshot_count"])
         self.assertIn("15 M02 final screenshot PNGs not committed", result["blockers"])
-        self.assertIn("15 M02 screenshot entries not VERIFIED", result["blockers"])
+        self.assertIn("M02 independent 15-image final visual review absent", result["blockers"])
         self.assertNotIn("M02-OPT-03 functionality explicitly not implemented", result["blockers"])
         self.assertNotIn("M02-OPT-04 functionality explicitly not implemented", result["blockers"])
         self.assertFalse(result["remote_ci_and_merge_verified"])
@@ -66,6 +66,14 @@ class T02FinalAcceptanceGateTests(unittest.TestCase):
         result = audit(self.root)
         self.assertEqual(0, result["verified_manifest_screenshot_count"])
         self.assertIn("15 M02 final screenshot PNGs not committed", result["blockers"])
+
+    def test_m02_image_status_does_not_equate_to_complete_module(self):
+        result = audit(ROOT)
+        self.assertEqual(15, result["verified_manifest_screenshot_count"])
+        self.assertEqual("NOT_READY", result["acceptance"])
+        self.assertIn("scoped native visual review explicitly excludes final module screenshots", result["blockers"])
+        self.assertIn("M02 module contract still marks completion NOT YET VERIFIED", result["blockers"])
+        self.assertFalse(result["remote_ci_and_merge_verified"])
 
     def test_manifest_missing_screen_id_is_not_ready(self):
         m = self._json("docs/screenshots/MANIFEST.json")

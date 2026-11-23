@@ -94,7 +94,7 @@
       "kind": "control",
       "module": "M02",
       "path": "docs/screenshots/M02/M02-OPT-01.png",
-      "status": "PENDING",
+      "status": "VERIFIED",
       "source": "WINDOWS_TAURI_CI_RUN_45265826578_SHA_80bb8fde422cc887667de27af3860be1809b4aaa",
       "source_capture_sha256": "090624f1626719c6c40436e10de019392b382020ef4a0f817fd8cf2ad4f04fe9",
       "source_git_blob_sha": "24f3f7cdeeaefb8f6f50a0b2bb6a1e290b59fbf4"
@@ -104,7 +104,7 @@
       "kind": "control",
       "module": "M02",
       "path": "docs/screenshots/M02/M02-OPT-02.png",
-      "status": "PENDING",
+      "status": "VERIFIED",
       "source": "WINDOWS_TAURI_CI_RUN_45265826578_SHA_80bb8fde422cc887667de27af3860be1809b4aaa",
       "source_capture_sha256": "1bf52182a4a60ad61b91674f1fa255dd7e6ba29da3f192efb7a38e5e97c6bb37",
       "source_git_blob_sha": "58331a61d8862f888a84d1a8cbeec8241f1c3a09"
@@ -114,7 +114,7 @@
       "kind": "control",
       "module": "M02",
       "path": "docs/screenshots/M02/M02-OPT-03.png",
-      "status": "PENDING",
+      "status": "VERIFIED",
       "source": "WINDOWS_TAURI_CI_RUN_45265826578_SHA_80bb8fde422cc887667de27af3860be1809b4aaa",
       "source_capture_sha256": "856253036b4c6e6230fbbfe13c55170ed455e2445158449151c22731a4688ee9",
       "source_git_blob_sha": "8ae8e33abe2117178a77b6bfc0e707be77b8e62e"
@@ -124,7 +124,7 @@
       "kind": "control",
       "module": "M02",
       "path": "docs/screenshots/M02/M02-OPT-04.png",
-      "status": "PENDING",
+      "status": "VERIFIED",
       "source": "WINDOWS_TAURI_CI_RUN_45265826578_SHA_80bb8fde422cc887667de27af3860be1809b4aaa",
       "source_capture_sha256": "c78720ab854190714e0da54cb57853518d2a5b9da5a180fff3c5d3fe351ce35d",
       "source_git_blob_sha": "dcdee2a433b9880d473f139a5a8183c0bed6b26e"
@@ -134,7 +134,7 @@
       "kind": "control",
       "module": "M02",
       "path": "docs/screenshots/M02/M02-OPT-05.png",
-      "status": "PENDING",
+      "status": "VERIFIED",
       "source": "WINDOWS_TAURI_CI_RUN_45265826578_SHA_80bb8fde422cc887667de27af3860be1809b4aaa",
       "source_capture_sha256": "b4e39a3dd1e550abd8095e65f6ee1f9da5f56461ef6469945f40fb6dc726e34c",
       "source_git_blob_sha": "0515fdc6dbd246a7712ee83ba6446e37c29c2a31"
@@ -144,7 +144,7 @@
       "kind": "control",
       "module": "M02",
       "path": "docs/screenshots/M02/M02-OPT-06.png",
-      "status": "PENDING",
+      "status": "VERIFIED",
       "source": "WINDOWS_TAURI_CI_RUN_45265826578_SHA_80bb8fde422cc887667de27af3860be1809b4aaa",
       "source_capture_sha256": "2db7e9b3bfc83f400a8858bd9b9853626abd5d7f855ebe4f70af51bc9db19717",
       "source_git_blob_sha": "0cfabd37ec7b91f82b76ecfc78b0b8d5fe624577"
@@ -154,7 +154,7 @@
       "kind": "control",
       "module": "M02",
       "path": "docs/screenshots/M02/M02-OPT-07.png",
-      "status": "PENDING",
+      "status": "VERIFIED",
       "source": "WINDOWS_TAURI_CI_RUN_45265826578_SHA_80bb8fde422cc887667de27af3860be1809b4aaa",
       "source_capture_sha256": "cfbf640e65fffbc12df000065dc48596dea3ede64db96f3d2b75711aa9d98d01",
       "source_git_blob_sha": "246b5c7ed6dd5c94ad3363dc52fc9f93d8aff646"
@@ -164,7 +164,7 @@
       "kind": "control",
       "module": "M02",
       "path": "docs/screenshots/M02/M02-OPT-08.png",
-      "status": "PENDING",
+      "status": "VERIFIED",
       "source": "WINDOWS_TAURI_CI_RUN_45265826578_SHA_80bb8fde422cc887667de27af3860be1809b4aaa",
       "source_capture_sha256": "d82d264df63070b4a1f69eaa02cf1129c487096f59c2f64b3d943c0ee3133268",
       "source_git_blob_sha": "4d5e57b791fd56a431e902cd8be4bcd3b240d4a2"
@@ -174,7 +174,7 @@
       "kind": "screen",
       "module": "M02",
       "path": "docs/screenshots/M02/M02-S01.png",
-      "status": "PENDING",
+      "status": "VERIFIED",
       "source": "WINDOWS_TAURI_CI_RUN_45265826578_SHA_80bb8fde422cc887667de27af3860be1809b4aaa",
       "source_capture_sha256": "db79b5512422b98230f4f39bfba632a566a3db351a14de4ebe47e20220e18363",
       "source_git_blob_sha": "f0caef894ef074e7f71203a53999921685554c6c"
@@ -184,7 +184,7 @@
       "kind": "screen",
       "module": "M02",
       "path": "docs/screenshots/M02/M02-S02.png",
-      "status": "PENDING",
+      "status": "VERIFIED",
       "source": "WINDOWS_TAURI_CI_RUN_45265826578_SHA_80bb8fde422cc887667de27af3860be1809b4aaa",
       "source_capture_sha256": "6758019260245e044a071c26483232df3b90b917a04223bd37ce55e975e9f38b",
       "source_git_blob_sha": "005e4a4a62bcf8c5f385d821e33f79172628266e"
@@ -194,7 +194,7 @@
       "kind": "screen",
       "module": "M02",
       "path": "docs/screenshots/M02/M02-S03.png",
-      "status": "PENDING",
+      "status": "VERIFIED",
       "source": "WINDOWS_TAURI_CI_RUN_45265826578_SHA_80bb8fde422cc887667de27af3860be1809b4aaa",
       "source_capture_sha256": "ec93af3626620c8d3bface689c79659b9af79a0ab72497556013b6ac0d2e1424",
       "source_git_blob_sha": "c95ec2e2a71ddf41dc7f67fead00f42a9b27f78e"
@@ -204,7 +204,7 @@
       "kind": "screen",
       "module": "M02",
       "path": "docs/screenshots/M02/M02-S04.png",
-      "status": "PENDING",
+      "status": "VERIFIED",
       "source": "WINDOWS_TAURI_CI_RUN_45265826578_SHA_80bb8fde422cc887667de27af3860be1809b4aaa",
       "source_capture_sha256": "2869d9625b22bcc06eaf6f566cc7075b7d51125e2ad7cbccb0e38e965d1fd163",
       "source_git_blob_sha": "c48b600e28c15cc16c860453233e1a0c431a074c"
@@ -214,7 +214,7 @@
       "kind": "screen",
       "module": "M02",
       "path": "docs/screenshots/M02/M02-S05.png",
-      "status": "PENDING",
+      "status": "VERIFIED",
       "source": "WINDOWS_TAURI_CI_RUN_45265826578_SHA_80bb8fde422cc887667de27af3860be1809b4aaa",
       "source_capture_sha256": "1a3e93e919d972f8182cbfd96060f27b295bd17e01aa9e5a7fd9a2ff0a33213a",
       "source_git_blob_sha": "34f141ec145b2e116148017a5f422c1ba174a3b6"
@@ -224,7 +224,7 @@
       "kind": "screen",
       "module": "M02",
       "path": "docs/screenshots/M02/M02-S06.png",
-      "status": "PENDING",
+      "status": "VERIFIED",
       "source": "WINDOWS_TAURI_CI_RUN_45265826578_SHA_80bb8fde422cc887667de27af3860be1809b4aaa",
       "source_capture_sha256": "16a20c0a716cad37faf1c0c47fff3b9909339f71f78fd31300855740def6859f",
       "source_git_blob_sha": "256c766949bf1248728a7bd3d23484c3074af83a"
@@ -234,7 +234,7 @@
       "kind": "screen",
       "module": "M02",
       "path": "docs/screenshots/M02/M02-S07.png",
-      "status": "PENDING",
+      "status": "VERIFIED",
       "source": "WINDOWS_TAURI_CI_RUN_45265826578_SHA_80bb8fde422cc887667de27af3860be1809b4aaa",
       "source_capture_sha256": "ae9f9e3ebc1444f28c711cf975360139869f8b07e656081efb35dd8e6cca9ffc",
       "source_git_blob_sha": "4f7a4ef883df403c2b166dfd1452e4f71f45bb69"

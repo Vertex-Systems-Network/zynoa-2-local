@@ -425,7 +425,7 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     [System.Windows.Forms.SendKeys]::SendWait('{F1}')
     Start-Sleep -Milliseconds 350
     Focus-P02NativeControl -AccessibleName 'Search offline help'
-    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-01' -Shortcut 'theme{PGDN}' -ScreenTitle 'M19 actual offline article search' -Description 'Real Windows Help search control with typed theme query, bundled local matching articles and category filtering' -FinalCandidateId 'M19-OPT-01'
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-01' -Shortcut 'theme' -ScreenTitle 'M19 actual offline article search' -Description 'Real Windows Help search control with typed theme query, bundled local matching articles and category filtering' -FinalCandidateId 'M19-OPT-01'
     # Leave the Help <input> via category selector then first article result
     # before invoking Ctrl+2; application shortcuts intentionally do not
     # hijack native text/select inputs.

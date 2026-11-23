@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "phase": "P02",
+  "module": "M02",
+  "task_id": "P02-T02",
+  "review_status": "ACCEPTED_M02_15_NATIVE_VISUAL_ONLY",
+  "reviewer": "GPT-6: independent direct inspection of source-bound real Windows Tauri images (not the native screenshot capture process)",
+  "reviewed_at": "2026-11-24T02:45:00+05:00",
+  "original_source_commit_sha": "80bb8fde422cc887667de27af3860be1809b4aaa",
+  "original_native_windows_ci_run": 45265826578,
+  "original_asset_commit_sha": "4c6c97f0799070825348913fe90cacc7e529d55e",
+  "native_source_bytes_and_git_blob_verified": true,
+  "independent_visual_review": true,
+  "full_nvda_narrator_approved": false,
+  "full_m02_module_release_approved": false,
+  "m19_all_assets_reviewed": false,
+  "hosted_wiki_verified": false,
+  "screen_review_count": 15,
+  "images": [
+    {
+      "asset_id": "M02-OPT-01",
+      "path": "docs/screenshots/M02/M02-OPT-01.png",
+      "sha256": "090624f1626719c6c40436e10de019392b382020ef4a0f817fd8cf2ad4f04fe9",
+      "git_blob_sha": "24f3f7cdeeaefb8f6f50a0b2bb6a1e290b59fbf4",
+      "visual_result": "PASS_FOR_M02_SCREEN_OPTION_FRAME_ONLY",
+      "observations": "Navigation density Compact is selected and visible with current applied navigation in the same live native frame."
+    },
+    {
+      "asset_id": "M02-OPT-02",
+      "path": "docs/screenshots/M02/M02-OPT-02.png",
+      "sha256": "1bf52182a4a60ad61b91674f1fa255dd7e6ba29da3f192efb7a38e5e97c6bb37",
+      "git_blob_sha": "58331a61d8862f888a84d1a8cbeec8241f1c3a09",
+      "visual_result": "PASS_FOR_M02_SCREEN_OPTION_FRAME_ONLY",
+      "observations": "Appearance Light mode selected with readable setting and theme-color tokens; preferences explicit session-only."
+    },
+    {
+      "asset_id": "M02-OPT-03",
+      "path": "docs/screenshots/M02/M02-OPT-03.png",
+      "sha256": "856253036b4c6e6230fbbfe13c55170ed455e2445158449151c22731a4688ee9",
+      "git_blob_sha": "8ae8e33abe2117178a77b6bfc0e707be77b8e62e",
+      "visual_result": "PASS_FOR_M02_SCREEN_OPTION_FRAME_ONLY",
+      "observations": "Compact properties rows preview shows a real pressed preview toggle, not a real project inspector."
+    },
+    {
+      "asset_id": "M02-OPT-04",
+      "path": "docs/screenshots/M02/M02-OPT-04.png",
+      "sha256": "c78720ab854190714e0da54cb57853518d2a5b9da5a180fff3c5d3fe351ce35d",
+      "git_blob_sha": "dcdee2a433b9880d473f139a5a8183c0bed6b26e",
+      "visual_result": "PASS_FOR_M02_SCREEN_OPTION_FRAME_ONLY",
+      "observations": "Keyboard guide uses actual Ctrl+1–6 option dropdowns and Restore default shortcuts control, in real dark theme; natural scroll viewport."
+    },
+    {
+      "asset_id": "M02-OPT-05",
+      "path": "docs/screenshots/M02/M02-OPT-05.png",
+      "sha256": "b4e39a3dd1e550abd8095e65f6ee1f9da5f56461ef6469945f40fb6dc726e34c",
+      "git_blob_sha": "0515fdc6dbd246a7712ee83ba6446e37c29c2a31",
+      "visual_result": "PASS_FOR_M02_SCREEN_OPTION_FRAME_ONLY",
+      "observations": "Typed Preferences query appears in actual command palette with matching allowlisted navigation."
+    },
+    {
+      "asset_id": "M02-OPT-06",
+      "path": "docs/screenshots/M02/M02-OPT-06.png",
+      "sha256": "2db7e9b3bfc83f400a8858bd9b9853626abd5d7f855ebe4f70af51bc9db19717",
+      "git_blob_sha": "0cfabd37ec7b91f82b76ecfc78b0b8d5fe624577",
+      "visual_result": "PASS_FOR_M02_SCREEN_OPTION_FRAME_ONLY",
+      "observations": "Native Workbench Left pane width slider shows live 55% value and two different preview pane widths, with reset."
+    },
+    {
+      "asset_id": "M02-OPT-07",
+      "path": "docs/screenshots/M02/M02-OPT-07.png",
+      "sha256": "cfbf640e65fffbc12df000065dc48596dea3ede64db96f3d2b75711aa9d98d01",
+      "git_blob_sha": "246b5c7ed6dd5c94ad3363dc52fc9f93d8aff646",
+      "visual_result": "PASS_FOR_M02_SCREEN_OPTION_FRAME_ONLY",
+      "observations": "Actual native focus-outline ring clearly surrounds keyboard-focused Workbench content region."
+    },
+    {
+      "asset_id": "M02-OPT-08",
+      "path": "docs/screenshots/M02/M02-OPT-08.png",
+      "sha256": "d82d264df63070b4a1f69eaa02cf1129c487096f59c2f64b3d943c0ee3133268",
+      "git_blob_sha": "4d5e57b791fd56a431e902cd8be4bcd3b240d4a2",
+      "visual_result": "PASS_FOR_M02_SCREEN_OPTION_FRAME_ONLY",
+      "observations": "Focusable Reduced motion status is distinct from appearance selection, visibly read-only and follows Windows accessibility."
+    },
+    {
+      "asset_id": "M02-S01",
+      "path": "docs/screenshots/M02/M02-S01.png",
+      "sha256": "db79b5512422b98230f4f39bfba632a566a3db351a14de4ebe47e20220e18363",
+      "git_blob_sha": "f0caef894ef074e7f71203a53999921685554c6c",
+      "visual_result": "PASS_FOR_M02_SCREEN_OPTION_FRAME_ONLY",
+      "observations": "Live Windows shell Overview with native-window chrome, clear primary heading and truthful read-only local runtime status; no fake workspace creation."
+    },
+    {
+      "asset_id": "M02-S02",
+      "path": "docs/screenshots/M02/M02-S02.png",
+      "sha256": "6758019260245e044a071c26483232df3b90b917a04223bd37ce55e975e9f38b",
+      "git_blob_sha": "005e4a4a62bcf8c5f385d821e33f79172628266e",
+      "visual_result": "PASS_FOR_M02_SCREEN_OPTION_FRAME_ONLY",
+      "observations": "Expanded desktop navigation rail shows grouped named views and active Overview, reflowed content with no central horizontal clipping."
+    },
+    {
+      "asset_id": "M02-S03",
+      "path": "docs/screenshots/M02/M02-S03.png",
+      "sha256": "ec93af3626620c8d3bface689c79659b9af79a0ab72497556013b6ac0d2e1424",
+      "git_blob_sha": "c95ec2e2a71ddf41dc7f67fead00f42a9b27f78e",
+      "visual_result": "PASS_FOR_M02_SCREEN_OPTION_FRAME_ONLY",
+      "observations": "Workbench tabs and native read-only runtime panel are legible with keyboard-accessible active tab semantics."
+    },
+    {
+      "asset_id": "M02-S04",
+      "path": "docs/screenshots/M02/M02-S04.png",
+      "sha256": "2869d9625b22bcc06eaf6f566cc7075b7d51125e2ad7cbccb0e38e965d1fd163",
+      "git_blob_sha": "c48b600e28c15cc16c860453233e1a0c431a074c",
+      "visual_result": "PASS_FOR_M02_SCREEN_OPTION_FRAME_ONLY",
+      "observations": "Actual modal command palette shows available navigation results and readable selected/keyboard focus."
+    },
+    {
+      "asset_id": "M02-S05",
+      "path": "docs/screenshots/M02/M02-S05.png",
+      "sha256": "1a3e93e919d972f8182cbfd96060f27b295bd17e01aa9e5a7fd9a2ff0a33213a",
+      "git_blob_sha": "34f141ec145b2e116148017a5f422c1ba174a3b6",
+      "visual_result": "PASS_FOR_M02_SCREEN_OPTION_FRAME_ONLY",
+      "observations": "Component gallery shows semantic palette, action states, type hierarchy and responsive card layout; lower states are scrollable."
+    },
+    {
+      "asset_id": "M02-S06",
+      "path": "docs/screenshots/M02/M02-S06.png",
+      "sha256": "16a20c0a716cad37faf1c0c47fff3b9909339f71f78fd31300855740def6859f",
+      "git_blob_sha": "256c766949bf1248728a7bd3d23484c3074af83a",
+      "visual_result": "PASS_FOR_M02_SCREEN_OPTION_FRAME_ONLY",
+      "observations": "Preferences presents Follow system and Comfortable defaults with clearly labelled session-only scope."
+    },
+    {
+      "asset_id": "M02-S07",
+      "path": "docs/screenshots/M02/M02-S07.png",
+      "sha256": "ae9f9e3ebc1444f28c711cf975360139869f8b07e656081efb35dd8e6cca9ffc",
+      "git_blob_sha": "4f7a4ef883df403c2b166dfd1452e4f71f45bb69",
+      "visual_result": "PASS_FOR_M02_SCREEN_OPTION_FRAME_ONLY",
+      "observations": "Keyboard guide shows numbered navigation actions, configurable mappings and form controls with focus/legible labels."
+    }
+  ],
+  "limitations": "Real 15 screenshot assets show specific live Windows native interfaces and controls with readable labels and appropriate keyboard focus in captured frames. This is visual/identity approval of the M02 PNGs only, not comprehensive OS theme switching, all accessibility/assistive-technology paths, performance budget, M19 image acceptance, hosted Wiki, owner review or protected PR merge."
+}

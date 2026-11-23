@@ -7,6 +7,7 @@ remote workflow success must still be separately verified on the GitHub PR.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 
@@ -48,6 +49,42 @@ def audit(root: Path) -> dict:
         blockers.append(f"{len(missing_png)} M02 final screenshot PNGs not committed")
     if pending_assets:
         blockers.append(f"{len(pending_assets)} M02 screenshot entries not VERIFIED")
+
+    # This independently authored per-screen native visual review is separate
+    # from the Windows machine's immutable candidate-only screenshot receipts.
+    review_file = root / "docs/screenshots/M02/T02-final-15-native-visual.review.json"
+    if not review_file.is_file():
+        blockers.append("M02 independent 15-image final visual review absent")
+    else:
+        try:
+            final_review = json.loads(review_file.read_text(encoding="utf-8"))
+            reviewed_images = final_review.get("images", [])
+            by_id = {entry["asset_id"]: entry for entry in reviewed_images}
+            if (final_review.get("review_status") != "ACCEPTED_M02_15_NATIVE_VISUAL_ONLY"
+                    or final_review.get("module") != "M02"
+                    or final_review.get("screen_review_count") != 15
+                    or final_review.get("independent_visual_review") is not True
+                    or final_review.get("full_nvda_narrator_approved") is not False
+                    or final_review.get("full_m02_module_release_approved") is not False
+                    or len(reviewed_images) != 15
+                    or len(by_id) != 15 or set(by_id) != REQUIRED_IDS):
+                blockers.append("M02 per-image visual review incomplete or overly claims release")
+            else:
+                for entry in m02:
+                    path = root / entry["path"]
+                    if not path.is_file():
+                        continue
+                    image_bytes = path.read_bytes()
+                    visual = by_id.get(entry["asset_id"], {})
+                    if (visual.get("path") != entry["path"]
+                            or visual.get("sha256") != entry.get("source_capture_sha256")
+                            or visual.get("git_blob_sha") != entry.get("source_git_blob_sha")
+                            or visual.get("visual_result") != "PASS_FOR_M02_SCREEN_OPTION_FRAME_ONLY"
+                            or not visual.get("observations")
+                            or hashlib.sha256(image_bytes).hexdigest() != visual.get("sha256")):
+                        blockers.append(entry["asset_id"] + " M02 independent visual/hash review mismatch")
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            blockers.append("M02 per-image visual review cannot be validated: " + type(exc).__name__)
 
     # A scoped screenshot review is not a full module-wide visual review.
     review_path = root / "docs/screenshots/M02/T02-visual-foundation.review.json"

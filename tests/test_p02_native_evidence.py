@@ -125,6 +125,15 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
         self.assertNotIn("-ScreenshotId 'P02-T10-CTRL-M19-OPT-05' -Shortcut '{TAB}{TAB}", src)
         self.assertNotIn("-ScreenshotId 'P02-T10-CTRL-M19-OPT-05' -Shortcut '{ENTER}{PGDN}'", src)
 
+    def test_m19_search_screenshot_keeps_actual_input_visible(self):
+        src = (Path(__file__).resolve().parents[1] / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        focus = "Focus-P02NativeControl -AccessibleName 'Search offline help'"
+        direct = "-ScreenshotId 'P02-T10-CTRL-M19-OPT-01' -Shortcut 'theme'"
+        self.assertIn(focus, src)
+        self.assertIn(direct, src)
+        self.assertLess(src.index(focus), src.index(direct))
+        self.assertNotIn("-ScreenshotId 'P02-T10-CTRL-M19-OPT-01' -Shortcut 'theme{PGDN}'", src)
+
     def test_reduced_motion_uses_real_distinct_keyboard_control(self):
         script = (Path(__file__).resolve().parents[1] / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
         self.assertIn("Focus-P02NativeControl -AccessibleName 'Reduced motion (M02-OPT-08)'", script)

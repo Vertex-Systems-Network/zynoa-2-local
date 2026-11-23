@@ -1,5 +1,8 @@
 # P02-T11 — Protected Merge and Final Acceptance Preflight
 
+**New 2026-11-24 checkpoint:** 29 exact-original native Windows PNGs are now committed, matching SHA-256/Git blob source. M02 15/15 images have per-frame visual acceptance; M19 14 images still require final visual sign-off and refreshed search control screenshot. This removes the *missing M02 PNG* blocker only. Full NVDA/Narrator interaction testing, three-or-more exact-source performance runs with reviewed budgets, externally verified Wiki publication (or explicitly approved alternative), all-status docs parity, exact-head CI and independent owner PR approval/merge are **NOT COMPLETE**. This preflight stays NOT_READY_FOR_MERGE; do not bypass ruleset or merge just to change statuses.
+
+
 **Branch:** `phase/02-shared-ui`. **Primary:** [draft PR #12](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12). **State:** IN_PROGRESS, not authorized for merge.
 
 ## Independently observed GitHub state (2026-11-23)
