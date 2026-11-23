@@ -110,10 +110,19 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
         self.assertIn("[System.Windows.Forms.SendKeys]::SendWait('{F1}')",
                       src[control:gallery])
 
-    def test_help_input_and_faq_capture_follow_real_keyboard_tab_order(self):
-        src = (Path(__file__).resolve().parents[1] / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+    def test_help_input_and_faq_capture_focus_real_native_disclosure(self):
+        root = Path(__file__).resolve().parents[1]
+        src = (root / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        faq = (root / "apps/desktop/src/ui/help-workflows.ts").read_text(encoding="utf-8")
         self.assertIn("-ScreenshotId 'P02-T10-CTRL-M19-OPT-02' -Shortcut '{TAB}{TAB}^{2}{F1}{PGDN}'", src)
-        self.assertIn("-ScreenshotId 'P02-T10-CTRL-M19-OPT-05' -Shortcut '{TAB}{TAB}{ENTER}{PGDN}'", src)
+        question = "Does a native connection mean my work is saved?"
+        self.assertIn(question, faq)
+        marker = "Focus-P02NativeControl -AccessibleName '" + question + "'"
+        before = src.index("-ScreenshotId 'P02-T10-CTRL-M19-OPT-04'")
+        after = src.index("-ScreenshotId 'P02-T10-CTRL-M19-OPT-05'")
+        self.assertIn(marker, src[before:after])
+        self.assertIn("-ScreenshotId 'P02-T10-CTRL-M19-OPT-05' -Shortcut '{ENTER}{PGDN}'", src)
+        self.assertNotIn("-ScreenshotId 'P02-T10-CTRL-M19-OPT-05' -Shortcut '{TAB}{TAB}", src)
 
     def test_reduced_motion_uses_real_distinct_keyboard_control(self):
         script = (Path(__file__).resolve().parents[1] / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")

@@ -438,9 +438,11 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     [System.Windows.Forms.SendKeys]::SendWait('{F1}')
     Focus-P02NativeControl -AccessibleName 'FAQ & glossary'
     Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-04' -Shortcut '{ENTER}{PGDN}' -ScreenTitle 'M19 actual offline glossary' -Description 'Real native Help FAQ and glossary panel showing bundled definitions rather than a fake external dictionary' -FinalCandidateId 'M19-OPT-04'
-    # FAQ workflow button -> Wiki workflow button -> first actual <summary>.
-    # Two Tabs enter FAQ content without toggling Wiki by mistake.
-    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-05' -Shortcut '{TAB}{TAB}{ENTER}{PGDN}' -ScreenTitle 'M19 actual FAQ expanded question' -Description 'Real native Help FAQ with keyboard-expanded disclosure and linked offline guidance' -FinalCandidateId 'M19-OPT-05'
+    # UIA-focus the real first FAQ <summary>, never guess tab order after
+    # React/WebView2 has re-rendered the FAQ section. The actual disclosure
+    # must be keyboard focusable or the capture fails closed (ZYN-SCREEN-043).
+    Focus-P02NativeControl -AccessibleName 'Does a native connection mean my work is saved?'
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-05' -Shortcut '{ENTER}{PGDN}' -ScreenTitle 'M19 actual FAQ expanded question' -Description 'Real native Help FAQ with keyboard-expanded disclosure and linked offline guidance' -FinalCandidateId 'M19-OPT-05'
     [System.Windows.Forms.SendKeys]::SendWait('^{2}')
     [System.Windows.Forms.SendKeys]::SendWait('{F1}')
     Focus-P02NativeControl -AccessibleName 'Wiki & link checker'

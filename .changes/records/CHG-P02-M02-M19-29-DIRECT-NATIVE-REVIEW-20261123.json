@@ -3,7 +3,7 @@
   "module_id": "M02",
   "kind": "enhancement",
   "title": "Source-SHA-bound complete P02 native control review candidate matrix",
-  "summary": "Extend the running Windows Tauri screenshot harness with 15 directly interacted control/screen candidates for full 29-target review mapping, plus 16 separately labelled Help-only reference images. Generate a self-contained offline HTML visual review artifact and refuse any automatic final acceptance. It now additionally exports a fail-closed, exact-path 29-image native candidate ZIP with source-bound PNG hashes, per-control receipts and a human review checklist; it does not commit or approve final images. The real Windows source-bound Tauri capture and independently inspected actual light/dark preference, gallery and five-state images support scoped T05/T06 functional acceptance. Those tasks are DONE; final screenshot manifest, full screen-reader and release gates remain incomplete.",
+  "summary": "Extend the running Windows Tauri screenshot harness with 15 directly interacted control/screen candidates for full 29-target review mapping, plus 16 separately labelled Help-only reference images. Generate a self-contained offline HTML visual review artifact and refuse any automatic final acceptance. It now additionally exports a fail-closed, exact-path 29-image native candidate ZIP with source-bound PNG hashes, per-control receipts and a human review checklist; it does not commit or approve final images. The real Windows source-bound Tauri capture and independently inspected actual light/dark preference, gallery and five-state images support scoped T05/T06 functional acceptance. Those tasks are DONE; final screenshot manifest, full screen-reader and release gates remain incomplete. Follow-up native FAQ screenshot path now explicitly focuses the actual first keyboard-accessible disclosure by UIAutomation rather than relying on render-sensitive relative Tab order; new source regression tests retain fail-closed capture with no mock or synthesized frame.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [],
@@ -55,7 +55,7 @@
   "breaking_change": false,
   "migration_notes": "No durable user data or native application schema changes.",
   "created_at": "2026-11-23T18:54:44.538Z",
-  "updated_at": "2026-11-24T00:00:00Z",
+  "updated_at": "2026-11-24T00:00:01Z",
   "version_bump": "none",
   "docs_impact": true,
   "data_migration": false
