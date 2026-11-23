@@ -1,21 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { appCommands, findCommands, type AppView } from "./commands";
+import { shortcutForView, type ShortcutAssignments } from "./shortcut-map";
 
 type Props = {
   open: boolean;
   onClose: () => void;
   onNavigate: (view: AppView) => void;
   returnFocusTarget?: HTMLElement | null;
+  shortcuts: ShortcutAssignments;
 };
 
-export function CommandPalette({ open, onClose, onNavigate, returnFocusTarget }: Props) {
+export function CommandPalette({ open, onClose, onNavigate, returnFocusTarget, shortcuts }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const navigationRef = useRef(false);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(0);
-  const matches = useMemo(() => findCommands(query), [query]);
+  const matches = useMemo(() => findCommands(query, shortcuts), [query, shortcuts]);
 
   useEffect(() => {
     if (!open) return;
@@ -122,7 +124,7 @@ export function CommandPalette({ open, onClose, onNavigate, returnFocusTarget }:
               onClick={() => execute(command.view)}>
               <span className="command-glyph" aria-hidden="true">{command.symbol}</span>
               <span><strong>{command.title}</strong><small>{command.description}</small></span>
-              <kbd>{command.keys}</kbd>
+              <kbd>{command.view === "help" ? command.keys : "Ctrl+" + shortcutForView(command.view, shortcuts)}</kbd>
             </button>
           ) : <div className="empty-state" role="status">
             <strong>No matching commands</strong><p>Try “help”, “workbench” or “preferences”.</p>
