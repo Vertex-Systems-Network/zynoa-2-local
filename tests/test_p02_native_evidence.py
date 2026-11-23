@@ -102,6 +102,19 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
         self.assertNotIn("Focus-P02NativeControl -AccessibleName 'Runtime status'", script)
         self.assertNotIn("Focus-P02NativeControl -AccessibleName 'Layout controls'", script)
 
+    def test_f1_recovers_shortcut_navigation_after_native_range_input(self):
+        src = (Path(__file__).resolve().parents[1] / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        control = src.index("-ScreenshotId 'P02-T10-CTRL-M02-OPT-06'")
+        gallery = src.index("-ScreenshotId 'M02-S05'")
+        self.assertLess(control, gallery)
+        self.assertIn("[System.Windows.Forms.SendKeys]::SendWait('{F1}')",
+                      src[control:gallery])
+
+    def test_help_input_and_faq_capture_follow_real_keyboard_tab_order(self):
+        src = (Path(__file__).resolve().parents[1] / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        self.assertIn("-ScreenshotId 'P02-T10-CTRL-M19-OPT-02' -Shortcut '{TAB}{TAB}^{2}{F1}{PGDN}'", src)
+        self.assertIn("-ScreenshotId 'P02-T10-CTRL-M19-OPT-05' -Shortcut '{TAB}{TAB}{ENTER}{PGDN}'", src)
+
     def test_real_control_candidate_identity_is_required(self):
         self.assertEqual(15, len(DIRECT_CONTROL_MATRIX))
         self._mutate("P02-T10-CTRL-M19-OPT-07", "candidate_final_asset_id", "M19-OPT-08")

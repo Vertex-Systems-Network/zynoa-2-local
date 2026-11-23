@@ -269,6 +269,11 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     # This avoids a fragile late-page View/ARIA tab re-entry and verifies
     # the slider while the same live native Workbench is still present.
     Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M02-OPT-06' -Shortcut '+{TAB}{RIGHT}{RIGHT}{PGUP}' -ScreenTitle 'M02 actual split pane slider' -Description 'Real native Workbench Layout slider changed with Shift+Tab and keyboard arrows from compact property toggle; real pane ratio immediately reflects 50 percent' -FinalCandidateId 'M02-OPT-06'
+    # The slider is an <input type=range>. App deliberately ignores Ctrl+1..6
+    # while input owns focus. F1 is a supported global shortcut even from input,
+    # and Help remounts with main-content focus, so Ctrl+6 can then navigate.
+    [System.Windows.Forms.SendKeys]::SendWait('{F1}')
+    Start-Sleep -Milliseconds 350
     Save-NativeFollowup -ScreenshotId 'M02-S05' -Shortcut '^{6}' -ScreenTitle 'P02 native component gallery' -Description 'Real Tauri component gallery with semantic token swatches, state chips and interactive input'
     # From focused main after Ctrl+6: Tab toolbar command, Tab help, Tab primary action.
     # Activate primary selection; PageDown reveals the actual button/feedback states.
@@ -416,7 +421,10 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     Start-Sleep -Milliseconds 350
     Focus-P02NativeControl -AccessibleName 'Search offline help'
     Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-01' -Shortcut 'theme{PGDN}' -ScreenTitle 'M19 actual offline article search' -Description 'Real Windows Help search control with typed theme query, bundled local matching articles and category filtering' -FinalCandidateId 'M19-OPT-01'
-    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-02' -Shortcut '^{2}{F1}{PGDN}' -ScreenTitle 'M19 actual contextual F1 Help' -Description 'Real native Preferences opened into relevant bundled contextual Help using F1 without internet or external content' -FinalCandidateId 'M19-OPT-02'
+    # Leave the Help <input> via category selector then first article result
+    # before invoking Ctrl+2; application shortcuts intentionally do not
+    # hijack native text/select inputs.
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-02' -Shortcut '{TAB}{TAB}^{2}{F1}{PGDN}' -ScreenTitle 'M19 actual contextual F1 Help' -Description 'Real native Preferences opened into relevant bundled contextual Help using F1 without internet or external content' -FinalCandidateId 'M19-OPT-02'
     [System.Windows.Forms.SendKeys]::SendWait('^{2}')
     [System.Windows.Forms.SendKeys]::SendWait('{F1}')
     Focus-P02NativeControl -AccessibleName 'Troubleshooting wizard'
@@ -425,7 +433,9 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     [System.Windows.Forms.SendKeys]::SendWait('{F1}')
     Focus-P02NativeControl -AccessibleName 'FAQ & glossary'
     Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-04' -Shortcut '{ENTER}{PGDN}' -ScreenTitle 'M19 actual offline glossary' -Description 'Real native Help FAQ and glossary panel showing bundled definitions rather than a fake external dictionary' -FinalCandidateId 'M19-OPT-04'
-    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-05' -Shortcut '{TAB}{ENTER}{PGDN}' -ScreenTitle 'M19 actual FAQ expanded question' -Description 'Real native Help FAQ with keyboard-expanded disclosure and linked offline guidance' -FinalCandidateId 'M19-OPT-05'
+    # FAQ workflow button -> Wiki workflow button -> first actual <summary>.
+    # Two Tabs enter FAQ content without toggling Wiki by mistake.
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-05' -Shortcut '{TAB}{TAB}{ENTER}{PGDN}' -ScreenTitle 'M19 actual FAQ expanded question' -Description 'Real native Help FAQ with keyboard-expanded disclosure and linked offline guidance' -FinalCandidateId 'M19-OPT-05'
     [System.Windows.Forms.SendKeys]::SendWait('^{2}')
     [System.Windows.Forms.SendKeys]::SendWait('{F1}')
     Focus-P02NativeControl -AccessibleName 'Wiki & link checker'
