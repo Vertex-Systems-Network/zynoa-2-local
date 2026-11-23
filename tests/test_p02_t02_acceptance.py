@@ -25,6 +25,13 @@ class T02FinalAcceptanceGateTests(unittest.TestCase):
             "docs/wiki/pages/M02.md",
             "docs/modules/M02.md",
             "docs/screenshots/M02/T02-visual-foundation.review.json",
+            "docs/screenshots/M02/T02-final-15-native-visual.review.json",
+            "apps/desktop/src/styles.css",
+            "apps/desktop/src/ui/Workbench.tsx",
+            "apps/desktop/src/App.tsx",
+            "tests/test_p02_ui_contract.py",
+            "tests/test_p02_m02_controls.py",
+            "scripts/probe_p02_native_a11y.ps1",
         )
         for name in self.paths:
             dest = self.root / name
@@ -45,7 +52,7 @@ class T02FinalAcceptanceGateTests(unittest.TestCase):
         self.assertEqual(15, result["expected_final_screenshot_count"])
         self.assertEqual(0, result["verified_manifest_screenshot_count"])
         self.assertIn("15 M02 final screenshot PNGs not committed", result["blockers"])
-        self.assertIn("M02 independent 15-image final visual review absent", result["blockers"])
+        self.assertNotIn("M02 independent 15-image final visual review absent", result["blockers"])
         self.assertNotIn("M02-OPT-03 functionality explicitly not implemented", result["blockers"])
         self.assertNotIn("M02-OPT-04 functionality explicitly not implemented", result["blockers"])
         self.assertFalse(result["remote_ci_and_merge_verified"])
@@ -70,9 +77,12 @@ class T02FinalAcceptanceGateTests(unittest.TestCase):
     def test_m02_image_status_does_not_equate_to_complete_module(self):
         result = audit(ROOT)
         self.assertEqual(15, result["verified_manifest_screenshot_count"])
-        self.assertEqual("NOT_READY", result["acceptance"])
-        self.assertIn("scoped native visual review explicitly excludes final module screenshots", result["blockers"])
-        self.assertIn("M02 module contract still marks completion NOT YET VERIFIED", result["blockers"])
+        self.assertEqual("READY_FOR_T02_SCOPED_REMOTE_CI", result["acceptance"])
+        self.assertTrue(result["t02_scope_only"])
+        self.assertFalse(result["m02_module_release_verified"])
+        self.assertFalse(result["full_nvda_narrator_verified"])
+        self.assertFalse(result["performance_budget_approved"])
+        self.assertIn("NOT YET VERIFIED", (ROOT / "docs/modules/M02.md").read_text(encoding="utf-8"))
         self.assertFalse(result["remote_ci_and_merge_verified"])
 
     def test_manifest_missing_screen_id_is_not_ready(self):
@@ -90,7 +100,7 @@ class T02FinalAcceptanceGateTests(unittest.TestCase):
 
     def test_no_scope_review_is_not_final_visual_proof(self):
         (self.root / "docs/screenshots/M02/T02-visual-foundation.review.json").unlink()
-        self.assertIn("T02 native visual review record absent", audit(self.root)["blockers"])
+        self.assertIn("T02 early native foundation review record absent", audit(self.root)["blockers"])
 
     def test_windows_gate_runs_and_preserves_candidate_only_visual_proof(self):
         workflow = (ROOT / ".github/workflows/p01-desktop.yml").read_text(encoding="utf-8")
@@ -107,10 +117,33 @@ class T02FinalAcceptanceGateTests(unittest.TestCase):
         self.assertIn("light/dark capture has identical pixels", verifier)
         self.assertIn("candidate_pending_visual_review", native)
 
-    def test_current_official_status_cannot_be_auto_closed_by_passing_ci(self):
+    def test_scoped_t02_done_requires_original_png_bytes_not_just_manifest(self):
+        m = self._json("docs/screenshots/MANIFEST.json")
+        for row in m["required"]:
+            if row["module"] == "M02":
+                path = self.root / row["path"]
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes((ROOT / row["path"]).read_bytes())
+        t = self._json("docs/state/pr-tasks/P02.json")
+        next(row for row in t["tasks"] if row["id"] == "P02-T02")["status"] = "DONE"
+        self._save("docs/state/pr-tasks/P02.json", t)
+        complete = audit(self.root)
+        self.assertEqual("READY_FOR_T02_SCOPED_REMOTE_CI", complete["acceptance"])
+        self.assertEqual("DONE", complete["official_task_status"])
+        self.assertEqual(15, complete["verified_manifest_screenshot_count"])
+        # Tampering even one byte invalidates scoped DONE despite the review file.
+        original = self.root / "docs/screenshots/M02/M02-S01.png"
+        original.write_bytes(original.read_bytes() + b"tamper")
+        with self.assertRaisesRegex(PrematureT02Closure, "falsely marked DONE"):
+            audit(self.root)
+
+    def test_t02_scope_is_not_t10_full_module_or_t11_merge(self):
         result = audit(ROOT)
-        self.assertNotEqual("DONE", result["official_task_status"])
-        self.assertEqual("NOT_READY", result["acceptance"])
+        self.assertIn(result["official_task_status"], ("IN_PROGRESS", "DONE"))
+        self.assertEqual("READY_FOR_T02_SCOPED_REMOTE_CI", result["acceptance"])
+        self.assertFalse(result["m02_module_release_verified"])
+        self.assertFalse(result["full_nvda_narrator_verified"])
+        self.assertFalse(result["remote_ci_and_merge_verified"])
 
 
 if __name__ == "__main__":

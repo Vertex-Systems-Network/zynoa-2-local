@@ -1,5 +1,14 @@
 # P02-T02.12 — Final T02 acceptance and GitHub task closure preflight
 
+## 2026-11-24 T02-only closeout re-audit (new evidence supersedes historical checkpoints)
+
+The earlier 2026-11-23 screenshots-PENDING/unimplemented-control paragraphs below are immutable **history**, not a current assessment. GitHub current branch now carries all **15/15 original M02 PNGs** with source-SHA-256, exact Git blob SHA, frame geometry, independent per-frame visual findings, captions and alt text in the final manifest and `T02-final-15-native-visual.review.json`. M02-OPT-03 compact spacing preview and M02-OPT-04 Ctrl+1–6 remap are implemented (session-only and **not** persisted) and independently shown in native images. Current Windows exact-head native build/OS UIA, WCAG focus/label and source regression tests, and Help/Wiki preview source identity are documented in [P02 PR #12](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12).
+
+**Correct acceptance scope:** T02 = design tokens, accessible **primitive foundations**, focus/contrast, responsive gallery and screenshot proof. T10 separately owns exhaustive live NVDA/Narrator, all-state integration, performance budget and complete Help/Wiki option tours. T11 owns final security/PR review and protected merge. The **M02 full module contract remains NOT YET VERIFIED** without those subsequent gates. The old 9-image scoped review's historical `all_M02_M19_screenshot_gates_complete=false` flag was true at its original capture time, but does not override the subsequently independently accepted 15 final images; removal of that stale blocker is not a waiver of whole-module accessibility.
+
+**Gate repair:** `tools/verify_p02_t02_acceptance.py` now checks each of the 15 original PNG bytes using both SHA256 and calculated Git blob SHA, image geometry, reviewer observations, accessible metadata, all 8 option Help/Wiki IDs, actual token/focus/reduced-motion/responsive source and WCAG/OS UIA regression contract presence. Simulated `DONE` without assets, review or source fails CI; true scoped evidence returns `READY_FOR_T02_SCOPED_REMOTE_CI`. **Do not mark the official task DONE until an exact-source Windows CI and governance re-run succeeds on the repaired gate.**
+
+
 **Task ID:** P02-T02 (M02 design tokens, accessible UI primitives and visual foundations).  
 **Primary Draft PR:** [#12](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12), branch `phase/02-shared-ui`.  
 **Decision:** **IN_PROGRESS — NOT READY FOR FINAL CLOSURE.** No merge, P03, release or counterfeit DONE status.

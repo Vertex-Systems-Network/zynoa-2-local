@@ -10,6 +10,8 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import re
+import struct
 
 
 SCREEN_IDS = tuple(f"M02-S{i:02d}" for i in range(1, 8))
@@ -34,6 +36,8 @@ def audit(root: Path) -> dict:
     ids = {row["asset_id"] for row in m02}
     blockers: list[str] = []
     missing_ids = sorted(REQUIRED_IDS - ids)
+    if len(m02) != 15 or len(ids) != 15:
+        blockers.append("M02 final screenshot inventory is not 15 unique IDs")
     if missing_ids:
         blockers.append("M02 missing required screenshot IDs: " + ", ".join(missing_ids))
     missing_png: list[str] = []
@@ -45,6 +49,8 @@ def audit(root: Path) -> dict:
             missing_png.append(row["asset_id"])
         if row["status"] != "VERIFIED":
             pending_assets.append(row["asset_id"])
+        if not isinstance(row.get("caption"), str) or len(row["caption"]) < 48 or not isinstance(row.get("alt_text"), str) or len(row["alt_text"]) < 32:
+            blockers.append(row["asset_id"] + " final screenshot caption or accessible alt missing")
     if missing_png:
         blockers.append(f"{len(missing_png)} M02 final screenshot PNGs not committed")
     if pending_assets:
@@ -76,25 +82,35 @@ def audit(root: Path) -> dict:
                         continue
                     image_bytes = path.read_bytes()
                     visual = by_id.get(entry["asset_id"], {})
+                    git_sha = hashlib.sha1(b"blob " + str(len(image_bytes)).encode("ascii") + b"\0" + image_bytes).hexdigest()
+                    valid_png = (image_bytes.startswith(b"\x89PNG\r\n\x1a\n")
+                                 and len(image_bytes) >= 24)
+                    width, height = struct.unpack(">II", image_bytes[16:24]) if valid_png else (0, 0)
                     if (visual.get("path") != entry["path"]
                             or visual.get("sha256") != entry.get("source_capture_sha256")
                             or visual.get("git_blob_sha") != entry.get("source_git_blob_sha")
                             or visual.get("visual_result") != "PASS_FOR_M02_SCREEN_OPTION_FRAME_ONLY"
                             or not visual.get("observations")
-                            or hashlib.sha256(image_bytes).hexdigest() != visual.get("sha256")):
-                        blockers.append(entry["asset_id"] + " M02 independent visual/hash review mismatch")
+                            or not valid_png
+                            or width != entry.get("capture_window_width")
+                            or height != entry.get("capture_window_height")
+                            or hashlib.sha256(image_bytes).hexdigest() != visual.get("sha256")
+                            or git_sha != visual.get("git_blob_sha")):
+                        blockers.append(entry["asset_id"] + " M02 independent visual/hash/geometry review mismatch")
         except (OSError, ValueError, KeyError, TypeError) as exc:
             blockers.append("M02 per-image visual review cannot be validated: " + type(exc).__name__)
 
-    # A scoped screenshot review is not a full module-wide visual review.
+    # Historical 9-frame early-foundation review is retained as provenance.
+    # Its old "all assets incomplete" flag described that previous date; the
+    # newer, independently reviewed 15-image final manifest supersedes it.
     review_path = root / "docs/screenshots/M02/T02-visual-foundation.review.json"
-    if review_path.is_file():
-        review = json.loads(review_path.read_text(encoding="utf-8"))
-        boundaries = review.get("status_boundary", {})
-        if boundaries.get("all_M02_M19_screenshot_gates_complete") is False:
-            blockers.append("scoped native visual review explicitly excludes final module screenshots")
+    if not review_path.is_file():
+        blockers.append("T02 early native foundation review record absent")
     else:
-        blockers.append("T02 native visual review record absent")
+        historic = json.loads(review_path.read_text(encoding="utf-8"))
+        if (historic.get("review_status") != "ACCEPTED_SCOPED_NATIVE_FOUNDATIONS_ONLY"
+                or len(historic.get("screenshots", [])) < 8):
+            blockers.append("T02 historical foundational native review evidence invalid")
 
     for option in OPTION_IDS:
         if f"### {option} " not in help_text:
@@ -109,14 +125,55 @@ def audit(root: Path) -> dict:
         segment = help_text[start:end if end != -1 else None] if start >= 0 else ""
         if "not implemented" in segment.lower():
             blockers.append(f"{option} functionality explicitly not implemented")
-    if "NOT YET VERIFIED" in module_text:
-        blockers.append("M02 module contract still marks completion NOT YET VERIFIED")
+    # T02 is design tokens, keyboard-accessible primitive foundations and their
+    # native image evidence. Full M02 release, all-state NVDA/Narrator,
+    # cold-start performance budgets and protected P02 merge belong to T10/T11.
+    # Keep the M02 module contract truthful: do NOT change NOT YET VERIFIED.
+    expected_sources = {
+        "apps/desktop/src/styles.css": (
+            '.shell[data-theme="dark"]', '.shell[data-theme="light"]',
+            '--accent:', '--outline:', '.shell .workbench-tabpanel:focus-visible',
+            '@media (prefers-reduced-motion:reduce)', '@media (max-width:950px)',
+        ),
+        "apps/desktop/src/ui/Workbench.tsx": (
+            'aria-pressed={compactProperties}', 'role="status"',
+            'aria-valuetext=', 'aria-selected={active === pane.key}',
+        ),
+        "apps/desktop/src/App.tsx": (
+            'data-density={density}', 'aria-label="Interface appearance"',
+            'aria-label="Navigation density"', 'aria-live="polite"',
+        ),
+        "tests/test_p02_ui_contract.py": (
+            'test_small_theme_labels_meet_wcag_normal_text_contrast',
+            'test_workbench_focus_ring_contrast_both_themes',
+            'test_workbench_keyboard_focus_visible_on_real_tabpanels',
+        ),
+        "tests/test_p02_m02_controls.py": (
+            'test_live_session_preferences',
+            'test_reduced_motion_has_distinct_focusable_read_only_status',
+        ),
+        "scripts/probe_p02_native_a11y.ps1": (
+            'UIAutomationClient', 'keyboard_focus_enters_modal_search',
+            'escape_dismisses_modal',
+        ),
+    }
+    for relative, markers in expected_sources.items():
+        source_path = root / relative
+        if not source_path.is_file():
+            blockers.append("T02 required source/acceptance contract missing: " + relative)
+            continue
+        source = source_path.read_text(encoding="utf-8")
+        for marker in markers:
+            if marker not in source:
+                blockers.append("T02 required primitive/contrast/focus evidence missing: " + relative + " :: " + marker)
+    if "NOT YET VERIFIED" not in module_text:
+        blockers.append("M02 module release boundary removed or misrepresented")
 
-    # Final acceptance requires the real implementation, screenshots, all
-    # options, accessibility and manual review. No all-green current source CI
-    # substitutes for the future exact-head module delivery gates.
+    # This T02 scoped gate does NOT assert whole M02 module, full T10 screen
+    # reader journeys, full performance budget, or T11 protected merge.
+    # Exact-head native Windows/Governance CI is checked separately on PR #12.
     ready = not blockers
-    status = "READY_FOR_FINAL_REMOTE_REVIEW" if ready else "NOT_READY"
+    status = "READY_FOR_T02_SCOPED_REMOTE_CI" if ready else "NOT_READY"
     if t02["status"] == "DONE" and not ready:
         raise PrematureT02Closure(
             "P02-T02 falsely marked DONE: " + "; ".join(blockers))
@@ -132,8 +189,12 @@ def audit(root: Path) -> dict:
             for row in m02 if row["asset_id"] in REQUIRED_IDS
         ),
         "blockers": blockers,
+        "t02_scope_only": True,
+        "m02_module_release_verified": False,
+        "full_nvda_narrator_verified": False,
+        "performance_budget_approved": False,
         "remote_ci_and_merge_verified": False,
-        "note": "Automated local preflight only. Remote GitHub checks, full visual/a11y review and PR merge require independent proof.",
+        "note": "T02-local design/focus/native-image evidence preflight. Current-head GitHub Windows CI must be separately checked; full T10 NVDA/performance and T11 protected merge are not prerequisites of this narrower task.",
     }
 
 
