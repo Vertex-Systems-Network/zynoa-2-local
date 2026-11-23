@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "task_id": "P02-T04",
+  "scope": "Full T04 functional navigation and keyboard focus acceptance only; M02 module final screenshot manifest is owned by T10",
+  "review_status": "ACCEPTED_T04_FUNCTIONAL_NATIVE_STATES",
+  "reviewer": "GPT-6 independent inspection of downloaded source-bound real Windows Tauri capture PNGs",
+  "reviewed_at": "2026-11-23T11:37:47.363Z",
+  "source_commit_sha": "cec58d5e6131fff16245da6b888fb3fa4e5a043d",
+  "built_commit_sha": "cec58d5e6131fff16245da6b888fb3fa4e5a043d",
+  "windows_run_id": 45165103677,
+  "artifact_id": 14814263091,
+  "all_png_hashes_match_source_receipts": true,
+  "machine_status": "MACHINE_METADATA_HASH_VALIDATED_ONLY",
+  "machine_independent_visual_review": false,
+  "observed_screens": [
+    {
+      "screenshot_id": "M02-S04",
+      "width": 998,
+      "height": 701,
+      "sha256": "ab5cc609fc35070d81ed5db0e178b4d80951e4408f65cd720db4976188e20fea",
+      "observation": "Default native command palette modal opens over Preferences; input, allowlisted results, close control and shortcut labels clearly visible."
+    },
+    {
+      "screenshot_id": "P02-T04-NO-MATCH",
+      "width": 998,
+      "height": 701,
+      "sha256": "c590df2c1312fa2f6f62b8d67604f769bf56ebe32779f775a514488452614fd0",
+      "observation": "Entering unmatched search text yields No matching commands, 0/7 count and retained modal with focused query field."
+    },
+    {
+      "screenshot_id": "P02-T04-ESCAPE",
+      "width": 998,
+      "height": 701,
+      "sha256": "55c9168ec59a67fafbb9273ba8a2ff170743a93d9221a6d20a910c59b0552b28",
+      "observation": "Pressing Escape visibly dismisses the modal; Preferences remains accessible. Exact DOM focus restoration is separately source-tested, not proven by this screenshot alone."
+    },
+    {
+      "screenshot_id": "M19-S01",
+      "width": 998,
+      "height": 701,
+      "sha256": "afaa0565b631fb435163a3f280625ef2026bdb5785ea5b43ea6bd4b8ab2316ed",
+      "observation": "F1 opens bundled Help Center in the real Tauri application after modal dismissal."
+    },
+    {
+      "screenshot_id": "P02-T04-ENTER-NAV",
+      "width": 998,
+      "height": 701,
+      "sha256": "2507a1e5c946afc7a95f4783e1b4c23fe4818deb75a4b3c5cadf72d9d78c355",
+      "observation": "Ctrl+Shift+P, typed workbench and Enter navigate from Help to Workbench; breadcrumb, active sidebar and status panel agree."
+    },
+    {
+      "screenshot_id": "M02-OPT-07",
+      "width": 998,
+      "height": 701,
+      "sha256": "d7af3e61301d9e022f9171e7b1de34a455e9c0f817b6e81eedbe30adfea93946",
+      "observation": "Active Workbench tabpanel has visible gold keyboard-focus outline."
+    },
+    {
+      "screenshot_id": "M02-S07",
+      "width": 998,
+      "height": 701,
+      "sha256": "5b898fe59ed8bbae09c1d472768ee32c3a5ef790a8a76f796a4865f04770f925",
+      "observation": "Keyboard guide tab displays fixed shortcut help and navigation remapping UI with legible labels."
+    },
+    {
+      "screenshot_id": "M02-OPT-04",
+      "width": 898,
+      "height": 653,
+      "sha256": "3c15cd31fb383192105b6bad76b392b3e410ef5d1a98c290bfc4deeef885ec01",
+      "observation": "Narrow native window shows default Ctrl+1–6 options and Restore defaults; some upper content is above scroll position."
+    },
+    {
+      "screenshot_id": "P02-T02-OPT-04-swapped",
+      "width": 898,
+      "height": 653,
+      "sha256": "4751580848abd7d3c5d5bcb73d24edab9672ab13c7b7b78b1bb2ac8558cd8d62",
+      "observation": "Swapped Overview Ctrl+2 and Preferences Ctrl+1 values are reflected by both select controls and sidebar; keyboard focus ring remains visible."
+    }
+  ],
+  "source_and_ci_checks": {
+    "python_full_unittest_discover": "PASS on source SHA via Governance v3.2",
+    "typescript": "PASS",
+    "node_ui_algorithms": "PASS",
+    "python_accessibility": "PASS",
+    "native_rust": "PASS",
+    "tauri_real_cold_boot": "PASS",
+    "reviewdog": "PASS",
+    "workflow_checks_5_of_5": "PASS"
+  },
+  "limits": {
+    "exact_dom_focus_target_after_escape": "Source contract verified; not directly measured via screenshot",
+    "screen_reader_walkthrough": "Not included in T04 scoped capture; full module accessibility covered by T10",
+    "final_screenshot_manifest": "T10 pending; immutable CI candidates do not equal final committed M02/M19 screenshot paths",
+    "release_or_merge": "P02 Draft PR #12 remains unmerged and phase IN_PROGRESS",
+    "capture_receipts": "capture_verified=false, candidate_pending_visual_review in unchanged CI metadata"
+  }
+}
