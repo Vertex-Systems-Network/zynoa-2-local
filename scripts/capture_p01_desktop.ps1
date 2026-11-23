@@ -273,7 +273,17 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     Save-NativeFollowup -ScreenshotId 'P02-T06-GALLERY-READY' -Shortcut '^{6}{PGDN}{PGDN}' -ScreenTitle 'P02 gallery example states ready' -Description 'Actual native Components gallery with keyboard-operable ready loading empty error offline state explorer and clearly illustrative content'
     # Route away/back to restore main keyboard focus before the ten Tab stops:
     # toolbar command/help, action buttons, text field, five state controls.
-    Save-NativeFollowup -ScreenshotId 'P02-T06-GALLERY-OFFLINE' -Shortcut '^{2}^{6}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{ENTER}{PGDN}{PGDN}' -ScreenTitle 'P02 gallery selected offline example' -Description 'Actual native Components state explorer after selecting the illustrative Offline button with keyboard and seeing recovery guidance'
+    # SendKeys does not accept nested combined Ctrl sequences as one string.
+    # Separate each native gesture; precisely ten Tab stops select the Offline
+    # example after two toolbar actions, two gallery actions and the input.
+    [System.Windows.Forms.SendKeys]::SendWait('^{2}')
+    Start-Sleep -Milliseconds 300
+    [System.Windows.Forms.SendKeys]::SendWait('^{6}')
+    Start-Sleep -Milliseconds 300
+    for ($stepIndex = 0; $stepIndex -lt 10; $stepIndex++) {
+        [System.Windows.Forms.SendKeys]::SendWait('{TAB}')
+    }
+    Save-NativeFollowup -ScreenshotId 'P02-T06-GALLERY-OFFLINE' -Shortcut '{ENTER}{PGDN}{PGDN}' -ScreenTitle 'P02 gallery selected offline example' -Description 'Actual native Components state explorer after selecting the illustrative Offline button with keyboard and seeing recovery guidance'
     Save-NativeFollowup -ScreenshotId 'P02-T05-PREFERENCES-LIVE' -Shortcut '^{2}{PGDN}' -ScreenTitle 'P02 session appearance preference feedback' -Description 'Real Tauri Preferences window with effective theme source current density reduced motion indicator and session reset control'
     # T04: open palette from Help, type allowlisted view and execute with Enter.
     # Focus moves to destination main on palette navigation; never run arbitrary code.

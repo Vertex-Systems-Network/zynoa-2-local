@@ -39,6 +39,14 @@ class M02InteractiveStateContracts(unittest.TestCase):
         for marker in ('.shell .gallery-state-explorer','.shell .gallery-state-result',
                        '.shell .settings-live-summary','@media (max-width:950px)'):
             self.assertIn(marker,self.css)
+    def test_real_windows_offline_state_keyboard_sequence_uses_valid_sendkeys(self):
+        native=(ROOT/"scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        self.assertIn("[System.Windows.Forms.SendKeys]::SendWait('^{2}')",native)
+        self.assertIn("[System.Windows.Forms.SendKeys]::SendWait('^{6}')",native)
+        self.assertIn("for ($stepIndex = 0; $stepIndex -lt 10; $stepIndex++)",native)
+        self.assertNotIn("'^{2}^{6}'",native)
+        self.assertIn("P02-T06-GALLERY-OFFLINE",native)
+
     def test_native_ci_fail_closed(self):
         for marker in ('run: npm install --package-lock-only',
                        'run: npm ci --no-audit --no-fund',

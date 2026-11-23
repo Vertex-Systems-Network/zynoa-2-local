@@ -2,6 +2,9 @@
 
 ## CURRENT (read this first; history below is archive)
 
+- **P02 T05/T06 native selection repair (2026-11-23):** Windows run [#45185041014](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45185041014) confirmed TypeScript, UI, Rust and Tauri build passed, including 20 real native screenshot frames, but the new Gallery Offline combined SendKeys string was rejected at capture time. Fixed by dispatching separate Ctrl+2/Ctrl+6 with bounded ten Tab key events, and added source regression. No false screenshot acceptance; native CI rerun mandatory.
+
+
 - **P02 M02 complete T05/T06 source development batch (2026-11-23):** Built OS-linked theme/reduced-motion feedback, reversible session defaults, five-state interactive Component Gallery, resettable Workbench split; added Node and Python regression tests, M02 Help/Wiki updates and fail-closed native test and npm gates. T05/T06 IN_PROGRESS until exact-source real Windows a11y/screenshot evidence. No preference storage, network calls, release, merge or P03.
 
 
