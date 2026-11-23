@@ -257,6 +257,16 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     Save-NativeFollowup -ScreenshotId 'P02-T04-ESCAPE' -Shortcut '{ESC}' -ScreenTitle 'P02 command palette dismissed by Escape' -Description 'Real Tauri Preferences after keyboard Escape dismisses command palette and returns focus to connected opener'
     $OutputDirectory = $m19Output
     Save-NativeFollowup -ScreenshotId 'M19-S01' -Shortcut '{ESC}{F1}' -ScreenTitle 'P02 native offline Help Center' -Description 'Bundled offline Help Center article library and searchable local help interface'
+    # Real keyboard-operated Help navigation from focused main:
+    # two toolbar buttons; Articles then Tour, Troubleshooting, FAQ, Wiki.
+    # Captures are SHA-bound machine candidates, never visual approval.
+    Save-NativeFollowup -ScreenshotId 'M19-S04' -Shortcut '{TAB}{TAB}{TAB}{TAB}{ENTER}{PGDN}' -ScreenTitle 'M19 offline guided tour' -Description 'Real Tauri Help guided tour with lesson progress, offline article link and working Previous, Next and Restart buttons'
+    Save-NativeFollowup -ScreenshotId 'M19-S05' -Shortcut '{TAB}{ENTER}' -ScreenTitle 'M19 troubleshooting wizard' -Description 'Real Tauri Help recovery wizard with actionable next and solved steps and local article guidance'
+    Save-NativeFollowup -ScreenshotId 'M19-S06' -Shortcut '{TAB}{TAB}{ENTER}' -ScreenTitle 'M19 Wiki source map' -Description 'Real native Help Wiki source mappings, strict local link validation and unpublished remote Wiki disclaimer'
+    # Return from Wiki selection to Articles (four Shift+Tabs), focus the
+    # search input after the remaining four mode buttons and type one keyword.
+    Save-NativeFollowup -ScreenshotId 'M19-S02' -Shortcut '+{TAB}+{TAB}+{TAB}+{TAB}{ENTER}{TAB}{TAB}{TAB}{TAB}{TAB}theme' -ScreenTitle 'M19 offline search results' -Description 'Real native bundled Help search with active theme keyword, local article results and category selector'
+    Save-NativeFollowup -ScreenshotId 'M19-S03' -Shortcut '{TAB}{TAB}{ENTER}{PGDN}' -ScreenTitle 'M19 offline article reader' -Description 'Real Tauri Help article opened from an actual offline search result with section headings and related guides'
     # T04: open palette from Help, type allowlisted view and execute with Enter.
     # Focus moves to destination main on palette navigation; never run arbitrary code.
     $OutputDirectory = $m02Output
