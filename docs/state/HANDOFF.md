@@ -2,6 +2,9 @@
 
 ## CURRENT (read this first; history below is archive)
 
+- **P02 unified Help + M02 command palette native VERIFIED SCOPED (2026-11-23):** Exact SHA `2c3924c959d47ca796d6d50064dfcea05e6590f5` [Windows #45197208666](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45197208666) and Governance #45197208406, Reviewdog #45197208526 and PR board #45197208519 all PASS. New 7-view + 12-article + 16-option unified palette is built, Node/Python+Rust checks pass, 38 real Tauri PNG/hash candidates have machine provenance. Downloaded GitHub artifact #14829850764; independently opened and rehashed 4 actual unified-search screenshots (native M19 exact option/reader destinations); [scoped review](../screenshots/M19/P02-unified-navigation-native-review.json), [acceptance checkpoint](../evidence/P02_UNIFIED_DISCOVERY_NATIVE_ACCEPTANCE.md). **NOT final**: 15 M02+14 M19 finalized per-option/scene screenshots, exhaustive a11y, screen reader, hosted Wiki and all P02 merge gates pending. The owner-requested lease is now **null**; worker_running=false, P02 active PR #12 remains draft and 5/11 official task DONE. No P03 or release.
+
+
 - **P02 unified local discovery major batch (2026-11-23):** Committed real M02/M19 integrated command palette: view navigation + twelve bundled articles + sixteen typed option references, bounded keyboard result list, exact Help/option routing, filter resets and safe session shortcut handling. Node and Python negative-route/source regression tests, Help/Wiki documentation and structured change record updated. **Current branch source only; latest exact-head GitHub Actions Windows visual/accessibility/full CI must pass before official T02/T08 acceptance.** T02/T05/T06/T08/T10/T11 are not automatically DONE; no merge/P03/release. User requested old lease cleared; transient development lease MUST be set to null at final handoff.
 
 

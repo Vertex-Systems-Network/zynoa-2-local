@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "phase": "P02",
+  "modules": [
+    "M02",
+    "M19"
+  ],
+  "task_scope": "Unified command palette to exact local Help and option destinations (scoped native visual audit, not final P02 acceptance)",
+  "review_status": "PASS_SCOPED_REAL_NATIVE_NAVIGATION_ONLY",
+  "source_commit_sha": "2c3924c959d47ca796d6d50064dfcea05e6590f5",
+  "github_run_id": 45197208666,
+  "github_run_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45197208666",
+  "artifact_id": 14829850764,
+  "artifact_name": "p01-desktop-windows-build-evidence",
+  "capture_type": "Actual GitHub-hosted Windows Tauri process with real SendKeys navigation",
+  "machine_status": "MACHINE_METADATA_HASH_VALIDATED_ONLY",
+  "captured_candidates": 38,
+  "reviewed_candidates": 4,
+  "independent_visual_review": true,
+  "reviewer": "GPT-6: opened original four native PNGs from downloaded GitHub Actions artifact and independently recalculated SHA-256",
+  "screens": [
+    {
+      "id": "M19-UNIFIED-OPTION-RESULTS",
+      "sha256": "79a30c0ec1605127c3edaea4667321c6c0088b10a1a8602430743e83febcbc4d",
+      "width": 998,
+      "height": 701,
+      "source_build_sha_match": true,
+      "verified_against_capture_receipt": true,
+      "observation": "Native modal shows exact M19-OPT-06 query; option result first and a secondary bundled guide result, keyboard enter target highlighted"
+    },
+    {
+      "id": "M19-UNIFIED-OPTION-DEST",
+      "sha256": "e56a161ff3fee9aca4289de1efd0ba098016368d73f5bfb65b1ccf8805dd7761",
+      "width": 998,
+      "height": 701,
+      "source_build_sha_match": true,
+      "verified_against_capture_receipt": true,
+      "observation": "Actual Help Option reference panel selects M19-OPT-06 Wiki mapping and link checker; availability PARTIAL and unpublished Wiki boundary visible"
+    },
+    {
+      "id": "M19-UNIFIED-ARTICLE-RESULTS",
+      "sha256": "54322c6b6cb9e577454c122646a4cd56ea4eb5c2bd5be556a3d5e96f30b6a712",
+      "width": 998,
+      "height": 701,
+      "source_build_sha_match": true,
+      "verified_against_capture_receipt": true,
+      "observation": "Modal shows Data and diagnostics boundaries query and matching bundled GUIDE result"
+    },
+    {
+      "id": "M19-UNIFIED-ARTICLE-DEST",
+      "sha256": "917ef1a679639af3e7fe3521ca053b35eb5f49775f8eb7d31d6cb7ab933d0810",
+      "width": 998,
+      "height": 701,
+      "source_build_sha_match": true,
+      "verified_against_capture_receipt": true,
+      "observation": "Reader body and related local guidance displayed on a PageDown-scrolled article; top article title not in this screenshot"
+    }
+  ],
+  "result": "Direct M19 option and article destination screenshots are visibly distinct and scoped routing works; no synthetic screenshots or browser mock used.",
+  "limitations": [
+    "Original machine receipts remain candidate_pending_visual_review and capture_verified=false; a scoped independent visual review does not rewrite them",
+    "Article destination capture is scrolled, so the article title is not visible in that one image",
+    "No comprehensive focus traversal, screen reader session, all 16 option selections, all 15+14 final screenshot assets or hosted GitHub Wiki publication proved",
+    "Do not infer final T02/T05/T06/T08/T10/T11 acceptance or P02 merge/release from this record"
+  ],
+  "phase_complete": false,
+  "merge_verified": false,
+  "release_verified": false
+}
