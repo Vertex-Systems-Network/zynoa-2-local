@@ -1,0 +1,50 @@
+name: P02 read-only GitHub Wiki capability preflight
+on:
+  push:
+    branches:
+      - phase/02-shared-ui
+    paths:
+      - .github/workflows/p02-wiki-capability-preflight.yml
+permissions:
+  contents: read
+concurrency:
+  group: p02-wiki-capability-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  wiki-readonly:
+    if: github.repository == 'Vertex-Systems-Network/zynoa-2-local' && github.ref == 'refs/heads/phase/02-shared-ui'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Check source pages and publicly visible wiki Git ref, without write
+        shell: bash
+        env:
+          REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test -s docs/wiki/pages/M02.md
+          test -s docs/wiki/pages/M19.md
+          export GIT_TERMINAL_PROMPT=0
+          python - <<'PY'
+          import json, os, pathlib, subprocess
+          url="https://github.com/"+os.environ["REPO"]+".wiki.git"
+          try:
+              p=subprocess.run(["git","-c","credential.helper=","ls-remote",url,"HEAD"],capture_output=True,text=True,timeout=25)
+              valid=p.returncode==0 and len(p.stdout.strip().splitlines())>0
+              state="WIKI_GIT_HEAD_PUBLICLY_READABLE" if valid else "WIKI_NOT_INITIALIZED_OR_GIT_READ_UNAVAILABLE"
+              result={"schema_version":1,"source_commit_sha":os.environ["SOURCE_SHA"],"repository":os.environ["REPO"],"state":state,"git_exit_code":p.returncode,"remote_head":p.stdout.strip().split()[0] if valid else None,"source_files_exist":True,"operation":"READ_ONLY_NO_AUTH_NO_PUBLISH","remote_wiki_published_verified":False,"note":"Read-only remote branch existence test. Missing initial wiki page, restrictions, or transient remote error must not be treated as published."}
+          except subprocess.TimeoutExpired:
+              result={"schema_version":1,"source_commit_sha":os.environ["SOURCE_SHA"],"repository":os.environ["REPO"],"state":"WIKI_READ_TIMEOUT","git_exit_code":None,"remote_head":None,"source_files_exist":True,"operation":"READ_ONLY_NO_AUTH_NO_PUBLISH","remote_wiki_published_verified":False}
+          path=pathlib.Path(os.environ["RUNNER_TEMP"])/"p02-wiki-capability.json"
+          path.write_text(json.dumps(result,sort_keys=True,indent=2)+"\n",encoding="utf-8")
+          print(json.dumps(result,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p02-wiki-readonly-preflight
+          path: ${{ runner.temp }}/p02-wiki-capability.json
+          retention-days: 14
