@@ -27,7 +27,7 @@ jobs:
           git fetch --no-tags --depth=1 origin "$BASE_SHA"
           changed="$(git diff --name-only FETCH_HEAD HEAD)"
           test -n "$changed" || { echo "::error::Unexpected empty PR diff"; exit 1; }
-          if printf '%s\n' "$changed" | grep -qE '^(scripts/capture_p01_desktop\.ps1|apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|tests/test_p01_locations.py|tests/test_p01_events.py|tests/test_p01_screenshot_capture.py|tests/test_p02_ui_contract.py|tests/test_p02_t03_navigation.py|tests/test_p02_m19_workflows.py|tests/test_p02_m02_controls.py|tests/test_p02_native_evidence.py|tests/test_p02_help_evidence.py|tests/test_p02_t02_acceptance.py|tools/verify_p02_native_evidence.py|tools/verify_p02_t02_acceptance.py|docs/screenshots/MANIFEST.json|docs/modules/M02.md|docs/evidence/P02_T03_ACCEPTANCE.md|docs/help/articles/M02.md|docs/help/articles/M19.md|docs/wiki/pages/M02.md|docs/wiki/pages/M19.md|docs/modules/M19.md|\.github/workflows/p01-desktop.yml)'; then
+          if printf '%s\n' "$changed" | grep -qE '^(scripts/capture_p01_desktop\.ps1|scripts/probe_p02_native_a11y\.ps1|apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|tests/test_p01_locations.py|tests/test_p01_events.py|tests/test_p01_screenshot_capture.py|tests/test_p02_ui_contract.py|tests/test_p02_t03_navigation.py|tests/test_p02_m19_workflows.py|tests/test_p02_m02_controls.py|tests/test_p02_native_evidence.py|tests/test_p02_native_uia.py|tests/test_p02_help_evidence.py|tests/test_p02_t02_acceptance.py|tools/verify_p02_native_evidence.py|tools/verify_p02_native_uia.py|tools/verify_p02_t02_acceptance.py|docs/screenshots/MANIFEST.json|docs/modules/M02.md|docs/evidence/P02_T03_ACCEPTANCE.md|docs/help/articles/M02.md|docs/help/articles/M19.md|docs/wiki/pages/M02.md|docs/wiki/pages/M19.md|docs/modules/M19.md|\.github/workflows/p01-desktop.yml)'; then
             echo "desktop=true" >> "$GITHUB_OUTPUT"
           else
             echo "desktop=false" >> "$GITHUB_OUTPUT"
@@ -66,6 +66,9 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'P02 native provenance verifier contract failure' }
           python -m unittest tests.test_p02_t10_readiness -v
           if ($LASTEXITCODE -ne 0) { throw 'P02 T10 readiness contract failure' }
+      - name: P02 native Windows UI Automation source and negative contracts
+        if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
+        run: python -m unittest tests.test_p02_native_uia -v
       - name: P02 truthful Help and Wiki contracts
         if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
         run: python -m unittest tests.test_p02_help_evidence -v
@@ -86,6 +89,12 @@ jobs:
           [void][System.Management.Automation.Language.Parser]::ParseFile($scriptPath, [ref]$tokens, [ref]$parseErrors)
           if ($parseErrors.Count -gt 0) {
             throw ('ZYN-SCREEN-PARSE: ' + ($parseErrors | ForEach-Object { $_.Message } | Out-String))
+          }
+          $uiaScript = Join-Path $env:GITHUB_WORKSPACE 'scripts\probe_p02_native_a11y.ps1'
+          $uiaErrors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile($uiaScript, [ref]$tokens, [ref]$uiaErrors)
+          if ($uiaErrors.Count -gt 0) {
+            throw ('ZYN-A11Y-PARSE: ' + ($uiaErrors | ForEach-Object { $_.Message } | Out-String))
           }
       - name: Resolve pinned dependency inventory
         working-directory: apps/desktop
@@ -154,6 +163,13 @@ jobs:
             if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
               $proofOutput = Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\_ci\M01'
             }
+            if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
+              # Probe the real Windows accessibility provider before the
+              # screenshot script customizes keyboard bindings in memory.
+              $uiaOutput = Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\_ci\M02\P02-native-uia.capture.json'
+              & (Join-Path $env:GITHUB_WORKSPACE 'scripts\probe_p02_native_a11y.ps1') -TargetPid $process.Id -OutputPath $uiaOutput -SourceSha $builtSha
+              if ($LASTEXITCODE -ne 0) { throw 'P02 native UIA provider interaction failed' }
+            }
             $captureTimer = [System.Diagnostics.Stopwatch]::StartNew()
             & (Join-Path $env:GITHUB_WORKSPACE 'scripts\capture_p01_desktop.ps1') -TargetPid $process.Id -OutputDirectory $proofOutput -SourceSha $env:ZYNOA_HEAD_SHA -BuiltSha $builtSha
             if ($LASTEXITCODE -ne 0) { throw 'ZYN-P02-T10-CAPTURE: native screenshot flow failed' }
@@ -187,6 +203,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "P02 native capture validation failed" }
           python -m tools.verify_p02_t10_readiness --root . --source-sha $env:ZYNOA_HEAD_SHA --report docs/screenshots/_ci/M02/P02-T10-readiness.json
           if ($LASTEXITCODE -ne 0) { throw "P02-T10 truthful readiness audit failed" }
+          python -m tools.verify_p02_native_uia --source-sha $env:ZYNOA_HEAD_SHA --proof docs/screenshots/_ci/M02/P02-native-uia.capture.json --report docs/screenshots/_ci/M02/P02-native-uia.verify.json
+          if ($LASTEXITCODE -ne 0) { throw "P02 native Windows accessibility audit failed" }
       - name: Verify native boot wrote only allowlisted diagnostic metadata
         shell: pwsh
         run: |
@@ -294,6 +312,8 @@ jobs:
             docs/screenshots/_ci/M02/P02-T02-12-readiness.json
             docs/screenshots/_ci/M02/P02-native-performance.json
             docs/screenshots/_ci/M02/P02-T10-readiness.json
+            docs/screenshots/_ci/M02/P02-native-uia.capture.json
+            docs/screenshots/_ci/M02/P02-native-uia.verify.json
             docs/screenshots/_ci/M19/*.png
             docs/screenshots/_ci/M19/*.capture.json
           if-no-files-found: warn
