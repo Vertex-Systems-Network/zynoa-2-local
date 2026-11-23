@@ -76,7 +76,22 @@ class M02HelpEvidenceTests(unittest.TestCase):
         self.assertEqual(15, len(m02))
         self.assertEqual(14, len(m19))
         self.assertTrue(all(x["status"] == "VERIFIED" for x in m02))
-        self.assertTrue(all(x["status"] == "PENDING" for x in m19))
+        self.assertEqual(["M19-OPT-01"], sorted(x["asset_id"] for x in m19 if x["status"] == "PENDING"))
+        self.assertEqual(13, sum(x["status"] == "VERIFIED" for x in m19))
+        m19_review = json.loads((ROOT / "docs/screenshots/M19/T10-final-13-native-visual.review.json").read_text(encoding="utf-8"))
+        self.assertEqual("ACCEPTED_M19_13_OF_14_NATIVE_VISUAL_ONLY", m19_review["review_status"])
+        self.assertEqual(13, len(m19_review["images"]))
+        self.assertFalse(m19_review["full_nvda_narrator_approved"])
+        self.assertFalse(m19_review["full_module_release_approved"])
+        m19_by_id = {entry["asset_id"]: entry for entry in m19_review["images"]}
+        self.assertEqual({row["asset_id"] for row in m19 if row["status"] == "VERIFIED"}, set(m19_by_id))
+        for entry in m19:
+            if entry["status"] != "VERIFIED":
+                continue
+            original = (ROOT / entry["path"]).read_bytes()
+            self.assertEqual(entry["source_capture_sha256"], hashlib.sha256(original).hexdigest())
+            self.assertEqual(entry["source_capture_sha256"], m19_by_id[entry["asset_id"]]["sha256"])
+            self.assertEqual("PASS_FOR_M19_SCREEN_OPTION_FRAME_ONLY", m19_by_id[entry["asset_id"]]["visual_result"])
         report = json.loads((ROOT / "docs/screenshots/M02/T02-final-15-native-visual.review.json").read_text(encoding="utf-8"))
         self.assertEqual("ACCEPTED_M02_15_NATIVE_VISUAL_ONLY", report["review_status"])
         self.assertEqual(15, len(report["images"]))

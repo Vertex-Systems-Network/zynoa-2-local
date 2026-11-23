@@ -1,5 +1,8 @@
 # Handoff (canonical starter)
 
+- **M19 genuine native screenshots 13/14 accepted (2026-11-24):** Source-verified 13 M19 screen/option PNG files in the active P02 branch have per-frame visual review and manifest status VERIFIED (`docs/screenshots/M19/T10-final-13-native-visual.review.json`). The **one remaining M19-OPT-01** committed screenshot shows the search result/reader but scrolled the actual typed input off frame; corrected true native Tauri frame exists in successful [#45274014314](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45274014314), needs original Git binary replacement and source hash update first. M02 15/15 VERIFIED; current screenshot-only total 28/29 VERIFIED; official P02-T02/T10/T11 remain IN_PROGRESS due full screen-reader, budgets, Wiki, independent owner/pr approval and protected merge not done. Current GitHub scope only; lease must be cleared at handoff.
+
+
 - **M02 real native screenshot 15/15 visual approval (2026-11-24):** The original source-bound 15 M02 PNGs, previously committed at `4c6c97f`, now have independent per-image visual+integrity review at `docs/screenshots/M02/T02-final-15-native-visual.review.json`. The canonical screenshot manifest now marks M02 **15/15 VERIFIED**; M19 remains 0/14 pending and its first search screenshot still needs improved framing. This is **screenshot approval only**; official P02-T02, T10, T11 and complete M02/M19 modules still require broader native screen-reader, performance, docs/Wiki, policy/owner review gates. Fresh CI and full protected merge not implied. Lease held during work; release to null at end of slice.
 
 
