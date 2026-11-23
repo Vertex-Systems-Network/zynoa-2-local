@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "option_id": "M02-OPT-04",
+  "scope": "session-only Ctrl+1..6 navigation shortcut mapping; reviewed foundation states only",
+  "review_status": "ACCEPTED_SCOPED_NATIVE_SHORTCUT_REMAP_ONLY",
+  "reviewer": "GPT-6 independent inspection of two real GitHub Windows Tauri screenshots",
+  "reviewed_at": "2026-11-23T11:12:32.147Z",
+  "source_commit_sha": "caf45f8434bcb0ef0c87011d973f43f61d6cd91a",
+  "built_commit_sha": "caf45f8434bcb0ef0c87011d973f43f61d6cd91a",
+  "windows_run_id": 45161891487,
+  "artifact_id": 14810938111,
+  "evidence": [
+    {
+      "screenshot_id": "M02-OPT-04",
+      "width": 898,
+      "height": 653,
+      "sha256": "1ab33dfb0ae48dcaacea48819149d8f406e902aa0c32e37ce5fe263972163482",
+      "visual_result": "PASS_FOR_VISIBLE_STATE_ONLY",
+      "observation": "Real narrow Tauri Workbench shortcut mapping list and reset button visible with default assignments. First row is above viewport fold; companion capture shows it."
+    },
+    {
+      "screenshot_id": "P02-T02-OPT-04-swapped",
+      "width": 898,
+      "height": 653,
+      "sha256": "d452dfaa3c4565f98bd33c6bce7073a94bf42cecdd8680086e1caa7a68656209",
+      "visual_result": "PASS_FOR_VISIBLE_STATE_ONLY",
+      "observation": "After keyboard-selecting Ctrl+2 for Overview, its dropdown and sidebar show Ctrl+2; Preferences has been swapped to Ctrl+1. Focus ring, readable controls and no horizontal clipping visible."
+    }
+  ],
+  "python_and_node_contracts_passed": true,
+  "source_sha_and_png_hashes_match": true,
+  "immutable_capture_status": "candidate_pending_visual_review",
+  "immutable_capture_verified": false,
+  "final_manifest_png_committed": false,
+  "final_option_approved": false,
+  "scope_exclusions": [
+    "Not a global operating-system hook; mapping is in-app React state only",
+    "No restart persistence or profile sync",
+    "No full screen-reader E2E across all commands",
+    "Required docs/screenshots/M02/M02-OPT-04.png and all M02 final screenshot assets remain unverified",
+    "No claim that P02 or P03 has passed its merge/phase gate"
+  ]
+}
