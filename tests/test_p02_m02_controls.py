@@ -22,6 +22,16 @@ class M02InteractiveStateContracts(unittest.TestCase):
             self.assertIn(marker,self.app)
         for forbidden in ('localStorage', 'sessionStorage', 'fetch(', 'invoke(', 'setItem('):
             self.assertNotIn(forbidden,self.app)
+    def test_reduced_motion_has_distinct_focusable_read_only_status(self):
+        for marker in ('role="group" tabIndex={0}',
+                       'aria-label="Reduced motion (M02-OPT-08)"',
+                       'Follows Windows accessibility settings. Read-only',
+                       'Reduced by Windows', 'Windows standard motion'):
+            self.assertIn(marker, self.app)
+        self.assertIn(".shell .settings-motion:focus-visible", self.css)
+        self.assertIn(".shell .settings-motion output", self.css)
+        self.assertNotIn("setReducedMotion(", self.app)
+
     def test_gallery_five_truthful_states_and_reset(self):
         for marker in ('componentPreviewStates.map', 'data-preview-state={previewState}',
                        'aria-pressed={previewState === item.id}', 'previewStateDetails(previewState)',

@@ -268,7 +268,7 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     # two ArrowRight keys change the actual 40% pane width to 50%.
     # This avoids a fragile late-page View/ARIA tab re-entry and verifies
     # the slider while the same live native Workbench is still present.
-    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M02-OPT-06' -Shortcut '+{TAB}{RIGHT}{RIGHT}{PGUP}' -ScreenTitle 'M02 actual split pane slider' -Description 'Real native Workbench Layout slider changed with Shift+Tab and keyboard arrows from compact property toggle; real pane ratio immediately reflects 50 percent' -FinalCandidateId 'M02-OPT-06'
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M02-OPT-06' -Shortcut '+{TAB}{RIGHT}{RIGHT}{PGUP}' -ScreenTitle 'M02 actual split pane slider' -Description 'Real native Workbench Layout slider changed with Shift+Tab and keyboard arrows from compact property toggle; live pane ratio updates visibly without assuming a fixed numeric percentage' -FinalCandidateId 'M02-OPT-06'
     # The slider is an <input type=range>. App deliberately ignores Ctrl+1..6
     # while input owns focus. F1 is a supported global shortcut even from input,
     # and Help remounts with main-content focus, so Ctrl+6 can then navigate.
@@ -413,7 +413,12 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     Focus-P02NativeControl -AccessibleName 'Search available commands and offline Help'
     Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M02-OPT-05' -Shortcut 'preferences' -ScreenTitle 'M02 actual command search control' -Description 'Real Windows native command palette text input with typed Preferences query and matching allowlisted app command' -FinalCandidateId 'M02-OPT-05'
     [System.Windows.Forms.SendKeys]::SendWait('{ESC}')
-    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M02-OPT-08' -Shortcut '^{2}{PGDN}' -ScreenTitle 'M02 Windows motion setting feedback' -Description 'Real native Preferences reporting current operating-system motion preference; follows Windows without falsely claiming manual reduced-motion toggle' -FinalCandidateId 'M02-OPT-08'
+# A static summary would be identical to the theme selector capture.
+    # Focus the distinct read-only motion status in the actual native app.
+    # Tab then Shift+Tab confirms it participates in keyboard navigation.
+    Start-Sleep -Milliseconds 250
+    Focus-P02NativeControl -AccessibleName 'Reduced motion (M02-OPT-08)'
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M02-OPT-08' -Shortcut '{TAB}+{TAB}' -ScreenTitle 'M02 actual reduced-motion read-only status' -Description 'Real native Preferences read-only Windows motion status with its own keyboard focus ring; no manual OS toggle or persisted preference' -FinalCandidateId 'M02-OPT-08'
 
     $OutputDirectory = $m19Output
     [System.Windows.Forms.SendKeys]::SendWait('^{2}')

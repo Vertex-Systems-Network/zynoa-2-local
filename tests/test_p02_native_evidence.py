@@ -115,6 +115,14 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
         self.assertIn("-ScreenshotId 'P02-T10-CTRL-M19-OPT-02' -Shortcut '{TAB}{TAB}^{2}{F1}{PGDN}'", src)
         self.assertIn("-ScreenshotId 'P02-T10-CTRL-M19-OPT-05' -Shortcut '{TAB}{TAB}{ENTER}{PGDN}'", src)
 
+    def test_reduced_motion_uses_real_distinct_keyboard_control(self):
+        script = (Path(__file__).resolve().parents[1] / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        self.assertIn("Focus-P02NativeControl -AccessibleName 'Reduced motion (M02-OPT-08)'", script)
+        self.assertIn("-ScreenshotId 'P02-T10-CTRL-M02-OPT-08' -Shortcut '{TAB}+{TAB}'", script)
+        self.assertNotIn("-ScreenshotId 'P02-T10-CTRL-M02-OPT-08' -Shortcut '^{2}{PGDN}'", script)
+        self.assertIn("T10 native actual-control candidates include duplicate frames",
+                      (Path(__file__).resolve().parents[1] / "tools/verify_p02_native_evidence.py").read_text(encoding="utf-8"))
+
     def test_real_control_candidate_identity_is_required(self):
         self.assertEqual(15, len(DIRECT_CONTROL_MATRIX))
         self._mutate("P02-T10-CTRL-M19-OPT-07", "candidate_final_asset_id", "M19-OPT-08")

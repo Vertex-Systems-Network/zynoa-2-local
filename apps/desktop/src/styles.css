@@ -527,3 +527,11 @@ main:focus{outline:none}
 /* P02 native Help deep-link: a programmatically focused option heading is
    visible, scroll-reachable and announces the actual destination. */
 .shell .help-option-detail h3:focus-visible { outline: 2px solid var(--outline); outline-offset: 4px; border-radius: 3px; }
+/* P02 M02-OPT-08: read-only Windows motion preference remains keyboard discoverable. */
+.shell .settings-motion { display:flex; align-items:center; justify-content:space-between; gap:20px;
+  max-width:790px; margin:12px 0; padding:15px 18px; border:1px solid var(--line);
+  background:var(--surface-raised); border-radius:12px; color:var(--text-primary); }
+.shell .settings-motion p { font-size:12px; line-height:1.5; color:var(--text-secondary); margin:6px 0 0; }
+.shell .settings-motion output { flex-shrink:0; font-size:12px; font-weight:650; color:var(--text-primary); }
+.shell .settings-motion:focus-visible { outline:2px solid var(--outline); outline-offset:3px; }
+@media(max-width:950px) { .shell .settings-motion { flex-wrap:wrap; } }

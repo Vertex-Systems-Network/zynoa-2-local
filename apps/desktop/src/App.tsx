@@ -87,6 +87,12 @@ function Settings({ theme, onTheme, density, onDensity, onHelp, onReset, systemD
         <span>Theme source: {theme === "system" ? "Operating system" : "Manual override"} · Navigation: {density} · Motion: {reducedMotion ? "Reduced by Windows" : "Windows standard"}</span>
         <small>Values reflect this running window, not saved Windows or account settings.</small>
       </div>
+      <div className="settings-motion" role="group" tabIndex={0}
+        aria-label="Reduced motion (M02-OPT-08)">
+        <div><strong>Reduced motion</strong>
+          <p>Follows Windows accessibility settings. Read-only; no in-app switch or saved preference.</p></div>
+        <output aria-live="polite">{reducedMotion ? "Reduced by Windows" : "Windows standard motion"}</output>
+      </div>
       <div className="settings-actions">
         <button type="button" className="subtle-action" disabled={theme === "system" && density === "comfortable"}
           onClick={onReset}>Restore interface defaults</button>
