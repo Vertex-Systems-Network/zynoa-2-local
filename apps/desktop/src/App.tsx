@@ -253,7 +253,7 @@ export function App() {
               {views.filter(page => page.section === section).map(page =>
                 <button key={page.key} className={"nav-link " + (view === page.key ? "selected" : "")}
                   aria-current={view === page.key ? "page" : undefined}
-                  aria-label={page.title + " (" + (page.key === "help" ? "F1" : "Ctrl+" + shortcutForView(page.key, shortcuts)) + ")"} 
+                  aria-label={page.title + " (" + (page.key === "help" ? "F1" : "Ctrl+" + shortcutForView(page.key, shortcuts)) + ")"}
                   aria-keyshortcuts={page.key === "help" ? "F1" : "Control+" + shortcutForView(page.key, shortcuts)}
                   type="button"
                   onClick={() => setView(page.key)}>
@@ -264,7 +264,7 @@ export function App() {
             </div>
           )}
         </nav>
-        <div className="sidebar-bottom"><span className="version">SHARED UI / P02 · 0.1.0</span><div className="offline"><span className="dot healthy" /> Local-first interface</div></div>
+        <div className="sidebar-bottom"><span className="version">SHARED UI / P02 · 0.1.0</span><div className="offline" aria-label="Local-first interface"><span className="dot healthy" aria-hidden="true" /><span className="offline-copy">Local-first interface</span></div></div>
       </aside>
       <main id="main-content" tabIndex={-1} inert={paletteOpen}>
         <header className="topbar">
