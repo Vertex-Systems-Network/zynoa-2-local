@@ -48,7 +48,7 @@ jobs:
               text=source.read_text(encoding="utf-8")
               # GitHub Wiki is a separate repository; source-relative links are
               # rewritten to SHA-pinned main-repo files, preserving fragments.
-              text=re.sub(r'\]\(\.\./\.\./([^\s)]+)\)',lambda m: '](https://github.com/'+repo+'/blob/'+sha+'/'+m.group(1)+')',text)
+              text=re.sub(r'\]\(\.\./\.\./([^\s)]+)\)',lambda m: '](https://github.com/'+repo+'/blob/'+sha+'/docs/'+m.group(1)+')',text)
               text=text.replace("The remote GitHub Wiki repository has **not** been synced or verified.", "This page is a P02 preview published from a source-controlled commit.")
               text=text.replace("Source-controlled Markdown, **not published** as a remote GitHub Wiki.", "GitHub Wiki P02 source-bound preview, not a released module.")
               banner=('> **P02 preview only — NOT a released product manual.** '
@@ -58,7 +58,7 @@ jobs:
                       +repo+'/blob/'+sha+'/docs/wiki/pages/'+module+'.md).\n\n')
               rendered=banner+text
               assert len(rendered)>3000 and 'docs/help/articles' in rendered
-              assert 'https://github.com/'+repo+'/blob/'+sha+'/' in rendered
+              assert 'https://github.com/'+repo+'/blob/'+sha+'/docs/help/articles/' in rendered
               assert '../../' not in rendered, "Unrewritten cross-repository link"
               (root/(module+'.md')).write_text(rendered,encoding="utf-8")
           print('P02-WIKI: Rendered only M02/M19 SHA-pinned preview Markdown, no Home page changes')
