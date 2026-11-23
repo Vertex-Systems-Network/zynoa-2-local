@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "task_scope": "P02 M19 real offline Help landing state only",
+  "review_status": "ACCEPTED_SCOPED_NATIVE_HELP_LANDING_ONLY",
+  "reviewer": "GPT-6 opened original Windows Tauri screenshot and independently recalculated PNG SHA256",
+  "reviewed_at": "2026-11-23T12:59:18.731Z",
+  "exact_source_commit_sha": "0ae41bc493f4ef11e3c910c00622241be629f879",
+  "source_build_sha_match": true,
+  "native_run_id": 45177798032,
+  "native_artifact_id": 14819743736,
+  "screenshot": {
+    "id": "M19-S01",
+    "width": 998,
+    "height": 701,
+    "sha256": "c8e64c8033f7e551c5e0515bda868fa411feb69384d8de8b35ac96f32b861b27",
+    "observations": "Real Windows Tauri app shows Help Center, left icon navigation, 12 built-in articles, catalog version 2026.11-p02, Articles & search / Troubleshooting wizard / FAQ & glossary / Wiki & link checker controls and search field. No visible horizontal clipping."
+  },
+  "machine_report": "MACHINE_METADATA_HASH_VALIDATED_ONLY",
+  "machine_visual_review": false,
+  "original_capture_verified": false,
+  "original_capture_status": "candidate_pending_visual_review",
+  "final_M19_screenshot_manifest_complete": false,
+  "not_proved": [
+    "Native click-through journey for the wizard, FAQ, Wiki or report has not been independently demonstrated by this screenshot",
+    "Published/synced GitHub Wiki is not verified",
+    "All 14 mandatory final M19 PNGs are still PENDING",
+    "No full assistive technology/performance release acceptance"
+  ]
+}
