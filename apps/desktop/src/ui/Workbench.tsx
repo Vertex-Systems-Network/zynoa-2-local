@@ -135,7 +135,7 @@ export function ComponentGallery() {
       </section>
       <section className="studio-card">
         <span className="small-caps">COMPONENTS / BUTTONS</span><h2>Actions & feedback</h2>
-        <div className="component-row">
+        <div className="component-row" role="group" aria-label="Select a gallery action preview">
           <button className="gold-action" type="button" aria-pressed={selectedAction === "primary"} onClick={() => setSelectedAction("primary")}>Primary action</button>
           <button className="subtle-action" type="button" aria-pressed={selectedAction === "secondary"} onClick={() => setSelectedAction("secondary")}>Secondary</button>
           <button className="gold-action" type="button" disabled title="Unavailable in this foundation preview">Unavailable</button>
