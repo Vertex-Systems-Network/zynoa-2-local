@@ -1,0 +1,42 @@
+{
+  "change_id": "CHG-P02-M19-OPTION-HELP-FOCUS-20261123",
+  "module_id": "M19",
+  "kind": "enhancement",
+  "title": "Make direct option Help keyboard targets visible and focusable",
+  "summary": "Deep-linked M19 option references now scroll and focus their semantic selected-option heading after the command palette closes, allowing keyboard and assistive-tech users to identify where navigation landed. Corrects real Windows UI Automation offscreen heading problem without loosening fail-closed native checks; exact-source CI remains pending.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12",
+  "docs_paths": [
+    "docs/modules/M19.md",
+    "docs/state/HANDOFF.md",
+    "docs/evidence/P02_NATIVE_UIA_KEYBOARD.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M19.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M19.md"
+  ],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45234283387"
+  ],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No app data schema change or native privilege.",
+  "created_at": "2026-11-23T18:22:10.712Z",
+  "updated_at": "2026-11-23T18:22:10.712Z",
+  "version_bump": "none",
+  "affected_option_ids": [
+    "M19-OPT-06"
+  ],
+  "docs_impact": true,
+  "data_migration": false
+}
