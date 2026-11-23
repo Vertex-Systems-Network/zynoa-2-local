@@ -18,6 +18,7 @@ SCREEN_IDS = (
     "P02-T02-07-continued", "P02-T02-12-LIGHT", "P02-T02-12-DARK",
     "M02-OPT-04", "P02-T02-OPT-04-swapped",
     "P02-T04-NO-MATCH", "P02-T04-ESCAPE", "P02-T04-ENTER-NAV",
+    "P02-T03-RAIL-COLLAPSED", "P02-T03-RAIL-EXPANDED", "P02-T03-RAIL-RESTORED",
 )
 _SHA = re.compile(r"^[0-9a-f]{40}$")
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
@@ -116,6 +117,16 @@ def verify(root: Path, source_sha: str) -> dict:
     _require(by_id["P02-T04-ENTER-NAV"]["sha256"] !=
              by_id["M19-S01"]["sha256"],
              "Enter command did not visibly navigate away from Help")
+    rail_ids = ("P02-T03-RAIL-COLLAPSED", "P02-T03-RAIL-EXPANDED",
+                "P02-T03-RAIL-RESTORED")
+    rail = [by_id[name] for name in rail_ids]
+    _require(all(item["width"] <= 920 for item in rail),
+             "T03 navigation rail proof must come from native narrow window")
+    _require(len({(item["width"], item["height"]) for item in rail}) == 1,
+             "T03 rail frames must share identical measured native geometry")
+    _require(rail[0]["sha256"] != rail[1]["sha256"] and
+             rail[1]["sha256"] != rail[2]["sha256"],
+             "T03 rail toggle must visibly change expanded/collapsed screenshots")
     return {"schema_version": 1,
             "status": "MACHINE_METADATA_HASH_VALIDATED_ONLY",
             "source_commit_sha": source_sha,
