@@ -17,6 +17,7 @@ SCREEN_IDS = (
     "M02-S06", "M02-S04", "M19-S01", "P02-T02-07",
     "P02-T02-07-continued", "P02-T02-12-LIGHT", "P02-T02-12-DARK",
     "M02-OPT-04", "P02-T02-OPT-04-swapped",
+    "P02-T04-NO-MATCH", "P02-T04-ESCAPE", "P02-T04-ENTER-NAV",
 )
 _SHA = re.compile(r"^[0-9a-f]{40}$")
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
@@ -109,6 +110,12 @@ def verify(root: Path, source_sha: str) -> dict:
              "shortcut mapping candidates must be real native narrow window captures")
     _require(shortcut_mapping["sha256"] != shortcut_swapped["sha256"],
              "shortcut remap preview did not visibly change the capture")
+    _require(by_id["P02-T04-NO-MATCH"]["sha256"] !=
+             by_id["P02-T04-ESCAPE"]["sha256"],
+             "Escape failed to visibly dismiss the command palette")
+    _require(by_id["P02-T04-ENTER-NAV"]["sha256"] !=
+             by_id["M19-S01"]["sha256"],
+             "Enter command did not visibly navigate away from Help")
     return {"schema_version": 1,
             "status": "MACHINE_METADATA_HASH_VALIDATED_ONLY",
             "source_commit_sha": source_sha,
