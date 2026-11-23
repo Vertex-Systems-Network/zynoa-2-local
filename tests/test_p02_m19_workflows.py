@@ -19,12 +19,26 @@ class M19OfflineWorkflowTests(unittest.TestCase):
         cls.tests = (ROOT / "apps/desktop/tests/ui-logic.test.mjs").read_text(encoding="utf-8")
 
     def test_real_workflows_are_in_main_help_navigation_not_disabled_previews(self):
-        for name in ("articles", "tour", "troubleshoot", "faq", "wiki"):
+        for name in ("articles", "options", "tour", "troubleshoot", "faq", "wiki"):
             self.assertIn(f'["{name}",', self.center)
         self.assertIn('<HelpWorkflows mode={mode} onOpenArticle={openArticle} />', self.center)
         self.assertIn('<LocalArticleReport articleId={selected.id} />', self.center)
         self.assertNotIn('disabled title="Issue reporting service is not enabled"', self.center)
         self.assertIn('setMode("articles")', self.center)
+
+    def test_all_option_guides_have_offline_routes_and_working_reader(self):
+        option_source = (UI / "help-options.ts").read_text(encoding="utf-8")
+        for token in ("helpOptionReferences", "resolveOptionHelpRoute",
+                      "searchHelpOptions", "validateHelpOptionReferences",
+                      "help://option/", "Missing or duplicate option reference"):
+            self.assertIn(token, option_source)
+        for token in ('mode === "options"', 'Open verified local option',
+                      'Read full bundled guide', 'No matching options',
+                      'help-option-route', 'aria-pressed={selectedOption?.id === option.id}'):
+            self.assertIn(token, self.widget)
+        self.assertIn('["options", "Option reference"]', self.center)
+        self.assertIn("src/ui/help-options.ts", self.package)
+        self.assertIn('test("M02/M19 all sixteen option guides', self.tests)
 
     def test_guided_tour_has_real_bounded_navigation(self):
         for marker in ('getGuidedTourStep', 'guidedTourSteps', 'Number.isInteger'):

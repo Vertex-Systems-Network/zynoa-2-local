@@ -47,6 +47,7 @@ export function HelpCenter({ contextArticle }: Props) {
     <div className="help-workflow-switch" role="group" aria-label="Offline Help workflows">
       {([
         ["articles", "Articles & search"],
+        ["options", "Option reference"],
         ["tour", "Guided tour"],
         ["troubleshoot", "Troubleshooting wizard"],
         ["faq", "FAQ & glossary"],

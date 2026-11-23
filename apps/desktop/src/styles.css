@@ -501,3 +501,18 @@ main:focus{outline:none}
 .shell .help-tour-card p { color:var(--text-secondary); line-height:1.65; margin:0; }
 .shell .help-tour-card .help-wizard-actions { display:flex; flex-wrap:wrap; gap:10px; }
 .shell .help-tour-card .help-wizard-actions button { margin:0; }
+
+/* M19 option-level offline guides: local access, safe wrapping and keyboard focus. */
+.shell .help-option-filters { display:grid; grid-template-columns:minmax(0,2fr) minmax(140px,1fr); gap:14px; margin:18px 0; }
+.shell .help-option-layout { display:grid; grid-template-columns:minmax(190px,0.9fr) minmax(0,1.5fr); gap:15px; align-items:start; }
+.shell .help-option-list { display:grid; max-height:480px; overflow:auto; gap:5px; }
+.shell .help-option-list button { display:grid; gap:5px; text-align:left; border:1px solid var(--line); border-radius:8px; background:var(--surface-raised); padding:10px 12px; color:var(--text-primary); cursor:pointer; overflow-wrap:anywhere; }
+.shell .help-option-list button[aria-pressed="true"] { outline:2px solid var(--outline); outline-offset:2px; }
+.shell .help-option-list button code { color:var(--text-secondary); font-size:11px; }
+.shell .help-option-detail { border:1px solid var(--line); border-radius:10px; padding:18px; background:var(--surface-raised); min-height:300px; overflow-wrap:anywhere; }
+.shell .help-option-detail dl { display:grid; gap:7px; }
+.shell .help-option-detail dt { color:var(--text-primary); font-weight:700; margin-top:8px; }
+.shell .help-option-detail dd { color:var(--text-secondary); margin:0; font-size:12px; line-height:1.7; }
+.shell .help-option-detail button { margin-top:12px; }
+.shell .help-option-route-checker { border-top:1px solid var(--line); margin-top:20px; padding-top:20px; }
+@media (max-width:950px) { .shell .help-option-layout { grid-template-columns:minmax(0,1fr); } .shell .help-option-filters { grid-template-columns:minmax(0,1fr); } .shell .help-option-list { max-height:260px; } }

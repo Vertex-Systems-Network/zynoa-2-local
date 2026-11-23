@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { helpOptionReferences, optionHelpRoute, resolveOptionHelpRoute, searchHelpOptions } from "./help-options";
 import {
   getWizardIssue, getWizardStep, getGuidedTourStep, guidedTourSteps, helpFaq, helpGlossary, helpRoute,
   localBrokenArticleReport, nextWizardStep, offlineHelpContract,
@@ -55,6 +56,10 @@ type WorkflowsProps = {
 
 export function HelpWorkflows({ mode, onOpenArticle }: WorkflowsProps) {
   const [issueId, setIssueId] = useState(wizardIssues[0].id);
+  const [optionQuery, setOptionQuery] = useState("");
+  const [optionModule, setOptionModule] = useState<"All" | "M02" | "M19">("All");
+  const [selectedOptionId, setSelectedOptionId] = useState("M02-OPT-01");
+  const [optionRouteText, setOptionRouteText] = useState("help://option/M02-OPT-01");
   const [tourIndex, setTourIndex] = useState(0);
   const [index, setIndex] = useState(0);
   const [resolved, setResolved] = useState(false);
@@ -66,6 +71,67 @@ export function HelpWorkflows({ mode, onOpenArticle }: WorkflowsProps) {
   const step = getWizardStep(issueId, index);
   const resolvedRoute = resolveHelpRoute(routeText.trim());
   const tourStep = getGuidedTourStep(tourIndex);
+  const optionResults = searchHelpOptions(optionQuery, optionModule);
+  const selectedOption = optionResults.find(option => option.id === selectedOptionId) ?? optionResults[0];
+  const validOptionRoute = resolveOptionHelpRoute(optionRouteText.trim());
+
+  if (mode === "options") return <section className="help-tool-panel" aria-labelledby="help-options-title">
+    <p className="eyebrow">M02 + M19 / OFFLINE OPTION REFERENCE</p>
+    <h2 id="help-options-title">Every shared setting, explained.</h2>
+    <p>16 local entries with defaults, keyboard/workflow instructions, limitations and recovery. No external service is contacted.</p>
+    <div className="help-option-filters">
+      <label className="help-tool-field" htmlFor="help-options-search">
+        <span>Filter options</span>
+        <input id="help-options-search" type="search" maxLength={100}
+          value={optionQuery} onChange={event => setOptionQuery(event.target.value)}
+          placeholder="Try focus, theme, offline or M19-OPT-06" />
+      </label>
+      <label className="help-tool-field" htmlFor="help-options-module">
+        <span>Module</span>
+        <select id="help-options-module" value={optionModule}
+          onChange={event => setOptionModule(event.target.value as "All" | "M02" | "M19")}>
+          <option value="All">All modules</option><option value="M02">M02 interface</option><option value="M19">M19 Help</option>
+        </select>
+      </label>
+    </div>
+    <div className="help-option-layout">
+      <div className="help-option-list" role="group" aria-label="Bundled option descriptions">
+        <p role="status">{optionResults.length} of {helpOptionReferences.length} local options</p>
+        {optionResults.map(option =>
+          <button type="button" key={option.id} aria-pressed={selectedOption?.id === option.id}
+            onClick={() => setSelectedOptionId(option.id)}>
+            <code>{option.id}</code><span>{option.title}</span>
+          </button>)}
+        {!optionResults.length && <p role="status">No matching options. Clear the text and choose All modules.</p>}
+      </div>
+      {selectedOption ? <article className="help-option-detail" aria-label="Selected option reference">
+        <span className="small-caps">{selectedOption.id} / {selectedOption.availability.toUpperCase()}</span>
+        <h3>{selectedOption.title}</h3>
+        <dl>
+          <dt>Default</dt><dd>{selectedOption.defaultState}</dd>
+          <dt>How to use</dt><dd>{selectedOption.interaction}</dd>
+          <dt>Limits & privacy</dt><dd>{selectedOption.limits}</dd>
+          <dt>Recovery / undo</dt><dd>{selectedOption.recovery}</dd>
+        </dl>
+        <p className="help-tool-muted">Internal route: <code>{optionHelpRoute(selectedOption.id)}</code></p>
+        <button type="button" className="subtle-action"
+          onClick={() => onOpenArticle(selectedOption.articleId)}>Read full bundled guide</button>
+      </article> : <div className="help-option-detail" role="status">No option selected for this filter.</div>}
+    </div>
+    <div className="help-option-route-checker">
+      <label className="help-tool-field" htmlFor="help-option-route">
+        <span>Validate a local option route (help://option/...)</span>
+        <input id="help-option-route" maxLength={80} value={optionRouteText}
+          onChange={event => setOptionRouteText(event.target.value)} />
+      </label>
+      <p role="status">{validOptionRoute ? "Known bundled option ID; no network opened." :
+        "Unknown or invalid option route. Nothing opened."}</p>
+      <button type="button" className="subtle-action" disabled={!validOptionRoute}
+        onClick={() => { if (validOptionRoute) {
+          setOptionModule("All"); setOptionQuery(""); setSelectedOptionId(validOptionRoute.id);
+        } }}>Open verified local option</button>
+    </div>
+  </section>;
 
   if (mode === "tour") return <section className="help-tool-panel" aria-labelledby="help-tour-title">
     <p className="eyebrow">M19 / GUIDED LOCAL ONBOARDING</p>

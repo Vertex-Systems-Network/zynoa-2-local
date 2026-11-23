@@ -5,6 +5,7 @@ import { componentPreviewStates, isComponentPreviewState, previewStateDetails } 
 import { appCommands, findCommands, shortcutView } from "../.ui-tests/commands.js";
 import { defaultShortcuts, isShortcutKey, remapShortcut, shortcutForView, shortcutKeys, viewForShortcut } from "../.ui-tests/shortcut-map.js";
 import { findHelpArticle, helpArticles, resolveVisibleHelpArticle, searchHelp, helpOptionIds } from "../.ui-tests/help-catalog.js";
+import { helpOptionReferences, findHelpOption, optionHelpRoute, resolveOptionHelpRoute, searchHelpOptions, validateHelpOptionReferences } from "../.ui-tests/help-options.js";
 import { offlineHelpContract, requestOfflineHelp, wizardIssues, getWizardIssue, getWizardStep, nextWizardStep, guidedTourSteps, getGuidedTourStep, helpFaq, helpGlossary, wikiSourceMappings, helpRoute, resolveHelpRoute, validateOfflineHelpCatalog, localBrokenArticleReport } from "../.ui-tests/help-workflows.js";
 
 test("theme defaults follow operating system and never coerce unknown values", () => {
@@ -257,4 +258,26 @@ test("M19 guided onboarding stays bounded and links only real offline articles",
   }
   for (const invalid of [-1, 1.5, 5, 100, NaN]) assert.equal(getGuidedTourStep(invalid), null);
   assert.deepEqual(validateOfflineHelpCatalog(), []);
+});
+
+test("M02/M19 all sixteen option guides resolve locally and fail closed", () => {
+  assert.deepEqual(validateHelpOptionReferences(), []);
+  assert.equal(helpOptionReferences.length, 16);
+  assert.equal(new Set(helpOptionReferences.map(item => item.id)).size, 16);
+  for (const item of helpOptionReferences) {
+    assert.equal(findHelpOption(item.id), item);
+    assert.deepEqual(resolveOptionHelpRoute(optionHelpRoute(item.id)), item);
+    assert.ok(findHelpArticle(item.articleId));
+    assert.ok(item.defaultState && item.interaction && item.limits && item.recovery);
+  }
+  for (const invalid of [
+    "https://evil.test", "help://option/M02-OPT-00",
+    "help://option/M19-OPT-09", "help://option/../../config",
+    "help://option/M02-OPT-01?x=1", "help://option/M02-OPT-01/",
+    "HELP://option/M19-OPT-01", "__proto__", "",
+  ]) assert.equal(resolveOptionHelpRoute(invalid), null);
+  assert.equal(searchHelpOptions("", "M02").length, 8);
+  assert.equal(searchHelpOptions("", "M19").length, 8);
+  assert.ok(searchHelpOptions("theme").some(x => x.id === "M02-OPT-02"));
+  assert.deepEqual(searchHelpOptions("unmatched-token-zzzzz"), []);
 });

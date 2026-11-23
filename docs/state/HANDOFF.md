@@ -2,6 +2,9 @@
 
 ## CURRENT (read this first; history below is archive)
 
+- **P02 M19 option-by-option Help expansion (2026-11-23):** Added 16 typed M02/M19 option references, local query/module filter, safe internal option-route validation, keyboard-selectable details, linked bundled article navigation, Node and Python regression contracts and updated M02/M19 Help/Wiki. This remains unmerged P02 source until exact-head Windows CI and independent option-specific screenshot acceptance. No external Wiki or native preference persistence asserted.
+
+
 - **P02 current Windows native review (2026-11-23, commit da648baa):** Windows desktop + all native receipt/hash checks PASS at [run 45186464263](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45186464263). Opened and rehashed five M02 appearance/gallery screens and six M19 Help screens; scoped review records are `docs/screenshots/M02/P02-T05-T06-native-review.json` and `docs/screenshots/M19/P02-M19-six-screen-review.json`. 29 machine candidate captures do not satisfy 15 M02 + 14 M19 final screenshot assets. M02 T02 readiness remains NOT_READY. No phase merge or release.
 
 

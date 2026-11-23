@@ -44,7 +44,7 @@ export function requestOfflineHelp(request: unknown): OfflineHelpSearchResult {
   };
 }
 
-export type HelpWorkflowMode = "articles" | "tour" | "troubleshoot" | "faq" | "wiki";
+export type HelpWorkflowMode = "articles" | "options" | "tour" | "troubleshoot" | "faq" | "wiki";
 export type IssueReason = "broken-reference" | "outdated-instructions" | "unreadable-article";
 
 export type WizardStep = {
