@@ -2,6 +2,9 @@
 
 ## CURRENT (read this first; history below is archive)
 
+- **P02 unified local discovery major batch (2026-11-23):** Committed real M02/M19 integrated command palette: view navigation + twelve bundled articles + sixteen typed option references, bounded keyboard result list, exact Help/option routing, filter resets and safe session shortcut handling. Node and Python negative-route/source regression tests, Help/Wiki documentation and structured change record updated. **Current branch source only; latest exact-head GitHub Actions Windows visual/accessibility/full CI must pass before official T02/T08 acceptance.** T02/T05/T06/T08/T10/T11 are not automatically DONE; no merge/P03/release. User requested old lease cleared; transient development lease MUST be set to null at final handoff.
+
+
 - **P02 exact native option guide evidence (2026-11-23):** All checks PASS at [Windows #45189322734](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45189322734) on source SHA `cf30107a`; 30 original native machine frames. Opened `M19-OPTION-REFERENCE-CI` real 998×701 PNG, rehashed source/build receipt and visually confirmed 16 options plus defaults, limitations and recovery. See `docs/screenshots/M19/P02-M19-option-reference-native-review.json`. T07/T09 scoped source tasks approved separately; further four state/FAQ captures need their own rerun and review.
 
 
