@@ -60,7 +60,7 @@ jobs:
         run: python -m unittest tests.test_p02_m19_workflows -v
       - name: P02 fail-closed native screenshot verifier contracts
         if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
-        run: python -m unittest tests.test_p02_native_evidence -v
+        run: python -m unittest tests.test_p02_native_evidence tests.test_p02_t10_readiness -v
       - name: P02 truthful Help and Wiki contracts
         if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
         run: python -m unittest tests.test_p02_help_evidence -v
@@ -115,6 +115,7 @@ jobs:
           if ($builtSha -ne $env:ZYNOA_HEAD_SHA.ToLowerInvariant()) {
             throw 'ZYN-SCREEN-014: checked-out built commit does not match PR source SHA'
           }
+          $nativeTiming = [System.Diagnostics.Stopwatch]::StartNew()
           $process = Start-Process -FilePath $exe -PassThru
           try {
             # Process existence alone is not native initialization readiness.
@@ -139,6 +140,7 @@ jobs:
                 (Test-Path -LiteralPath $vault),
                 (Test-Path -LiteralPath $registry))
             }
+            $nativeReadyMs = [int64]$nativeTiming.ElapsedMilliseconds
             Write-Output 'Native startup foundations exist; WebView/window visibility still needs independent verification'
             # Keep immutable P01 screenshot evidence untouched. New P02
             # candidates go under an isolated, source-run CI namespace while
@@ -147,7 +149,25 @@ jobs:
             if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
               $proofOutput = Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\_ci\M01'
             }
+            $captureTimer = [System.Diagnostics.Stopwatch]::StartNew()
             & (Join-Path $env:GITHUB_WORKSPACE 'scripts\capture_p01_desktop.ps1') -TargetPid $process.Id -OutputDirectory $proofOutput -SourceSha $env:ZYNOA_HEAD_SHA -BuiltSha $builtSha
+            if ($LASTEXITCODE -ne 0) { throw 'ZYN-P02-T10-CAPTURE: native screenshot flow failed' }
+            $captureTimer.Stop()
+            if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
+              $perfDir = Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\_ci\M02'
+              New-Item -ItemType Directory -Force -Path $perfDir | Out-Null
+              $sample = [ordered]@{
+                schema_version = 1
+                source_commit_sha = $builtSha
+                target = 'GitHub-hosted Windows Tauri native executable'
+                startup_local_metadata_ready_ms = $nativeReadyMs
+                native_screenshot_suite_ms = [int64]$captureTimer.ElapsedMilliseconds
+                measurement = 'single-run observation only'
+                performance_budget_approved = $false
+                no_user_data = $true
+              }
+              $sample | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $perfDir 'P02-native-performance.json') -Encoding UTF8
+            }
           } finally {
             $process.Refresh()
             if (-not $process.HasExited) { Stop-Process -Id $process.Id -Force }
@@ -159,6 +179,9 @@ jobs:
           ZYNOA_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           python -m tools.verify_p02_native_evidence --root docs/screenshots/_ci --source-sha $env:ZYNOA_HEAD_SHA --report docs/screenshots/_ci/M02/P02-native-machine-review.json
+          if ($LASTEXITCODE -ne 0) { throw "P02 native capture validation failed" }
+          python -m tools.verify_p02_t10_readiness --root . --source-sha $env:ZYNOA_HEAD_SHA --report docs/screenshots/_ci/M02/P02-T10-readiness.json
+          if ($LASTEXITCODE -ne 0) { throw "P02-T10 truthful readiness audit failed" }
       - name: Verify native boot wrote only allowlisted diagnostic metadata
         shell: pwsh
         run: |
