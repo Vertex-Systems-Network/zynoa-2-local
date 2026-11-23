@@ -328,6 +328,11 @@ class P02UIContractTests(unittest.TestCase):
         self.assertNotIn("localStorage", wb)
         self.assertNotIn("sessionStorage", wb)
         self.assertNotIn("fetch(", wb)
+        native = (ROOT / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        self.assertIn("-ScreenshotId 'M02-OPT-03'", native)
+        self.assertIn("-Shortcut '+{TAB}{LEFT}{TAB}{TAB}{TAB}{ENTER}{PGDN}'", native)
+        verifier = (ROOT / "tools/verify_p02_native_evidence.py").read_text(encoding="utf-8")
+        self.assertIn('"M02-OPT-03"', verifier)
 
 
 
