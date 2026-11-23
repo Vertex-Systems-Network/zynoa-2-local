@@ -84,8 +84,8 @@ export function Workbench({ transport, onNavigate }: {
           <output htmlFor="split-control" className="value-bubble">{split}%</output>
         </div>
         <input id="split-control" aria-label="Left pane width" type="range" min={25} max={65} step={5}
-          value={split} onChange={event => setSplit(Number(event.target.value))} />
-        <div className="split-preview" style={{ gridTemplateColumns: String(split) + "fr " + String(100 - split) + "fr" }}>
+          value={split} aria-valuetext={`${split}% left pane`} onChange={event => setSplit(Number(event.target.value))} />
+        <div className="split-preview" style={{ gridTemplateColumns: `minmax(0, ${split}fr) minmax(0, ${100 - split}fr)` }}>
           <div><b>Navigation pane</b><small>Adjust with arrow keys</small></div>
           <div><b>Content pane</b><small>Responds to available width</small></div>
         </div>
@@ -114,6 +114,7 @@ export function Workbench({ transport, onNavigate }: {
 
 export function ComponentGallery() {
   const [sampleInput, setSampleInput] = useState("");
+  const [selectedAction, setSelectedAction] = useState<"primary" | "secondary" | null>(null);
   return <section className="studio-page" aria-labelledby="gallery-title">
     <p className="eyebrow">M02 / DESIGN FOUNDATION</p>
     <h1 id="gallery-title">One system.<br /><em>Every detail considered.</em></h1>
@@ -135,19 +136,23 @@ export function ComponentGallery() {
       <section className="studio-card">
         <span className="small-caps">COMPONENTS / BUTTONS</span><h2>Actions & feedback</h2>
         <div className="component-row">
-          <button className="gold-action" type="button" onClick={() => setSampleInput("Action preview selected")}>Primary action</button>
-          <button className="subtle-action" type="button" onClick={() => setSampleInput("Secondary action selected")}>Secondary</button>
-          <button className="gold-action" type="button" disabled>Unavailable</button>
+          <button className="gold-action" type="button" aria-pressed={selectedAction === "primary"} onClick={() => setSelectedAction("primary")}>Primary action</button>
+          <button className="subtle-action" type="button" aria-pressed={selectedAction === "secondary"} onClick={() => setSelectedAction("secondary")}>Secondary</button>
+          <button className="gold-action" type="button" disabled title="Unavailable in this foundation preview">Unavailable</button>
         </div>
         <label className="input-label" htmlFor="gallery-text">Example text field</label>
         <input id="gallery-text" value={sampleInput} maxLength={80}
           onChange={event => setSampleInput(event.target.value)}
-          placeholder="Type or choose an action..." />
-        <p className="component-helper" role="status">{sampleInput || "Interactive UI state only; no data is saved."}</p>
+          placeholder="Type a sample value..." />
+        <p className="component-helper" role="status">
+          {selectedAction ? `${selectedAction === "primary" ? "Primary" : "Secondary"} action selected (visual preview only). Input text was not changed.`
+            : "Select an action to preview its selected state. Nothing is saved."}
+        </p>
+        <p className="component-helper">Sample input stays independent of action selection and resets when you leave this screen.</p>
       </section>
       <section className="studio-card">
         <span className="small-caps">COMPONENTS / STATUS</span><h2>Clear system states</h2>
-        <div className="component-state-list">
+        <div className="component-state-list" role="group" aria-label="Illustrative status states, not live service health">
           <div><span className="soft-chip">Ready</span><small>Local preview available</small></div>
           <div><span className="soft-chip pending-chip">Pending</span><small>Awaiting verification</small></div>
           <div><span className="soft-chip warning-chip">Offline</span><small>Remote action not requested</small></div>
