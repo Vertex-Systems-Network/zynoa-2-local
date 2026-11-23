@@ -91,6 +91,13 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
         self.assertFalse(result["independent_visual_review"])
         self.assertFalse(result["manifest_completed"])
 
+    def test_workbench_native_control_navigation_respects_roving_tabindex(self):
+        script = (Path(__file__).resolve().parents[1] / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        self.assertIn("Focus-P02NativeControl -AccessibleName 'Runtime status'", script)
+        self.assertIn("[System.Windows.Forms.SendKeys]::SendWait('{RIGHT}')", script)
+        self.assertIn("Focus-P02NativeControl -AccessibleName 'Left pane width'", script)
+        self.assertNotIn("Focus-P02NativeControl -AccessibleName 'Layout controls'", script)
+
     def test_real_control_candidate_identity_is_required(self):
         self.assertEqual(15, len(DIRECT_CONTROL_MATRIX))
         self._mutate("P02-T10-CTRL-M19-OPT-07", "candidate_final_asset_id", "M19-OPT-08")
