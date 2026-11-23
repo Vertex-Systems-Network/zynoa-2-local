@@ -37,5 +37,6 @@
   "docs_impact": true,
   "data_migration": false,
   "created_at": "2026-11-23T19:41:30.268Z",
-  "updated_at": "2026-11-23T19:41:30.268Z"
+  "updated_at": "2026-11-23T19:44:59.688Z",
+  "version_bump": "none"
 }
