@@ -122,8 +122,9 @@ class P02T03NavigationTests(unittest.TestCase):
             self.assertIn(marker, help_text)
         for marker in ("P02-T03", "Alt+N", "78px", "PENDING"):
             self.assertIn(marker, wiki_text + evidence)
-        self.assertIn("NATIVE RUN AND REVIEW PENDING", evidence)
-        self.assertIn("full M02 manifest", wiki_text + evidence)
+        self.assertTrue("NATIVE RUN AND REVIEW PENDING" in evidence or
+                        "NATIVE REVIEW ACCEPTED" in evidence)
+        self.assertIn("15 final M02 manifest entries", wiki_text + evidence)
 
     def test_official_task_remains_evidence_gated(self):
         data = json.loads((ROOT / "docs/state/pr-tasks/P02.json").read_text(encoding="utf-8"))
