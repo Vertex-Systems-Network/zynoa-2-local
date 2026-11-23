@@ -3,7 +3,7 @@
   "module_id": "M19",
   "kind": "feature",
   "title": "Bundled offline Help Center and local article search",
-  "summary": "Source implementation of M19 curated bundled help index, deterministic local search, FAQ/glossary and accessible article reader; no server, wiki write or telemetry. Native visuals pending. Reader selection now follows filtered results; zero-hit search shows an explicit empty reader; related/contextual navigation restores visible selection. M02 Wiki source anchor corrected. P02-T08 offline contextual reader, FAQ, glossary and wizard implementation passed a separate scoped Windows-native functional review and was accepted as T08 DONE, without final module screenshots, screenshot-hotspot tours, published Wiki or P02 protected merge. 2026-11-24 per-image visual and source-integrity review accepted 13/14 real committed M19 native PNGs; final M19-OPT-01 remains PENDING while its improved genuine CI candidate awaits GitHub original binary replacement. No module, screen-reader, Wiki, release or merge claim. 2026-11-24 all 14 M19 native screenshot PNGs individually hash/visual verified after correcting M19-OPT-01 by original Windows CI binary Git blob; 29/29 P02 real screenshot entries now image-scope VERIFIED, with NVDA/Narrator/performance/hosted Wiki/owner protected merge still blocked.",
+  "summary": "Source implementation of M19 curated bundled help index, deterministic local search, FAQ/glossary and accessible article reader; no server, wiki write or telemetry. Native visuals pending. Reader selection now follows filtered results; zero-hit search shows an explicit empty reader; related/contextual navigation restores visible selection. M02 Wiki source anchor corrected. P02-T08 offline contextual reader, FAQ, glossary and wizard implementation passed a separate scoped Windows-native functional review and was accepted as T08 DONE, without final module screenshots, screenshot-hotspot tours, published Wiki or P02 protected merge. 2026-11-24 per-image visual and source-integrity review accepted 13/14 real committed M19 native PNGs; final M19-OPT-01 remains PENDING while its improved genuine CI candidate awaits GitHub original binary replacement. No module, screen-reader, Wiki, release or merge claim. 2026-11-24 all 14 M19 native screenshot PNGs individually hash/visual verified after correcting M19-OPT-01 by original Windows CI binary Git blob; 29/29 P02 real screenshot entries now image-scope VERIFIED, with NVDA/Narrator/performance/hosted Wiki/owner protected merge still blocked. 2026-11-24 documentation parity repair after true GitHub native CI detected a historical screenshot PENDING test expectation: M02/M19 current Help/Wiki/option tables now distinguish 29 image-VERIFIED original PNGs from not-yet-approved accessibility, performance, hosted Wiki, final module and protected merge.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [],
@@ -19,7 +19,10 @@
     "docs/screenshots/MANIFEST.json",
     "docs/evidence/P02_T11_CLOSEOUT_PREFLIGHT.md",
     "docs/screenshots/M19/T10-final-14-native-visual.review.json",
-    "docs/evidence/P02_T10_FINAL_29_NATIVE_SCREENSHOTS_20261124.json"
+    "docs/evidence/P02_T10_FINAL_29_NATIVE_SCREENSHOTS_20261124.json",
+    "docs/help/articles/M02.md",
+    "docs/wiki/pages/M02.md",
+    "docs/wiki/pages/M19.md"
   ],
   "help_paths": [
     "docs/help/articles/M19.md"

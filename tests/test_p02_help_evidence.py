@@ -111,8 +111,27 @@ class M02HelpEvidenceTests(unittest.TestCase):
             self.assertEqual("PASS_FOR_M02_SCREEN_OPTION_FRAME_ONLY", reviewed[row["asset_id"]]["visual_result"])
         self.assertIn("15/15", self.help)
         self.assertIn("14/14", (ROOT / "docs/help/articles/M19.md").read_text(encoding="utf-8"))
-        self.assertIn("PENDING", self.wiki)
+        self.assertIn("All eight M02 final option PNGs are VERIFIED", self.wiki)
+        self.assertIn("full NVDA/Narrator", self.wiki)
+        self.assertNotIn("15 M02 and 14 M19 final screen/option PNGs as PENDING", self.wiki)
         self.assertIn("unshipped P02 preview", self.help)
+
+    def test_final_option_screenshot_docs_match_29_verified_native_pngs(self):
+        help_m19 = (ROOT / "docs/help/articles/M19.md").read_text(encoding="utf-8")
+        for module, article in (("M02", self.help), ("M19", help_m19)):
+            for i in range(1, 9):
+                code = f"{module}-OPT-{i:02d}"
+                start = article.index("### " + code + " ")
+                after = article.find("\n### ", start + 6)
+                section = article[start:after if after >= 0 else None]
+                self.assertIn(f"../../screenshots/{module}/{code}.png", section)
+                self.assertIn("VERIFIED", section)
+                self.assertNotIn("— **PENDING", section)
+        assert (ROOT / "docs/evidence/P02_T10_FINAL_29_NATIVE_SCREENSHOTS_20261124.json").is_file()
+        proof = json.loads((ROOT / "docs/evidence/P02_T10_FINAL_29_NATIVE_SCREENSHOTS_20261124.json").read_text(encoding="utf-8"))
+        self.assertEqual(29, proof["total"])
+        self.assertFalse(proof["full_screen_reader_nvda_narrator_approved"])
+        self.assertFalse(proof["protected_main_merged"])
 
     def test_f1_catalog_is_distinct_from_unpublished_wiki_source(self):
         self.assertIn('setView("help")', self.app) if 'setView("help")' in self.app else self.assertIn('return "help"', self.app)
