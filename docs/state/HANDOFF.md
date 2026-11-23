@@ -508,3 +508,13 @@ PR #1 merged to `main` at `f0a1ebbd0d43` (owner-authorized). T22: probe PR #6 (e
 ## 2026-11-22 P01 started
 
 P00 closed: `main` = `fe34877` (PR #8). P01 branch `phase/01-foundation`, task list `docs/state/pr-tasks/P01.json` (11 tasks, all TODO). First real work: P01-T01 pre-dev research/ADR, then P01-T02 (P00 tools still hardcode P00).
+
+
+## 2026-11-23 P02-T02.04 verified native keyboard-focus fix
+
+- **Narrow T02.04 slice DONE**, source commit `5382719148e22aac8c2245a6efedbdcd95b46ef4`; parent P02-T02 remains IN_PROGRESS, PR #12 remains OPEN/DRAFT and P02 has not merged.
+- Original workbench `:focus { outline:none; }` bug fixed with visible 2px theme-aware `:focus-visible` outline; 3 Python regressions include WCAG focus-token contrast matrix and native screenshot proof constraints.
+- GitHub Windows [run 45140383789](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45140383789) **SUCCESS**, governance [45140383972](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45140383972) **SUCCESS**, task board check SUCCESS.
+- Real Tauri keyboard-focus image is present in Windows artifact ID 14801194918, exact SHA-256 `7264e280cc391c4ed92b4b66bf8e9126990f341edd45d927af35a174288c63e1`; visible focus ring independently inspected. See `docs/screenshots/M02/M02-OPT-07.review.json` and `docs/evidence/P02_T02_FIRST_REAL_UI_SLICE.md`.
+- Documentation review is **slice-only**. The final manifest PNG `docs/screenshots/M02/M02-OPT-07.png`, other M02/M19 screenshots, and full P02 acceptance are still pending. Do not mark T02 parent, T10, T11 or PR merged.
+- Previous inactive session lease was owner-authorized recovered; handoff releases `docs/state/PHASE.json.lease_holder` to JSON `null`. No persistent worker is claimed.
