@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { findHelpArticle, helpArticles, resolveVisibleHelpArticle, searchHelp, type HelpCategory } from "./help-catalog";
+import { findHelpArticle, helpArticles, resolveVisibleHelpArticle, type HelpCategory } from "./help-catalog";
 import { LocalArticleReport, HelpWorkflows } from "./HelpWorkflows";
-import { offlineHelpContract, type HelpWorkflowMode } from "./help-workflows";
+import { offlineHelpContract, requestOfflineHelp, type HelpWorkflowMode } from "./help-workflows";
 
 type Props = { contextArticle?: string };
 
@@ -15,7 +15,11 @@ export function HelpCenter({ contextArticle }: Props) {
   const [articleId, setArticleId] = useState(contextArticle || "quick-start");
   const [showGlossary, setShowGlossary] = useState(false);
   const [mode, setMode] = useState<HelpWorkflowMode>("articles");
-  const results = useMemo(() => searchHelp(query, category), [query, category]);
+  const searchResponse = useMemo(() => requestOfflineHelp({
+    schema_version: 1, catalog_version: offlineHelpContract.catalog_version,
+    query, category, limit: 50,
+  }), [query, category]);
+  const results = searchResponse.ok ? searchResponse.matches : [];
   const selected = resolveVisibleHelpArticle(results, articleId);
   const openArticle = (id: string) => {
     setQuery("");
@@ -67,6 +71,9 @@ export function HelpCenter({ contextArticle }: Props) {
         {categories.map(item => <option key={item} value={item}>{item === "All" ? "All topics" : item}</option>)}
       </select>
     </div>
+    {!searchResponse.ok && <p role="alert" className="help-search-error">
+      {searchResponse.code}: {searchResponse.message}
+    </p>}
     <div className="help-body">
       <aside className="help-list" aria-label="Help article results">
         <div className="help-list-heading"><b>Explore the library</b><span role="status">{results.length} results</span></div>
