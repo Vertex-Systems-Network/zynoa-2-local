@@ -362,8 +362,10 @@ class P02UIContractTests(unittest.TestCase):
             'are not saved to disk.',
         ):
             self.assertIn(marker, workbench)
-        self.assertIn('findCommands(query, shortcuts)', palette)
-        self.assertIn('shortcutForView(command.view, shortcuts)', palette)
+        search = (APP / 'src/ui/unified-search.ts').read_text(encoding='utf-8')
+        self.assertIn('searchWorkspace(query, shortcuts)', palette)
+        self.assertIn('findCommands(normalized, shortcuts)', search)
+        self.assertIn('shortcutForView(command.view, shortcuts)', search)
         self.assertIn('previousKey]: current[requestedKey]', mapper)
         self.assertIn('if (view === "help") return null', mapper)
         self.assertNotIn("localStorage", mapper + workbench)
@@ -425,6 +427,28 @@ class P02UIContractTests(unittest.TestCase):
         self.assertIn("candidate_pending_visual_review", capture)
         self.assertIn("capture_verified = $false", capture)
 
+
+    def test_unified_local_search_routes_commands_articles_and_options_without_network(self):
+        app = (APP / "src/App.tsx").read_text(encoding="utf-8")
+        palette = (APP / "src/ui/CommandPalette.tsx").read_text(encoding="utf-8")
+        search = (APP / "src/ui/unified-search.ts").read_text(encoding="utf-8")
+        reader = (APP / "src/ui/HelpCenter.tsx").read_text(encoding="utf-8")
+        workflow = (APP / "src/ui/HelpWorkflows.tsx").read_text(encoding="utf-8")
+        pkg = (APP / "package.json").read_text(encoding="utf-8")
+        for phrase in ("searchHelp(normalized)", "searchHelpOptions(normalized)",
+                       "if (!normalized) return commands", ".slice(0, 20)"):
+            self.assertIn(phrase, search)
+        self.assertIn('onOpenHelp={target => { setHelpDestination(target); setView("help"); }}', app)
+        self.assertIn('destination={helpDestination}', app)
+        self.assertIn('setHelpDestination(null)', app)
+        self.assertIn('destination?.kind === "option" ? "options" : "articles"', reader)
+        self.assertIn('initialOptionId={destination?.kind', reader)
+        self.assertIn('findHelpOption(initialOptionId)', workflow)
+        self.assertIn('onOpenHelp(entry.destination)', palette)
+        self.assertIn("src/ui/unified-search.ts", pkg)
+        for source in (search, palette, reader, workflow):
+            for forbidden in ("localStorage", "sessionStorage", "fetch("):
+                self.assertNotIn(forbidden, source)
 
 if __name__ == "__main__":
     unittest.main()

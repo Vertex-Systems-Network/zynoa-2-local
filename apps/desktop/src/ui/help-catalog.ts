@@ -47,8 +47,8 @@ export const helpArticles: readonly HelpArticle[] = [
     keywords: ["ctrl", "shift", "palette", "shortcut", "focus", "F1", "M02-OPT-05"],
     sections: [
       { heading: "Quickly find a screen", paragraphs: [
-        "Press Ctrl+Shift+P or activate the Command button in the top toolbar. Type a screen name and use Arrow Up or Arrow Down to select a result.",
-        "Press Enter to navigate, Escape to close, or Tab to move between controls. Focus returns to the element that opened the palette.",
+        "Press Ctrl+Shift+P or activate the Command button in the top toolbar. Search a screen, local Help article or documented option; use Arrow Up or Arrow Down to select a result.",
+        "Press Enter to open the selected view, bundled Help article or option reference. Escape closes, while Tab moves between controls. Focus returns to the element that opened the palette on dismissal.",
       ] },
       { heading: "Global shortcuts", paragraphs: [
         "By default Ctrl+1 opens Overview; Ctrl+2 Preferences; Ctrl+3 Recovery; Ctrl+4 Diagnostics; Ctrl+5 Workbench; Ctrl+6 Components. The Workbench Keyboard guide lets you swap the six assignments during the current session. F1 opens Help and cannot be reassigned.",

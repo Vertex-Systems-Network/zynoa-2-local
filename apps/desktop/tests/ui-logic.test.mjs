@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { effectiveTheme, isTheme, isDensity, themeOptions, densityOptions, uiOptionIds } from "../.ui-tests/theme.js";
 import { componentPreviewStates, isComponentPreviewState, previewStateDetails } from "../.ui-tests/component-states.js";
 import { appCommands, findCommands, shortcutView } from "../.ui-tests/commands.js";
+import { searchWorkspace } from "../.ui-tests/unified-search.js";
 import { defaultShortcuts, isShortcutKey, remapShortcut, shortcutForView, shortcutKeys, viewForShortcut } from "../.ui-tests/shortcut-map.js";
 import { findHelpArticle, helpArticles, resolveVisibleHelpArticle, searchHelp, helpOptionIds } from "../.ui-tests/help-catalog.js";
 import { helpOptionReferences, findHelpOption, optionHelpRoute, resolveOptionHelpRoute, searchHelpOptions, validateHelpOptionReferences } from "../.ui-tests/help-options.js";
@@ -283,4 +284,36 @@ test("M02/M19 all sixteen option guides resolve locally and fail closed", () => 
   assert.ok(searchHelpOptions("glossary","M19").some(x => x.id === "M19-OPT-04"));
   assert.equal(searchHelpOptions("theme","M19").every(x => x.module === "M19"), true);
   assert.deepEqual(searchHelpOptions("unmatched-token-zzzzz"), []);
+});
+
+test("unified command palette discovers bundled articles and exact M02/M19 option references", () => {
+  const initial = searchWorkspace("");
+  assert.equal(initial.length, 7);
+  assert.ok(initial.every(item => item.kind === "view" && item.destination.kind === "view"));
+  const theme = searchWorkspace("theme");
+  assert.ok(theme.some(item => item.kind === "article" && item.destination.articleId === "appearance"));
+  assert.ok(theme.some(item => item.kind === "option" && item.destination.optionId === "M02-OPT-02"));
+  assert.ok(searchWorkspace("M19-OPT-06").some(item =>
+    item.destination.kind === "option" && item.destination.optionId === "M19-OPT-06"));
+  assert.ok(searchWorkspace("offline").some(item => item.kind === "article"));
+  assert.equal(searchWorkspace("NOT_A_REAL_ROUTE_13283").length, 0);
+  assert.ok(searchWorkspace("theme").length <= 20);
+  assert.equal(new Set(theme.map(item => item.id)).size, theme.length);
+});
+test("unified search preserves remaps, ignores malformed keys and never invents destinations", () => {
+  const custom = remapShortcut(defaultShortcuts, "workbench", "2");
+  assert.equal(searchWorkspace("Ctrl+2", custom)[0].destination.view, "workbench");
+  assert.equal(searchWorkspace("Ctrl+5", custom)[0].destination.view, "settings");
+  assert.ok(searchWorkspace("a".repeat(10000)).length <= 20);
+  for (const entry of searchWorkspace("help")) {
+    if (entry.destination.kind === "view") {
+      assert.ok(appCommands.some(command => command.view === entry.destination.view));
+    } else if (entry.destination.kind === "article") {
+      assert.ok(findHelpArticle(entry.destination.articleId));
+    } else {
+      assert.ok(findHelpOption(entry.destination.optionId));
+      assert.ok(resolveOptionHelpRoute(optionHelpRoute(entry.destination.optionId)));
+    }
+  }
+  assert.equal(searchWorkspace("__proto__").length, 0);
 });
