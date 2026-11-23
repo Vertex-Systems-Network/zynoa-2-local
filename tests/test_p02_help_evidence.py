@@ -43,11 +43,15 @@ class M02HelpEvidenceTests(unittest.TestCase):
             self.assertNotIn(unsafe, self.wb)
 
     def test_unimplemented_options_not_advertised_as_working_controls(self):
-        for option_id in ("M02-OPT-03", "M02-OPT-04"):
-            head = self.help.index("### " + option_id)
-            end = self.help.find("### M02-OPT-", head + 5)
-            section = self.help[head:] if end == -1 else self.help[head:end]
-            self.assertIn("Not implemented", section) if option_id == "M02-OPT-03" else self.assertIn("not implemented", section.lower())
+        start = self.help.index("### M02-OPT-03")
+        end = self.help.index("### M02-OPT-04", start)
+        properties = self.help[start:end]
+        self.assertIn("Implemented as a session-only foundation preview", properties)
+        self.assertIn("Compact on", properties)
+        self.assertIn("A real project editor is unavailable", properties)
+        start = self.help.index("### M02-OPT-04")
+        end = self.help.index("### M02-OPT-05", start)
+        self.assertIn("not implemented", self.help[start:end].lower())
         self.assertIn("no independent Reduce motion switch", self.help)
         self.assertIn("not persisted", self.wiki)
         self.assertIn("**not** been synced", self.wiki)
