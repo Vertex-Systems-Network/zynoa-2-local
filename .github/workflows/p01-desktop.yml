@@ -31,7 +31,7 @@ jobs:
           else
             changed=""
           fi
-          if printf '%s\n' "$changed" | grep -qE '^(scripts/capture_p01_desktop\.ps1|apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|tests/test_p01_locations.py|tests/test_p01_events.py|tests/test_p01_screenshot_capture.py|tests/test_p02_ui_contract.py|tests/test_p02_native_evidence.py|tests/test_p02_help_evidence.py|tools/verify_p02_native_evidence.py|docs/help/articles/M02.md|docs/wiki/pages/M02.md|\.github/workflows/p01-desktop.yml)'; then
+          if printf '%s\n' "$changed" | grep -qE '^(scripts/capture_p01_desktop\.ps1|apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|tests/test_p01_locations.py|tests/test_p01_events.py|tests/test_p01_screenshot_capture.py|tests/test_p02_ui_contract.py|tests/test_p02_native_evidence.py|tests/test_p02_help_evidence.py|tests/test_p02_t02_acceptance.py|tools/verify_p02_native_evidence.py|tools/verify_p02_t02_acceptance.py|docs/screenshots/MANIFEST.json|docs/modules/M02.md|docs/help/articles/M02.md|docs/wiki/pages/M02.md|\.github/workflows/p01-desktop.yml)'; then
             echo "desktop=true" >> "$GITHUB_OUTPUT"
           else
             echo "desktop=false" >> "$GITHUB_OUTPUT"
@@ -59,6 +59,12 @@ jobs:
       - name: P02 truthful Help and Wiki contracts
         if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
         run: python -m unittest tests.test_p02_help_evidence -v
+      - name: P02-T02 final acceptance guard (no premature DONE)
+        if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
+        shell: pwsh
+        run: |
+          python -m unittest tests.test_p02_t02_acceptance -v
+          python -m tools.verify_p02_t02_acceptance --report docs/screenshots/_ci/M02/P02-T02-12-readiness.json
       - name: Parse screenshot capture script (fail fast)
         shell: pwsh
         run: |
@@ -249,6 +255,7 @@ jobs:
             docs/screenshots/_ci/M02/*.png
             docs/screenshots/_ci/M02/*.capture.json
             docs/screenshots/_ci/M02/P02-native-machine-review.json
+            docs/screenshots/_ci/M02/P02-T02-12-readiness.json
             docs/screenshots/_ci/M19/*.png
             docs/screenshots/_ci/M19/*.capture.json
           if-no-files-found: warn
