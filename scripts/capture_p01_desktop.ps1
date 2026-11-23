@@ -236,7 +236,9 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     # T04: open palette from Help, type allowlisted view and execute with Enter.
     # Focus moves to destination main on palette navigation; never run arbitrary code.
     $OutputDirectory = $m02Output
-    Save-NativeFollowup -ScreenshotId 'P02-T04-ENTER-NAV' -Shortcut '^+pworkbench{ENTER}' -ScreenTitle 'P02 palette keyboard navigation to Workbench' -Description 'Real Windows Tauri Workbench navigated by opening Ctrl+Shift+P palette, entering workbench and pressing Enter'
+    [System.Windows.Forms.SendKeys]::SendWait('^+p')
+    Start-Sleep -Milliseconds 500
+    Save-NativeFollowup -ScreenshotId 'P02-T04-ENTER-NAV' -Shortcut 'workbench{ENTER}' -ScreenTitle 'P02 palette keyboard navigation to Workbench' -Description 'Real Windows Tauri Workbench navigated by opening Ctrl+Shift+P palette, entering workbench and pressing Enter'
     $OutputDirectory = $m19Output
 
     # T02.07: verify real native narrow viewport without falsifying responsive screenshots.
