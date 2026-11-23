@@ -217,6 +217,10 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     # T02.12: from the keyboard-focused Workbench tabpanel, Shift+Tab to the selected tab,
     # End switches to Keyboard guide, Tab focuses its panel. Candidate only.
     Save-NativeFollowup -ScreenshotId 'M02-S07' -Shortcut '+{TAB}{END}{TAB}' -ScreenTitle 'P02 native keyboard guide' -Description 'Native Tauri Workbench keyboard guide accessed with End key in ARIA tablist, panel focus visible'
+    # From keyboard-guide focused panel, Shift+Tab to tab, Left to Layout controls,
+    # Tab into panel, Tab to range, Tab to Compact toggle, Enter enables compact rows.
+    # This is native source-SHA-bound candidate, not final screenshot acceptance.
+    Save-NativeFollowup -ScreenshotId 'M02-OPT-03' -Shortcut '+{TAB}{LEFT}{TAB}{TAB}{TAB}{ENTER}{PGDN}' -ScreenTitle 'P02 compact properties panel preview' -Description 'Real Tauri Workbench layout tab showing compact sample property rows, keyboard-enabled pressed toggle and session-only feedback'
     Save-NativeFollowup -ScreenshotId 'M02-S05' -Shortcut '^{6}' -ScreenTitle 'P02 native component gallery' -Description 'Real Tauri component gallery with semantic token swatches, state chips and interactive input'
     # From focused main after Ctrl+6: Tab toolbar command, Tab help, Tab primary action.
     # Activate primary selection; PageDown reveals the actual button/feedback states.
