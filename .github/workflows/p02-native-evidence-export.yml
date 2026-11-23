@@ -1,0 +1,52 @@
+name: P02 read-only single native PNG transfer
+on:
+  push:
+    branches: ["phase/02-shared-ui"]
+    paths:
+      - ".github/workflows/p02-native-evidence-export.yml"
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: p02-readonly-single-image-export
+  cancel-in-progress: true
+jobs:
+  original-native-evidence:
+    if: github.repository == 'Vertex-Systems-Network/zynoa-2-local' && github.ref == 'refs/heads/phase/02-shared-ui'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: p01-desktop-windows-build-evidence
+          run-id: 45274014314
+          repository: Vertex-Systems-Network/zynoa-2-local
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/p02-native-readonly
+      - name: Verify original capture and print single public PNG for connector transfer
+        shell: bash
+        run: |
+          python - <<'PY'
+          import base64, hashlib, io, json, os, pathlib, struct, zipfile
+          folder=pathlib.Path(os.environ["RUNNER_TEMP"])/"p02-native-readonly"
+          nested=folder/"docs/screenshots/_ci/M02/P02-T10-29-native-review-candidates.zip"
+          assert nested.is_file(), "expected source-bound review artifact unavailable"
+          p="docs/screenshots/M19/M19-OPT-01.png"
+          with zipfile.ZipFile(nested) as z:
+              b=z.read(p)
+              r=json.loads(z.read(p.replace(".png",".review-candidate.json")))
+          expect="e4b8b013ab2d0d10a6ff4d44717fb153e2f99f07f2d5390bb517c252a9a20bcb"
+          assert len(b)<150000 and b.startswith(b"\x89PNG\r\n\x1a\n"), "invalid PNG"
+          assert hashlib.sha256(b).hexdigest()==expect==r["sha256"], "original PNG hash mismatch"
+          assert r["source_commit_sha"]=="c9a874a9638c1bac41e582d3f0e1f315bb570662"
+          assert r["original_capture_id"]=="P02-T10-CTRL-M19-OPT-01"
+          assert r["asset_id"]=="M19-OPT-01"
+          assert r["native_machine_hash_and_receipt_verified"] is True
+          assert r["final_manifest_status"]=="PENDING" and r["full_screen_reader_verified"] is False
+          assert struct.unpack(">II",b[16:24])==(998,701)
+          encoded=base64.b64encode(b).decode("ascii")
+          print("P02_NATIVE_TRANSFER_BEGIN sha256="+expect+" bytes="+str(len(b)),flush=True)
+          for i in range(0,len(encoded),2400):
+              print("P02_NATIVE_BASE64_%03d="% (i//2400)+encoded[i:i+2400],flush=True)
+          print("P02_NATIVE_TRANSFER_END chunks="+str((len(encoded)+2399)//2400),flush=True)
+          PY
