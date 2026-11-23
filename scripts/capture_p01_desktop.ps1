@@ -267,6 +267,14 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     # search input after the remaining four mode buttons and type one keyword.
     Save-NativeFollowup -ScreenshotId 'M19-S02' -Shortcut '+{TAB}+{TAB}+{TAB}+{TAB}{ENTER}{TAB}{TAB}{TAB}{TAB}{TAB}theme' -ScreenTitle 'M19 offline search results' -Description 'Real native bundled Help search with active theme keyword, local article results and category selector'
     Save-NativeFollowup -ScreenshotId 'M19-S03' -Shortcut '{TAB}{TAB}{ENTER}{PGDN}' -ScreenTitle 'M19 offline article reader' -Description 'Real Tauri Help article opened from an actual offline search result with section headings and related guides'
+    # T05/T06: additional real interactive Gallery and live Preferences
+    # screenshots from this same verified running Tauri window. Session-only.
+    $OutputDirectory = $m02Output
+    Save-NativeFollowup -ScreenshotId 'P02-T06-GALLERY-READY' -Shortcut '^{6}{PGDN}{PGDN}' -ScreenTitle 'P02 gallery example states ready' -Description 'Actual native Components gallery with keyboard-operable ready loading empty error offline state explorer and clearly illustrative content'
+    # Route away/back to restore main keyboard focus before the ten Tab stops:
+    # toolbar command/help, action buttons, text field, five state controls.
+    Save-NativeFollowup -ScreenshotId 'P02-T06-GALLERY-OFFLINE' -Shortcut '^{2}^{6}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{ENTER}{PGDN}{PGDN}' -ScreenTitle 'P02 gallery selected offline example' -Description 'Actual native Components state explorer after selecting the illustrative Offline button with keyboard and seeing recovery guidance'
+    Save-NativeFollowup -ScreenshotId 'P02-T05-PREFERENCES-LIVE' -Shortcut '^{2}{PGDN}' -ScreenTitle 'P02 session appearance preference feedback' -Description 'Real Tauri Preferences window with effective theme source current density reduced motion indicator and session reset control'
     # T04: open palette from Help, type allowlisted view and execute with Enter.
     # Focus moves to destination main on palette navigation; never run arbitrary code.
     $OutputDirectory = $m02Output

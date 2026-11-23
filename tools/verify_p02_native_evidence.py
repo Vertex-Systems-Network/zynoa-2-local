@@ -20,6 +20,7 @@ SCREEN_IDS = (
     "M02-OPT-04", "P02-T02-OPT-04-swapped",
     "P02-T04-NO-MATCH", "P02-T04-ESCAPE", "P02-T04-ENTER-NAV",
     "P02-T03-RAIL-COLLAPSED", "P02-T03-RAIL-EXPANDED", "P02-T03-RAIL-RESTORED",
+    "P02-T06-GALLERY-READY", "P02-T06-GALLERY-OFFLINE", "P02-T05-PREFERENCES-LIVE",
 )
 _SHA = re.compile(r"^[0-9a-f]{40}$")
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
@@ -118,6 +119,12 @@ def verify(root: Path, source_sha: str) -> dict:
     _require(by_id["P02-T04-ENTER-NAV"]["sha256"] !=
              by_id["M19-S01"]["sha256"],
              "Enter command did not visibly navigate away from Help")
+    _require(by_id["P02-T06-GALLERY-READY"]["sha256"] !=
+             by_id["P02-T06-GALLERY-OFFLINE"]["sha256"],
+             "T06 Gallery selected state did not produce different native pixels")
+    _require(by_id["P02-T06-GALLERY-OFFLINE"]["sha256"] !=
+             by_id["P02-T05-PREFERENCES-LIVE"]["sha256"],
+             "T05 Preferences candidate did not navigate away from Gallery")
     help_states = ("M19-S01", "M19-S04", "M19-S05", "M19-S06",
                    "M19-S02", "M19-S03")
     _require(all(by_id[a]["sha256"] != by_id[b]["sha256"]

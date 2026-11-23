@@ -73,7 +73,7 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
     def test_all_machine_candidates_validate_but_do_not_self_approve(self):
         result = verify(self.root, SOURCE_SHA)
         self.assertEqual("MACHINE_METADATA_HASH_VALIDATED_ONLY", result["status"])
-        self.assertEqual(26, len(result["screens"]))
+        self.assertEqual(29, len(result["screens"]))
         self.assertFalse(result["independent_visual_review"])
         self.assertFalse(result["manifest_completed"])
 
