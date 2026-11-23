@@ -142,7 +142,8 @@ function Save-NativeFollowup {
         [Parameter(Mandatory = $true)][string]$Shortcut,
         [Parameter(Mandatory = $true)][string]$ScreenTitle,
         [Parameter(Mandatory = $true)][string]$Description,
-        [Parameter(Mandatory = $false)][string]$OptionId = ""
+        [Parameter(Mandatory = $false)][string]$OptionId = "",
+        [Parameter(Mandatory = $false)][string]$FinalCandidateId = ""
     )
     $proc.Refresh()
     if ($proc.HasExited -or -not [ZynoaScreenWin32]::IsWindowVisible($hwnd)) {
@@ -222,6 +223,15 @@ function Save-NativeFollowup {
         }
         $viewMeta['option_id'] = $OptionId
         $viewMeta['interaction'] = 'palette:exact-id:enter:option-detail'
+    }
+    if ($FinalCandidateId -ne "") {
+        if ($FinalCandidateId -cnotmatch '^M(02|19)-(S0[1-7]|OPT-0[1-8])$' -or
+            $ScreenshotId -cne ('P02-T10-CTRL-' + $FinalCandidateId)) {
+            throw 'ZYN-SCREEN-041: final-control candidate identity mismatch'
+        }
+        $viewMeta['candidate_final_asset_id'] = $FinalCandidateId
+        $viewMeta['interaction'] = 'actual-native-screen-or-control:keyboard'
+        $viewMeta['evidence_limit'] = 'NOT a final manifest screenshot or independent visual approval'
     }
     $viewMeta | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (
         Join-Path $OutputDirectory ($ScreenshotId + '.capture.json')) -Encoding UTF8
@@ -340,6 +350,96 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
             Save-NativeFollowup -ScreenshotId $referenceId -Shortcut ($optionId + '{ENTER}{PGDN}') -ScreenTitle ("P02 native Help option reference " + $optionId) -Description ("Real Windows Tauri local Help option detail opened from exact " + $optionId + " palette lookup with usage, limits and recovery") -OptionId $optionId
         }
     }
+    $OutputDirectory = $m19Output
+
+    # P02-T10: 15 missing *actual* Windows UI/control candidate journeys.
+    # The other 14 final asset IDs already have direct live native view candidates.
+    # M02/M19 option Help references are NOT substituted for user-facing controls.
+    # Each frame has its own immutable target identity and a pending-review receipt.
+    # This is not a manifest promotion or a screen-reader signoff.
+    Add-Type -AssemblyName UIAutomationClient
+    Add-Type -AssemblyName UIAutomationTypes
+    function Focus-P02NativeControl {
+        param([Parameter(Mandatory=$true)][string]$AccessibleName)
+        $uiaRoot = [System.Windows.Automation.AutomationElement]::FromHandle($hwnd)
+        if ($null -eq $uiaRoot -or $uiaRoot.Current.ProcessId -ne $TargetPid) {
+            throw 'ZYN-SCREEN-042: native UI Automation handle/PID mismatch'
+        }
+        $condition = [System.Windows.Automation.PropertyCondition]::new(
+            [System.Windows.Automation.AutomationElement]::NameProperty, $AccessibleName)
+        for ($attempt=0; $attempt -lt 18; $attempt++) {
+            $items = $uiaRoot.FindAll([System.Windows.Automation.TreeScope]::Descendants, $condition)
+            for ($itemIndex=0; $itemIndex -lt $items.Count; $itemIndex++) {
+                try {
+                    $item = $items.Item($itemIndex)
+                    if (-not $item.Current.IsEnabled -or -not $item.Current.IsKeyboardFocusable) { continue }
+                    $item.SetFocus()
+                    Start-Sleep -Milliseconds 150
+                    return
+                } catch [System.Windows.Automation.ElementNotAvailableException] {
+                    # Transient React WebView2 rerender; bounded retry.
+                } catch [System.InvalidOperationException] {
+                    # Offscreen control may become focusable after native scroll.
+                }
+            }
+            Start-Sleep -Milliseconds 250
+        }
+        throw ('ZYN-SCREEN-043: actual named native keyboard target absent: ' + $AccessibleName)
+    }
+    $OutputDirectory = $m02Output
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M02-S01' -Shortcut '^{1}' -ScreenTitle 'M02 actual global shell' -Description 'Real Tauri Overview workspace shell with native sidebar, read-only startup state and disabled unimplemented workspace creation' -FinalCandidateId 'M02-S01'
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M02-S02' -Shortcut '%n' -ScreenTitle 'M02 actual navigation rail' -Description 'Real Tauri native navigation rail after keyboard Alt+N collapses the sidebar without leaving Overview' -FinalCandidateId 'M02-S02'
+    [System.Windows.Forms.SendKeys]::SendWait('%n')
+    [System.Windows.Forms.SendKeys]::SendWait('^{2}')
+    Start-Sleep -Milliseconds 300
+    Focus-P02NativeControl -AccessibleName 'Navigation density'
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M02-OPT-01' -Shortcut '{HOME}{DOWN}{TAB}{PGDN}' -ScreenTitle 'M02 actual density preference control' -Description 'Real native Preferences density selector changed to Compact with immediately applied session-only UI density feedback' -FinalCandidateId 'M02-OPT-01'
+    [System.Windows.Forms.SendKeys]::SendWait('^{2}')
+    Focus-P02NativeControl -AccessibleName 'Interface appearance'
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M02-OPT-02' -Shortcut '{HOME}{DOWN}{DOWN}{TAB}' -ScreenTitle 'M02 actual theme preference control' -Description 'Real native Preferences appearance selector changed to Light with reflected UI theme and truthful session-only boundary' -FinalCandidateId 'M02-OPT-02'
+    [System.Windows.Forms.SendKeys]::SendWait('^+p')
+    Start-Sleep -Milliseconds 300
+    Focus-P02NativeControl -AccessibleName 'Search available commands and offline Help'
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M02-OPT-05' -Shortcut 'preferences' -ScreenTitle 'M02 actual command search control' -Description 'Real Windows native command palette text input with typed Preferences query and matching allowlisted app command' -FinalCandidateId 'M02-OPT-05'
+    [System.Windows.Forms.SendKeys]::SendWait('{ESC}')
+    [System.Windows.Forms.SendKeys]::SendWait('^{5}')
+    Start-Sleep -Milliseconds 300
+    Focus-P02NativeControl -AccessibleName 'Layout controls'
+    [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+    Start-Sleep -Milliseconds 250
+    Focus-P02NativeControl -AccessibleName 'Left pane width'
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M02-OPT-06' -Shortcut '{RIGHT}{RIGHT}{PGDN}' -ScreenTitle 'M02 actual split pane slider' -Description 'Real native Workbench Layout controls slider adjusted by keyboard arrows with immediate live pane proportion preview' -FinalCandidateId 'M02-OPT-06'
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M02-OPT-08' -Shortcut '^{2}{PGDN}' -ScreenTitle 'M02 Windows motion setting feedback' -Description 'Real native Preferences reporting current operating-system motion preference; follows Windows without falsely claiming manual reduced-motion toggle' -FinalCandidateId 'M02-OPT-08'
+
+    $OutputDirectory = $m19Output
+    [System.Windows.Forms.SendKeys]::SendWait('^{2}')
+    [System.Windows.Forms.SendKeys]::SendWait('{F1}')
+    Start-Sleep -Milliseconds 350
+    Focus-P02NativeControl -AccessibleName 'Search offline help'
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-01' -Shortcut 'theme{PGDN}' -ScreenTitle 'M19 actual offline article search' -Description 'Real Windows Help search control with typed theme query, bundled local matching articles and category filtering' -FinalCandidateId 'M19-OPT-01'
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-02' -Shortcut '^{2}{F1}{PGDN}' -ScreenTitle 'M19 actual contextual F1 Help' -Description 'Real native Preferences opened into relevant bundled contextual Help using F1 without internet or external content' -FinalCandidateId 'M19-OPT-02'
+    [System.Windows.Forms.SendKeys]::SendWait('^{2}')
+    [System.Windows.Forms.SendKeys]::SendWait('{F1}')
+    Focus-P02NativeControl -AccessibleName 'Troubleshooting wizard'
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-03' -Shortcut '{ENTER}{PGDN}' -ScreenTitle 'M19 actual troubleshooting recovery steps' -Description 'Real native bundled troubleshooting wizard with selected issue first step and safe offline recovery actions' -FinalCandidateId 'M19-OPT-03'
+    [System.Windows.Forms.SendKeys]::SendWait('^{2}')
+    [System.Windows.Forms.SendKeys]::SendWait('{F1}')
+    Focus-P02NativeControl -AccessibleName 'FAQ & glossary'
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-04' -Shortcut '{ENTER}{PGDN}' -ScreenTitle 'M19 actual offline glossary' -Description 'Real native Help FAQ and glossary panel showing bundled definitions rather than a fake external dictionary' -FinalCandidateId 'M19-OPT-04'
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-05' -Shortcut '{TAB}{ENTER}{PGDN}' -ScreenTitle 'M19 actual FAQ expanded question' -Description 'Real native Help FAQ with keyboard-expanded disclosure and linked offline guidance' -FinalCandidateId 'M19-OPT-05'
+    [System.Windows.Forms.SendKeys]::SendWait('^{2}')
+    [System.Windows.Forms.SendKeys]::SendWait('{F1}')
+    Focus-P02NativeControl -AccessibleName 'Wiki & link checker'
+    [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+    Start-Sleep -Milliseconds 250
+    Focus-P02NativeControl -AccessibleName 'Check bundled article and Wiki mappings'
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-06' -Shortcut '{ENTER}{PGDN}' -ScreenTitle 'M19 actual local Wiki link checker' -Description 'Real native Wiki source mappings with keyboard-triggered local mapping check; remote GitHub Wiki explicitly unverified' -FinalCandidateId 'M19-OPT-06'
+    [System.Windows.Forms.SendKeys]::SendWait('^{2}')
+    [System.Windows.Forms.SendKeys]::SendWait('{F1}')
+    Start-Sleep -Milliseconds 250
+    Focus-P02NativeControl -AccessibleName 'Prepare local report'
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-07' -Shortcut '{ENTER}{PGDN}' -ScreenTitle 'M19 actual local article error report' -Description 'Real native Help article report opened with a sanitized copy-only payload and no network submission' -FinalCandidateId 'M19-OPT-07'
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-08' -Shortcut '^{2}{F1}' -ScreenTitle 'M19 actual offline Help indicator' -Description 'Real native Help catalog ready indicator and bundled article inventory without offline-mode false toggle or network dependency' -FinalCandidateId 'M19-OPT-08'
     $OutputDirectory = $m19Output
 
     # T02.07: verify real native narrow viewport without falsifying responsive screenshots.

@@ -12,7 +12,7 @@ import unittest
 import zlib
 
 from tools.verify_p02_native_evidence import (
-    InvalidNativeEvidence, SCREEN_IDS, OPTION_REFERENCE_MATRIX, ORIGIN, STATUS, validate_candidate, verify,
+    InvalidNativeEvidence, SCREEN_IDS, OPTION_REFERENCE_MATRIX, DIRECT_CONTROL_MATRIX, ORIGIN, STATUS, validate_candidate, verify,
 )
 
 SOURCE_SHA = "a" * 40
@@ -36,7 +36,7 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
         self.root = Path(self.tmp.name)
         self.receipts = {}
         for index, screen_id in enumerate(SCREEN_IDS):
-            folder = self.root / ("M19" if screen_id.startswith("M19-") else "M02")
+            folder = self.root / ("M19" if screen_id.startswith("M19-") or screen_id.startswith("P02-T10-CTRL-M19-") else "M02")
             folder.mkdir(parents=True, exist_ok=True)
             narrow = (screen_id.startswith("P02-T02-07") or screen_id.startswith("P02-T02-12")
                       or screen_id in ("M02-OPT-04", "P02-T02-OPT-04-swapped")
@@ -59,6 +59,10 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
                 "alt_text": "Synthetic unit-test geometry for independent verifier gates only",
                 "privacy": "Disposable CI fixture with no user content or secrets",
             }
+            if screen_id in DIRECT_CONTROL_MATRIX:
+                meta["candidate_final_asset_id"] = screen_id.removeprefix("P02-T10-CTRL-")
+                meta["interaction"] = "actual-native-screen-or-control:keyboard"
+                meta["evidence_limit"] = "NOT a final manifest screenshot or independent visual approval"
             if screen_id in OPTION_REFERENCE_MATRIX:
                 meta["option_id"] = screen_id.replace("-T10-REF-OPT-", "-OPT-")
                 meta["interaction"] = "palette:exact-id:enter:option-detail"
@@ -76,13 +80,38 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
     def test_all_machine_candidates_validate_but_do_not_self_approve(self):
         result = verify(self.root, SOURCE_SHA)
         self.assertEqual("MACHINE_METADATA_HASH_VALIDATED_ONLY", result["status"])
-        self.assertEqual(54, len(result["screens"]))
+        self.assertEqual(69, len(result["screens"]))
+        self.assertEqual(15, result["actual_screen_control_candidates"]["count"])
+        self.assertEqual("MACHINE_CONTROL_CAPTURE_ONLY",
+                         result["actual_screen_control_candidates"]["status"])
         self.assertEqual(16, result["option_reference_matrix"]["count"])
         self.assertEqual("MACHINE_REFERENCE_CAPTURE_ONLY",
                          result["option_reference_matrix"]["status"])
         self.assertFalse(result["option_reference_matrix"]["final_29_manifest_assets_verified"])
         self.assertFalse(result["independent_visual_review"])
         self.assertFalse(result["manifest_completed"])
+
+    def test_real_control_candidate_identity_is_required(self):
+        self.assertEqual(15, len(DIRECT_CONTROL_MATRIX))
+        self._mutate("P02-T10-CTRL-M19-OPT-07", "candidate_final_asset_id", "M19-OPT-08")
+        with self.assertRaisesRegex(InvalidNativeEvidence, "target identity mismatch"):
+            verify(self.root, SOURCE_SHA)
+
+    def test_control_candidates_are_not_help_references_or_final_acceptance(self):
+        self._mutate("P02-T10-CTRL-M02-OPT-01", "interaction",
+                     "palette:exact-id:enter:option-detail")
+        with self.assertRaisesRegex(InvalidNativeEvidence, "native control evidence"):
+            verify(self.root, SOURCE_SHA)
+        self._mutate("P02-T10-CTRL-M02-OPT-01", "interaction",
+                     "actual-native-screen-or-control:keyboard")
+        self._mutate("P02-T10-CTRL-M02-OPT-01", "capture_verified", True)
+        with self.assertRaisesRegex(InvalidNativeEvidence, "cannot self-approve"):
+            verify(self.root, SOURCE_SHA)
+
+    def test_missing_real_direct_control_frame_rejected(self):
+        (self.root / "M19" / "P02-T10-CTRL-M19-OPT-04.png").unlink()
+        with self.assertRaisesRegex(InvalidNativeEvidence, "missing PNG/capture pair"):
+            verify(self.root, SOURCE_SHA)
 
     def test_malformed_sha_rejected(self):
         with self.assertRaisesRegex(InvalidNativeEvidence, "invalid PR source SHA"):

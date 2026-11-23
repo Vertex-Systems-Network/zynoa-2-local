@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from tools.verify_p02_native_evidence import SCREEN_IDS, OPTION_REFERENCE_MATRIX
+from tools.verify_p02_native_evidence import SCREEN_IDS, OPTION_REFERENCE_MATRIX, DIRECT_CONTROL_MATRIX
 from tools.verify_p02_t10_readiness import audit, InvalidT10Readiness, EXPECTED
 
 SHA = "a" * 40
@@ -32,6 +32,8 @@ class P02T10ReadinessTests(unittest.TestCase):
             schema_version=1, source_commit_sha=SHA,
             status="MACHINE_METADATA_HASH_VALIDATED_ONLY",
             independent_visual_review=False, manifest_completed=False,
+            actual_screen_control_candidates=dict(count=15, ids=list(DIRECT_CONTROL_MATRIX),
+                status="MACHINE_CONTROL_CAPTURE_ONLY", final_29_manifest_assets_verified=False),
             option_reference_matrix=dict(count=16, ids=list(OPTION_REFERENCE_MATRIX),
                 status="MACHINE_REFERENCE_CAPTURE_ONLY",
                 final_29_manifest_assets_verified=False),
@@ -55,13 +57,25 @@ class P02T10ReadinessTests(unittest.TestCase):
     def test_all_candidates_are_present_but_never_final_approved(self):
         result = audit(self.root, SHA)
         self.assertEqual("NOT_READY", result["status"])
-        self.assertEqual(54, result["candidate_total"])
+        self.assertEqual(69, result["candidate_total"])
+        self.assertEqual(15, result["native_direct_control_candidates"])
         self.assertEqual(16, result["native_option_references_captured"])
         self.assertEqual(29, result["final_manifest_expected"])
         self.assertEqual(0, result["final_manifest_verified"])
         self.assertEqual(set(EXPECTED), set(result["pending_final_assets"]))
         self.assertFalse(result["independent_full_visual_review"])
         self.assertFalse(result["screen_reader_approved"])
+
+    def test_native_direct_controls_cannot_be_disguised_as_final_acceptance(self):
+        self._mutate(self.machine, lambda x: x["actual_screen_control_candidates"].update(
+            status="FINAL_VERIFIED"))
+        with self.assertRaisesRegex(InvalidT10Readiness, "15-direct-control"):
+            audit(self.root, SHA)
+
+    def test_omitted_direct_control_candidate_is_rejected(self):
+        self._mutate(self.machine, lambda x: x["actual_screen_control_candidates"]["ids"].pop())
+        with self.assertRaisesRegex(InvalidT10Readiness, "15-direct-control"):
+            audit(self.root, SHA)
 
     def test_missing_or_wrong_source_metadata_cannot_pass(self):
         self._mutate(self.machine, lambda x: x.update(source_commit_sha="b" * 40))

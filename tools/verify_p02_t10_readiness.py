@@ -10,7 +10,7 @@ import json
 import re
 from pathlib import Path
 
-from tools.verify_p02_native_evidence import OPTION_REFERENCE_MATRIX, SCREEN_IDS
+from tools.verify_p02_native_evidence import OPTION_REFERENCE_MATRIX, DIRECT_CONTROL_MATRIX, SCREEN_IDS
 
 _SHA = re.compile(r"^[a-f0-9]{40}$")
 EXPECTED = {
@@ -74,6 +74,12 @@ def audit(root: Path, source_sha: str) -> dict:
           and matrix.get("ids") == list(OPTION_REFERENCE_MATRIX)
           and matrix.get("final_29_manifest_assets_verified") is False,
           "16-option reference matrix cannot claim actual controls are complete")
+    controls = machine.get("actual_screen_control_candidates", {})
+    _need(controls.get("status") == "MACHINE_CONTROL_CAPTURE_ONLY"
+          and controls.get("count") == len(DIRECT_CONTROL_MATRIX)
+          and controls.get("ids") == list(DIRECT_CONTROL_MATRIX)
+          and controls.get("final_29_manifest_assets_verified") is False,
+          "15-direct-control capture matrix cannot claim final manifest acceptance")
     perf = _load(root / "docs/screenshots/_ci/M02/P02-native-performance.json")
     _need(perf.get("source_commit_sha") == source_sha
           and perf.get("schema_version") == 1
@@ -95,13 +101,15 @@ def audit(root: Path, source_sha: str) -> dict:
         "status": "NOT_READY",
         "candidate_total": len(validated),
         "native_option_references_captured": 16,
+        "native_direct_control_candidates": len(DIRECT_CONTROL_MATRIX),
+        "native_total_candidate_frames": len(validated),
         "final_manifest_expected": 29,
         "final_manifest_verified": finalized,
         "pending_final_assets": missing,
         "independent_full_visual_review": False,
         "screen_reader_approved": False,
         "performance_budget_approved": False,
-        "note": "Machine candidate/hash and startup timings only; final screen/control images, independent a11y and budget review not approved.",
+        "note": "69 source-bound native candidate frames (including 15 direct control captures and 16 separate Help references); final 29 app screenshots, independent visual/a11y and performance budgets not approved.",
     }
 
 

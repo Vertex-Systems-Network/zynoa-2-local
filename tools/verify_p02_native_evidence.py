@@ -30,6 +30,15 @@ OPTION_REFERENCE_MATRIX = tuple(
     for module in ("M02", "M19") for i in range(1, 9)
 )
 SCREEN_IDS += OPTION_REFERENCE_MATRIX
+# Only the 15 outstanding direct screen/control IDs require additional native
+# captures. Existing named M02/M19 screen IDs already come from real UI journeys.
+DIRECT_CONTROL_ASSETS = (
+    "M02-S01", "M02-S02", "M02-OPT-01", "M02-OPT-02",
+    "M02-OPT-05", "M02-OPT-06", "M02-OPT-08",
+    *(f"M19-OPT-{index:02d}" for index in range(1, 9)),
+)
+DIRECT_CONTROL_MATRIX = tuple("P02-T10-CTRL-" + asset for asset in DIRECT_CONTROL_ASSETS)
+SCREEN_IDS += DIRECT_CONTROL_MATRIX
 _SHA = re.compile(r"^[0-9a-f]{40}$")
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 ORIGIN = "GitHub Windows Actions actual Tauri process"
@@ -58,7 +67,7 @@ def _png_dimensions(png: bytes, screen_id: str) -> tuple[int, int]:
 def validate_candidate(root: Path, screen_id: str, source_sha: str) -> dict:
     """Validate a SHA-bound machine candidate; do not infer independent visual approval."""
     _require(screen_id in SCREEN_IDS, f"Unexpected screen id: {screen_id}")
-    category = "M19" if screen_id.startswith("M19-") else "M02"
+    category = "M19" if screen_id.startswith("M19-") or screen_id.startswith("P02-T10-CTRL-M19-") else "M02"
     directory = root / category
     image = directory / f"{screen_id}.png"
     receipt = directory / f"{screen_id}.capture.json"
@@ -70,6 +79,14 @@ def validate_candidate(root: Path, screen_id: str, source_sha: str) -> dict:
         raise InvalidNativeEvidence(f"{screen_id}: unreadable PNG/capture receipt") from exc
     _require(isinstance(meta, dict), f"{screen_id}: malformed metadata object")
     _require(meta.get("screenshot_id") == screen_id, f"{screen_id}: screenshot ID mismatch")
+    if screen_id in DIRECT_CONTROL_MATRIX:
+        expected_asset = screen_id.removeprefix("P02-T10-CTRL-")
+        _require(meta.get("candidate_final_asset_id") == expected_asset,
+                 f"{screen_id}: final candidate target identity mismatch")
+        _require(meta.get("interaction") == "actual-native-screen-or-control:keyboard"
+                 and meta.get("evidence_limit") ==
+                 "NOT a final manifest screenshot or independent visual approval",
+                 f"{screen_id}: missing actual native control evidence scope")
     if screen_id in OPTION_REFERENCE_MATRIX:
         expected_option = screen_id.replace("-T10-REF-OPT-", "-OPT-")
         _require(meta.get("option_id") == expected_option,
@@ -171,6 +188,13 @@ def verify(root: Path, source_sha: str) -> dict:
     _require(rail[0]["sha256"] != rail[1]["sha256"] and
              rail[1]["sha256"] != rail[2]["sha256"],
              "T03 rail toggle must visibly change expanded/collapsed screenshots")
+    direct_controls = [by_id[name] for name in DIRECT_CONTROL_MATRIX]
+    _require(len({item["sha256"] for item in direct_controls}) == len(direct_controls),
+             "T10 native actual-control candidates include duplicate frames")
+    _require(all(item["width"] == by_id["M19-UNIFIED-OPTION-DEST"]["width"]
+                 and item["height"] == by_id["M19-UNIFIED-OPTION-DEST"]["height"]
+                 for item in direct_controls),
+             "T10 actual control candidates must use measured wide native window")
     option_matrix = [by_id[screen_id] for screen_id in OPTION_REFERENCE_MATRIX]
     _require(len({item["sha256"] for item in option_matrix}) == 16,
              "T10 option reference matrix contains duplicate captured pixels")
@@ -179,6 +203,12 @@ def verify(root: Path, source_sha: str) -> dict:
                  for item in option_matrix),
              "T10 option reference frames must match measured wide native viewport")
     return {"schema_version": 1,
+            "actual_screen_control_candidates": {
+                "count": len(direct_controls),
+                "ids": list(DIRECT_CONTROL_MATRIX),
+                "status": "MACHINE_CONTROL_CAPTURE_ONLY",
+                "final_29_manifest_assets_verified": False,
+            },
             "option_reference_matrix": {
                 "count": len(option_matrix),
                 "ids": list(OPTION_REFERENCE_MATRIX),
