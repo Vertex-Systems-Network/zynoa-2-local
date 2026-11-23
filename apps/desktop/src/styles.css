@@ -414,3 +414,61 @@ main:focus{outline:none}
   .shell .content { padding-left:24px; padding-right:24px; }
   .shell .footer { flex-wrap:wrap; padding-left:22px; padding-right:22px; }
 }
+
+
+/* M19 functional offline workflows: article routes, guided recovery, FAQ, Wiki checks. */
+.shell .help-workflow-switch { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 20px; }
+.shell .help-workflow-switch button { background:var(--surface-raised); color:var(--text-secondary); border:1px solid var(--line);
+  padding:12px 15px; border-radius:9px; cursor:pointer; min-height:42px; font-size:12px; font-weight:600; }
+.shell .help-workflow-switch button.selected { background:var(--surface-hover); color:var(--text-primary);
+  border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
+.shell .help-tool-panel { padding:28px 32px; border:1px solid var(--line); border-radius:15px; background:var(--surface);
+  color:var(--text-primary); min-height:450px; }
+.shell .help-tool-panel h2 { font-size:clamp(24px,2.8vw,34px); line-height:1.2; margin:10px 0 12px; }
+.shell .help-tool-panel h3 { font-size:16px; margin:16px 0 12px; }
+.shell .help-tool-panel p, .shell .help-local-report p { color:var(--text-secondary); font-size:12px; line-height:1.75; }
+.shell .help-tool-muted { font-size:11px !important; color:var(--text-tertiary) !important; }
+.shell .help-tool-field { display:grid; gap:9px; max-width:580px; margin:20px 0; color:var(--text-primary); font-size:12px; font-weight:600; }
+.shell .help-tool-field select, .shell .help-tool-field input,
+.shell .help-report-body select, .shell .help-report-body textarea {
+  width:100%; min-width:0; color:var(--text-primary); background:var(--surface-raised);
+  border:1px solid var(--line); border-radius:9px; padding:12px; font:inherit; }
+.shell .help-tool-field select:focus-visible, .shell .help-tool-field input:focus-visible,
+.shell .help-report-body select:focus-visible, .shell .help-report-body textarea:focus-visible {
+  outline:2px solid var(--outline); outline-offset:2px; }
+.shell .help-tool-result, .shell .help-wizard-step { border:1px solid var(--line);
+  border-radius:12px; background:var(--surface-raised); padding:24px; max-width:720px; margin:16px 0; }
+.shell .help-wizard-actions { display:flex; align-items:center; gap:12px; margin-top:25px; flex-wrap:wrap; }
+.shell .help-wizard-actions button { margin:0; }
+.shell .help-faq-grid { display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr); gap:22px; }
+.shell .help-faq-entry { border:1px solid var(--line); background:var(--surface-raised); border-radius:9px; padding:14px 16px; margin-bottom:10px; }
+.shell .help-faq-entry summary { cursor:pointer; font-size:13px; font-weight:650; line-height:1.5; color:var(--text-primary); }
+.shell .help-faq-entry[open] summary { color:var(--accent); }
+.shell .help-glossary-entries { margin:0; }
+.shell .help-glossary-entries>div { border-bottom:1px solid var(--line); padding:10px 0; }
+.shell .help-glossary-entries dt { font-size:12px; font-weight:700; color:var(--text-primary); }
+.shell .help-glossary-entries dd { margin:7px 0 0; font-size:12px; line-height:1.6; color:var(--text-secondary); }
+.shell .help-wiki-mappings { display:grid; gap:12px; }
+.shell .help-wiki-row { border:1px solid var(--line); background:var(--surface-raised);
+  border-radius:9px; padding:18px; display:flex; flex-wrap:wrap; justify-content:space-between; gap:14px; align-items:center; }
+.shell .help-wiki-row>div { display:grid; gap:8px; min-width:0; }
+.shell .help-wiki-row strong { font-size:13px; }
+.shell .help-wiki-row code { font-size:11px; overflow-wrap:anywhere; color:var(--accent); }
+.shell .help-wiki-row small { font-size:11px; color:var(--text-tertiary); }
+.shell .help-route-checker { margin-top:24px; padding-top:20px; border-top:1px solid var(--line); }
+.shell .help-route-checker button { margin:0 10px 10px 0; }
+.shell .help-local-report { width:100%; margin-top:17px; padding:16px;
+  border:1px solid var(--line); border-radius:10px; background:var(--surface-raised); }
+.shell .help-local-report h3 { font-size:13px; margin:0 0 8px; }
+.shell .help-report-body { display:grid; gap:11px; max-width:560px; margin-top:15px; }
+.shell .help-report-body label { font-size:11px; font-weight:700; }
+.shell .help-report-body textarea { resize:vertical; font-family:ui-monospace,Consolas,monospace; font-size:11px; }
+.shell .help-report-body button { justify-self:start; margin:0; }
+@media (max-width:1050px) {
+  .shell .help-faq-grid { grid-template-columns:minmax(0,1fr); }
+  .shell .help-tool-panel { padding:24px; }
+}
+@media (max-width:950px) {
+  .shell .help-workflow-switch button { flex:1 1 180px; }
+  .shell .help-wiki-row { align-items:stretch; }
+}
