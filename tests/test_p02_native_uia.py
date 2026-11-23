@@ -17,6 +17,14 @@ def good():
         "native_pid_matched": True,
         "scope": "Scoped accessible-name, keyboard focus and dialog dismissal probe",
         "results": {key: True for key in EXPECTED},
+        "diagnostics": {
+            "search_focus": {
+                "method": "real_keyboard_text_and_input_ValuePattern",
+                "exact_local_probe_id": "M19-OPT-06",
+                "query_reflected_by_input_provider": True,
+                "provider_focus_kind": "aria_active_descendant_list_item",
+            },
+        },
         "issues": [],
         "duration_ms": 1600,
         "full_screen_reader_verified": False,
@@ -46,6 +54,22 @@ class NativeUIAContracts(unittest.TestCase):
                 proof = good()
                 proof["results"][key] = False
                 with self.assertRaisesRegex(InvalidUIAEvidence, "accessible names"):
+                    verify(proof, SHA)
+
+    def test_uia_focused_listitem_alone_is_not_proof_of_keyboard_input(self):
+        for mutation in (
+            lambda item: item.pop("diagnostics"),
+            lambda item: item["diagnostics"]["search_focus"].update(
+                method="aria_active_descendant_list_item"),
+            lambda item: item["diagnostics"]["search_focus"].update(
+                query_reflected_by_input_provider=False),
+            lambda item: item["diagnostics"]["search_focus"].update(
+                exact_local_probe_id="M19-OPT-07"),
+        ):
+            with self.subTest(mutation=mutation):
+                proof = good()
+                mutation(proof)
+                with self.assertRaisesRegex(InvalidUIAEvidence, "ValuePattern"):
                     verify(proof, SHA)
 
     def test_screen_reader_certificate_cannot_be_forged(self):

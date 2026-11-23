@@ -1,5 +1,14 @@
 # P02 — Real Windows native accessibility provider and keyboard probe
 
+## Expanded native keyboard proof after provider focus mismatch (2026-11-23)
+
+Native Windows [run #45214008515](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45214008515) failed the earlier focus assertion. Downloaded original artifact #14838970137 confirms both Preferences selectors were present, enabled and keyboard-focusable; the command modal and named search were available and Escape worked. The Windows UIA provider returned `aria_active_descendant_list_item` as its focused element instead of the combobox input, so **no keyboard-focus acceptance was granted**.
+
+The next source implementation goes beyond a provider focus label: it types a fixed non-private option ID (`M19-OPT-06`) through Windows SendKeys, requires the input's own UI Automation `ValuePattern` to return that exact ID, requires the matching bundled Wiki option to appear, activates Enter and checks that the modal vanishes and Help option detail appears, then reopens and dismisses the modal with Escape. The fail-closed proof schema now contains **nine** exact booleans plus native input-value provenance; a focused list item or a fabricated PASS flag cannot satisfy the validator without the real typed input.
+
+The implementation is source-scoped until a **completed passing exact-head native Windows run** is independently verified. These tests do not certify NVDA/Narrator use, all 29 final M02/M19 screenshots, full preference controls, real Wiki publication or a release.
+
+
 **Scope:** M02 design system and M19 Help discovery. **Phase:** P02, primary draft PR #12.
 
 ## Implementation

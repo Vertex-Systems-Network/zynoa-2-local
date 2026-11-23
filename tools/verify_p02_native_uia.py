@@ -48,6 +48,17 @@ def verify(proof: dict, source_sha: str) -> dict:
         results.get(key) is not True for key in EXPECTED
     ):
         raise InvalidUIAEvidence("missing native accessible names, functional keyboard search/Enter navigation or Escape")
+    # Provider-reported focus may land on the combobox active descendant.
+    # The only acceptable substitute is actual typed text in the named
+    # input's own native ValuePattern, not a synthetic UIA focus flag.
+    diagnostics = proof.get("diagnostics")
+    focus = diagnostics.get("search_focus") if isinstance(diagnostics, dict) else None
+    if not isinstance(focus, dict) or (
+        focus.get("method") != "real_keyboard_text_and_input_ValuePattern"
+        or focus.get("exact_local_probe_id") != "M19-OPT-06"
+        or focus.get("query_reflected_by_input_provider") is not True
+    ):
+        raise InvalidUIAEvidence("real keyboard input ValuePattern evidence absent or inconsistent")
     if proof.get("issues") != []:
         raise InvalidUIAEvidence("native accessibility issues remain")
     duration = proof.get("duration_ms")
