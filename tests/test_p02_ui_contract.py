@@ -202,6 +202,25 @@ class P02UIContractTests(unittest.TestCase):
         self.assertIn("tests.test_p02_ui_contract -v", workflow)
 
 
+    def test_t02_final_native_theme_and_keyboard_guide_capture_contract(self):
+        """T02.12: new native themes and keyboard guide remain source-SHA candidates."""
+        capture = (ROOT / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        for screenshot in ("M02-S07", "P02-T02-12-LIGHT", "P02-T02-12-DARK"):
+            self.assertIn("-ScreenshotId '" + screenshot + "'", capture)
+        self.assertIn("-Shortcut '+{TAB}{END}{TAB}'", capture)
+        self.assertIn("-Shortcut '^{2}{TAB}{TAB}{TAB}{HOME}{DOWN}{DOWN}{TAB}'", capture)
+        self.assertIn("-Shortcut '+{TAB}{HOME}{DOWN}{TAB}'", capture)
+        self.assertLess(capture.index("-ScreenshotId 'M02-OPT-07'"),
+                        capture.index("-ScreenshotId 'M02-S07'"))
+        self.assertLess(capture.index("-ScreenshotId 'M02-S07'"),
+                        capture.index("-ScreenshotId 'M02-S05'"))
+        self.assertLess(capture.index("-ScreenshotId 'P02-T02-07-continued'"),
+                        capture.index("-ScreenshotId 'P02-T02-12-LIGHT'"))
+        self.assertLess(capture.index("-ScreenshotId 'P02-T02-12-LIGHT'"),
+                        capture.index("-ScreenshotId 'P02-T02-12-DARK'"))
+        self.assertIn("candidate_pending_visual_review", capture)
+        self.assertIn("capture_verified = $false", capture)
+
     def test_gallery_interaction_states_keep_input_independent(self):
         """T02.06: action selection cannot erase typed sample content."""
         source = (APP / "src/ui/Workbench.tsx").read_text(encoding="utf-8")
