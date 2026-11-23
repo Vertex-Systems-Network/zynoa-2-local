@@ -119,6 +119,8 @@ class M19OfflineWorkflowTests(unittest.TestCase):
         verifier=(ROOT/"tools/verify_p02_native_evidence.py").read_text(encoding="utf-8")
         self.assertIn("M19-OPTION-REFERENCE-CI",capture)
         self.assertIn("M19-OPTION-REFERENCE-CI",verifier)
+        self.assertIn("M19-FAQ-GLOSSARY-CI",capture)
+        self.assertIn("M19 FAQ must visually differ",verifier)
         self.assertIn("'M19-S04' -Shortcut '{TAB}{TAB}{TAB}{TAB}{TAB}{ENTER}",capture)
         self.assertIn("+{TAB}+{TAB}+{TAB}+{TAB}+{TAB}{ENTER}",capture)
         self.assertIn("M19 option reference must differ",verifier)

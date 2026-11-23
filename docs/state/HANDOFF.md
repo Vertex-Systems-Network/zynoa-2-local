@@ -2,6 +2,9 @@
 
 ## CURRENT (read this first; history below is archive)
 
+- **P02 real Windows T06/T08 state expansion (2026-11-23):** Added three actual Gallery state screenshots (Loading, Empty, Error) to complement Ready/Offline plus an FAQ/glossary Help candidate. Native evidence verifier now requires all 34 PNG/hash/provenance pairs and five distinct Gallery state hashes; source/CI proof pending. Final 15 M02 and 14 M19 manifest screenshots still pending.
+
+
 - **P02 T07/T09 scoped acceptance (2026-11-23):** Bundled versioned offline article/search contract and local Wiki/link assurance accepted from exact source `da648baa`, Windows run #45186464263, original source-SHA screenshot/hash visual review. Official T07 and T09 marked DONE with individual evidence files. Hosted Wiki publication, all final M19 PNGs and full module release remain unverified; T08/T10/T11 still open.
 
 

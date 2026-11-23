@@ -47,6 +47,14 @@ class M02InteractiveStateContracts(unittest.TestCase):
         self.assertNotIn("'^{2}^{6}'",native)
         self.assertIn("P02-T06-GALLERY-OFFLINE",native)
 
+    def test_actual_windows_gallery_five_state_capture_matrix(self):
+        capture=(ROOT/"scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        verifier=(ROOT/"tools/verify_p02_native_evidence.py").read_text(encoding="utf-8")
+        for state in ("READY","LOADING","EMPTY","ERROR","OFFLINE"):
+            self.assertIn("P02-T06-GALLERY-"+state,capture)
+            self.assertIn("P02-T06-GALLERY-"+state,verifier)
+        self.assertIn("five states must produce distinct real native frames",verifier)
+
     def test_native_ci_fail_closed(self):
         for marker in ('run: npm install --package-lock-only',
                        'run: npm ci --no-audit --no-fund',

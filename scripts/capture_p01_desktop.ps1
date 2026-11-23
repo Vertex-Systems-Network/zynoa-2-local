@@ -274,6 +274,8 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     [System.Windows.Forms.SendKeys]::SendWait('{F1}')
     Start-Sleep -Milliseconds 300
     Save-NativeFollowup -ScreenshotId 'M19-OPTION-REFERENCE-CI' -Shortcut '{TAB}{TAB}{TAB}{TAB}{ENTER}{PGDN}' -ScreenTitle 'M19 complete local option reference' -Description 'Real Windows Tauri Help option directory listing M02/M19 option IDs and their defaults, privacy boundaries and recovery instructions'
+    # Focus stays on Option reference workflow; three Tabs select FAQ.
+    Save-NativeFollowup -ScreenshotId 'M19-FAQ-GLOSSARY-CI' -Shortcut '{TAB}{TAB}{TAB}{ENTER}{PGDN}' -ScreenTitle 'M19 local FAQ and glossary' -Description 'Real Tauri Help FAQ question disclosures, linked local guides and six glossary definitions'
     # T05/T06: additional real interactive Gallery and live Preferences
     # screenshots from this same verified running Tauri window. Session-only.
     $OutputDirectory = $m02Output
@@ -291,6 +293,11 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
         [System.Windows.Forms.SendKeys]::SendWait('{TAB}')
     }
     Save-NativeFollowup -ScreenshotId 'P02-T06-GALLERY-OFFLINE' -Shortcut '{ENTER}{PGDN}{PGDN}' -ScreenTitle 'P02 gallery selected offline example' -Description 'Actual native Components state explorer after selecting the illustrative Offline button with keyboard and seeing recovery guidance'
+    # Use the same focused five-button gallery; reverse Tab changes Offline to
+    # Loading, then forward Tabs select Empty and Error. No simulated pixels.
+    Save-NativeFollowup -ScreenshotId 'P02-T06-GALLERY-LOADING' -Shortcut '+{TAB}+{TAB}+{TAB}{ENTER}{PGDN}' -ScreenTitle 'P02 selected illustrative loading example' -Description 'Native Tauri Gallery state explorer with selected Loading example and no active worker'
+    Save-NativeFollowup -ScreenshotId 'P02-T06-GALLERY-EMPTY' -Shortcut '{TAB}{ENTER}{PGDN}' -ScreenTitle 'P02 selected illustrative empty example' -Description 'Native Tauri Gallery state explorer with selected Empty example and restore-to-ready guidance'
+    Save-NativeFollowup -ScreenshotId 'P02-T06-GALLERY-ERROR' -Shortcut '{TAB}{ENTER}{PGDN}' -ScreenTitle 'P02 selected illustrative error example' -Description 'Native Tauri Gallery state explorer with selected Error example and safe recovery text'
     Save-NativeFollowup -ScreenshotId 'P02-T05-PREFERENCES-LIVE' -Shortcut '^{2}{PGDN}' -ScreenTitle 'P02 session appearance preference feedback' -Description 'Real Tauri Preferences window with effective theme source current density reduced motion indicator and session reset control'
     # T04: open palette from Help, type allowlisted view and execute with Enter.
     # Focus moves to destination main on palette navigation; never run arbitrary code.
