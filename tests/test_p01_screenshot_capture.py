@@ -55,8 +55,11 @@ class NativeScreenshotCaptureContracts(unittest.TestCase):
         self.assertEqual(2, self.workflow.count("ref: ${{ github.event.pull_request.head.sha }}"))
         self.assertIn("scripts/capture_p01_desktop\\.ps1", self.workflow)
         self.assertIn('PR_ACTION: ${{ github.event.action }}', self.workflow)
-        self.assertIn('changed="$(git diff --name-only HEAD^ HEAD)"', self.workflow)
+        # A docs-only last commit must never mask source changes earlier in a PR.
+        # Always compare the complete PR delta to the pinned base SHA.
+        self.assertNotIn('changed="$(git diff --name-only HEAD^ HEAD)"', self.workflow)
         self.assertIn('changed="$(git diff --name-only FETCH_HEAD HEAD)"', self.workflow)
+        self.assertIn('test -n "$changed"', self.workflow)
         self.assertIn("ZYN-SCREEN-014", self.workflow)
         self.assertIn("[System.Management.Automation.Language.Parser]::ParseFile", self.workflow)
         self.assertIn("ZYN-SCREEN-PARSE", self.workflow)
