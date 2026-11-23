@@ -51,7 +51,11 @@ class M02HelpEvidenceTests(unittest.TestCase):
         self.assertIn("A real project editor is unavailable", properties)
         start = self.help.index("### M02-OPT-04")
         end = self.help.index("### M02-OPT-05", start)
-        self.assertIn("not implemented", self.help[start:end].lower())
+        shortcuts = self.help[start:end]
+        self.assertIn("Implemented for session-only navigation controls", shortcuts)
+        self.assertIn("swaps both destinations", shortcuts)
+        self.assertIn("Restore default shortcuts", shortcuts)
+        self.assertIn("reserved", shortcuts)
         self.assertIn("no independent Reduce motion switch", self.help)
         self.assertIn("not persisted", self.wiki)
         self.assertIn("**not** been synced", self.wiki)
