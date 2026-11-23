@@ -2,6 +2,9 @@
 
 ## CURRENT (read this first; history below is archive)
 
+- **P02 T07/T09 scoped acceptance (2026-11-23):** Bundled versioned offline article/search contract and local Wiki/link assurance accepted from exact source `da648baa`, Windows run #45186464263, original source-SHA screenshot/hash visual review. Official T07 and T09 marked DONE with individual evidence files. Hosted Wiki publication, all final M19 PNGs and full module release remain unverified; T08/T10/T11 still open.
+
+
 - **P02 option Help search CI repair (2026-11-23):** Windows #45188853600 correctly failed 1/18 Node UI tests (typed `theme` synonym not returned); source search now includes linked bundled Help article keyword/title index and regression tests cover theme/glossary and module isolation. Failure is not waived. Exact-source Windows rerun required before declaring option directory verified.
 
 
