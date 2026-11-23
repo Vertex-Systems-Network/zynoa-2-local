@@ -1,0 +1,51 @@
+{
+  "change_id": "CHG-P02-M02-NATIVE-UIA-KEYBOARD-20261123",
+  "module_id": "M02",
+  "kind": "enhancement",
+  "title": "Live Windows Tauri UI Automation keyboard and accessible name audit",
+  "summary": "P02 native CI now probes the actual Windows WebView2 accessibility provider for named preference controls, accessible command dialog/input, keyboard focus and Escape recovery. Evidence is scoped and source-SHA-bound; not a full screen-reader, option or release certification. Initial live Windows UIA runs revealed non-focusable selector representations and search-focus issues; the latest hardened code encountered a separate bounded native-boot timeout before its UIA probe. Native acceptance unverified.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12",
+  "affected_option_ids": [
+    "M02-OPT-02",
+    "M02-OPT-04",
+    "M02-OPT-07",
+    "M19-OPT-01",
+    "M19-OPT-02"
+  ],
+  "docs_paths": [
+    "docs/modules/M02.md",
+    "docs/modules/M19.md",
+    "docs/evidence/P02_NATIVE_UIA_KEYBOARD.md",
+    "docs/state/HANDOFF.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M02.md",
+    "docs/help/articles/M19.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M02.md",
+    "docs/wiki/pages/M19.md"
+  ],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45208244566",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45209973684",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45211869007"
+  ],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "CI-only native UI Automation, no user storage migration.",
+  "version_bump": "none",
+  "docs_impact": true,
+  "data_migration": false,
+  "created_at": "2026-11-23T15:46:35.397Z",
+  "updated_at": "2026-11-23T16:12:58.023Z"
+}
