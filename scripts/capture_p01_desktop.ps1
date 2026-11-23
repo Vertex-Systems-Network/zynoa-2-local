@@ -141,7 +141,8 @@ function Save-NativeFollowup {
         [Parameter(Mandatory = $true)][string]$ScreenshotId,
         [Parameter(Mandatory = $true)][string]$Shortcut,
         [Parameter(Mandatory = $true)][string]$ScreenTitle,
-        [Parameter(Mandatory = $true)][string]$Description
+        [Parameter(Mandatory = $true)][string]$Description,
+        [Parameter(Mandatory = $false)][string]$OptionId = ""
     )
     $proc.Refresh()
     if ($proc.HasExited -or -not [ZynoaScreenWin32]::IsWindowVisible($hwnd)) {
@@ -214,6 +215,13 @@ function Save-NativeFollowup {
         sha256 = $viewHash
         alt_text = $Description
         privacy = 'Disposable CI fixture with no user content or secrets'
+    }
+    if ($OptionId -ne "") {
+        if ($OptionId -notmatch '^M(02|19)-OPT-0[1-8]$') {
+            throw 'ZYN-SCREEN-040: invalid typed option reference capture ID'
+        }
+        $viewMeta['option_id'] = $OptionId
+        $viewMeta['interaction'] = 'palette:exact-id:enter:option-detail'
     }
     $viewMeta | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (
         Join-Path $OutputDirectory ($ScreenshotId + '.capture.json')) -Encoding UTF8
@@ -316,6 +324,23 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     Start-Sleep -Milliseconds 500
     Save-NativeFollowup -ScreenshotId 'M19-UNIFIED-ARTICLE-RESULTS' -Shortcut 'Data and diagnostics boundaries' -ScreenTitle 'P02 unified palette offline article search' -Description 'Running Windows Tauri command palette with locally indexed Data and diagnostics boundaries article result'
     Save-NativeFollowup -ScreenshotId 'M19-UNIFIED-ARTICLE-DEST' -Shortcut '{ENTER}{PGDN}' -ScreenTitle 'P02 unified palette opens offline article' -Description 'Running Windows Tauri Help reader opened from the exact offline Data and diagnostics boundaries article search'
+
+    # P02-T10: complete 16-option native Help reference coverage. Real option
+    # detail pages, not a claim about unverified final control screenshots.
+    foreach ($moduleId in @('M02', 'M19')) {
+        for ($optionNumber = 1; $optionNumber -le 8; $optionNumber++) {
+            $numberText = '{0:D2}' -f $optionNumber
+            $optionId = "$moduleId-OPT-$numberText"
+            $referenceId = "$moduleId-T10-REF-OPT-$numberText"
+            $OutputDirectory = if ($moduleId -eq 'M02') { $m02Output } else { $m19Output }
+            [System.Windows.Forms.SendKeys]::SendWait('^{2}')
+            Start-Sleep -Milliseconds 250
+            [System.Windows.Forms.SendKeys]::SendWait('^+p')
+            Start-Sleep -Milliseconds 300
+            Save-NativeFollowup -ScreenshotId $referenceId -Shortcut ($optionId + '{ENTER}{PGDN}') -ScreenTitle ("P02 native Help option reference " + $optionId) -Description ("Real Windows Tauri local Help option detail opened from exact " + $optionId + " palette lookup with usage, limits and recovery") -OptionId $optionId
+        }
+    }
+    $OutputDirectory = $m19Output
 
     # T02.07: verify real native narrow viewport without falsifying responsive screenshots.
     # Tauri enforces a 900px minimum width; the CI desktop starts wider (~998px visible).

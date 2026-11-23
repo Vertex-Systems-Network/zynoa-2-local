@@ -25,6 +25,11 @@ SCREEN_IDS = (
     "M19-UNIFIED-OPTION-RESULTS", "M19-UNIFIED-OPTION-DEST",
     "M19-UNIFIED-ARTICLE-RESULTS", "M19-UNIFIED-ARTICLE-DEST",
 )
+OPTION_REFERENCE_MATRIX = tuple(
+    f"{module}-T10-REF-OPT-{i:02d}"
+    for module in ("M02", "M19") for i in range(1, 9)
+)
+SCREEN_IDS += OPTION_REFERENCE_MATRIX
 _SHA = re.compile(r"^[0-9a-f]{40}$")
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 ORIGIN = "GitHub Windows Actions actual Tauri process"
@@ -65,6 +70,12 @@ def validate_candidate(root: Path, screen_id: str, source_sha: str) -> dict:
         raise InvalidNativeEvidence(f"{screen_id}: unreadable PNG/capture receipt") from exc
     _require(isinstance(meta, dict), f"{screen_id}: malformed metadata object")
     _require(meta.get("screenshot_id") == screen_id, f"{screen_id}: screenshot ID mismatch")
+    if screen_id in OPTION_REFERENCE_MATRIX:
+        expected_option = screen_id.replace("-T10-REF-OPT-", "-OPT-")
+        _require(meta.get("option_id") == expected_option,
+                 f"{screen_id}: captured option identity does not match expected reference")
+        _require(meta.get("interaction") == "palette:exact-id:enter:option-detail",
+                 f"{screen_id}: missing exact-option keyboard journey receipt")
     _require(meta.get("source_commit_sha") == source_sha, f"{screen_id}: wrong source SHA")
     _require(meta.get("built_commit_sha") == source_sha, f"{screen_id}: wrong build SHA")
     _require(meta.get("source") == ORIGIN, f"{screen_id}: wrong native capture origin")
@@ -160,7 +171,20 @@ def verify(root: Path, source_sha: str) -> dict:
     _require(rail[0]["sha256"] != rail[1]["sha256"] and
              rail[1]["sha256"] != rail[2]["sha256"],
              "T03 rail toggle must visibly change expanded/collapsed screenshots")
+    option_matrix = [by_id[screen_id] for screen_id in OPTION_REFERENCE_MATRIX]
+    _require(len({item["sha256"] for item in option_matrix}) == 16,
+             "T10 option reference matrix contains duplicate captured pixels")
+    _require(all(item["width"] == by_id["M19-UNIFIED-OPTION-DEST"]["width"]
+                 and item["height"] == by_id["M19-UNIFIED-OPTION-DEST"]["height"]
+                 for item in option_matrix),
+             "T10 option reference frames must match measured wide native viewport")
     return {"schema_version": 1,
+            "option_reference_matrix": {
+                "count": len(option_matrix),
+                "ids": list(OPTION_REFERENCE_MATRIX),
+                "status": "MACHINE_REFERENCE_CAPTURE_ONLY",
+                "final_29_manifest_assets_verified": False,
+            },
             "status": "MACHINE_METADATA_HASH_VALIDATED_ONLY",
             "source_commit_sha": source_sha,
             "screens": screens,
