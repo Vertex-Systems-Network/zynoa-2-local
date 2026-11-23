@@ -165,7 +165,7 @@ main:focus{outline:none}
 .shell .value-bubble { padding:12px; border:1px solid var(--line); border-radius:9px; background:var(--surface-raised); color:var(--accent); font-size:19px; font-weight:700; }
 .shell input[type="range"] { width:100%; margin:25px 0 30px; accent-color:var(--accent); cursor:pointer; }
 .shell .split-preview { display:grid; gap:11px; min-height:165px; }
-.shell .split-preview>div { border:1px dashed var(--line); border-radius:11px; background:var(--surface-raised); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:17px; }
+.shell .split-preview>div { border:1px dashed var(--line); border-radius:11px; background:var(--surface-raised); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:17px; min-width:0; overflow-wrap:anywhere; }
 .shell .split-preview b { font-size:13px; }
 .shell .split-preview small { color:var(--text-tertiary); margin-top:9px; font-size:11px; }
 .shell .shortcut-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px 30px; max-width:760px; }
@@ -176,7 +176,8 @@ main:focus{outline:none}
 .shell .gallery-metrics b { font-size:24px; font-weight:650; color:var(--accent); }
 .shell .gallery-metrics span { font-size:13px; font-weight:700; }
 .shell .gallery-metrics small { font-size:11px; color:var(--text-secondary); }
-.shell .gallery-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.shell .gallery-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; min-width:0; }
+.shell .gallery-grid > *, .shell .gallery-metrics > *, .shell .swatch-row { min-width:0; }
 .shell .swatches { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 12px; margin-top:23px; }
 .shell .swatch-row { display:flex; align-items:center; gap:10px; }
 .shell .swatch { width:32px; height:32px; flex:0 0 32px; border-radius:8px; border:1px solid var(--line); }
@@ -188,6 +189,10 @@ main:focus{outline:none}
 .shell .swatch-status-warning { background:var(--status-warning); }
 .shell .swatch-row code { font-size:11px; color:var(--text-secondary); word-break:break-word; }
 .shell .component-row { display:flex; flex-wrap:wrap; gap:8px; margin:23px 0; align-items:center; }
+.shell .component-row button { min-height:40px; max-width:100%; justify-content:center; }
+.shell .component-row button[aria-pressed="true"] { box-shadow:0 0 0 2px var(--outline); }
+.shell .component-row button[aria-pressed="true"]::after { content:"✓"; font-weight:900; font-size:14px; margin-left:2px; }
+.shell .component-row button:disabled { box-shadow:none; }
 .shell .input-label { display:block; font-size:11px; color:var(--text-secondary); margin-bottom:8px; }
 .shell #gallery-text { width:100%; padding:12px 13px; border-radius:9px; font-size:13px; }
 .shell .component-helper { font-size:11px; margin-top:12px; min-height:1em; }
@@ -307,9 +312,19 @@ main:focus{outline:none}
   .shell .help-search-row { grid-template-columns: minmax(0,1fr) 145px; }
   .shell .workbench-grid { grid-template-columns:1fr; }
 }
+@media (max-width:950px) {
+  /* T02.07: native minimum width is 900px; keep the 720px browser preview readable. */
+  .shell .gallery-grid { grid-template-columns:minmax(0,1fr); }
+  .shell .gallery-metrics { grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); }
+  .shell .swatches { grid-template-columns:repeat(auto-fit,minmax(125px,1fr)); }
+  .shell .component-state-list>div { flex-wrap:wrap; align-items:flex-start; }
+  .shell .component-state-list small { text-align:left; overflow-wrap:anywhere; }
+  .shell .workbench-tabs button { flex:1 1 150px; }
+  .shell .section-heading h1 { overflow-wrap:anywhere; }
+}
 @media (max-width:850px) {
-  .shell .gallery-grid { grid-template-columns:1fr; }
-  .shell .gallery-metrics { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .shell .gallery-grid { grid-template-columns:minmax(0,1fr); }
+  .shell .gallery-metrics { grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); }
   .shell .heading-actions { flex-wrap:wrap; }
   .shell .shortcut-grid { grid-template-columns:1fr; }
 }
