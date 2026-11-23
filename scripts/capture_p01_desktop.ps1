@@ -260,13 +260,20 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     # Real keyboard-operated Help navigation from focused main:
     # two toolbar buttons; Articles then Tour, Troubleshooting, FAQ, Wiki.
     # Captures are SHA-bound machine candidates, never visual approval.
-    Save-NativeFollowup -ScreenshotId 'M19-S04' -Shortcut '{TAB}{TAB}{TAB}{TAB}{ENTER}{PGDN}' -ScreenTitle 'M19 offline guided tour' -Description 'Real Tauri Help guided tour with lesson progress, offline article link and working Previous, Next and Restart buttons'
+    Save-NativeFollowup -ScreenshotId 'M19-S04' -Shortcut '{TAB}{TAB}{TAB}{TAB}{TAB}{ENTER}{PGDN}' -ScreenTitle 'M19 offline guided tour' -Description 'Real Tauri Help guided tour with lesson progress, offline article link and working Previous, Next and Restart buttons'
     Save-NativeFollowup -ScreenshotId 'M19-S05' -Shortcut '{TAB}{ENTER}' -ScreenTitle 'M19 troubleshooting wizard' -Description 'Real Tauri Help recovery wizard with actionable next and solved steps and local article guidance'
     Save-NativeFollowup -ScreenshotId 'M19-S06' -Shortcut '{TAB}{TAB}{ENTER}' -ScreenTitle 'M19 Wiki source map' -Description 'Real native Help Wiki source mappings, strict local link validation and unpublished remote Wiki disclaimer'
-    # Return from Wiki selection to Articles (four Shift+Tabs), focus the
-    # search input after the remaining four mode buttons and type one keyword.
-    Save-NativeFollowup -ScreenshotId 'M19-S02' -Shortcut '+{TAB}+{TAB}+{TAB}+{TAB}{ENTER}{TAB}{TAB}{TAB}{TAB}{TAB}theme' -ScreenTitle 'M19 offline search results' -Description 'Real native bundled Help search with active theme keyword, local article results and category selector'
+    # Six modes: Wiki -> Articles takes five reverse Tabs; Articles -> Search
+    # needs six forward Tabs. Exact keyboard order must match new options tab.
+    Save-NativeFollowup -ScreenshotId 'M19-S02' -Shortcut '+{TAB}+{TAB}+{TAB}+{TAB}+{TAB}{ENTER}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}theme' -ScreenTitle 'M19 offline search results' -Description 'Real native bundled Help search with active theme keyword, local article results and category selector'
     Save-NativeFollowup -ScreenshotId 'M19-S03' -Shortcut '{TAB}{TAB}{ENTER}{PGDN}' -ScreenTitle 'M19 offline article reader' -Description 'Real Tauri Help article opened from an actual offline search result with section headings and related guides'
+    # Re-enter Help from Preferences for a known focused main, then select the
+    # new offline Option reference. Separate gestures avoid nested SendKeys.
+    [System.Windows.Forms.SendKeys]::SendWait('^{2}')
+    Start-Sleep -Milliseconds 300
+    [System.Windows.Forms.SendKeys]::SendWait('{F1}')
+    Start-Sleep -Milliseconds 300
+    Save-NativeFollowup -ScreenshotId 'M19-OPTION-REFERENCE-CI' -Shortcut '{TAB}{TAB}{TAB}{TAB}{ENTER}{PGDN}' -ScreenTitle 'M19 complete local option reference' -Description 'Real Windows Tauri Help option directory listing M02/M19 option IDs and their defaults, privacy boundaries and recovery instructions'
     # T05/T06: additional real interactive Gallery and live Preferences
     # screenshots from this same verified running Tauri window. Session-only.
     $OutputDirectory = $m02Output

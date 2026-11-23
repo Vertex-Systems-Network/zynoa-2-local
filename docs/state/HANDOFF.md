@@ -2,6 +2,9 @@
 
 ## CURRENT (read this first; history below is archive)
 
+- **P02 option reference native capture (2026-11-23):** Added M19-OPTION-REFERENCE-CI real Windows screenshot flow, adjusted M19 six-mode keyboard capture navigation, and expanded metadata/hash/test suite from 29 to 30 candidates. Must run exact-head CI after this change and visually verify the new route; no native screenshot marked final.
+
+
 - **P02 M19 option-by-option Help expansion (2026-11-23):** Added 16 typed M02/M19 option references, local query/module filter, safe internal option-route validation, keyboard-selectable details, linked bundled article navigation, Node and Python regression contracts and updated M02/M19 Help/Wiki. This remains unmerged P02 source until exact-head Windows CI and independent option-specific screenshot acceptance. No external Wiki or native preference persistence asserted.
 
 

@@ -15,7 +15,7 @@ import struct
 SCREEN_IDS = (
     "M02-S03", "M02-OPT-07", "M02-S07", "M02-OPT-03", "M02-S05", "P02-T02-06",
     "M02-S06", "M02-S04", "M19-S01", "M19-S02", "M19-S03",
-    "M19-S04", "M19-S05", "M19-S06", "P02-T02-07",
+    "M19-S04", "M19-S05", "M19-S06", "M19-OPTION-REFERENCE-CI", "P02-T02-07",
     "P02-T02-07-continued", "P02-T02-12-LIGHT", "P02-T02-12-DARK",
     "M02-OPT-04", "P02-T02-OPT-04-swapped",
     "P02-T04-NO-MATCH", "P02-T04-ESCAPE", "P02-T04-ENTER-NAV",
@@ -125,6 +125,9 @@ def verify(root: Path, source_sha: str) -> dict:
     _require(by_id["P02-T06-GALLERY-OFFLINE"]["sha256"] !=
              by_id["P02-T05-PREFERENCES-LIVE"]["sha256"],
              "T05 Preferences candidate did not navigate away from Gallery")
+    _require(by_id["M19-S01"]["sha256"] !=
+             by_id["M19-OPTION-REFERENCE-CI"]["sha256"],
+             "M19 option reference must differ from the initial Help landing screen")
     help_states = ("M19-S01", "M19-S04", "M19-S05", "M19-S06",
                    "M19-S02", "M19-S03")
     _require(all(by_id[a]["sha256"] != by_id[b]["sha256"]

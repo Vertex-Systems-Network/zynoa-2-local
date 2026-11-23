@@ -114,6 +114,15 @@ class M19OfflineWorkflowTests(unittest.TestCase):
         ):
             self.assertIn(marker, self.tests)
 
+    def test_six_mode_real_native_capture_includes_option_reference(self):
+        capture=(ROOT/"scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        verifier=(ROOT/"tools/verify_p02_native_evidence.py").read_text(encoding="utf-8")
+        self.assertIn("M19-OPTION-REFERENCE-CI",capture)
+        self.assertIn("M19-OPTION-REFERENCE-CI",verifier)
+        self.assertIn("'M19-S04' -Shortcut '{TAB}{TAB}{TAB}{TAB}{TAB}{ENTER}",capture)
+        self.assertIn("+{TAB}+{TAB}+{TAB}+{TAB}+{TAB}{ENTER}",capture)
+        self.assertIn("M19 option reference must differ",verifier)
+
     def test_windows_ci_cannot_skip_m19_from_docs_only_final_commit(self):
         workflow = (ROOT / ".github/workflows/p01-desktop.yml").read_text(encoding="utf-8")
         self.assertIn("git diff --name-only FETCH_HEAD HEAD", workflow)
