@@ -331,3 +331,27 @@ main:focus{outline:none}
 @media (prefers-reduced-motion:reduce) {
   .shell, .shell *, .shell *:before, .shell *:after { transition:none!important; animation:none!important; scroll-behavior:auto!important; }
 }
+
+
+/* M02-OPT-03: compact properties preview, session-only and no fake project data. */
+.shell .properties-panel { margin-top:16px; }
+.shell .properties-heading { align-items:flex-start; }
+.shell .properties-heading .subtle-action { flex-shrink:0; margin-top:0; }
+.shell .properties-heading .subtle-action[aria-pressed="true"] {
+  box-shadow:0 0 0 2px var(--outline); background:var(--surface-hover);
+}
+.shell .properties-preview { background:var(--surface-raised); border:1px solid var(--line);
+  border-radius:10px; padding:4px 16px; margin-top:16px; }
+.shell .property-preview-row { display:flex; justify-content:space-between; align-items:center;
+  flex-wrap:wrap; gap:9px 16px; min-height:51px; padding:13px 2px;
+  border-bottom:1px solid var(--line); transition:padding .16s ease,min-height .16s ease; }
+.shell .property-preview-row:last-child { border-bottom:0; }
+.shell .property-preview-row span { font-size:12px; color:var(--text-secondary); }
+.shell .property-preview-row strong { font-size:12px; color:var(--text-primary); font-weight:650; }
+.shell .properties-preview[data-properties-density="compact"] .property-preview-row {
+  min-height:34px; padding:7px 2px;
+}
+@media (max-width:950px) {
+  .shell .properties-heading { flex-wrap:wrap; }
+  .shell .properties-heading .subtle-action { min-height:40px; }
+}
