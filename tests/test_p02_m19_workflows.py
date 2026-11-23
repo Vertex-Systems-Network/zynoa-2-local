@@ -90,6 +90,15 @@ class M19OfflineWorkflowTests(unittest.TestCase):
         ):
             self.assertIn(marker, self.tests)
 
+    def test_windows_ci_cannot_skip_m19_from_docs_only_final_commit(self):
+        workflow = (ROOT / ".github/workflows/p01-desktop.yml").read_text(encoding="utf-8")
+        self.assertIn("git diff --name-only FETCH_HEAD HEAD", workflow)
+        self.assertNotIn("git diff --name-only HEAD^ HEAD", workflow)
+        self.assertIn("tests.test_p02_m19_workflows -v", workflow)
+        self.assertIn("docs/help/articles/M19.md", workflow)
+        self.assertIn("docs/wiki/pages/M19.md", workflow)
+        self.assertIn("apps/desktop/", workflow)
+
     def test_responsive_workflow_ui_has_keyboard_focus_and_semantic_status(self):
         for marker in ("help-workflow-switch", "help-tool-panel", "help-faq-grid",
                        "help-report-body", "help-tool-field", "focus-visible"):
