@@ -43,8 +43,32 @@ jobs:
           path.write_text(json.dumps(result,sort_keys=True,indent=2)+"\n",encoding="utf-8")
           print(json.dumps(result,sort_keys=True))
           PY
+      - name: Inspect existing Wiki tracked paths and target page hashes without mutation
+        shell: bash
+        env:
+          REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          export GIT_TERMINAL_PROMPT=0
+          out="$RUNNER_TEMP/p02-wiki-tree"
+          git -c credential.helper= clone --quiet --depth=1 "https://github.com/${REPO}.wiki.git" "$out"
+          WIKI_CLONE="$out" python - <<'PY'
+          import hashlib,json,os,pathlib,subprocess
+          root=pathlib.Path(os.environ["WIKI_CLONE"])
+          files=subprocess.check_output(["git","ls-files"],cwd=root,text=True).splitlines()
+          targets={}
+          for name in ("M02.md","M19.md","Home.md"):
+              p=root/name
+              targets[name]={"present":p.is_file(),"sha256":hashlib.sha256(p.read_bytes()).hexdigest() if p.is_file() else None}
+          result={"schema_version":1,"source_commit_sha":os.environ["SOURCE_SHA"],"wiki_head":subprocess.check_output(["git","rev-parse","HEAD"],cwd=root,text=True).strip(),"tracked_paths":files[:100],"tracked_count":len(files),"target_pages":targets,"operation":"READ_ONLY_NO_AUTH_NO_PUBLISH","remote_wiki_published_verified":False}
+          (pathlib.Path(os.environ["RUNNER_TEMP"])/"p02-wiki-tree.json").write_text(json.dumps(result,sort_keys=True,indent=2)+"\n",encoding="utf-8")
+          print(json.dumps(result,sort_keys=True))
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: p02-wiki-readonly-preflight
-          path: ${{ runner.temp }}/p02-wiki-capability.json
+          path: |
+            ${{ runner.temp }}/p02-wiki-capability.json
+            ${{ runner.temp }}/p02-wiki-tree.json
           retention-days: 14
