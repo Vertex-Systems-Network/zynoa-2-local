@@ -1,5 +1,9 @@
 # P02-T02.12 — Final T02 acceptance and GitHub task closure preflight
 
+## Latest scoped official status — **P02-T02 DONE** (2026-11-24)
+
+T02's 15/15 genuine PNG and source/contrast/focus/reduced-motion/responsive evidence is now accepted by the **exact-source T02 Windows CI guard step** and same-head Governance/Reviewdog. The official task board is **DONE** with [scoped closeout evidence](P02_T02_SCOPED_DONE_20261124.md). Older sections below are retained historical IN_PROGRESS/PENDING checkpoints, not current task status. **Full M02 module, live NVDA/Narrator and all-state tests, performance budget, and protected P02 merge remain unverified under T10/T11.**
+
 ## 2026-11-24 T02-only closeout re-audit (new evidence supersedes historical checkpoints)
 
 The earlier 2026-11-23 screenshots-PENDING/unimplemented-control paragraphs below are immutable **history**, not a current assessment. GitHub current branch now carries all **15/15 original M02 PNGs** with source-SHA-256, exact Git blob SHA, frame geometry, independent per-frame visual findings, captions and alt text in the final manifest and `T02-final-15-native-visual.review.json`. M02-OPT-03 compact spacing preview and M02-OPT-04 Ctrl+1–6 remap are implemented (session-only and **not** persisted) and independently shown in native images. Current Windows exact-head native build/OS UIA, WCAG focus/label and source regression tests, and Help/Wiki preview source identity are documented in [P02 PR #12](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12).

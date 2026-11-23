@@ -15,8 +15,8 @@
     {
       "id": "P02-T02",
       "title": "M02 design tokens, accessible UI primitives and visual foundations",
-      "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45290663518"
     },
     {
       "id": "P02-T03",

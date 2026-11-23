@@ -1,0 +1,54 @@
+{
+  "change_id": "CHG-P02-T02-SCOPED-CLOSEOUT-20261124",
+  "module_id": "M02",
+  "kind": "enhancement",
+  "title": "P02-T02 design tokens, accessible primitives, native screenshots scoped completion",
+  "summary": "Source-bound final fifteen M02 native PNGs and individual independent image reviews, exact Git blob+SHA256 integrity, keyboard focus/contrast/ARIA, reduced motion, responsive primitive source, accurate eight option Help/Wiki references and negative acceptance tests. Supersedes old nine-frame pending-review false blocker without claiming full M02 release. Same-head Windows T02 final acceptance guard step succeeded; separate all-state NVDA/Narrator/performance/T10, security/merge/T11 remain open.",
+  "status": "accepted",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12",
+  "affected_option_ids": [
+    "M02-OPT-01",
+    "M02-OPT-02",
+    "M02-OPT-03",
+    "M02-OPT-04",
+    "M02-OPT-05",
+    "M02-OPT-06",
+    "M02-OPT-07",
+    "M02-OPT-08"
+  ],
+  "docs_paths": [
+    "docs/evidence/P02_T02_SCOPED_DONE_20261124.md",
+    "docs/evidence/P02_T02_12_ACCEPTANCE.md",
+    "docs/modules/M02.md",
+    "docs/state/HANDOFF.md",
+    "docs/state/pr-tasks/P02.json"
+  ],
+  "help_paths": [
+    "docs/help/articles/M02.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M02.md"
+  ],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45290663518",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45288057278",
+    "tests/test_p02_t02_acceptance.py",
+    "docs/screenshots/M02/T02-final-15-native-visual.review.json"
+  ],
+  "commit_sha": "864b03649b7a32ba312847ce2c1875521519a398",
+  "release": null,
+  "verification": {
+    "tests_passed": true,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No user data, native IPC schema, OS privileges, settings persistence or release changed. Only task acceptance, original image verifier and docs.",
+  "created_at": "2026-11-24",
+  "updated_at": "2026-11-24",
+  "version_bump": "none",
+  "docs_impact": true,
+  "data_migration": false
+}
