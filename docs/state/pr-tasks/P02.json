@@ -43,17 +43,20 @@
     {
       "id": "P02-T07",
       "title": "M19 bundled offline article catalog and versioned search contract",
-      "status": "TODO"
+      "status": "IN_PROGRESS",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12"
     },
     {
       "id": "P02-T08",
       "title": "M19 contextual help reader, FAQ, glossary and troubleshooting",
-      "status": "TODO"
+      "status": "IN_PROGRESS",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12"
     },
     {
       "id": "P02-T09",
       "title": "M19 Wiki source mapping, broken-link handling and offline assurance",
-      "status": "TODO"
+      "status": "IN_PROGRESS",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12"
     },
     {
       "id": "P02-T10",
