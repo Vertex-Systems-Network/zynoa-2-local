@@ -51,7 +51,7 @@ export const helpArticles: readonly HelpArticle[] = [
         "Press Enter to navigate, Escape to close, or Tab to move between controls. Focus returns to the element that opened the palette.",
       ] },
       { heading: "Global shortcuts", paragraphs: [
-        "Ctrl+1 opens Overview; Ctrl+2 Preferences; Ctrl+3 Recovery; Ctrl+4 Diagnostics; Ctrl+5 Workbench; Ctrl+6 Components. F1 opens Help.",
+        "By default Ctrl+1 opens Overview; Ctrl+2 Preferences; Ctrl+3 Recovery; Ctrl+4 Diagnostics; Ctrl+5 Workbench; Ctrl+6 Components. The Workbench Keyboard guide lets you swap the six assignments during the current session. F1 opens Help and cannot be reassigned.",
         "Shortcuts do not intercept typing inside editable form controls, except the explicit command-palette shortcut.",
       ] },
     ], related: ["appearance", "quick-start"],
@@ -113,6 +113,77 @@ export const helpArticles: readonly HelpArticle[] = [
         "P02 implements shared UI foundations incrementally. A feature is considered complete only with real native screenshots and integration tests for all its documented states.",
       ] },
     ], related: ["appearance", "offline", "quick-start"],
+  },
+  {
+    id: "navigation", title: "Adaptive navigation and Workbench panes", category: "Interface",
+    summary: "Expand or collapse the rail, find named panes and use the split preview safely.",
+    keywords: ["rail", "sidebar", "Alt+N", "breadcrumb", "split", "pane", "workbench", "M02"],
+    sections: [
+      { heading: "Move around the desktop", paragraphs: [
+        "At narrow Windows widths, the left rail collapses into accessible icons. Press Alt+N or use Expand navigation to see full names. The active page stays selected.",
+        "Workbench has Runtime status, Layout controls and Keyboard guide tabs. Switch focused tabs with Left/Right/Home/End and open a panel with Tab.",
+      ] },
+      { heading: "Understand the preview", paragraphs: [
+        "The Layout controls slider changes two illustrative pane widths. It does not move or persist real project files or create a workspace.",
+        "The compact properties toggle changes sample row spacing only. The app does not yet have an editable native project inspector.",
+      ] },
+    ], related: ["commands", "appearance", "quick-start"],
+  },
+  {
+    id: "wizard-guide", title: "Run offline troubleshooting", category: "Troubleshooting",
+    summary: "Follow an interactive, reversible recovery path for common desktop problems.",
+    keywords: ["wizard", "recover", "fix", "steps", "M19-OPT-03", "M19-OPT-08"],
+    sections: [
+      { heading: "Choose a problem", paragraphs: [
+        "Open Help Center → Troubleshooting wizard. Choose native bridge, missing article, keyboard or unavailable workspace. The first guided step appears immediately.",
+        "Select This fixed it to end, or Still stuck to proceed. Previous step and Start over remain available. No automatic repair command is executed.",
+      ] },
+      { heading: "When all steps are exhausted", paragraphs: [
+        "Read the linked offline article or prepare a sanitized local report. Nothing is sent to GitHub automatically.",
+        "Only article IDs and allowlisted reason codes appear in the report. Do not attach private files or credentials to public tickets.",
+      ] },
+    ], related: ["native-troubleshooting", "privacy", "offline"],
+  },
+  {
+    id: "faq-glossary", title: "Using FAQ and glossary", category: "Get started",
+    summary: "Explore verified answers and technical terms with direct links to offline guides.",
+    keywords: ["faq", "glossary", "definition", "M19-OPT-04", "M19-OPT-05"],
+    sections: [
+      { heading: "Browse answers", paragraphs: [
+        "Select FAQ & glossary inside Help Center. Expand a question using Enter, Space or pointer. Each answer links to a deeper offline article.",
+        "The glossary describes native handshake, offline catalog, contextual Help and session-only settings. No external account is required.",
+      ] },
+    ], related: ["faq", "quick-start", "offline"],
+  },
+  {
+    id: "wiki-mapping", title: "Validate local Help and Wiki references", category: "Troubleshooting",
+    summary: "Inspect source-controlled Wiki mappings and resolve local Help routes without internet.",
+    keywords: ["wiki", "link", "broken", "route", "version", "M19-OPT-06"],
+    sections: [
+      { heading: "Local versus published", paragraphs: [
+        "The Wiki & link checker lists trusted Markdown source mappings. These are not a published GitHub Wiki and do not establish live remote availability.",
+        "Paste a help://article/<id> route to validate an existing bundled article. A broken or unknown ID cannot be opened; path traversal is rejected.",
+      ] },
+      { heading: "Audit the catalog", paragraphs: [
+        "Check bundled article and Wiki mappings checks unique IDs, related links, FAQ references and guided wizard recovery articles locally.",
+        "Successful source validation proves only the offline app bundle. Hosted Wiki publication and final screenshots are independent acceptance gates.",
+      ] },
+    ], related: ["offline", "wizard-guide", "privacy"],
+  },
+  {
+    id: "report-guide", title: "Report a broken article without uploading data", category: "Troubleshooting",
+    summary: "Create a sanitized, local-only issue summary with no automatic transmission.",
+    keywords: ["report", "broken reference", "privacy", "issue", "M19-OPT-07"],
+    sections: [
+      { heading: "Prepare a safe report", paragraphs: [
+        "Open any article and choose Prepare local report. Select Outdated instructions, Broken reference or Unreadable article.",
+        "A read-only JSON summary includes the catalog version, known article ID and reason. It excludes typed text, project content, account information and timestamps.",
+      ] },
+      { heading: "Copy, never upload automatically", paragraphs: [
+        "Copy report locally requires clipboard permission; if denied, select and copy the visible report manually.",
+        "Remote issue automation is not implemented in the desktop Help Center. You decide if and where to share the sanitized summary.",
+      ] },
+    ], related: ["privacy", "wiki-mapping", "offline"],
   },
 ];
 
