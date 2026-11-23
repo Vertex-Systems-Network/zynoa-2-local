@@ -27,3 +27,11 @@
 **Status at authoring:** IMPLEMENTED IN SOURCE — NATIVE RUN AND REVIEW PENDING.
 
 **Rollback:** Revert App, Workbench, CSS, native capture, source tests, verifier, Help/Wiki and this evidence in same PR. No persistent user data migration was introduced.
+
+
+## Windows-native blank-screen detector regression (investigated, not waived)
+
+- [Windows run #45168992909](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45168992909) and [retry run #45170564930](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45170564930) both passed Python, TypeScript, Node UI, native Rust and Tauri build but **failed the M02-S03 screenshot step** with `ZYN-SCREEN-017`. These runs do **not** satisfy final T03 acceptance.
+- The second run preserved a **diagnostic-only real WebView2 frame** `DEBUG-M02-S03.png` in artifact `14818210007`. The frame was opened and **shows a normal, legible Workbench** with the navigation correctly auto-collapsed, tab labels and runtime card visible. This is a sampling **false positive**, not a blank React render. The prior 12×10 evenly spaced grid saw **5 distinct sampled colors**; 24×16 points on the *same actual PNG* detect **21**.
+- The screenshot script now samples **24×16** points for follow-up views, keeping the exact fail-closed **6-color threshold**, source/build SHA matching, PNG integrity check and bounded 3-frame retry. Persistent truly blank frames still trigger `ZYN-SCREEN-017` and upload a `DEBUG-` diagnostic for inspection; debug images **are not** part of any accepted screenshot manifest or machine-approved evidence.
+- The new 24×16 test coverage is a safeguard against silently reinstating the coarse sampler. A **fresh exact-source native Windows run and independent visual review** are still required for all three T03 toggle images before T03 DONE.
