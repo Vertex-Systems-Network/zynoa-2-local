@@ -214,6 +214,9 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     # Tab 1-2 toolbar, Tab 3 help, Tab 4 active tab, Tab 5 active tabpanel.
     # Screenshot is candidate evidence only, independently review visible focus ring.
     Save-NativeFollowup -ScreenshotId 'M02-OPT-07' -Shortcut '{TAB}{TAB}{TAB}{TAB}{TAB}' -ScreenTitle 'Workbench keyboard focus' -Description 'Real Tauri Workbench keyboard-focused active tabpanel with visible focus ring (review pending)'
+    # T02.12: from the keyboard-focused Workbench tabpanel, Shift+Tab to the selected tab,
+    # End switches to Keyboard guide, Tab focuses its panel. Candidate only.
+    Save-NativeFollowup -ScreenshotId 'M02-S07' -Shortcut '+{TAB}{END}{TAB}' -ScreenTitle 'P02 native keyboard guide' -Description 'Native Tauri Workbench keyboard guide accessed with End key in ARIA tablist, panel focus visible'
     Save-NativeFollowup -ScreenshotId 'M02-S05' -Shortcut '^{6}' -ScreenTitle 'P02 native component gallery' -Description 'Real Tauri component gallery with semantic token swatches, state chips and interactive input'
     # From focused main after Ctrl+6: Tab toolbar command, Tab help, Tab primary action.
     # Activate primary selection; PageDown reveals the actual button/feedback states.
@@ -248,4 +251,10 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     $OutputDirectory = $m02Output
     Save-NativeFollowup -ScreenshotId 'P02-T02-07' -Shortcut '^{6}' -ScreenTitle 'P02 narrow native gallery' -Description 'Real Tauri resizable window near the 900px minimum, gallery adaptive layout and component metrics'
     Save-NativeFollowup -ScreenshotId 'P02-T02-07-continued' -Shortcut '{PGDN}' -ScreenTitle 'P02 narrow gallery continued' -Description 'Real native narrow window after PageDown, component cards and swatches responsive without horizontal clipping'
+    # T02.12: capture BOTH explicit appearance choices at measured native narrow size.
+    # Ctrl+2 focuses main, Tab x3 focuses Appearance, Home+Down x2 picks Light.
+    # Shift+Tab returns to Appearance; Home+Down picks Dark. No saved preferences.
+    Save-NativeFollowup -ScreenshotId 'P02-T02-12-LIGHT' -Shortcut '^{2}{TAB}{TAB}{TAB}{HOME}{DOWN}{DOWN}{TAB}' -ScreenTitle 'P02 explicit light appearance' -Description 'Real Tauri Preferences after selecting Light appearance in the native selector (session only)'
+    Save-NativeFollowup -ScreenshotId 'P02-T02-12-DARK' -Shortcut '+{TAB}{HOME}{DOWN}{TAB}' -ScreenTitle 'P02 explicit dark appearance' -Description 'Real Tauri Preferences after selecting Dark appearance in the native selector (session only)'
+
 }
