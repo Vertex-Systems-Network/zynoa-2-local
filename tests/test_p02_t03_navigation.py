@@ -114,6 +114,17 @@ class P02T03NavigationTests(unittest.TestCase):
         self.assertIn("candidate_pending_visual_review", self.capture)
         self.assertIn("capture_verified = $false", self.capture)
 
+    def test_help_wiki_and_acceptance_are_consistent(self):
+        help_text = (ROOT / "docs/help/articles/M02.md").read_text(encoding="utf-8")
+        wiki_text = (ROOT / "docs/wiki/pages/M02.md").read_text(encoding="utf-8")
+        evidence = (ROOT / "docs/evidence/P02_T03_ACCEPTANCE.md").read_text(encoding="utf-8")
+        for marker in ("P02-T03", "Alt+N", "900px", "session"):
+            self.assertIn(marker, help_text)
+        for marker in ("P02-T03", "Alt+N", "78px", "PENDING"):
+            self.assertIn(marker, wiki_text + evidence)
+        self.assertIn("NATIVE RUN AND REVIEW PENDING", evidence)
+        self.assertIn("full M02 manifest", wiki_text + evidence)
+
     def test_official_task_remains_evidence_gated(self):
         data = json.loads((ROOT / "docs/state/pr-tasks/P02.json").read_text(encoding="utf-8"))
         task = next(x for x in data["tasks"] if x["id"] == "P02-T03")
