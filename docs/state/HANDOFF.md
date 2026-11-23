@@ -529,3 +529,14 @@ P00 closed: `main` = `fe34877` (PR #8). P01 branch `phase/01-foundation`, task l
 - Help/Wiki M02 updated with true steps, no runtime/persistence claims. Screenshots remain native CI candidates (`capture_verified=false`) and the 29 M02/M19 final manifest assets remain pending. Full module P02-T02, remaining P02 tasks, independent mouse hover E2E and protected merge are not done. No P03 work.
 - Release worker lease to `null` in `PHASE.json` at handoff. Next authorized worker continues on **same PR** with T02 remaining acceptance/screenshot coverage; never fabricate completion.
 
+
+
+## 2026-11-23 T02.09–T02.11 scoped acceptance
+
+- Same **primary Draft PR #12** (`phase/02-shared-ui`), protected main unmerged; P02-T02 parent **IN_PROGRESS**.
+- **T02.09 (scoped DONE):** Windows P02 accessibility source tests plus 12 native integrity negative/positive regression tests, 8 M02 Help/Wiki accuracy tests and a real after-boot hash/SHA/PNG dimensions/provenance gate. Exact source commit `4cfa2af0bd61f0b7a393f9ffdce9834f55db635c`. [Windows run 45149201009](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45149201009) **SUCCESS**, [Governance 45149201165](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45149201165) **SUCCESS**, [Task sync 45149200935](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45149200935) **SUCCESS**, [Runner 45149200992](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45149200992) **SUCCESS**.
+- **T02.10 (scoped DONE):** real Windows Tauri artifact `14805158632`, nine PNGs independently inspected. Full metadata, SHA256, viewport geometry, source/build SHA match, and candidate-only status validated by machine report `P02-native-machine-review.json` and separately recorded in [T02 native visual review](../screenshots/M02/T02-visual-foundation.review.json).
+- **T02.11 (scoped DONE):** source-controlled [M02 option guide](../help/articles/M02.md) and [Wiki source](../wiki/pages/M02.md) now accurately document all 8 options with real defaults/session-only semantics and explicit missing features. Screenshot and state evidence linked to [scoped detailed acceptance](../evidence/P02_T02_09_10_11_VALIDATION.md). No unsupported remote Wiki publication claim.
+- **Remaining:** 15 M02 + 14 M19 final screenshot assets all PENDING in `docs/screenshots/MANIFEST.json`; no dark-mode native screenshot review, independent screen-reader or pointer hover E2E, complete offline Help bundle mapping, or merge/release verification. Do not mark parent T02 or P02 complete. CI candidates still have `capture_verified=false`. The source reviewed by Windows is the immutable code SHA above, while subsequent commits are documentation review/handoff only.
+- This session's worker lease must be cleared to `null` after handoff. Continue on the **same PR**, no new branch/ZIP.
+
