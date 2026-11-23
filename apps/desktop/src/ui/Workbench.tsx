@@ -90,9 +90,14 @@ export function Workbench({ transport, onNavigate, shortcuts, onRemapShortcut, o
         </div>
         <input id="split-control" aria-label="Left pane width" type="range" min={25} max={65} step={5}
           value={split} aria-valuetext={`${split}% left pane`} onChange={event => setSplit(Number(event.target.value))} />
-        <div className="split-preview" style={{ gridTemplateColumns: `minmax(0, ${split}fr) minmax(0, ${100 - split}fr)` }}>
-          <div><b>Navigation pane</b><small>Adjust with arrow keys</small></div>
-          <div><b>Content pane</b><small>Responds to available width</small></div>
+        <div className="split-preview" role="group" aria-label="Adjustable workspace pane preview"
+          style={{ gridTemplateColumns: `minmax(0, ${split}fr) minmax(0, ${100 - split}fr)` }}>
+          <div role="region" aria-label="Preview navigation pane">
+            <b>Navigation pane</b><small>Adjust with arrow keys</small>
+          </div>
+          <div role="region" aria-label="Preview content pane">
+            <b>Content pane</b><small>Responds to available width</small>
+          </div>
         </div>
       </div>
       <section className="studio-card properties-panel" aria-labelledby="properties-title">
