@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { findHelpArticle, helpArticles, resolveVisibleHelpArticle, searchHelp, type HelpCategory } from "./help-catalog";
+import { LocalArticleReport, HelpWorkflows } from "./HelpWorkflows";
+import { offlineHelpContract, type HelpWorkflowMode } from "./help-workflows";
 
 type Props = { contextArticle?: string };
 
@@ -12,12 +14,14 @@ export function HelpCenter({ contextArticle }: Props) {
   const [category, setCategory] = useState<HelpCategory | "All">("All");
   const [articleId, setArticleId] = useState(contextArticle || "quick-start");
   const [showGlossary, setShowGlossary] = useState(false);
+  const [mode, setMode] = useState<HelpWorkflowMode>("articles");
   const results = useMemo(() => searchHelp(query, category), [query, category]);
   const selected = resolveVisibleHelpArticle(results, articleId);
   const openArticle = (id: string) => {
     setQuery("");
     setCategory("All");
     setArticleId(id);
+    setMode("articles");
   };
 
   useEffect(() => {
@@ -33,9 +37,21 @@ export function HelpCenter({ contextArticle }: Props) {
           Articles describe only verified UI capabilities and clearly mark future services.</p>
       </div>
       <div className="help-offline-indicator" role="status"><span aria-hidden="true">●</span> Offline catalog ready
-        <small>{helpArticles.length} built-in articles · no cloud search</small>
+        <small>{helpArticles.length} built-in articles · catalog {offlineHelpContract.catalog_version} · no cloud search</small>
       </div>
     </div>
+    <div className="help-workflow-switch" role="group" aria-label="Offline Help workflows">
+      {([
+        ["articles", "Articles & search"],
+        ["troubleshoot", "Troubleshooting wizard"],
+        ["faq", "FAQ & glossary"],
+        ["wiki", "Wiki & link checker"],
+      ] as const).map(([key, title]) =>
+        <button type="button" key={key} className={mode === key ? "selected" : ""}
+          aria-pressed={mode === key} onClick={() => setMode(key)}>{title}</button>
+      )}
+    </div>
+    {mode === "articles" ? <>
     <div className="help-search-row">
       <label className="search-control help-search" htmlFor="help-query">
         <span aria-hidden="true">⌕</span>
@@ -109,13 +125,14 @@ export function HelpCenter({ contextArticle }: Props) {
           </dl>}
         </div>
         <div className="help-feedback">
-          <div><strong>Found something inaccurate?</strong><p>Remote issue reporting is disabled until a privacy-reviewed reporting service is available.</p></div>
-          <button type="button" className="subtle-action" disabled title="Issue reporting service is not enabled">Report article</button>
+          <div><strong>Found something inaccurate?</strong><p>Remote issue reporting is disabled; use this sanitized, copy-only local report.</p></div>
+          <LocalArticleReport articleId={selected.id} />
         </div>
       </article> : <article className="help-article" role="status" aria-labelledby="help-article-title">
         <h2 id="help-article-title">No matching help article</h2>
         <p>Try a different search term or clear the category filter to browse bundled offline guidance.</p>
       </article>}
     </div>
+    </> : <HelpWorkflows mode={mode} onOpenArticle={openArticle} />}
   </section>;
 }
