@@ -84,6 +84,21 @@ class T02FinalAcceptanceGateTests(unittest.TestCase):
         (self.root / "docs/screenshots/M02/T02-visual-foundation.review.json").unlink()
         self.assertIn("T02 native visual review record absent", audit(self.root)["blockers"])
 
+    def test_windows_gate_runs_and_preserves_candidate_only_visual_proof(self):
+        workflow = (ROOT / ".github/workflows/p01-desktop.yml").read_text(encoding="utf-8")
+        native = (ROOT / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        verifier = (ROOT / "tools/verify_p02_native_evidence.py").read_text(encoding="utf-8")
+        self.assertIn("P02-T02 final acceptance guard (no premature DONE)", workflow)
+        self.assertIn("python -m unittest tests.test_p02_t02_acceptance -v", workflow)
+        self.assertIn("python -m tools.verify_p02_t02_acceptance --report", workflow)
+        self.assertIn("docs/screenshots/_ci/M02/P02-T02-12-readiness.json", workflow)
+        for image_id in ("M02-S07", "P02-T02-12-LIGHT", "P02-T02-12-DARK"):
+            self.assertIn("-ScreenshotId '" + image_id + "'", native)
+            self.assertIn('"' + image_id + '"', verifier)
+        self.assertIn("capture_verified = $false", native)
+        self.assertIn("light/dark capture has identical pixels", verifier)
+        self.assertIn("candidate_pending_visual_review", native)
+
     def test_current_official_status_cannot_be_auto_closed_by_passing_ci(self):
         result = audit(ROOT)
         self.assertNotEqual("DONE", result["official_task_status"])
