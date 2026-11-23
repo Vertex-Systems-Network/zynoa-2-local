@@ -1,0 +1,54 @@
+name: P02 Reviewdog Static Review
+on:
+  pull_request:
+    paths:
+      - 'apps/desktop/src/**'
+      - 'tools/p02_reviewdog.py'
+      - 'tests/test_p02_reviewdog.py'
+      - '.github/workflows/reviewdog-p02.yml'
+permissions:
+  contents: read
+  pull-requests: write
+concurrency:
+  group: reviewdog-p02-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  review-ui:
+    # Never execute untrusted fork PR source with write-capable review credentials.
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'phase/02-shared-ui'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Run deterministic UI static reviewer and self-tests (no GitHub write token)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest tests.test_p02_reviewdog -v
+          python -m tools.p02_reviewdog > "${RUNNER_TEMP}/p02-reviewdog.txt"
+          cat "${RUNNER_TEMP}/p02-reviewdog.txt"
+      - name: Check changed lines for whitespace errors
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          git diff --check "$BASE_SHA" HEAD
+      - name: Setup reviewdog
+        uses: reviewdog/action-setup@v1.5.0
+        with:
+          reviewdog_version: v0.21.3
+      - name: Post line-specific review comments on changed PR code
+        shell: bash
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          reviewdog -version
+          reviewdog -efm='%f:%l: %m' -name='P02 UI security and accessibility' \
+            -reporter=github-pr-review -filter-mode=added -level=warning \
+            -fail-on-error=true < "${RUNNER_TEMP}/p02-reviewdog.txt"
