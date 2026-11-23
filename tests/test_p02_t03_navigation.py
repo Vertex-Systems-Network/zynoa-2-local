@@ -114,6 +114,12 @@ class P02T03NavigationTests(unittest.TestCase):
         self.assertIn("candidate_pending_visual_review", self.capture)
         self.assertIn("capture_verified = $false", self.capture)
         self.assertIn("for ($attempt = 1; $attempt -le 3; $attempt++)", self.capture)
+        self.assertIn("for ($x = 0; $x -lt 24; $x++)", self.capture)
+        self.assertIn("for ($y = 0; $y -lt 16; $y++)", self.capture)
+        self.assertIn("$width / 24", self.capture)
+        self.assertIn("$height / 16", self.capture)
+        self.assertIn("if ($colors.Count -ge 6) { break }", self.capture)
+
         self.assertIn("if ($colors.Count -lt 6) {", self.capture)
         self.assertIn("DEBUG-", self.capture)
         self.assertIn("throw 'ZYN-SCREEN-017: blank native follow-up frame'", self.capture)
