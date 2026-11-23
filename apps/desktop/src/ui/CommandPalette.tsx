@@ -106,7 +106,7 @@ export function CommandPalette({ open, onClose, onNavigate, onOpenHelp, returnFo
         </div>
         <label className="search-control" htmlFor="command-query">
           <span aria-hidden="true">⌕</span>
-          <input id="command-query" ref={inputRef} value={query} maxLength={100}
+          <input id="command-query" ref={inputRef} autoFocus value={query} maxLength={100}
             onChange={event => { setQuery(event.target.value); setSelected(0); }}
             autoComplete="off" spellCheck={false}
             role="combobox" aria-autocomplete="list" aria-expanded={true}

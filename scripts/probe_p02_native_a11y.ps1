@@ -36,13 +36,18 @@ function Find-NativeName {
   $predicate = [System.Windows.Automation.PropertyCondition]::new(
     [System.Windows.Automation.AutomationElement]::NameProperty, $Label)
   $matches = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, $predicate)
+  $visibleCandidate = $null
   for ($index = 0; $index -lt $matches.Count; $index++) {
     try {
       $item = $matches.Item($index)
-      if (-not $item.Current.IsOffscreen) { return $item }
+      if ($item.Current.IsOffscreen) { continue }
+      # A named static label and the real native control can share the same
+      # UIA Name. Prefer a keyboard-focusable control over a text node.
+      if ($item.Current.IsKeyboardFocusable) { return $item }
+      if ($null -eq $visibleCandidate) { $visibleCandidate = $item }
     } catch [System.Windows.Automation.ElementNotAvailableException] {}
   }
-  return $null
+  return $visibleCandidate
 }
 function Wait-NativeName {
   param([Parameter(Mandatory=$true)][string]$Label, [int]$MaxAttempts=20)
@@ -109,6 +114,10 @@ try {
           break
         } elseif ($focused.Current.Name -eq 'Command palette') {
           $observedFocusKind = 'dialog'
+        } elseif ($focused.Current.ControlType -eq [System.Windows.Automation.ControlType]::ListItem) {
+          $observedFocusKind = 'aria_active_descendant_list_item'
+        } elseif ($focused.Current.ControlType -eq [System.Windows.Automation.ControlType]::Edit) {
+          $observedFocusKind = 'other_edit_control'
         } elseif ($focused.Current.Name -ne '') {
           $observedFocusKind = 'other_named_element'
         } else {

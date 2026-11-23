@@ -78,6 +78,10 @@ class NativeUIAContracts(unittest.TestCase):
                         "Find-NativeName", "keyboard_focus_enters_modal_search",
                         "escape_dismisses_modal", "full_screen_reader_verified = $false"):
             self.assertIn(snippet, script)
+        self.assertIn("if ($item.Current.IsKeyboardFocusable) { return $item }", script)
+        palette = (ROOT / "apps/desktop/src/ui/CommandPalette.tsx").read_text(encoding="utf-8")
+        self.assertIn('ref={inputRef} autoFocus', palette)
+        self.assertIn('aria-activedescendant=', palette)
         for forbidden in ("Invoke-WebRequest", "http://", "https://", "curl ",
                           "localStorage", "sessionStorage", "Get-Clipboard"):
             self.assertNotIn(forbidden, script)
