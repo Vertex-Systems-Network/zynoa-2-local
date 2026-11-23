@@ -48,10 +48,10 @@ class M02HelpEvidenceTests(unittest.TestCase):
             end = self.help.find("### M02-OPT-", head + 5)
             section = self.help[head:] if end == -1 else self.help[head:end]
             self.assertIn("Not implemented", section) if option_id == "M02-OPT-03" else self.assertIn("not implemented", section.lower())
-        self.assertIn("No in-app reduce-motion switch", self.help)
+        self.assertIn("no independent Reduce motion switch", self.help)
         self.assertIn("not persisted", self.wiki)
-        self.assertIn("not been synced", self.wiki)
-        self.assertIn("not a published/released product manual", self.wiki)
+        self.assertIn("**not** been synced", self.wiki)
+        self.assertIn("**not** a published/released product manual", self.wiki)
 
     def test_quick_start_does_not_require_nonexistent_workspace(self):
         self.assertIn("## Quick start", self.help)
@@ -76,8 +76,8 @@ class M02HelpEvidenceTests(unittest.TestCase):
         self.assertIn('setView("help")', self.app) if 'setView("help")' in self.app else self.assertIn('return "help"', self.app)
         self.assertIn("bundled offline Help Center", self.help)
         self.assertIn("remote GitHub Wiki repository", self.wiki)
-        self.assertIn("not wired", self.help)
-        self.assertIn("not a live incident reader", self.help)
+        self.assertIn("not yet wired", self.help)
+        self.assertIn("not** a live incident reader", self.help)
 
     def test_previously_inspected_focus_slice_review_is_not_a_final_manifest_entry(self):
         f = ROOT / "docs/screenshots/M02/M02-OPT-07.review.json"
