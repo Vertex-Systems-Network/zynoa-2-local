@@ -261,4 +261,14 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     Save-NativeFollowup -ScreenshotId 'P02-T02-12-LIGHT' -Shortcut '^{2}{TAB}{TAB}{TAB}{HOME}{DOWN}{DOWN}{TAB}' -ScreenTitle 'P02 explicit light appearance' -Description 'Real Tauri Preferences after selecting Light appearance in the native selector (session only)'
     Save-NativeFollowup -ScreenshotId 'P02-T02-12-DARK' -Shortcut '+{TAB}{HOME}{DOWN}{TAB}' -ScreenTitle 'P02 explicit dark appearance' -Description 'Real Tauri Preferences after selecting Dark appearance in the native selector (session only)'
 
+    # M02-OPT-04: F1 leaves the focused Appearance selector for bundled Help;
+    # Ctrl+5 then enters Workbench and End activates the keyboard-guide tab.
+    # This remains a real Tauri screenshot candidate, never a final manifest proof.
+    Save-NativeFollowup -ScreenshotId 'M02-OPT-04' -Shortcut '{F1}^{5}{TAB}{TAB}{TAB}{TAB}{END}{TAB}{PGDN}' -ScreenTitle 'P02 user-configurable navigation shortcuts' -Description 'Real Windows Tauri keyboard guide with six interactive Ctrl+1 through Ctrl+6 shortcut selectors and reset to defaults'
+    # From focused keyboard-guide panel, Tab first selector, choose Ctrl+2 for
+    # Overview. The occupied key swaps with Preferences; second candidate shows
+    # that change without saving any user preference.
+    Save-NativeFollowup -ScreenshotId 'P02-T02-OPT-04-swapped' -Shortcut '{TAB}{HOME}{DOWN}{TAB}' -ScreenTitle 'P02 swapped shortcut settings preview' -Description 'Native Tauri after swapping the Overview Ctrl+1 navigation binding with Ctrl+2; in-memory change only'
+
+
 }
