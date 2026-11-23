@@ -18,3 +18,14 @@ Source commit [`6b0048e`](https://github.com/Vertex-Systems-Network/zynoa-2-loca
 **Selected fix:** leave original P01 screenshot evidence untouched. For P02 source run, set actual native capture directory to `docs/screenshots/_ci/M01` with M02/M19 corresponding siblings and add them to artifact upload; no image overwritten. Source/build SHA and the native-window pixel/visibility contracts stay unchanged; file collisions still fail. Documented a Python regression for distinct CI paths and retained no-overwrite checks. First run's native screenshot capture was **not successful**. The next GitHub Windows job must produce original PNG + sha256/source metadata and candidates must be inspected before any capture can be accepted. The new WAI-ARIA improvements add stable tabpanel IDs and combobox focus target validation; TypeScript re-build pending.
 
 **P02 progress:** T01 predevelopment source/CI verified; T02 semantic UI source in progress; other full module acceptance tasks remain outstanding. No fake completion of M02/M19 or later phases.
+
+
+## M02-OPT-07 / P02-T02.04 keyboard-focus repair (2026-11-23)
+
+- Source bug: each Workbench `role="tabpanel"` is keyboard-focusable, yet `:focus { outline:none; }` hid the visual indicator.
+- Fix commit [4297822](https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/4297822dac25a9a99a2d85e1218847e7d0fe77be): 2px `:focus-visible` ring with 3px offset using the existing light/dark `--outline` token.
+- Regression [c6d3dcc](https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/c6d3dcc0d9a9d85cb6377879d01d8aed1ab8b965): Python contracts for keyboard-focusable panels, ≥3:1 focus-token contrast on five semantic surfaces and fail-closed capture provenance.
+- Windows gate [f005887](https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/f005887a02675dea9f9873c9d0a3a4d07014e4cc) runs Python P02 UI contracts as a separate step and tracks test-only changes.
+- Capture [d71ff6f](https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/d71ff6fb9f0bb5d87e94163615de1b48c4cac058): real Tauri `M02-OPT-07` candidate after keyboard Tab traversal; metadata remains `candidate_pending_visual_review` and `capture_verified=false` until a separate visual inspection.
+- Help and Wiki M02-OPT-07 instructions updated. No stored preferences, user data migrations, external services or new dependencies.
+- **Checkpoint:** code and native evidence instrumentation committed. Windows CI and independent visible focus ring inspection determine acceptance. P02-T02 parent task remains IN_PROGRESS; no P02 merge/release claim.
