@@ -172,7 +172,7 @@ test("M19 FAQ, glossary and source-only Wiki mappings are genuinely linked", () 
   assert.equal(new Set(helpFaq.map(x => x.id)).size, helpFaq.length);
   assert.equal(new Set(helpGlossary.map(x => x.term)).size, helpGlossary.length);
   for (const item of helpFaq) assert.ok(findHelpArticle(item.articleId), item.id);
-  assert.deepEqual(wikiSourceMappings.map(x => x.id), ["M02", "M19"]);
+  assert.deepEqual(wikiSourceMappings.map(x => x.id), ["M02", "M19", "M26"]);
   for (const map of wikiSourceMappings) {
     assert.match(map.source, /^docs\/wiki\/pages\/[A-Za-z0-9-]+\.md$/);
     assert.ok(findHelpArticle(map.articleId));

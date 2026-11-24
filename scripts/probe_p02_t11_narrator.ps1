@@ -237,25 +237,40 @@ try {
   $proof.narrator_pid=[int]$narrator.Id
   # Let the installed reader finish its initial startup before foregrounding the app.
   Start-Sleep -Milliseconds 3500
-  $app=Start-Process -FilePath $Executable -PassThru
-  $proof.app_pid=[int]$app.Id
-  $uia=$null
-  for ($i=0;$i -lt 100;$i++) {
-    Start-Sleep -Milliseconds 400
-    $app.Refresh()
-    if ($app.HasExited) { throw 'ZYN-NAR-011: real native app exited' }
-    if ($app.MainWindowHandle -ne [IntPtr]::Zero) {
-      $uia=[System.Windows.Automation.AutomationElement]::FromHandle($app.MainWindowHandle)
-      if ($null -ne $uia -and $uia.Current.ProcessId -eq $app.Id) { break }
-      $uia=$null
+  # Only before any speech has been captured: one bounded relaunch on a
+  # fresh disposable host if the real WebView navigation is not ready.
+  $prefsNav=$null
+  for ($launch=0;$launch -lt 2;$launch++) {
+    $app=Start-Process -FilePath $Executable -PassThru
+    $proof.app_pid=[int]$app.Id
+    $uia=$null
+    for ($i=0;$i -lt 100;$i++) {
+      Start-Sleep -Milliseconds 400
+      $app.Refresh()
+      if ($app.HasExited) { throw 'ZYN-NAR-011: real native app exited' }
+      if ($app.MainWindowHandle -ne [IntPtr]::Zero) {
+        $uia=[System.Windows.Automation.AutomationElement]::FromHandle($app.MainWindowHandle)
+        if ($null -ne $uia -and $uia.Current.ProcessId -eq $app.Id) { break }
+        $uia=$null
+      }
+    }
+    if ($null -eq $uia) { throw 'ZYN-NAR-012: native app identity unavailable' }
+    $proof.native_uia_pid_match=$true
+    if (-not [ZynoaNarratorKeyboard]::SetForegroundWindow($app.MainWindowHandle)) { throw 'ZYN-NAR-013: foreground failed' }
+    try {
+      $prefsNav=Find-FocusableNativeControl $uia 'Preferences (Ctrl+2)' 45
+      break
+    } catch {
+      if ($launch -ne 0 -or $_.Exception.Message -notlike 'ZYN-NAR-004:*') { throw }
+      Write-Host 'ZYN-NAR-STARTUP-RETRY: real navigation unavailable; relaunch once before speech'
+      Stop-Process -Id $app.Id -Force
+      if (-not $app.WaitForExit(5000)) { throw 'ZYN-NAR-011: initial native process did not exit' }
+      $app.Dispose()
+      $app=$null
+      Start-Sleep -Milliseconds 1500
     }
   }
-  if ($null -eq $uia) { throw 'ZYN-NAR-012: native app identity unavailable' }
-  $proof.native_uia_pid_match=$true
-  if (-not [ZynoaNarratorKeyboard]::SetForegroundWindow($app.MainWindowHandle)) { throw 'ZYN-NAR-013: foreground failed' }
-  # A native HWND alone is not WebView readiness. Wait for the actual
-  # navigation control before keyboard navigation on a fresh isolated host.
-  $prefsNav=Find-FocusableNativeControl $uia 'Preferences (Ctrl+2)' 45
+  if ($null -eq $prefsNav) { throw 'ZYN-NAR-004: real Preferences navigation unavailable after bounded startup retry' }
   $prefsNav.SetFocus()
   [System.Windows.Forms.SendKeys]::SendWait('^{2}')
   Start-Sleep -Milliseconds 800

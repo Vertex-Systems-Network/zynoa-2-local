@@ -22,6 +22,8 @@ FRONTEND = (
     "apps/desktop/src/ui/unified-search.ts",
     "apps/desktop/src/ui/commands.ts",
     "apps/desktop/src/ui/shortcut-map.ts",
+    "apps/desktop/src/ui/ChangeCenter.tsx",
+    "apps/desktop/src/ui/change-center.ts",
 )
 DENIED = (
     "fetch(", "XMLHttpRequest", "new WebSocket(", "new EventSource(",

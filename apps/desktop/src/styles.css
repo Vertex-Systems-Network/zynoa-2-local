@@ -535,3 +535,17 @@ main:focus{outline:none}
 .shell .settings-motion output { flex-shrink:0; font-size:12px; font-weight:650; color:var(--text-primary); }
 .shell .settings-motion:focus-visible { outline:2px solid var(--outline); outline-offset:3px; }
 @media(max-width:950px) { .shell .settings-motion { flex-wrap:wrap; } }
+
+/* M26 shared changelog surface: existing design tokens, no new theme palette. */
+.shell .change-center .notice { margin:0 0 22px; max-width:none; }
+.shell .change-tabs { display:flex; flex-wrap:wrap; gap:6px; border-bottom:1px solid var(--line); margin:0 0 20px; padding-bottom:8px; }
+.shell .change-tabs button { min-height:44px; border:1px solid transparent; border-radius:8px; padding:9px 15px; background:transparent; color:var(--text-secondary); cursor:pointer; font-size:13px; font-weight:650; }
+.shell .change-tabs button[aria-selected="true"] { border-color:var(--line); background:var(--surface-raised); color:var(--text-primary); }
+.shell .change-tabs button:focus-visible, .shell .change-center [role="tabpanel"]:focus-visible { outline:2px solid var(--outline); outline-offset:3px; }
+.shell .change-filters { display:grid; grid-template-columns:minmax(160px,2fr) minmax(115px,1fr) auto; gap:12px; align-items:end; }
+.shell .change-filters .help-tool-field { margin:0 0 8px; max-width:none; }
+.shell .change-filters .subtle-action { margin-bottom:8px; min-height:44px; }
+.shell .change-center [role="tabpanel"] { min-width:0; }
+.shell .change-center .help-option-detail p { color:var(--text-secondary); line-height:1.65; font-size:13px; }
+.shell .change-center > .help-tool-muted { margin-top:24px; }
+@media(max-width:950px) { .shell .change-filters { grid-template-columns:minmax(0,1fr); } .shell .change-filters .subtle-action { justify-self:start; } }
