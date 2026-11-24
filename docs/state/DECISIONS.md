@@ -126,3 +126,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-24 | P02 | Add actual installed Microsoft Narrator three-stage speech clipboard probe and read-only cold metadata timing decomposition | Fail closed on unsupported host or absent speech; keep unchanged performance limits and preserve no-user-data policy; do not infer full release/merge certification.
 
 2026-11-24 | P02 | Reconcile existing cross-phase requirements: T12 M26 UI and T13 M23–M25 UI; retain T11 final merge gate | Original PHASE_SPECS and PHASES.json require these; source inventory and board omit them. Issues #16/#17 remain blockers. No new product scope or silent deferral.
+
+2026-11-24 | P02 | Separate pure source/visual regression tests from strict current-phase premerge predicates; repair two mechanical warning sources and move in-scope evidence actions to Node24 | Avoid circular failure after protected closeout; strict live CLI and negative tests retained. New CI required. Existing dead-code contracts remain tracked, not suppressed. P03 must have own exact-head native CI/security baseline at preflight.
