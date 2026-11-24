@@ -1,5 +1,7 @@
 # Handoff (canonical starter)
 
+- **P02-T12 screen-reader isolation (2026-11-24):** Windows #45372694006 passed existing native/T10/performance/NVDA/Narrator, M26 recovered foreground once then failed after search-empty. Move separate M26 capture before live speech tests, fail if screen reader pre-exists, verify M26 process exit, add safe owner/stage diagnostics. Existing speech gates remain independent and fail closed. Fresh exact-head CI pending; T12 IN_PROGRESS, T13 TODO; lease released.
+
 - **P02-T12 Narrator cleanup source contract (2026-11-24):** Governance #45371337780 and Windows #45371337885 stopped at the same obsolete script-tail assertion; five other workflows passed. Updated contract requires clipboard cleanup followed by the unique fail-closed process-exit guard and bounded app/reader termination checks. Source readback satisfied; fresh runtime CI required. T12 IN_PROGRESS, T13 TODO, lease released.
 
 - **P02-T12 foreground interruption after search (2026-11-24):** Windows #45350997630 passed existing native/T10/performance/NVDA/Narrator but M26 failed ZYN-M26-002 after search-empty. Original artifact 14900667235, three hash-verified and visually inspected candidate frames, no final approval. Verified process exit and bounded focus-boundary-only HWND recovery candidate repair; strict screenshot and keyboard gates retained. New exact-head CI required; T12 IN_PROGRESS; T13 TODO; lease released.

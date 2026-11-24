@@ -140,3 +140,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-24 | P02 | Verify disposable Narrator process exit and bound M26 foreground recovery to intentional focus boundaries | Actual M26 foreground interruption after search-empty; preserve strict input/capture validation, no synthetic data or privileges.
 
 2026-11-24 | P02 | Reconcile Narrator script-tail contract with strict process cleanup guard | Both CI jobs stopped before native acceptance on obsolete ending assertion; verify unique fail-closed guard and exit checks, retain all runtime evidence.
+
+2026-11-24 | P02 | Isolate M26 capture before live screen readers and diagnose foreground loss by allowlisted owner/stage | Repeated exact-head loss after search-empty despite successful recovery earlier; cause unconfirmed, no skipped acceptance gates.

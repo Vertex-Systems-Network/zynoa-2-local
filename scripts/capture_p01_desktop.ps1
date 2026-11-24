@@ -249,11 +249,36 @@ using System;
 using System.Runtime.InteropServices;
 public static class ZynoaM26Foreground {
     [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint pid);
 }
 '@
+    $script:m26Stage='initial_navigation'
     function Assert-M26Foreground {
         $proc.Refresh()
-        if ($proc.HasExited -or [ZynoaM26Foreground]::GetForegroundWindow() -ne $hwnd) {
+        $foreground=[ZynoaM26Foreground]::GetForegroundWindow()
+        if ($proc.HasExited -or $foreground -ne $hwnd) {
+            # Only allowlisted process categories and fixed script stages:
+            # never log arbitrary window titles, UIA text or user data.
+            [uint32]$ownerPid=0
+            [void][ZynoaM26Foreground]::GetWindowThreadProcessId($foreground,[ref]$ownerPid)
+            $ownerCategory='other'
+            if ($foreground -eq [IntPtr]::Zero) { $ownerCategory='no_window' }
+            elseif ($ownerPid -eq $TargetPid) { $ownerCategory='target_other_window' }
+            elseif ($ownerPid -gt 0) {
+                $owner=Get-Process -Id $ownerPid -ErrorAction SilentlyContinue
+                if ($null -ne $owner) {
+                    switch ($owner.ProcessName.ToLowerInvariant()) {
+                        'narrator' { $ownerCategory='narrator' }
+                        'nvda' { $ownerCategory='nvda' }
+                        'msedgewebview2' { $ownerCategory='webview2' }
+                        'pwsh' { $ownerCategory='shell' }
+                        'powershell' { $ownerCategory='shell' }
+                        'conhost' { $ownerCategory='console' }
+                        'explorer' { $ownerCategory='explorer' }
+                    }
+                }
+            }
+            Write-Host ("ZYN-M26-FOREGROUND-LOSS stage="+$script:m26Stage+" owner="+$ownerCategory)
             throw 'ZYN-M26-002: actual app not foreground'
         }
     }
@@ -353,6 +378,7 @@ public static class ZynoaM26Foreground {
     $observations = [System.Collections.Generic.List[object]]::new()
     function Capture-M26 {
         param([string]$Id, [string]$Heading, [string]$Description)
+        $script:m26Stage=$Id
         [void](Wait-M26Name -Name $Heading -Reveal)
         Assert-M26Foreground
         Save-NativeFollowup -ScreenshotId $Id -Shortcut '' -ScreenTitle $Heading -Description $Description
@@ -409,6 +435,7 @@ public static class ZynoaM26Foreground {
     }
     function Open-M26Tab {
         param([string]$From, [string]$Keys, [string]$To)
+        $script:m26Stage='tab_transition'
         Restore-M26ForegroundForFocus
         $source=Read-M26Tab -Name $From
         if ($null -eq $source -or -not $source.Selected -or -not $source.Enabled) {
@@ -437,8 +464,11 @@ public static class ZynoaM26Foreground {
         throw 'ZYN-M26-006: typed text did not reach real notice search'
     }
     Capture-M26 -Id 'M26-CAND-SEARCH-EMPTY' -Heading 'No matching notices. Reset filters to view all.' -Description 'Actual native typed search query, no-match feedback and reset control'
+    $script:m26Stage='search_reset_focus'
     [void](Focus-M26Control -Name 'Reset filters')
+    $script:m26Stage='search_reset_enter'
     Send-M26Key -Keys '{ENTER}'
+    $script:m26Stage='search_reset_value'
     $resetDeadline=(Get-Date).AddSeconds(8)
     $queryReset=$false
     do {
@@ -450,11 +480,14 @@ public static class ZynoaM26Foreground {
         Start-Sleep -Milliseconds 200
     } until ((Get-Date) -ge $resetDeadline)
     if (-not $queryReset) { throw 'ZYN-M26-019: actual search reset did not clear input' }
+    $script:m26Stage='notice_focus'
     $notice=Focus-M26Control -Name 'Backup and restore not available' -Fragment
     if ($notice.Current.ControlType -ne [System.Windows.Automation.ControlType]::Button) {
         throw 'ZYN-M26-020: notice target is not a native button'
     }
+    $script:m26Stage='notice_enter'
     Send-M26Key -Keys '{ENTER}'
+    $script:m26Stage='notice_detail'
     [void](Wait-M26Name -Name 'Not a released fix or live issue status.' -Reveal)
     $detailProof=[ordered]@{query_before='zzznomatch';query_after_reset=$freshSearch.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).Current.Value;notice_title='Backup and restore not available';activation='focused_native_button_enter';detail_marker='Not a released fix or live issue status.'}
     Capture-M26 -Id 'M26-CAND-S04' -Heading 'Not a released fix or live issue status.' -Description 'Actual selected bundled capability notice, no verified linked issue or merge receipt'

@@ -172,5 +172,29 @@ class ChangeCenterTests(unittest.TestCase):
             self.assertIn("Assert-M26Foreground",section)
             self.assertNotIn("Restore-M26ForegroundForFocus",section)
 
+    def test_native_capture_precedes_speech_with_independent_fail_closed_gates(self):
+        workflow = (ROOT / ".github/workflows/p01-desktop.yml").read_text(encoding="utf-8")
+        m26 = workflow.index("name: P02-T12 separate M26 native keyboard")
+        nvda = workflow.index("name: P02 live NVDA speech")
+        t10 = workflow.index("name: P02-T10 exact-source native preview final acceptance")
+        narrator = workflow.index("name: P02-T11 live Microsoft Narrator")
+        self.assertLess(m26, nvda)
+        self.assertLess(nvda, t10)
+        self.assertLess(t10, narrator)
+        for marker in ("Get-Process -Name Narrator,nvda", "ZYN-M26-021",
+                       "WaitForExit(10000)", "ZYN-M26-022"):
+            self.assertIn(marker, workflow[m26:nvda])
+        for marker, section in (("steps.p02_performance_budget.outcome == 'success'", workflow[nvda:t10]),
+                                ("steps.p02_nvda.outcome == 'success'", workflow[t10:narrator]),
+                                ("steps.p02_t10_acceptance.outcome == 'success'", workflow[narrator:])):
+            self.assertIn(marker, section)
+            self.assertIn("!cancelled()", section)
+        script = (ROOT / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        for marker in ("GetWindowThreadProcessId", "ZYN-M26-FOREGROUND-LOSS",
+                       "search_reset_focus", "search_reset_enter", "search_reset_value",
+                       "notice_focus", "notice_enter", "notice_detail"):
+            self.assertIn(marker, script)
+        self.assertNotIn("MainWindowTitle", script)
+
 if __name__ == "__main__":
     unittest.main()

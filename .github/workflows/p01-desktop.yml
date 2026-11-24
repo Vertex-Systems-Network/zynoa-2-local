@@ -354,6 +354,7 @@ jobs:
           python -m tools.verify_p02_native_performance --source-sha $env:ZYNOA_HEAD_SHA --proof $capture --report $verified
           if ($LASTEXITCODE -ne 0) { throw 'ZYN-PERF-011: actual native timing receipt rejected' }
       - name: P02 enforce preview-only native performance budget
+        id: p02_performance_budget
         if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
         shell: pwsh
         env:
@@ -361,46 +362,8 @@ jobs:
         run: |
           python -m tools.verify_p02_t10_performance_budget --budget docs/quality/P02_T10_PERFORMANCE_BUDGET.json --cold docs/screenshots/_ci/M02/P02-native-performance.json --warm docs/screenshots/_ci/M02/P02-native-startup-repeat.verify.json --source-sha $env:ZYNOA_HEAD_SHA --report docs/screenshots/_ci/M02/P02-T10-perf-budget.verify.json
           if ($LASTEXITCODE -ne 0) { throw 'ZYN-PERF-021: evidence did not meet P02 preview Windows budget' }
-      - name: P02 live NVDA speech plus real Windows keyboard journey (fail closed)
-        if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
-        shell: pwsh
-        env:
-          ZYNOA_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\\desktop\\src-tauri\\target\\release\\zynoa_desktop.exe'
-          $capture = Join-Path $env:GITHUB_WORKSPACE 'docs\\screenshots\\_ci\\M02\\P02-nvda-speech.capture.json'
-          $report = Join-Path $env:GITHUB_WORKSPACE 'docs\\screenshots\\_ci\\M02\\P02-nvda-speech.verify.json'
-          & (Join-Path $env:GITHUB_WORKSPACE 'scripts\\probe_p02_nvda_speech.ps1') -Executable $exe -SourceSha $env:ZYNOA_HEAD_SHA -OutputPath $capture
-          if ($LASTEXITCODE -ne 0) { throw 'ZYN-NVDA-021: real screen reader invocation failed' }
-          python -m tools.verify_p02_nvda_speech --proof $capture --source-sha $env:ZYNOA_HEAD_SHA --report $report
-          if ($LASTEXITCODE -ne 0) { throw 'ZYN-NVDA-022: live NVDA speech did not prove native labels and focus' }
-      - name: P02-T10 exact-source native preview final acceptance
-        if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
-        shell: pwsh
-        env:
-          ZYNOA_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          ZYNOA_RUN_ID: ${{ github.run_id }}
-        run: |
-          python -m tools.verify_p02_t10_acceptance --root . --runtime . --source-sha $env:ZYNOA_HEAD_SHA --run-id $env:ZYNOA_RUN_ID --report docs/screenshots/_ci/M02/P02-T10-scoped-acceptance.verify.json
-          if ($LASTEXITCODE -ne 0) { throw 'ZYN-P02-T10-021: authentic final preview acceptance failed' }
-      - name: P02-T11 live Microsoft Narrator spoken focus and Help journey
-        if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
-        shell: pwsh
-        env:
-          ZYNOA_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          ZYNOA_RUN_ID: ${{ github.run_id }}
-        run: |
-          $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
-          $capture = Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\_ci\M02\P02-T11-narrator.capture.json'
-          $report = Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\_ci\M02\P02-T11-narrator.verify.json'
-          $script = Join-Path $env:GITHUB_WORKSPACE 'scripts\probe_p02_t11_narrator.ps1'
-          $parseErrors = $null
-          [void][System.Management.Automation.Language.Parser]::ParseFile($script,[ref]$null,[ref]$parseErrors)
-          if ($parseErrors.Count -ne 0) { throw 'ZYN-NAR-PARSE: native Narrator script invalid' }
-          & $script -Executable $exe -SourceSha $env:ZYNOA_HEAD_SHA -OutputPath $capture
-          python -m tools.verify_p02_t11_narrator --proof $capture --source-sha $env:ZYNOA_HEAD_SHA --run-id $env:ZYNOA_RUN_ID --report $report
-          if ($LASTEXITCODE -ne 0) { throw 'ZYN-NAR-022: actual speech receipt rejected' }
       - name: P02-T12 separate M26 native keyboard and screenshot candidates
+        id: m26_native
         if: ${{ !cancelled() && steps.native_build.outcome == 'success' && github.event.pull_request.head.ref == 'phase/02-shared-ui' }}
         shell: pwsh
         env:
@@ -409,6 +372,9 @@ jobs:
           $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
           $builtSha = (& git -C $env:GITHUB_WORKSPACE rev-parse HEAD).Trim().ToLowerInvariant()
           if ($builtSha -cne $env:ZYNOA_HEAD_SHA) { throw 'ZYN-M26-007: build SHA mismatch' }
+          # Capture M26 before starting either live screen reader. Do not kill
+          # unrelated processes; fail if this disposable runner is not isolated.
+          if (Get-Process -Name Narrator,nvda -ErrorAction SilentlyContinue) { throw 'ZYN-M26-021: pre-existing screen reader in native capture session' }
           $process = Start-Process -FilePath $exe -PassThru
           try {
             $deadline = (Get-Date).AddSeconds(45)
@@ -424,9 +390,52 @@ jobs:
             if ($LASTEXITCODE -ne 0) { throw 'ZYN-M26-010: native candidate receipts rejected' }
           } finally {
             $process.Refresh()
-            if (-not $process.HasExited) { Stop-Process -Id $process.Id -Force; [void]$process.WaitForExit(10000) }
-            $process.Dispose()
+            if (-not $process.HasExited) { Stop-Process -Id $process.Id -Force }
+            try {
+              if (-not $process.WaitForExit(10000)) { throw 'ZYN-M26-022: disposable native capture process did not exit' }
+            } finally { $process.Dispose() }
           }
+      - name: P02 live NVDA speech plus real Windows keyboard journey (fail closed)
+        id: p02_nvda
+        if: ${{ !cancelled() && steps.p02_performance_budget.outcome == 'success' && github.event.pull_request.head.ref == 'phase/02-shared-ui' }}
+        shell: pwsh
+        env:
+          ZYNOA_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\\desktop\\src-tauri\\target\\release\\zynoa_desktop.exe'
+          $capture = Join-Path $env:GITHUB_WORKSPACE 'docs\\screenshots\\_ci\\M02\\P02-nvda-speech.capture.json'
+          $report = Join-Path $env:GITHUB_WORKSPACE 'docs\\screenshots\\_ci\\M02\\P02-nvda-speech.verify.json'
+          & (Join-Path $env:GITHUB_WORKSPACE 'scripts\\probe_p02_nvda_speech.ps1') -Executable $exe -SourceSha $env:ZYNOA_HEAD_SHA -OutputPath $capture
+          if ($LASTEXITCODE -ne 0) { throw 'ZYN-NVDA-021: real screen reader invocation failed' }
+          python -m tools.verify_p02_nvda_speech --proof $capture --source-sha $env:ZYNOA_HEAD_SHA --report $report
+          if ($LASTEXITCODE -ne 0) { throw 'ZYN-NVDA-022: live NVDA speech did not prove native labels and focus' }
+      - name: P02-T10 exact-source native preview final acceptance
+        id: p02_t10_acceptance
+        if: ${{ !cancelled() && steps.p02_nvda.outcome == 'success' && github.event.pull_request.head.ref == 'phase/02-shared-ui' }}
+        shell: pwsh
+        env:
+          ZYNOA_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          ZYNOA_RUN_ID: ${{ github.run_id }}
+        run: |
+          python -m tools.verify_p02_t10_acceptance --root . --runtime . --source-sha $env:ZYNOA_HEAD_SHA --run-id $env:ZYNOA_RUN_ID --report docs/screenshots/_ci/M02/P02-T10-scoped-acceptance.verify.json
+          if ($LASTEXITCODE -ne 0) { throw 'ZYN-P02-T10-021: authentic final preview acceptance failed' }
+      - name: P02-T11 live Microsoft Narrator spoken focus and Help journey
+        if: ${{ !cancelled() && steps.p02_t10_acceptance.outcome == 'success' && github.event.pull_request.head.ref == 'phase/02-shared-ui' }}
+        shell: pwsh
+        env:
+          ZYNOA_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          ZYNOA_RUN_ID: ${{ github.run_id }}
+        run: |
+          $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
+          $capture = Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\_ci\M02\P02-T11-narrator.capture.json'
+          $report = Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\_ci\M02\P02-T11-narrator.verify.json'
+          $script = Join-Path $env:GITHUB_WORKSPACE 'scripts\probe_p02_t11_narrator.ps1'
+          $parseErrors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile($script,[ref]$null,[ref]$parseErrors)
+          if ($parseErrors.Count -ne 0) { throw 'ZYN-NAR-PARSE: native Narrator script invalid' }
+          & $script -Executable $exe -SourceSha $env:ZYNOA_HEAD_SHA -OutputPath $capture
+          python -m tools.verify_p02_t11_narrator --proof $capture --source-sha $env:ZYNOA_HEAD_SHA --run-id $env:ZYNOA_RUN_ID --report $report
+          if ($LASTEXITCODE -ne 0) { throw 'ZYN-NAR-022: actual speech receipt rejected' }
       - uses: actions/upload-artifact@v6
         if: always()
         with:
