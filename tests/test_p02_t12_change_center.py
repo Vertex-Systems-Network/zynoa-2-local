@@ -110,5 +110,23 @@ class ChangeCenterTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,"missing native keyboard transitions"):
                 verify(root,"a"*40,"123")
 
+    def test_module_filter_requires_real_value_inventory_and_reset(self):
+        from tools.verify_p02_m26_candidates import verify_module_filter, MODULE_TITLES
+        script = (ROOT / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        for marker in ("Read-M26ModuleFilter", "SelectionPattern", "ValuePattern",
+                       "Bundled capability notices", "ZYN-M26-016", "ZYN-M26-017"):
+            self.assertIn(marker, script)
+        valid = {"initial_value":"All modules","initial_titles":MODULE_TITLES,
+                 "selected_value":"M23","filtered_titles":MODULE_TITLES[:1],
+                 "keyboard_method":"collapsed_keyboard","reset_value":"All modules",
+                 "reset_titles":MODULE_TITLES}
+        verify_module_filter(valid)
+        for key,wrong in (("selected_value","M24"),("filtered_titles",MODULE_TITLES),
+                          ("reset_titles",[]),("keyboard_method","fake"),("initial_value","M26")):
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                verify_module_filter({**valid,key:wrong})
+        with self.assertRaises(ValueError):
+            verify_module_filter(None)
+
 if __name__ == "__main__":
     unittest.main()

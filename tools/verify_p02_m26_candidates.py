@@ -37,6 +37,22 @@ def require(condition, message):
         raise ValueError(message)
 
 
+MODULE_TITLES = ["Backup and restore not available", "Data relocation not available",
+                 "Signed updates not available", "Live change and release data not available"]
+
+
+def verify_module_filter(proof) -> None:
+    require(isinstance(proof, dict), "missing native module filter evidence")
+    require(proof.get("initial_value") == "All modules" and proof.get("initial_titles") == MODULE_TITLES,
+            "wrong initial native notice inventory")
+    require(proof.get("selected_value") == "M23" and proof.get("filtered_titles") == MODULE_TITLES[:1],
+            "wrong actual filtered inventory")
+    require(proof.get("keyboard_method") in ("collapsed_keyboard", "expanded_keyboard"),
+            "missing real module keyboard selection")
+    require(proof.get("reset_value") == "All modules" and proof.get("reset_titles") == MODULE_TITLES,
+            "wrong native reset inventory")
+
+
 def verify(root: Path, source_sha: str, run_id: str) -> None:
     require(bool(re.fullmatch(r"[a-f0-9]{40}", source_sha)), "invalid source SHA")
     require(bool(re.fullmatch(r"[1-9][0-9]*", run_id)), "invalid run ID")
@@ -58,6 +74,7 @@ def verify(root: Path, source_sha: str, run_id: str) -> None:
         require(all(item.get(key) is True for key in (
             "source_focus_and_selection", "destination_focus_and_selection", "previous_tab_deselected")),
             "native selected-tab/focus proof absent")
+    verify_module_filter(proof.get("module_filter"))
     observations = proof.get("observations")
     require(isinstance(observations, list) and len(observations) == len(EXPECTED),
             "missing native journey observations")

@@ -413,10 +413,81 @@ public static class ZynoaM26Foreground {
     Capture-M26 -Id 'M26-CAND-S03' -Heading 'No verified versions' -Description 'Actual native empty verified version history, comparison intentionally disabled'
     [void](Wait-M26Name -Name 'Compare versions' -Disabled)
     Open-M26Tab -From 'Version History' -Keys '{RIGHT}' -To 'Module Changes'
-    $module = Focus-M26Control -Name 'Module'
-    Send-M26Key -Keys '{HOME}{DOWN}{TAB}'
-    [void](Wait-M26Name -Name '1 bundled capability notice. Not live GitHub issues or release entries.')
+    function Read-M26ModuleFilter {
+        Assert-M26Foreground
+        $combo = Wait-M26Name -Name 'Module' -Focusable
+        $selectedValue = ''
+        $valuePattern = $null
+        if ($combo.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern,[ref]$valuePattern)) {
+            $selectedValue = [string]$valuePattern.Current.Value
+        }
+        if ($selectedValue -notin @('All modules','M23','M24','M25','M26')) {
+            $selection = $null
+            if ($combo.TryGetCurrentPattern([System.Windows.Automation.SelectionPattern]::Pattern,[ref]$selection)) {
+                $selectedItems = @($selection.Current.GetSelection())
+                if ($selectedItems.Count -eq 1) { $selectedValue = [string]$selectedItems[0].Current.Name }
+            }
+        }
+        $group = Wait-M26Name -Name 'Bundled capability notices'
+        $buttons = $group.FindAll([System.Windows.Automation.TreeScope]::Descendants,
+            [System.Windows.Automation.PropertyCondition]::new(
+                [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
+                [System.Windows.Automation.ControlType]::Button))
+        $known = @('Backup and restore not available','Data relocation not available','Signed updates not available','Live change and release data not available')
+        $titles = [System.Collections.Generic.List[string]]::new()
+        for ($j=0; $j -lt $buttons.Count; $j++) {
+            $name = [string]$buttons.Item($j).Current.Name
+            $matched = @($known | Where-Object { $name.Contains($_) })
+            if ($matched.Count -ne 1) { throw 'ZYN-M26-014: unexpected bundled notice button' }
+            $titles.Add($matched[0])
+        }
+        return [pscustomobject]@{SelectedValue=$selectedValue;Titles=@($titles.ToArray())}
+    }
+    function Wait-M26ModuleFilter {
+        param([string]$ExpectedValue,[string[]]$ExpectedTitles,[int]$Seconds=8)
+        $deadline=(Get-Date).AddSeconds($Seconds)
+        do {
+            try {
+                $state=Read-M26ModuleFilter
+                if ($state.SelectedValue -ceq $ExpectedValue -and
+                    $state.Titles.Count -eq $ExpectedTitles.Count -and
+                    (($state.Titles -join '|') -ceq ($ExpectedTitles -join '|'))) { return $state }
+            } catch [System.Windows.Automation.ElementNotAvailableException] {}
+            Start-Sleep -Milliseconds 250
+        } until ((Get-Date) -ge $deadline)
+        return $null
+    }
+    $allTitles=@('Backup and restore not available','Data relocation not available','Signed updates not available','Live change and release data not available')
+    $initialFilter=Wait-M26ModuleFilter -ExpectedValue 'All modules' -ExpectedTitles $allTitles
+    if ($null -eq $initialFilter) { throw 'ZYN-M26-015: default module filter value or actual notice inventory mismatch' }
+    [void](Focus-M26Control -Name 'Module')
+    # Send discrete keys to the actual native select. The collapsed select
+    # should commit on arrow; if not, explicitly open and commit by keyboard.
+    Send-M26Key -Keys '{HOME}'
+    Send-M26Key -Keys '{DOWN}'
+    $filterMethod='collapsed_keyboard'
+    $filtered=Wait-M26ModuleFilter -ExpectedValue 'M23' -ExpectedTitles @($allTitles[0]) -Seconds 3
+    if ($null -eq $filtered) {
+        [void](Focus-M26Control -Name 'Module')
+        Send-M26Key -Keys '%{DOWN}{HOME}{DOWN}{ENTER}'
+        $filterMethod='expanded_keyboard'
+        $filtered=Wait-M26ModuleFilter -ExpectedValue 'M23' -ExpectedTitles @($allTitles[0])
+    }
+    if ($null -eq $filtered) {
+        $actual=Read-M26ModuleFilter
+        $safeValue=if ($actual.SelectedValue -in @('All modules','M23','M24','M25','M26')) {$actual.SelectedValue} else {'provider_unavailable'}
+        Write-Host ("ZYN-M26-FILTER selected="+$safeValue+" notice_count="+$actual.Titles.Count)
+        throw 'ZYN-M26-016: real module selection and filtered notice inventory not verified'
+    }
+    $filterProof=[ordered]@{initial_value=$initialFilter.SelectedValue;initial_titles=@($initialFilter.Titles);selected_value=$filtered.SelectedValue;filtered_titles=@($filtered.Titles);keyboard_method=$filterMethod}
+    Write-Host ("ZYN-M26-FILTER-PASS "+$filterMethod+" M23 one actual notice")
     Capture-M26 -Id 'M26-CAND-S05' -Heading 'Select a capability notice' -Description 'Actual native module-filtered capability notices after keyboard selection, not released history'
+    [void](Focus-M26Control -Name 'Reset filters')
+    Send-M26Key -Keys '{ENTER}'
+    $resetFilter=Wait-M26ModuleFilter -ExpectedValue 'All modules' -ExpectedTitles $allTitles
+    if ($null -eq $resetFilter) { throw 'ZYN-M26-017: module reset did not restore real inventory' }
+    $filterProof['reset_value']=$resetFilter.SelectedValue
+    $filterProof['reset_titles']=@($resetFilter.Titles)
     Open-M26Tab -From 'Module Changes' -Keys '{RIGHT}' -To 'Audit Timeline'
     Capture-M26 -Id 'M26-CAND-S06' -Heading 'Audit access is not enabled' -Description 'Actual native audit timeline boundary with no authorized private event query or export'
     [void](Wait-M26Name -Name 'Export change history' -Disabled)
@@ -436,6 +507,7 @@ public static class ZynoaM26Foreground {
         independent_visual_review=$false; screen_reader_verified=$false
         observations=@($observations.ToArray())
         tab_transitions=@($tabTransitions.ToArray())
+        module_filter=$filterProof
     }
     $receipt | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (
         Join-Path $OutputDirectory 'M26-journey.capture.json') -Encoding UTF8
