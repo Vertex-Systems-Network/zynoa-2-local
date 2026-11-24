@@ -37,6 +37,11 @@ class T02FinalAcceptanceGateTests(unittest.TestCase):
             dest = self.root / name
             dest.parent.mkdir(parents=True, exist_ok=True)
             dest.write_bytes((ROOT / name).read_bytes())
+        for image_id in REQUIRED_IDS:
+            name = f"docs/screenshots/M02/{image_id}.png"
+            dest = self.root / name
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_bytes((ROOT / name).read_bytes())
 
     def _json(self, path):
         return json.loads((self.root / path).read_text(encoding="utf-8"))
@@ -44,14 +49,14 @@ class T02FinalAcceptanceGateTests(unittest.TestCase):
     def _save(self, path, payload):
         (self.root / path).write_text(json.dumps(payload), encoding="utf-8")
 
-    def test_in_progress_parent_reports_real_finalization_blockers(self):
+    def test_done_parent_accepts_committed_scoped_evidence(self):
         result = audit(self.root)
         self.assertEqual("P02-T02", result["task_id"])
-        self.assertEqual("IN_PROGRESS", result["official_task_status"])
-        self.assertEqual("NOT_READY", result["acceptance"])
+        self.assertEqual("DONE", result["official_task_status"])
+        self.assertEqual("READY_FOR_T02_SCOPED_REMOTE_CI", result["acceptance"])
         self.assertEqual(15, result["expected_final_screenshot_count"])
-        self.assertEqual(0, result["verified_manifest_screenshot_count"])
-        self.assertIn("15 M02 final screenshot PNGs not committed", result["blockers"])
+        self.assertEqual(15, result["verified_manifest_screenshot_count"])
+        self.assertEqual([], result["blockers"])
         self.assertNotIn("M02 independent 15-image final visual review absent", result["blockers"])
         self.assertNotIn("M02-OPT-03 functionality explicitly not implemented", result["blockers"])
         self.assertNotIn("M02-OPT-04 functionality explicitly not implemented", result["blockers"])
@@ -61,6 +66,7 @@ class T02FinalAcceptanceGateTests(unittest.TestCase):
         t = self._json("docs/state/pr-tasks/P02.json")
         next(row for row in t["tasks"] if row["id"] == "P02-T02")["status"] = "DONE"
         self._save("docs/state/pr-tasks/P02.json", t)
+        (self.root / "docs/screenshots/M02/M02-S01.png").unlink()
         with self.assertRaisesRegex(PrematureT02Closure, "falsely marked DONE"):
             audit(self.root)
 
@@ -70,9 +76,10 @@ class T02FinalAcceptanceGateTests(unittest.TestCase):
             if row["module"] == "M02":
                 row["status"] = "VERIFIED"
         self._save("docs/screenshots/MANIFEST.json", m)
-        result = audit(self.root)
-        self.assertEqual(0, result["verified_manifest_screenshot_count"])
-        self.assertIn("15 M02 final screenshot PNGs not committed", result["blockers"])
+        for image_id in REQUIRED_IDS:
+            (self.root / f"docs/screenshots/M02/{image_id}.png").unlink()
+        with self.assertRaisesRegex(PrematureT02Closure, "15 M02 final screenshot PNGs not committed"):
+            audit(self.root)
 
     def test_m02_image_status_does_not_equate_to_complete_module(self):
         result = audit(ROOT)
@@ -89,7 +96,8 @@ class T02FinalAcceptanceGateTests(unittest.TestCase):
         m = self._json("docs/screenshots/MANIFEST.json")
         m["required"] = [row for row in m["required"] if row["asset_id"] != "M02-S07"]
         self._save("docs/screenshots/MANIFEST.json", m)
-        self.assertIn("M02 missing required screenshot IDs: M02-S07", audit(self.root)["blockers"])
+        with self.assertRaisesRegex(PrematureT02Closure, "M02 missing required screenshot IDs: M02-S07"):
+            audit(self.root)
 
     def test_m19_pending_is_separate_not_in_m02_count(self):
         self.assertEqual(7, len(SCREEN_IDS))
@@ -100,7 +108,8 @@ class T02FinalAcceptanceGateTests(unittest.TestCase):
 
     def test_no_scope_review_is_not_final_visual_proof(self):
         (self.root / "docs/screenshots/M02/T02-visual-foundation.review.json").unlink()
-        self.assertIn("T02 early native foundation review record absent", audit(self.root)["blockers"])
+        with self.assertRaisesRegex(PrematureT02Closure, "T02 early native foundation review record absent"):
+            audit(self.root)
 
     def test_windows_gate_runs_and_preserves_candidate_only_visual_proof(self):
         workflow = (ROOT / ".github/workflows/p01-desktop.yml").read_text(encoding="utf-8")
