@@ -442,6 +442,58 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     # React/WebView2 has re-rendered the FAQ section. The actual disclosure
     # must be keyboard focusable or the capture fails closed (ZYN-SCREEN-043).
     # Do not PageDown after Enter: that moves the expanded answer out of frame.
+    # The prior glossary frame intentionally scrolls below the fold. Return to
+    # the actual FAQ tab before looking up its disclosure. UIA InvokePattern
+    # activates the real local mode idempotently even if the preceding keyboard
+    # focus was lost during a WebView2 repaint. No guessed Tab sequence.
+    $faqRoot = [System.Windows.Automation.AutomationElement]::FromHandle($hwnd)
+    if ($null -eq $faqRoot -or $faqRoot.Current.ProcessId -ne $TargetPid) {
+        throw 'ZYN-SCREEN-042: FAQ native UIA handle/PID mismatch'
+    }
+    $faqCondition = [System.Windows.Automation.PropertyCondition]::new(
+        [System.Windows.Automation.AutomationElement]::NameProperty, 'FAQ & glossary')
+    $faqTab = $null
+    for ($faqAttempt=0; $faqAttempt -lt 8; $faqAttempt++) {
+        $faqItems = $faqRoot.FindAll([System.Windows.Automation.TreeScope]::Descendants, $faqCondition)
+        for ($faqIndex=0; $faqIndex -lt $faqItems.Count; $faqIndex++) {
+            try {
+                $candidate = $faqItems.Item($faqIndex)
+                if (-not $candidate.Current.IsEnabled -or -not $candidate.Current.IsKeyboardFocusable) { continue }
+                $candidate.SetFocus()
+                # Use the real provider's button activation when available;
+                # otherwise send an actual keyboard Enter to its focused tab.
+                $invoke = $null
+                if ($candidate.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern, [ref]$invoke)) {
+                    $invoke.Invoke()
+                } else {
+                    [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+                }
+                $faqTab = $candidate
+                break
+            } catch [System.Windows.Automation.ElementNotAvailableException] {
+                # Retry actual rerendered native element, never a mock.
+            } catch [System.InvalidOperationException] {}
+        }
+        if ($null -ne $faqTab) { break }
+        Start-Sleep -Milliseconds 250
+    }
+    if ($null -eq $faqTab) { throw 'ZYN-SCREEN-044: actual FAQ tab could not be activated' }
+    Start-Sleep -Milliseconds 400
+    # The page itself is scrollable; UIA ScrollItemPattern (if exposed by
+    # WebView2) explicitly brings the real question into view before focus.
+    $faqQuestion = [System.Windows.Automation.PropertyCondition]::new(
+        [System.Windows.Automation.AutomationElement]::NameProperty, 'Does a native connection mean my work is saved?')
+    $question = $faqRoot.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $faqQuestion)
+    if ($null -ne $question) {
+        try {
+            $scrollItem = $null
+            if ($question.TryGetCurrentPattern([System.Windows.Automation.ScrollItemPattern]::Pattern, [ref]$scrollItem)) {
+                $scrollItem.ScrollIntoView()
+            }
+        } catch [System.Windows.Automation.ElementNotAvailableException] {}
+        catch [System.InvalidOperationException] {}
+    }
+    # Keep the strict named real native focus gate and actual Enter disclosure.
     Focus-P02NativeControl -AccessibleName 'Does a native connection mean my work is saved?'
     Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-05' -Shortcut '{ENTER}' -ScreenTitle 'M19 actual FAQ expanded question' -Description 'Real native Help FAQ with keyboard-expanded disclosure and linked offline guidance' -FinalCandidateId 'M19-OPT-05'
     [System.Windows.Forms.SendKeys]::SendWait('^{2}')

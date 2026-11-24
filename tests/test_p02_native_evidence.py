@@ -110,6 +110,16 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
         self.assertIn("[System.Windows.Forms.SendKeys]::SendWait('{F1}')",
                       src[control:gallery])
 
+    def test_faq_capture_reselects_native_tab_after_glossary_scroll(self):
+        root = Path(__file__).resolve().parents[1]
+        src = (root / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        before = src.index("-ScreenshotId 'P02-T10-CTRL-M19-OPT-04'")
+        after = src.index("-ScreenshotId 'P02-T10-CTRL-M19-OPT-05'")
+        segment = src[before:after]
+        for marker in ("FAQ & glossary", "InvokePattern", "ScrollItemPattern",
+                       "ZYN-SCREEN-044", "Focus-P02NativeControl -AccessibleName 'Does a native connection mean my work is saved?'"):
+            self.assertIn(marker, segment)
+
     def test_help_input_and_faq_capture_focus_real_native_disclosure(self):
         root = Path(__file__).resolve().parents[1]
         src = (root / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
