@@ -1,0 +1,50 @@
+{
+  "change_id": "CHG-P02-M26-CHANGE-CENTER-20261124",
+  "module_id": "M26",
+  "kind": "feature",
+  "title": "Integrated read-only Change Center foundation",
+  "summary": "Source-level four-tab Change Center, bundled capability notice search and module filter, keyboard navigation and contextual Help. Exact-head existing CI passed; M26-specific native screenshots, accessibility, all applicable UI states and hosted Wiki remain pending. No signed release, live issue inventory or privileged services enabled.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/16"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12",
+  "docs_paths": [
+    "docs/evidence/P02_T12_CHANGE_CENTER_PREFLIGHT.md",
+    "docs/modules/M26.md",
+    "docs/state/HANDOFF.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M26.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M26.md"
+  ],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45328365299",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45328365310"
+  ],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "Read-only session UI; no storage migration, network or release publisher.",
+  "created_at": "2026-11-24T04:52:00Z",
+  "updated_at": "2026-11-24T04:52:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [
+    "M26-OPT-02",
+    "M26-OPT-05",
+    "M26-OPT-08",
+    "M26-OPT-10",
+    "M26-OPT-12",
+    "M26-OPT-17"
+  ],
+  "docs_impact": true,
+  "data_migration": false
+}
