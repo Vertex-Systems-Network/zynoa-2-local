@@ -26,3 +26,6 @@ The third observation took 42.6 seconds from process launch until required nativ
 4. Investigate native startup variance (6.6–42.6s in this small unbalanced sample); **performance_budget_approved remains false**.
 
 No additional binaries, user data, telemetry, secrets or CI skip has been introduced by this documentation.
+
+## Explicit CI preview performance budget (2026-11-24)
+The versioned [P02 CI budget](../quality/P02_T10_PERFORMANCE_BUDGET.json) adds non-bypassable Windows policy checks to the same source-bound real Tauri run. Thresholds: first CI native metadata readiness ≤45,000 ms; complete 69-real-PNG capture ≤120,000 ms; each of three warm native OS-visible windows ≤1,000 ms; each IPC-connected UIA interaction-ready ≤3,000 ms and median ≤2,000 ms. These are **P02 GitHub-hosted preview budgets, not a production startup SLA**. The historically measured 42,582ms outlier remains explicitly in the policy and cannot be deleted. Full end-user cold-start percentile and P11 product performance approval still require more controlled evidence. The CI step fails if source SHA, provenance, privacy, metrics or limits mismatch; successful verification doesn't grant NVDA/Narrator or release approval.

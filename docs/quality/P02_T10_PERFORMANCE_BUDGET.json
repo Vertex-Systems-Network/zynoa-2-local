@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "phase": "P02",
+  "target": "GitHub-hosted Windows 2025 Tauri preview build (CI budget only)",
+  "methodology": "single first native boot plus three fresh warm native processes on same runner",
+  "limits": {
+    "cold_native_metadata_ready_ms_max": 45000,
+    "native_69_image_suite_ms_max": 120000,
+    "warm_native_visible_window_ms_max": 1000,
+    "warm_connected_ui_ipc_ms_max": 3000,
+    "warm_ipc_median_ms_max": 2000
+  },
+  "minimum_warm_samples": 3,
+  "baseline_native_runs": [
+    45265826578,
+    45274014314,
+    45288057278,
+    45296698885,
+    45298990995
+  ],
+  "historical_cold_metadata_outlier_ms": 42582,
+  "outlier_not_discarded": true,
+  "product_cold_start_sla_approved": false,
+  "product_real_hardware_performance_approved": false,
+  "status": "P02_CI_PREVIEW_BUDGET_GUARDRAIL_NOT_PRODUCT_RELEASE_SLA"
+}

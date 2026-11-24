@@ -27,7 +27,7 @@ jobs:
           git fetch --no-tags --depth=1 origin "$BASE_SHA"
           changed="$(git diff --name-only FETCH_HEAD HEAD)"
           test -n "$changed" || { echo "::error::Unexpected empty PR diff"; exit 1; }
-          if printf '%s\n' "$changed" | grep -qE '^(scripts/capture_p01_desktop\.ps1|scripts/probe_p02_native_a11y\.ps1|scripts/probe_p02_native_performance\.ps1|apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|tests/test_p01_locations.py|tests/test_p01_events.py|tests/test_p01_screenshot_capture.py|tests/test_p02_ui_contract.py|tests/test_p02_t03_navigation.py|tests/test_p02_m19_workflows.py|tests/test_p02_m02_controls.py|tests/test_p02_native_evidence.py|tests/test_p02_native_uia.py|tests/test_p02_native_performance.py|tools/verify_p02_native_performance.py|tests/test_p02_nvda_speech.py|tools/verify_p02_nvda_speech.py|scripts/probe_p02_nvda_speech.ps1|scripts/nvda/zynoaAudit.py|tests/test_p02_visual_review_pack.py|tools/build_p02_visual_review_pack.py|tests/test_p02_staged_native_assets.py|tools/stage_p02_native_assets.py|tests/test_p02_help_evidence.py|tests/test_p02_t02_acceptance.py|tools/verify_p02_native_evidence.py|tools/verify_p02_native_uia.py|tools/verify_p02_t02_acceptance.py|docs/screenshots/MANIFEST.json|docs/modules/M02.md|docs/evidence/P02_T03_ACCEPTANCE.md|docs/help/articles/M02.md|docs/help/articles/M19.md|docs/wiki/pages/M02.md|docs/wiki/pages/M19.md|docs/modules/M19.md|\.github/workflows/p01-desktop.yml)'; then
+          if printf '%s\n' "$changed" | grep -qE '^(scripts/capture_p01_desktop\.ps1|scripts/probe_p02_native_a11y\.ps1|scripts/probe_p02_native_performance\.ps1|apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|tests/test_p01_locations.py|tests/test_p01_events.py|tests/test_p01_screenshot_capture.py|tests/test_p02_ui_contract.py|tests/test_p02_t03_navigation.py|tests/test_p02_m19_workflows.py|tests/test_p02_m02_controls.py|tests/test_p02_native_evidence.py|tests/test_p02_native_uia.py|tests/test_p02_native_performance.py|tools/verify_p02_native_performance.py|tests/test_p02_t10_performance_budget.py|tools/verify_p02_t10_performance_budget.py|docs/quality/P02_T10_PERFORMANCE_BUDGET.json|tests/test_p02_nvda_speech.py|tools/verify_p02_nvda_speech.py|scripts/probe_p02_nvda_speech.ps1|scripts/nvda/zynoaAudit.py|tests/test_p02_visual_review_pack.py|tools/build_p02_visual_review_pack.py|tests/test_p02_staged_native_assets.py|tools/stage_p02_native_assets.py|tests/test_p02_help_evidence.py|tests/test_p02_t02_acceptance.py|tools/verify_p02_native_evidence.py|tools/verify_p02_native_uia.py|tools/verify_p02_t02_acceptance.py|docs/screenshots/MANIFEST.json|docs/modules/M02.md|docs/evidence/P02_T03_ACCEPTANCE.md|docs/help/articles/M02.md|docs/help/articles/M19.md|docs/wiki/pages/M02.md|docs/wiki/pages/M19.md|docs/modules/M19.md|\.github/workflows/p01-desktop.yml)'; then
             echo "desktop=true" >> "$GITHUB_OUTPUT"
           else
             echo "desktop=false" >> "$GITHUB_OUTPUT"
@@ -72,6 +72,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'P02 actual source-bound screenshot ZIP staging contracts failure' }
           python -m unittest tests.test_p02_nvda_speech -v
           if ($LASTEXITCODE -ne 0) { throw 'P02 NVDA speech proof negative tests failed' }
+          python -m unittest tests.test_p02_t10_performance_budget -v
+          if ($LASTEXITCODE -ne 0) { throw 'P02 preview native performance budget regression failed' }
           python -m unittest tests.test_p02_native_performance -v
           if ($LASTEXITCODE -ne 0) { throw 'P02 repeated native performance proof contracts failed' }
       - name: P02 native Windows UI Automation source and negative contracts
@@ -320,6 +322,14 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'ZYN-PERF-010: actual 3-launch native capture failed' }
           python -m tools.verify_p02_native_performance --source-sha $env:ZYNOA_HEAD_SHA --proof $capture --report $verified
           if ($LASTEXITCODE -ne 0) { throw 'ZYN-PERF-011: actual native timing receipt rejected' }
+      - name: P02 enforce preview-only native performance budget
+        if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
+        shell: pwsh
+        env:
+          ZYNOA_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python -m tools.verify_p02_t10_performance_budget --budget docs/quality/P02_T10_PERFORMANCE_BUDGET.json --cold docs/screenshots/_ci/M02/P02-native-performance.json --warm docs/screenshots/_ci/M02/P02-native-startup-repeat.verify.json --source-sha $env:ZYNOA_HEAD_SHA --report docs/screenshots/_ci/M02/P02-T10-perf-budget.verify.json
+          if ($LASTEXITCODE -ne 0) { throw 'ZYN-PERF-021: evidence did not meet P02 preview Windows budget' }
       - name: P02 live NVDA speech plus real Windows keyboard journey (fail closed)
         if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
         shell: pwsh
@@ -358,6 +368,7 @@ jobs:
             docs/screenshots/_ci/M02/P02-native-performance.json
             docs/screenshots/_ci/M02/P02-native-startup-repeat.capture.json
             docs/screenshots/_ci/M02/P02-native-startup-repeat.verify.json
+            docs/screenshots/_ci/M02/P02-T10-perf-budget.verify.json
             docs/screenshots/_ci/M02/P02-nvda-speech.capture.json
             docs/screenshots/_ci/M02/P02-nvda-speech.verify.json
             docs/screenshots/_ci/M02/P02-T10-readiness.json
