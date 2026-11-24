@@ -69,7 +69,7 @@ class DesktopShellContractTests(unittest.TestCase):
         for expected in (
             "concurrency:", "cancel-in-progress: true", "desktop: ",
             "windows-latest", "npm ci", "npm run build",
-            "tauri -- build --no-bundle", "actions/upload-artifact@v4",
+            "tauri -- build --no-bundle", "actions/upload-artifact@v6",
             "phase/01-foundation",
         ):
             self.assertIn(expected, wf)

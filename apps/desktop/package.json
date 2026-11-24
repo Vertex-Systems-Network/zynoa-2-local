@@ -8,7 +8,7 @@
     "check": "tsc --noEmit",
     "build": "tsc --noEmit && vite build",
     "tauri": "tauri",
-    "test:ui": "tsc --target ES2022 --module ESNext --moduleResolution Bundler --outDir .ui-tests --noEmit false --strict --skipLibCheck src/ui/theme.ts src/ui/component-states.ts src/ui/commands.ts src/ui/unified-search.ts src/ui/help-catalog.ts src/ui/help-workflows.ts src/ui/help-options.ts && node --test tests/ui-logic.test.mjs"
+    "test:ui": "tsc --target ES2022 --module ESNext --moduleResolution Bundler --outDir .ui-tests --noEmit false --strict --skipLibCheck src/ui/theme.ts src/ui/component-states.ts src/ui/commands.ts src/ui/unified-search.ts src/ui/help-catalog.ts src/ui/help-workflows.ts src/ui/help-options.ts src/ui/change-center.ts && node --test tests/ui-logic.test.mjs"
   },
   "dependencies": {
     "react": "19.2.0",

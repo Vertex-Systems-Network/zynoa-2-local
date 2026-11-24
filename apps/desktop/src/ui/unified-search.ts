@@ -14,7 +14,7 @@ export function searchWorkspace(query: string, shortcuts: ShortcutAssignments = 
   const normalized = query.trim().slice(0, 100);
   const commands: PaletteResult[] = findCommands(normalized, shortcuts).map(command => ({
     id: command.id, kind: "view", title: command.title, description: command.description,
-    symbol: command.symbol, keys: command.view === "help" ? "F1" : "Ctrl+" + shortcutForView(command.view, shortcuts),
+    symbol: command.symbol, keys: command.view === "help" ? "F1" : command.view === "changelog" ? "VIEW" : "Ctrl+" + shortcutForView(command.view, shortcuts),
     destination: { kind: "view", view: command.view },
   }));
   if (!normalized) return commands;

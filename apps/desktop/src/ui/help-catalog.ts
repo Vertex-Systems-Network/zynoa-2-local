@@ -185,6 +185,21 @@ export const helpArticles: readonly HelpArticle[] = [
       ] },
     ], related: ["privacy", "wiki-mapping", "offline"],
   },
+  {
+    id: "change-history", title: "Changelog and release history", category: "Interface",
+    summary: "Read the bundled capability limitations and distinguish verified releases from unfinished work.",
+    keywords: ["changelog", "release history", "known issues", "module changes", "M26"],
+    sections: [
+      { heading: "Open the Changelog", paragraphs: [
+        "Choose Changelog in the System navigation or search Changelog in the command palette. Switch between What's New, Known Issues, Version History and Module Changes using Tab or pointer.",
+        "Known Issues shows bundled capability limitations, not a live issue tracker. Filter by module and search. Reset filters to see all bundled notices.",
+      ] },
+      { heading: "Release verification boundary", paragraphs: [
+        "No signed release feed or verified history cache is available in this preview. Release and version panels intentionally show an unavailable or empty state, rather than inventing a release.",
+        "Local native connection status is not release verification. No background network request, issue publication or update action is performed. Press F1 for this article.",
+      ] },
+    ], related: ["offline", "privacy", "commands"],
+  },
 ];
 
 export const helpOptionIds = [

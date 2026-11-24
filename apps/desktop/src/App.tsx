@@ -4,6 +4,7 @@ import { probeWorkspaceStatus } from "./ipc";
 import { CommandPalette } from "./ui/CommandPalette";
 import { Workbench, ComponentGallery } from "./ui/Workbench";
 import { HelpCenter } from "./ui/HelpCenter";
+import { ChangeCenter } from "./ui/ChangeCenter";
 import { effectiveTheme, densityOptions, isDensity, isTheme, themeOptions, type ThemePreference, type DensityPreference } from "./ui/theme";
 import type { AppView } from "./ui/commands";
 import { defaultShortcuts, remapShortcut, shortcutForView, viewForShortcut, type ShortcutAssignments } from "./ui/shortcut-map";
@@ -19,6 +20,7 @@ const views: { key: View; title: string; shortcut: string; icon: string; section
   { key: "settings", title: "Preferences", shortcut: "2", icon: "⚙", section: "SYSTEM" },
   { key: "recovery", title: "Recovery", shortcut: "3", icon: "↺", section: "SYSTEM" },
   { key: "diagnostics", title: "Diagnostics", shortcut: "4", icon: "◎", section: "SYSTEM" },
+  { key: "changelog", title: "Changelog", shortcut: "", icon: "≡", section: "SYSTEM" },
 ];
 
 function Startup({ state, transport }: { state: StartupState; transport: TransportState }) {
@@ -176,7 +178,7 @@ export function App() {
     const topics: Record<View, string> = {
       startup: "quick-start", workbench: "commands", gallery: "appearance",
       help: "quick-start", settings: "appearance", recovery: "privacy",
-      diagnostics: "native-troubleshooting",
+      diagnostics: "native-troubleshooting", changelog: "change-history",
     };
     setHelpTopic(topics[view]);
     setView("help");
@@ -236,7 +238,7 @@ export function App() {
           const topics: Record<View, string> = {
             startup: "quick-start", workbench: "commands", gallery: "appearance",
             help: "quick-start", settings: "appearance", recovery: "privacy",
-            diagnostics: "native-troubleshooting",
+            diagnostics: "native-troubleshooting", changelog: "change-history",
           };
           setHelpTopic(topics[current]);
           return "help";
@@ -287,6 +289,13 @@ export function App() {
             <div className="sidebar-group" key={section} role="group" aria-label={section + " views"}>
               <p className="nav-label">{section}</p>
               {views.filter(page => page.section === section).map(page =>
+                page.key === "changelog" ?
+                <button key={page.key} type="button" className={"nav-link " + (view === page.key ? "selected" : "")}
+                  aria-current={view === page.key ? "page" : undefined} aria-label="Changelog"
+                  onClick={() => navigateView(page.key)}>
+                  <span className="nav-icon" aria-hidden="true">{page.icon}</span>
+                  <span className="nav-link-title">{page.title}</span>
+                </button> :
                 <button key={page.key} className={"nav-link " + (view === page.key ? "selected" : "")}
                   aria-current={view === page.key ? "page" : undefined}
                   aria-label={page.title + " (" + (page.key === "help" ? "F1" : "Ctrl+" + shortcutForView(page.key, shortcuts)) + ")"}
@@ -327,7 +336,8 @@ export function App() {
             view === "gallery" ? <ComponentGallery /> :
             view === "help" ? <HelpCenter contextArticle={helpTopic} destination={helpDestination} /> :
             view === "settings" ? <Settings theme={theme} onTheme={setTheme} density={density} onDensity={setDensity} systemDark={systemDark} reducedMotion={reducedMotion} onReset={() => { setTheme("system"); setDensity("comfortable"); }} onHelp={openContextHelp} /> :
-            view === "recovery" ? <Recovery /> : <Diagnostics transport={transport} />}
+            view === "recovery" ? <Recovery /> :
+            view === "changelog" ? <ChangeCenter transport={transport} onHelp={openContextHelp} /> : <Diagnostics transport={transport} />}
         </div>
         <footer className="footer"><span>Local-first shared interface · P02</span><span>Native services require verification · <strong>No workspace data stored</strong></span></footer>
       </main>

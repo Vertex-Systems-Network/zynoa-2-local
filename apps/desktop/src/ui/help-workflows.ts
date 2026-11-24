@@ -126,6 +126,7 @@ export const helpGlossary = [
 export const wikiSourceMappings = [
   { id: "M02", title: "Professional GUI & Design System", source: "docs/wiki/pages/M02.md", articleId: "appearance", published: false },
   { id: "M19", title: "Documentation Wiki & Help Center", source: "docs/wiki/pages/M19.md", articleId: "offline", published: false },
+  { id: "M26", title: "Changelog & Release Traceability", source: "docs/wiki/pages/M26.md", articleId: "change-history", published: false },
 ] as const;
 
 export function helpRoute(articleId: string): string | null {

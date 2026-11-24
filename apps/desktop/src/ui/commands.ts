@@ -1,7 +1,7 @@
 /** M02 allowlisted command navigation; no arbitrary code execution. */
 import { defaultShortcuts, shortcutForView, type ShortcutAssignments } from "./shortcut-map.js";
 export type AppView =
-  | "startup" | "workbench" | "gallery" | "help" | "settings" | "recovery" | "diagnostics";
+  | "startup" | "workbench" | "gallery" | "help" | "settings" | "recovery" | "diagnostics" | "changelog";
 
 export type AppCommand = {
   readonly id: string;
@@ -21,6 +21,7 @@ export const appCommands: readonly AppCommand[] = [
   { id: "go.settings", title: "Preferences", description: "Session theme and navigation density", section: "System", view: "settings", keys: "Ctrl+2", symbol: "⚙" },
   { id: "go.recovery", title: "Recovery", description: "Native recovery availability and limitations", section: "System", view: "recovery", keys: "Ctrl+3", symbol: "↺" },
   { id: "go.diagnostics", title: "Diagnostics", description: "Read-only local system status", section: "System", view: "diagnostics", keys: "Ctrl+4", symbol: "◎" },
+  { id: "go.changelog", title: "Changelog", description: "What’s New, known issues, version and module history", section: "System", view: "changelog", keys: "VIEW", symbol: "≡" },
 ] as const;
 
 export function findCommands(query: string, shortcuts: ShortcutAssignments = defaultShortcuts): AppCommand[] {
@@ -30,7 +31,7 @@ export function findCommands(query: string, shortcuts: ShortcutAssignments = def
   return appCommands
     .map(command => {
       const title = command.title.toLocaleLowerCase();
-      const effectiveKeys = command.view === "help" ? command.keys :
+      const effectiveKeys = command.view === "help" || command.view === "changelog" ? command.keys :
         "Ctrl+" + shortcutForView(command.view, shortcuts);
       const haystack = [command.title, command.description, command.section, effectiveKeys]
         .join(" ").toLocaleLowerCase();

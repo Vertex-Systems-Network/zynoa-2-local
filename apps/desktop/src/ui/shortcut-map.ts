@@ -3,7 +3,7 @@ import type { AppView } from "./commands";
 
 export const shortcutKeys = ["1", "2", "3", "4", "5", "6"] as const;
 export type ShortcutKey = (typeof shortcutKeys)[number];
-export type ShortcutTarget = Exclude<AppView, "help">;
+export type ShortcutTarget = Exclude<AppView, "help" | "changelog">;
 export type ShortcutAssignments = Readonly<Record<ShortcutKey, ShortcutTarget>>;
 
 export const defaultShortcuts: ShortcutAssignments = {

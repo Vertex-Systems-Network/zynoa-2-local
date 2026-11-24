@@ -26,9 +26,9 @@ test("density is a strict allowlist and options have unique IDs", () => {
   assert.equal(new Set(helpOptionIds).size, 8);
 });
 test("command palette only returns fixed application navigation commands", () => {
-  assert.equal(appCommands.length, 7);
+  assert.equal(appCommands.length, 8);
   assert.equal(new Set(appCommands.map(x => x.id)).size, appCommands.length);
-  assert.equal(findCommands("").length, 7);
+  assert.equal(findCommands("").length, 8);
   assert.equal(findCommands("help")[0].view, "help");
   assert.equal(findCommands("Preferences")[0].view, "settings");
   assert.equal(findCommands("NO-SUCH-COMMAND").length, 0);
@@ -288,7 +288,7 @@ test("M02/M19 all sixteen option guides resolve locally and fail closed", () => 
 
 test("unified command palette discovers bundled articles and exact M02/M19 option references", () => {
   const initial = searchWorkspace("");
-  assert.equal(initial.length, 7);
+  assert.equal(initial.length, 8);
   assert.ok(initial.every(item => item.kind === "view" && item.destination.kind === "view"));
   const theme = searchWorkspace("theme");
   assert.ok(theme.some(item => item.kind === "article" && item.destination.articleId === "appearance"));
@@ -316,4 +316,26 @@ test("unified search preserves remaps, ignores malformed keys and never invents 
     }
   }
   assert.equal(searchWorkspace("__proto__").length, 0);
+});
+
+import { changeNotices, filterChangeNotices, changeAvailability } from "../.ui-tests/change-center.js";
+test("M26 bundled limitations are not released changes and filters remain local", () => {
+  assert.equal(findCommands("Changelog")[0].view, "changelog");
+  assert.equal(searchWorkspace("Changelog")[0].keys, "VIEW");
+  assert.equal(shortcutForView("changelog", defaultShortcuts), null);
+  assert.equal(findHelpArticle("change-history").id, "change-history");
+  assert.ok(wikiSourceMappings.some(item => item.id === "M26" && item.published === false));
+  assert.equal(filterChangeNotices("", "All").length, changeNotices.length);
+  assert.ok(changeNotices.every(item => item.kind === "capability-limitation"));
+  assert.ok(filterChangeNotices("backup", "M23").length > 0);
+  assert.equal(filterChangeNotices("backup", "M25").length, 0);
+  assert.equal(filterChangeNotices("no-such-notice", "All").length, 0);
+  for (const transport of ["pending","connected","unavailable","preview"]) {
+    const state = changeAvailability(transport);
+    assert.equal(state.verifiedReleaseCount, 0);
+    assert.equal(state.liveIssuesAvailable, false);
+    assert.equal(state.releaseFeedAvailable, false);
+  }
+  assert.equal(changeAvailability("pending").status, "Checking local runtime");
+  assert.equal(changeAvailability("unavailable").status, "Local runtime unavailable");
 });
