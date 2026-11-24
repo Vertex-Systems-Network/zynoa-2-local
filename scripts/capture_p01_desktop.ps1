@@ -484,18 +484,21 @@ public static class ZynoaM26Foreground {
     $initialFilter=Wait-M26ModuleFilter -ExpectedValue 'All modules' -ExpectedTitles $allTitles
     if ($null -eq $initialFilter) { throw 'ZYN-M26-015: default module filter value or actual notice inventory mismatch' }
     [void](Focus-M26Control -Name 'Module')
-    # Send discrete keys to the actual native select. The collapsed select
-    # should commit on arrow; if not, explicitly open and commit by keyboard.
-    Send-M26Key -Keys '{HOME}'
-    Send-M26Key -Keys '{DOWN}'
-    $filterMethod='collapsed_keyboard'
-    $filtered=Wait-M26ModuleFilter -ExpectedValue 'M23' -ExpectedTitles @($allTitles[0]) -Seconds 3
-    if ($null -eq $filtered) {
-        [void](Focus-M26Control -Name 'Module')
-        Send-M26Key -Keys '%{DOWN}{HOME}{DOWN}{ENTER}'
-        $filterMethod='expanded_keyboard'
-        $filtered=Wait-M26ModuleFilter -ExpectedValue 'M23' -ExpectedTitles @($allTitles[0])
-    }
+    # A native select popup may temporarily own foreground. Submit one
+    # complete keyboard gesture from the verified focused combo; do not
+    # probe or send additional keys while that popup owns the foreground.
+    Assert-M26Foreground
+    [System.Windows.Forms.SendKeys]::SendWait('%{DOWN}{HOME}{DOWN}{ENTER}')
+    $popupDeadline=(Get-Date).AddSeconds(3)
+    do {
+        $proc.Refresh()
+        if ($proc.HasExited) { throw 'ZYN-M26-002: actual app not foreground' }
+        if ([ZynoaM26Foreground]::GetForegroundWindow() -eq $hwnd) { break }
+        Start-Sleep -Milliseconds 100
+    } until ((Get-Date) -ge $popupDeadline)
+    Assert-M26Foreground
+    $filterMethod='expanded_keyboard'
+    $filtered=Wait-M26ModuleFilter -ExpectedValue 'M23' -ExpectedTitles @($allTitles[0])
     if ($null -eq $filtered) {
         $actual=Read-M26ModuleFilter
         $safeValue=if ($actual.SelectedValue -in @('All modules','M23','M24','M25','M26')) {$actual.SelectedValue} else {'provider_unavailable'}
@@ -737,29 +740,32 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-03' -Shortcut '{ENTER}{PGDN}' -ScreenTitle 'M19 actual troubleshooting recovery steps' -Description 'Real native bundled troubleshooting wizard with selected issue first step and safe offline recovery actions' -FinalCandidateId 'M19-OPT-03'
     [System.Windows.Forms.SendKeys]::SendWait('^{2}')
     [System.Windows.Forms.SendKeys]::SendWait('{F1}')
-    # OPT-04 must show actual glossary, not an unchanged Articles & search
-    # page. A real named mode-button Invoke is idempotent across repaint.
-    $glossaryRoot=[System.Windows.Automation.AutomationElement]::FromHandle($hwnd)
-    if ($null -eq $glossaryRoot -or $glossaryRoot.Current.ProcessId -ne $TargetPid) { throw 'ZYN-SCREEN-042: glossary native UIA handle/PID mismatch' }
+    # The aria-pressed mode button can expose Toggle rather than Invoke.
+    # Use its real native keyboard focus and Enter, not a provider-specific
+    # InvokePattern. Require the actual FAQ panel after activation.
     $glossaryCondition=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,'FAQ & glossary')
+    $glossaryPanelCondition=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,'Practical answers, no network.')
     $glossaryActivated=$false
-    for ($glossaryAttempt=0;$glossaryAttempt -lt 8;$glossaryAttempt++) {
+    for ($glossaryAttempt=0;$glossaryAttempt -lt 12;$glossaryAttempt++) {
         $glossaryRoot=[System.Windows.Automation.AutomationElement]::FromHandle($hwnd)
+        if ($null -eq $glossaryRoot -or $glossaryRoot.Current.ProcessId -ne $TargetPid) { throw 'ZYN-SCREEN-042: glossary native UIA handle/PID mismatch' }
+        $panel=$glossaryRoot.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$glossaryPanelCondition)
+        if ($null -ne $panel) { $glossaryActivated=$true; break }
         $items=$glossaryRoot.FindAll([System.Windows.Automation.TreeScope]::Descendants,$glossaryCondition)
         for ($gi=0;$gi -lt $items.Count;$gi++) {
             try {
                 $button=$items.Item($gi)
-                if ($button.Current.ControlType -ne [System.Windows.Automation.ControlType]::Button -or -not $button.Current.IsEnabled) { continue }
-                $invoke=$null
-                if ($button.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern,[ref]$invoke)) {
-                    $invoke.Invoke()
-                    $glossaryActivated=$true
-                    break
-                }
+                if (-not $button.Current.IsEnabled -or -not $button.Current.IsKeyboardFocusable) { continue }
+                $button.SetFocus()
+                Start-Sleep -Milliseconds 100
+                if (-not $button.Current.HasKeyboardFocus) { continue }
+                if (-not [ZynoaScreenWin32]::SetForegroundWindow($hwnd)) { throw 'ZYN-SCREEN-006: native window cannot become foreground' }
+                [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+                break
             } catch [System.Windows.Automation.ElementNotAvailableException] {}
+            catch [System.InvalidOperationException] {}
         }
-        if ($glossaryActivated) { break }
-        Start-Sleep -Milliseconds 200
+        Start-Sleep -Milliseconds 250
     }
     if (-not $glossaryActivated) { throw 'ZYN-SCREEN-045: actual glossary mode activation failed' }
     Focus-P02NativeControl -AccessibleName 'Does a native connection mean my work is saved?'

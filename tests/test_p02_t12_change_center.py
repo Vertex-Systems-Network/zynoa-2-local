@@ -144,5 +144,18 @@ class ChangeCenterTests(unittest.TestCase):
             with self.subTest(key=key), self.assertRaises(ValueError):
                 verify_notice_detail({**valid,key:wrong})
 
+    def test_native_popup_and_glossary_keyboard_repair_preserves_checks(self):
+        script = (ROOT / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        popup = script.split("# A native select popup", 1)[1].split("$filterProof=", 1)[0]
+        self.assertIn("SendWait('%{DOWN}{HOME}{DOWN}{ENTER}')", popup)
+        self.assertIn("GetForegroundWindow() -eq $hwnd", popup)
+        self.assertGreaterEqual(popup.count("Assert-M26Foreground"), 2)
+        self.assertIn("Wait-M26ModuleFilter -ExpectedValue 'M23'", popup)
+        glossary = script.split("# The aria-pressed mode button", 1)[1].split("P02-T10-CTRL-M19-OPT-04", 1)[0]
+        for marker in ("HasKeyboardFocus", "SendWait('{ENTER}')", "Practical answers, no network.",
+                       "ZYN-SCREEN-045", "ZYN-SCREEN-046"):
+            self.assertIn(marker, glossary)
+        self.assertNotIn("$invoke.Invoke()", glossary)
+
 if __name__ == "__main__":
     unittest.main()
