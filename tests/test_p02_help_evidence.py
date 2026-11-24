@@ -59,7 +59,11 @@ class M02HelpEvidenceTests(unittest.TestCase):
         self.assertIn("reserved", shortcuts)
         self.assertIn("no independent Reduce motion switch", self.help)
         self.assertIn("not persisted", self.wiki)
-        self.assertIn("**not** been synced", self.wiki)
+        self.assertIn("This source file is newer than that snapshot", self.wiki)
+        proof = json.loads((ROOT / "docs/evidence/P02_T10_WIKI_PREVIEW_PUBLISHED_20261124.json").read_text(encoding="utf-8"))
+        self.assertTrue(proof["published_preview_not_final_release"])
+        self.assertTrue(proof["fresh_unauthenticated_git_clone_readback"])
+        self.assertFalse(proof["protected_pr_merged"])
         self.assertIn("**not** a published/released product manual", self.wiki)
 
     def test_quick_start_does_not_require_nonexistent_workspace(self):
@@ -147,10 +151,11 @@ class M02HelpEvidenceTests(unittest.TestCase):
         self.assertFalse(proof["full_screen_reader_nvda_narrator_approved"])
         self.assertFalse(proof["protected_main_merged"])
 
-    def test_f1_catalog_is_distinct_from_unpublished_wiki_source(self):
+    def test_f1_catalog_is_distinct_from_hosted_preview_snapshot(self):
         self.assertIn('setView("help")', self.app) if 'setView("help")' in self.app else self.assertIn('return "help"', self.app)
         self.assertIn("bundled offline Help Center", self.help)
-        self.assertIn("remote GitHub Wiki repository", self.wiki)
+        self.assertIn("https://github.com/Vertex-Systems-Network/zynoa-2-local/wiki/M02", self.wiki)
+        self.assertIn("source-pinned", self.wiki)
         self.assertIn("not yet wired", self.help)
         self.assertIn("not** a live incident reader", self.help)
 

@@ -1,0 +1,33 @@
+"""Fail closed on fabricated, stale or missing actual Narrator speech evidence."""
+import unittest
+from tools.verify_p02_t11_narrator import verify, InvalidNarratorProof, EXPECTED
+SHA = "a"*40
+RUN = "45300000001"
+def sample():
+    return {"schema_version":1,"status":"CAPTURED","source_commit_sha":SHA,"github_run_id":RUN,
+        "target":"Real Microsoft Narrator speech copied from native Windows Tauri WebView2",
+        "app_executable_sha256":"a"*64,"narrator_executable_sha256":"b"*64,
+        "narrator_signature_verified":True,"narrator_version":"10.0.26100.1",
+        "app_pid":222,"narrator_pid":333,"native_uia_pid_match":True,"actual_keyboard_input_value":"M19-OPT-06",
+        "no_user_data":True,"full_narrator_certified":False,"product_release_approved":False,
+        "events":[{"stage":stage,"label":label,"clipboard_sequence_before":10+i*3,
+                   "clipboard_sequence_after":11+i*3,"actual_speech_clipboard_changed":True}
+                  for i,(stage,label) in enumerate(EXPECTED.items())]}
+class NarratorReceiptTests(unittest.TestCase):
+    def test_scoped_receipt_not_release_certification(self):
+        r=verify(sample(),SHA,RUN)
+        self.assertEqual(r["narrator_live_spoken_journeys"],3)
+        self.assertFalse(r["full_narrator_certified"])
+        self.assertFalse(r["protected_merge_verified"])
+    def test_bad_label_stale_or_replayed_clipboard_fails(self):
+        for key,value in (("label","wrong"),("clipboard_sequence_after",13),("clipboard_sequence_before",10),("stage","help")):
+            p=sample();p["events"][1][key]=value
+            with self.subTest(key=key),self.assertRaises(InvalidNarratorProof):
+                verify(p,SHA,RUN)
+    def test_bad_identity_or_product_claim_fails(self):
+        for key,value in (("status","INCOMPLETE"),("github_run_id","9"),("narrator_signature_verified",False),("app_pid",333),("full_narrator_certified",True)):
+            p=sample();p[key]=value
+            with self.subTest(key=key),self.assertRaises(InvalidNarratorProof):
+                verify(p,SHA,RUN)
+if __name__=="__main__":
+    unittest.main()

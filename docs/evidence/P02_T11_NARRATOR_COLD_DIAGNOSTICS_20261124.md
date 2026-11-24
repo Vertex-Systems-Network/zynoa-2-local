@@ -1,0 +1,5 @@
+# P02-T11 — Narrator and cold boot diagnostics
+
+Status: implemented, runtime proof pending. The installed Microsoft-signed Narrator must copy its last spoken phrase using its documented keyboard shortcut, after reading the real focused native item. The disposable Windows Actions harness checks live native process IDs, a fresh per-stage clipboard sequence, actual typed M19-OPT-06 navigation and the allowlisted Preferences/Palette/Help labels. It never substitutes UIA property text for actual copied speech. Reference: https://support.microsoft.com/en-gb/accessibility/windows/narrator/appendix-b-narrator-keyboard-commands-and-touch-gestures . Missing Narrator support or absent copied speech fails closed. Three stages are not a full-product accessibility certification.
+
+Prior #45307557723 measured 40,136ms first metadata readiness, with historical 42,582ms outlier retained. New timing fields observe process-start return, diagnostics/vault/registry preexistence and individual file appearance. These observations are not exact component durations; no deletion or budget relaxation. Production cold-start P95/SLA and protected merge remain open.

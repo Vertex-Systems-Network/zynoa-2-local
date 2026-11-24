@@ -65,6 +65,8 @@ jobs:
         run: |
           python -m unittest tests.test_p02_native_evidence -v
           if ($LASTEXITCODE -ne 0) { throw 'P02 native provenance verifier contract failure' }
+          python -m unittest tests.test_p02_t11_narrator -v
+          if ($LASTEXITCODE -ne 0) { throw 'P02 Narrator proof contract failed' }
           python -m unittest tests.test_p02_t11_security_privacy -v
           if ($LASTEXITCODE -ne 0) { throw 'P02 T11 security/privacy negative regression tests failed' }
           python -m tools.verify_p02_t11_security_privacy --root . --report docs/screenshots/_ci/M02/P02-T11-source-security.verify.json
@@ -153,8 +155,17 @@ jobs:
           if ($builtSha -ne $env:ZYNOA_HEAD_SHA.ToLowerInvariant()) {
             throw 'ZYN-SCREEN-014: checked-out built commit does not match PR source SHA'
           }
+          $metadataRoot = Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop'
+          $metadataPaths = [ordered]@{diagnostics=(Join-Path $metadataRoot 'diagnostics\events-v1.jsonl');vault=(Join-Path $metadataRoot 'data\state.sqlite');registry=(Join-Path $metadataRoot 'storage-locations-v1.json')}
+          $metadataPreexisting = [ordered]@{}
+          $firstObserved = [ordered]@{}
+          foreach ($key in $metadataPaths.Keys) {
+            $metadataPreexisting[$key] = [bool](Test-Path -LiteralPath $metadataPaths[$key])
+            $firstObserved[$key] = $null
+          }
           $nativeTiming = [System.Diagnostics.Stopwatch]::StartNew()
           $process = Start-Process -FilePath $exe -PassThru
+          $processReturnMs = [int64]$nativeTiming.ElapsedMilliseconds
           try {
             # Process existence alone is not native initialization readiness.
             # Keep the executable alive until all three OS-local foundations exist.
@@ -171,6 +182,11 @@ jobs:
               $ready = (Test-Path -LiteralPath $diagnostics) -and
                        (Test-Path -LiteralPath $vault) -and
                        (Test-Path -LiteralPath $registry)
+              foreach ($key in $metadataPaths.Keys) {
+                if ($null -eq $firstObserved[$key] -and (Test-Path -LiteralPath $metadataPaths[$key])) {
+                  $firstObserved[$key] = [int64]$nativeTiming.ElapsedMilliseconds
+                }
+              }
             } until ($ready -or (Get-Date) -ge $deadline)
             if (-not $ready) {
               throw ('ZYN-BOOT-READY: missing native startup outputs: diagnostics={0}; vault={1}; registry={2}' -f
@@ -206,6 +222,10 @@ jobs:
                 source_commit_sha = $builtSha
                 target = 'GitHub-hosted Windows Tauri native executable'
                 startup_local_metadata_ready_ms = $nativeReadyMs
+                process_start_return_ms = $processReturnMs
+                metadata_preexisting_before_launch = $metadataPreexisting
+                metadata_first_observed_ms = $firstObserved
+                timing_breakdown_scope = 'first observation, not initialization duration'
                 native_screenshot_suite_ms = [int64]$captureTimer.ElapsedMilliseconds
                 measurement = 'single-run observation only'
                 performance_budget_approved = $false
@@ -359,6 +379,23 @@ jobs:
         run: |
           python -m tools.verify_p02_t10_acceptance --root . --runtime . --source-sha $env:ZYNOA_HEAD_SHA --run-id $env:ZYNOA_RUN_ID --report docs/screenshots/_ci/M02/P02-T10-scoped-acceptance.verify.json
           if ($LASTEXITCODE -ne 0) { throw 'ZYN-P02-T10-021: authentic final preview acceptance failed' }
+      - name: P02-T11 live Microsoft Narrator spoken focus and Help journey
+        if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
+        shell: pwsh
+        env:
+          ZYNOA_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          ZYNOA_RUN_ID: ${{ github.run_id }}
+        run: |
+          $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
+          $capture = Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\_ci\M02\P02-T11-narrator.capture.json'
+          $report = Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\_ci\M02\P02-T11-narrator.verify.json'
+          $script = Join-Path $env:GITHUB_WORKSPACE 'scripts\probe_p02_t11_narrator.ps1'
+          $parseErrors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile($script,[ref]$null,[ref]$parseErrors)
+          if ($parseErrors.Count -ne 0) { throw 'ZYN-NAR-PARSE: native Narrator script invalid' }
+          & $script -Executable $exe -SourceSha $env:ZYNOA_HEAD_SHA -OutputPath $capture
+          python -m tools.verify_p02_t11_narrator --proof $capture --source-sha $env:ZYNOA_HEAD_SHA --run-id $env:ZYNOA_RUN_ID --report $report
+          if ($LASTEXITCODE -ne 0) { throw 'ZYN-NAR-022: actual speech receipt rejected' }
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -390,6 +427,8 @@ jobs:
             docs/screenshots/_ci/M02/P02-T10-readiness.json
             docs/screenshots/_ci/M02/P02-T10-scoped-acceptance.verify.json
             docs/screenshots/_ci/M02/P02-T11-source-security.verify.json
+            docs/screenshots/_ci/M02/P02-T11-narrator.capture.json
+            docs/screenshots/_ci/M02/P02-T11-narrator.verify.json
             docs/screenshots/_ci/M02/P02-T10-29-review-index.json
             docs/screenshots/_ci/M02/P02-T10-69-native-review.html
             docs/screenshots/_ci/M02/P02-T10-29-native-review-candidates.zip
