@@ -549,3 +549,9 @@ main:focus{outline:none}
 .shell .change-center .help-option-detail p { color:var(--text-secondary); line-height:1.65; font-size:13px; }
 .shell .change-center > .help-tool-muted { margin-top:24px; }
 @media(max-width:950px) { .shell .change-filters { grid-template-columns:minmax(0,1fr); } .shell .change-filters .subtle-action { justify-self:start; } }
+
+/* M26 explicit capability boundaries use existing palette and responsive grid. */
+.shell .change-unavailable-actions { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:12px; margin:16px 0; }
+.shell .change-unavailable-action { min-width:0; padding:12px; border:1px solid var(--line); border-radius:8px; }
+.shell .change-unavailable-action button { max-width:100%; min-height:44px; white-space:normal; text-align:left; }
+.shell .change-unavailable-action p { margin:8px 0 0; color:var(--text-secondary); font-size:13px; line-height:1.55; }

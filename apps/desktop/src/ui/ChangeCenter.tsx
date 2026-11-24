@@ -1,13 +1,36 @@
 import { useRef, useState } from "react";
-import { changeAvailability, filterChangeNotices, noticeModules, type ChangeTransport, type NoticeFilter } from "./change-center";
+import { changeAvailability, filterChangeNotices, noticeModules, changeServicePanels, isChangeServiceSection, type ChangeTransport, type NoticeFilter } from "./change-center";
 
 const sections = [
   {key:"releases", label:"What's New"},
   {key:"issues", label:"Known Issues"},
   {key:"versions", label:"Version History"},
   {key:"modules", label:"Module Changes"},
+  {key:"audit", label:"Audit Timeline"},
+  {key:"preferences", label:"Notifications"},
+  {key:"migration", label:"Migration Notes"},
 ] as const;
 type Section = (typeof sections)[number]["key"];
+
+function UnavailableAction({label,reason}:{label:string;reason:string}) {
+  return <div className="change-unavailable-action">
+    <button type="button" disabled>{label}</button>
+    <p>{reason}</p>
+  </div>;
+}
+
+function ServiceBoundary({section,onHelp}:{section:keyof typeof changeServicePanels;onHelp:()=>void}) {
+  const panel=changeServicePanels[section];
+  return <article className="panel wide">
+    <div className="panel-head">{panel.title}<span className="status-muted">Unavailable</span></div>
+    <h2>{panel.heading}</h2>
+    <p>{panel.description}</p>
+    <div className="change-unavailable-actions">
+      {panel.actions.map(action=><UnavailableAction key={action.label} label={action.label} reason={action.reason}/>)}
+    </div>
+    <button type="button" className="subtle-action" onClick={onHelp}>Read contextual guidance</button>
+  </article>;
+}
 
 export function ChangeCenter({transport,onHelp}:{transport:ChangeTransport;onHelp:()=>void}) {
   const [active,setActive]=useState<Section>("releases");
@@ -43,8 +66,8 @@ export function ChangeCenter({transport,onHelp}:{transport:ChangeTransport;onHel
         }}>{item.label}</button>)}
     </div>
     {sections.map(item=><div key={item.key} role="tabpanel" id={"change-panel-"+item.key}
-      aria-labelledby={"change-tab-"+item.key} hidden={active!==item.key} tabIndex={0}>
-      {active!==item.key?null:filterable?
+      aria-labelledby={"change-tab-"+item.key} hidden={active!==item.key} tabIndex={active===item.key?0:-1}>
+      {active!==item.key?null:isChangeServiceSection(item.key)?<ServiceBoundary section={item.key} onHelp={onHelp}/>:filterable?
       <>
         <div className="change-filters">
           <label className="help-tool-field">Search bundled notices
@@ -64,7 +87,13 @@ export function ChangeCenter({transport,onHelp}:{transport:ChangeTransport;onHel
           </div>
           <article className="help-option-detail" aria-label="Capability notice detail">
             {current?<><span className="small-caps">{current.module} / CAPABILITY LIMITATION</span>
-              <h3>{current.title}</h3><p>{current.description}</p><p>Not a released fix or live issue status.</p></>:
+              <h3>{current.title}</h3><p>{current.description}</p><p>Not a released fix or live issue status.</p>
+              <div className="change-unavailable-actions">
+                <UnavailableAction label="Open linked issue" reason="No verified issue link is attached to this bundled notice."/>
+                <UnavailableAction label="Open linked pull request" reason="No verified merge receipt is attached to this bundled notice."/>
+                <UnavailableAction label="Report problem from change" reason="No authorized change-reporting service is connected."/>
+              </div>
+              <button type="button" className="subtle-action" onClick={onHelp}>Read contextual guidance</button></>:
               <><h3>Select a capability notice</h3><p>Details are bundled and can be read offline.</p></>}
           </article>
         </div>
@@ -73,7 +102,14 @@ export function ChangeCenter({transport,onHelp}:{transport:ChangeTransport;onHel
         <div className="panel-head">{active==="releases"?"Verified release feed":"Verified version history"}<span className="status-muted">Not configured</span></div>
         <h2>{active==="releases"?"No verified releases":"No verified versions"}</h2>
         <p>{active==="releases"?"No signed release manifest or verified cached entries are connected to this preview.":"Version comparison requires two verified released versions. No release dates or version badges are inferred."}</p>
-        <button type="button" disabled>{active==="releases"?"Check release feed":"Compare versions"}</button>
+        <div className="change-unavailable-actions">
+          {active==="releases"?<>
+            <UnavailableAction label="Check release feed" reason="No signed feed is configured."/>
+            <UnavailableAction label="Filter release channel or version" reason="No verified release channel or version data is available."/>
+            <UnavailableAction label="Filter change category" reason="No verified release entries are available."/>
+            <UnavailableAction label="View fixed problems" reason="Only verified published fixes may appear here."/>
+          </>:<UnavailableAction label="Compare versions" reason="Two verified released versions are required."/>}
+        </div>
       </article>}
     </div>)}
     <p className="help-tool-muted">Read-only preview. Notification preferences, signed feed, technical audit query and export require their separately verified services.</p>

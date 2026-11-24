@@ -191,12 +191,13 @@ export const helpArticles: readonly HelpArticle[] = [
     keywords: ["changelog", "release history", "known issues", "module changes", "M26"],
     sections: [
       { heading: "Open the Changelog", paragraphs: [
-        "Choose Changelog in the System navigation or search Changelog in the command palette. Switch between What's New, Known Issues, Version History and Module Changes using Tab or pointer.",
+        "Choose Changelog in the System navigation or search Changelog in the command palette. Use Tab to enter the selected tab, then Left/Right, Home or End to navigate What's New, Known Issues, Version History, Module Changes, Audit Timeline, Notifications and Migration Notes.",
         "Known Issues shows bundled capability limitations, not a live issue tracker. Filter by module and search. Reset filters to see all bundled notices.",
       ] },
       { heading: "Release verification boundary", paragraphs: [
         "No signed release feed or verified history cache is available in this preview. Release and version panels intentionally show an unavailable or empty state, rather than inventing a release.",
         "Local native connection status is not release verification. No background network request, issue publication or update action is performed. Press F1 for this article.",
+        "Audit Timeline, Notifications and Migration Notes explain their missing service prerequisites. Disabled actions cannot query private events, export, change preferences or perform recovery. Contextual guidance returns to this local article.",
       ] },
     ], related: ["offline", "privacy", "commands"],
   },

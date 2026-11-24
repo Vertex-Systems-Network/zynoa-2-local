@@ -30,5 +30,20 @@ class ChangeCenterTests(unittest.TestCase):
         for unsafe in ("fetch(", "localStorage", "sessionStorage", "invoke(", "dangerouslySetInnerHTML", "window.open("):
             self.assertNotIn(unsafe,view+core)
 
+    def test_deferred_service_surfaces_are_named_and_non_operational(self):
+        view = (UI / "ChangeCenter.tsx").read_text(encoding="utf-8")
+        core = (UI / "change-center.ts").read_text(encoding="utf-8")
+        for marker in ("Audit Timeline", "Notifications", "Migration Notes", "ServiceBoundary",
+                       'tabIndex={active===item.key?0:-1}', "UnavailableAction",
+                       "Open linked issue", "Open linked pull request", "Report problem from change",
+                       "Filter release channel or version", "Filter change category", "View fixed problems"):
+            self.assertIn(marker, view)
+        for marker in ("Audit access is not enabled", "Notification settings unavailable",
+                       "No verified migration notes", "Export change history", "View rollback guidance"):
+            self.assertIn(marker,core)
+        self.assertIn('<button type="button" disabled>{label}</button>',view)
+        self.assertIn("onClick={onHelp}",view)
+        self.assertNotIn('aria-disabled="false"', view)
+
 if __name__ == "__main__":
     unittest.main()
