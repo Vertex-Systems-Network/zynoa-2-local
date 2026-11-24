@@ -23,7 +23,7 @@ function ServiceBoundary({section,onHelp}:{section:keyof typeof changeServicePan
   const panel=changeServicePanels[section];
   return <article className="panel wide">
     <div className="panel-head">{panel.title}<span className="status-muted">Unavailable</span></div>
-    <h2>{panel.heading}</h2>
+    <h2 tabIndex={-1}>{panel.heading}</h2>
     <p>{panel.description}</p>
     <div className="change-unavailable-actions">
       {panel.actions.map(action=><UnavailableAction key={action.label} label={action.label} reason={action.reason}/>)}
@@ -78,29 +78,29 @@ export function ChangeCenter({transport,onHelp}:{transport:ChangeTransport;onHel
             </select></label>
           <button type="button" className="subtle-action" onClick={()=>{setQuery("");setModule("All");setSelected(null);}}>Reset filters</button>
         </div>
-        <p className="help-tool-muted" role="status">{matches.length} bundled capability notices. Not live GitHub issues or release entries.</p>
+        <p className="help-tool-muted" role="status">{matches.length} bundled capability {matches.length===1?"notice":"notices"}. Not live GitHub issues or release entries.</p>
         <div className="help-option-layout">
           <div className="help-option-list" role="group" aria-label="Bundled capability notices">
             {matches.map(notice=><button key={notice.id} type="button" aria-pressed={current?.id===notice.id}
               onClick={()=>setSelected(notice.id)}><code>{notice.module}</code><span>{notice.title}</span></button>)}
-            {!matches.length&&<p role="status">No matching notices. Reset filters to view all.</p>}
+            {!matches.length&&<p role="status" tabIndex={-1}>No matching notices. Reset filters to view all.</p>}
           </div>
           <article className="help-option-detail" aria-label="Capability notice detail">
             {current?<><span className="small-caps">{current.module} / CAPABILITY LIMITATION</span>
-              <h3>{current.title}</h3><p>{current.description}</p><p>Not a released fix or live issue status.</p>
+              <h3 tabIndex={-1}>{current.title}</h3><p>{current.description}</p><p tabIndex={-1}>Not a released fix or live issue status.</p>
               <div className="change-unavailable-actions">
                 <UnavailableAction label="Open linked issue" reason="No verified issue link is attached to this bundled notice."/>
                 <UnavailableAction label="Open linked pull request" reason="No verified merge receipt is attached to this bundled notice."/>
                 <UnavailableAction label="Report problem from change" reason="No authorized change-reporting service is connected."/>
               </div>
               <button type="button" className="subtle-action" onClick={onHelp}>Read contextual guidance</button></>:
-              <><h3>Select a capability notice</h3><p>Details are bundled and can be read offline.</p></>}
+              <><h3 tabIndex={-1}>Select a capability notice</h3><p>Details are bundled and can be read offline.</p></>}
           </article>
         </div>
       </>:
       <article className="panel wide">
         <div className="panel-head">{active==="releases"?"Verified release feed":"Verified version history"}<span className="status-muted">Not configured</span></div>
-        <h2>{active==="releases"?"No verified releases":"No verified versions"}</h2>
+        <h2 tabIndex={-1}>{active==="releases"?"No verified releases":"No verified versions"}</h2>
         <p>{active==="releases"?"No signed release manifest or verified cached entries are connected to this preview.":"Version comparison requires two verified released versions. No release dates or version badges are inferred."}</p>
         <div className="change-unavailable-actions">
           {active==="releases"?<>

@@ -555,3 +555,30 @@ main:focus{outline:none}
 .shell .change-unavailable-action { min-width:0; padding:12px; border:1px solid var(--line); border-radius:8px; }
 .shell .change-unavailable-action button { max-width:100%; min-height:44px; white-space:normal; text-align:left; }
 .shell .change-unavailable-action p { margin:8px 0 0; color:var(--text-secondary); font-size:13px; line-height:1.55; }
+
+/* M26: real 998x701 Windows frame review exposed excessive vertical header
+   space. Keep shared tokens and 44px controls; prioritize the panel itself. */
+.shell .change-center .section-heading { flex-direction:row; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:14px; }
+.shell .change-center .section-heading > div:first-child { flex:1 1 420px; min-width:0; }
+.shell .change-center .section-heading .eyebrow { margin:0 0 8px; }
+.shell .change-center .section-heading h1 { font-size:clamp(28px,3vw,40px); margin:0 0 10px; }
+.shell .change-center .section-heading .lead { font-size:13px; line-height:1.5; margin:0; }
+.shell .change-center .heading-actions { padding-top:0; }
+.shell .change-center .notice { margin:0 0 12px; padding:10px 14px; line-height:1.5; }
+.shell .change-center .change-tabs { gap:4px; margin-bottom:12px; padding-bottom:5px; }
+.shell .change-center .change-tabs button { padding:8px 10px; min-height:44px; font-size:12px; }
+.shell .change-center .change-filters { grid-template-columns:minmax(120px,2fr) minmax(100px,1fr) auto; gap:8px; }
+.shell .change-center .change-filters .help-tool-field { gap:5px; margin-bottom:4px; }
+.shell .change-center .change-filters .subtle-action { margin-bottom:4px; }
+.shell .change-center .help-option-layout { grid-template-columns:minmax(150px,0.9fr) minmax(0,1.5fr); gap:10px; }
+.shell .change-center .help-option-list { max-height:280px; }
+.shell .change-center .help-option-detail { min-height:150px; padding:14px; }
+.shell .change-center .help-option-detail h3 { margin:0 0 8px; }
+.shell .change-center .panel h2 { margin:12px 0 8px; }
+.shell .change-center .panel { padding:16px; min-height:0; }
+.shell .change-center .change-unavailable-actions { gap:8px; margin:12px 0; }
+.shell .change-center .change-unavailable-action button { margin:0; }
+.shell .change-center [tabindex="-1"]:focus-visible { outline:2px solid var(--outline); outline-offset:3px; }
+@media(max-width:760px) {
+  .shell .change-center .change-filters, .shell .change-center .help-option-layout { grid-template-columns:minmax(0,1fr); }
+}

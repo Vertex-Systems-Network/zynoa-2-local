@@ -73,5 +73,19 @@ class ChangeCenterTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "wrong native journey identity"):
                 verify(root,"b"*40,"123")
 
+    def test_m26_native_viewport_review_keeps_marker_visibility(self):
+        view = (UI / "ChangeCenter.tsx").read_text(encoding="utf-8")
+        css = (ROOT / "apps/desktop/src/styles.css").read_text(encoding="utf-8")
+        script = (ROOT / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        self.assertIn('<h3 tabIndex={-1}>Select a capability notice</h3>', view)
+        self.assertIn('matches.length===1?"notice":"notices"', view)
+        self.assertIn(".shell .change-center .section-heading", css)
+        self.assertIn(".shell .change-center .change-tabs button", css)
+        self.assertIn("min-height:44px", css)
+        self.assertIn("Wait-M26Name -Name $Heading -Reveal", script)
+        self.assertIn("ScrollItemPattern", script)
+        self.assertIn("if ($item.Current.IsOffscreen", script)
+        self.assertIn("Wait-M26Name -Name $Heading)", script)
+
 if __name__ == "__main__":
     unittest.main()

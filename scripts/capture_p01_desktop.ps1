@@ -258,7 +258,7 @@ public static class ZynoaM26Foreground {
         }
     }
     function Wait-M26Name {
-        param([string]$Name, [switch]$Focusable, [switch]$Disabled, [switch]$Fragment)
+        param([string]$Name, [switch]$Focusable, [switch]$Disabled, [switch]$Fragment, [switch]$Reveal)
         $deadline = (Get-Date).AddSeconds(10)
         do {
             Assert-M26Foreground
@@ -279,7 +279,19 @@ public static class ZynoaM26Foreground {
                     if ($Fragment -and -not ([string]$item.Current.Name).Contains($Name)) { continue }
                     if ($Focusable -and (-not $item.Current.IsKeyboardFocusable -or -not $item.Current.IsEnabled)) { continue }
                     if ($Disabled -and $item.Current.IsEnabled) { continue }
-                    if ($item.Current.IsOffscreen -and -not $Focusable -and -not $Disabled) { continue }
+                    if ($item.Current.IsOffscreen -and -not $Focusable -and -not $Disabled) {
+                        if ($Reveal) {
+                            # Real UIA scroll/focus only. An offscreen marker must
+                            # become visible before a screenshot can be accepted.
+                            $pattern = $null
+                            if ($item.TryGetCurrentPattern([System.Windows.Automation.ScrollItemPattern]::Pattern,[ref]$pattern)) {
+                                $pattern.ScrollIntoView()
+                            } elseif ($item.Current.IsKeyboardFocusable -and $item.Current.IsEnabled) {
+                                $item.SetFocus()
+                            }
+                        }
+                        continue
+                    }
                     return $item
                 } catch [System.Windows.Automation.ElementNotAvailableException] {}
             }
@@ -308,10 +320,11 @@ public static class ZynoaM26Foreground {
     $observations = [System.Collections.Generic.List[object]]::new()
     function Capture-M26 {
         param([string]$Id, [string]$Heading, [string]$Description)
-        [void](Wait-M26Name -Name $Heading)
+        [void](Wait-M26Name -Name $Heading -Reveal)
         Assert-M26Foreground
         Save-NativeFollowup -ScreenshotId $Id -Shortcut '' -ScreenTitle $Heading -Description $Description
         Assert-M26Foreground
+        [void](Wait-M26Name -Name $Heading)
         $observations.Add([ordered]@{screenshot_id=$Id; actual_visible_uia_name=$Heading; foreground_window_verified=$true})
     }
     function Open-M26Tab {
@@ -348,7 +361,7 @@ public static class ZynoaM26Foreground {
     Open-M26Tab -From 'Version History' -Keys '{RIGHT}' -To 'Module Changes'
     $module = Focus-M26Control -Name 'Module'
     Send-M26Key -Keys '{HOME}{DOWN}{TAB}'
-    [void](Wait-M26Name -Name '1 bundled capability notices. Not live GitHub issues or release entries.')
+    [void](Wait-M26Name -Name '1 bundled capability notice. Not live GitHub issues or release entries.')
     Capture-M26 -Id 'M26-CAND-S05' -Heading 'Select a capability notice' -Description 'Actual native module-filtered capability notices after keyboard selection, not released history'
     Open-M26Tab -From 'Module Changes' -Keys '{RIGHT}' -To 'Audit Timeline'
     Capture-M26 -Id 'M26-CAND-S06' -Heading 'Audit access is not enabled' -Description 'Actual native audit timeline boundary with no authorized private event query or export'
