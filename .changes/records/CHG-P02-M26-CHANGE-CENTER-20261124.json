@@ -3,7 +3,7 @@
   "module_id": "M26",
   "kind": "feature",
   "title": "Integrated read-only Change Center foundation",
-  "summary": "Source-level four-tab Change Center, bundled capability notice search and module filter, keyboard navigation and contextual Help. Exact-head existing CI passed; M26-specific native screenshots, accessibility, all applicable UI states and hosted Wiki remain pending. No signed release, live issue inventory or privileged services enabled. Second source slice adds navigable audit, notification and migration unavailable-state views, disabled release filters and traceability actions, shared contextual guidance, and source/unit regression contracts; no services or privileges added. Native and new exact-head CI acceptance pending.",
+  "summary": "Source-level four-tab Change Center, bundled capability notice search and module filter, keyboard navigation and contextual Help. Exact-head existing CI passed; M26-specific native screenshots, accessibility, all applicable UI states and hosted Wiki remain pending. No signed release, live issue inventory or privileged services enabled. Second source slice adds navigable audit, notification and migration unavailable-state views, disabled release filters and traceability actions, shared contextual guidance, and source/unit regression contracts; no services or privileges added. Native and new exact-head CI acceptance pending. Added separate exact-head M26 native screenshot/keyboard candidate harness and fail-closed verifier; no new native acceptance or release asserted.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [
@@ -36,7 +36,7 @@
   "breaking_change": false,
   "migration_notes": "Read-only session UI; no storage migration, network or release publisher.",
   "created_at": "2026-11-24T04:52:00Z",
-  "updated_at": "2026-11-24T04:53:00Z",
+  "updated_at": "2026-11-24T04:54:00Z",
   "version_bump": "none",
   "affected_option_ids": [
     "M26-OPT-01",

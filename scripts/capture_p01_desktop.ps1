@@ -3,7 +3,8 @@ param(
     [Parameter(Mandatory = $true)][int]$TargetPid,
     [Parameter(Mandatory = $true)][string]$OutputDirectory,
     [Parameter(Mandatory = $true)][string]$SourceSha,
-    [Parameter(Mandatory = $true)][string]$BuiltSha
+    [Parameter(Mandatory = $true)][string]$BuiltSha,
+    [switch]$M26Only
 )
 $ErrorActionPreference = 'Stop'
 if ($SourceSha -notmatch '^[0-9a-f]{40}$') { throw 'ZYN-SCREEN-001: invalid source commit' }
@@ -139,7 +140,7 @@ $script:previousFrameHash = $hash
 function Save-NativeFollowup {
     param(
         [Parameter(Mandatory = $true)][string]$ScreenshotId,
-        [Parameter(Mandatory = $true)][string]$Shortcut,
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string]$Shortcut,
         [Parameter(Mandatory = $true)][string]$ScreenTitle,
         [Parameter(Mandatory = $true)][string]$Description,
         [Parameter(Mandatory = $false)][string]$OptionId = "",
@@ -149,7 +150,7 @@ function Save-NativeFollowup {
     if ($proc.HasExited -or -not [ZynoaScreenWin32]::IsWindowVisible($hwnd)) {
         throw 'ZYN-SCREEN-016: native window is no longer running and visible'
     }
-    [System.Windows.Forms.SendKeys]::SendWait($Shortcut)
+    if ($Shortcut -ne "") { [System.Windows.Forms.SendKeys]::SendWait($Shortcut) }
     Start-Sleep -Milliseconds 900
     $viewBitmap = [System.Drawing.Bitmap]::new($width, $height)
     try {
@@ -237,6 +238,142 @@ function Save-NativeFollowup {
         Join-Path $OutputDirectory ($ScreenshotId + '.capture.json')) -Encoding UTF8
     Write-Output ('Native candidate captured: ' + $ScreenshotId)
 }
+
+# Separate M26 journey: reuse real DWM capture, never expand the 69-frame T10 budget.
+if ($M26Only) {
+    Add-Type -AssemblyName UIAutomationClient
+    Add-Type -AssemblyName UIAutomationTypes
+    if (-not $env:GITHUB_RUN_ID) { throw 'ZYN-M26-001: CI run identity missing' }
+    Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class ZynoaM26Foreground {
+    [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+}
+'@
+    function Assert-M26Foreground {
+        $proc.Refresh()
+        if ($proc.HasExited -or [ZynoaM26Foreground]::GetForegroundWindow() -ne $hwnd) {
+            throw 'ZYN-M26-002: actual app not foreground'
+        }
+    }
+    function Wait-M26Name {
+        param([string]$Name, [switch]$Focusable, [switch]$Disabled, [switch]$Fragment)
+        $deadline = (Get-Date).AddSeconds(10)
+        do {
+            Assert-M26Foreground
+            $root = [System.Windows.Automation.AutomationElement]::FromHandle($hwnd)
+            if ($null -eq $root -or $root.Current.ProcessId -ne $TargetPid) {
+                throw 'ZYN-M26-003: UIA root PID mismatch'
+            }
+            $condition = if ($Fragment) {
+                [System.Windows.Automation.Condition]::TrueCondition
+            } else {
+                [System.Windows.Automation.PropertyCondition]::new(
+                    [System.Windows.Automation.AutomationElement]::NameProperty, $Name)
+            }
+            $items = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, $condition)
+            for ($i=0; $i -lt $items.Count; $i++) {
+                try {
+                    $item = $items.Item($i)
+                    if ($Fragment -and -not ([string]$item.Current.Name).Contains($Name)) { continue }
+                    if ($Focusable -and (-not $item.Current.IsKeyboardFocusable -or -not $item.Current.IsEnabled)) { continue }
+                    if ($Disabled -and $item.Current.IsEnabled) { continue }
+                    if ($item.Current.IsOffscreen -and -not $Focusable -and -not $Disabled) { continue }
+                    return $item
+                } catch [System.Windows.Automation.ElementNotAvailableException] {}
+            }
+            Start-Sleep -Milliseconds 250
+        } until ((Get-Date) -ge $deadline)
+        throw ('ZYN-M26-004: required native control absent: ' + $Name)
+    }
+    function Send-M26Key {
+        param([string]$Keys)
+        Assert-M26Foreground
+        [System.Windows.Forms.SendKeys]::SendWait($Keys)
+        Start-Sleep -Milliseconds 250
+    }
+    function Focus-M26Control {
+        param([string]$Name, [switch]$Fragment)
+        $element = Wait-M26Name -Name $Name -Focusable -Fragment:$Fragment
+        try {
+            $scroll = $element.GetCurrentPattern([System.Windows.Automation.ScrollItemPattern]::Pattern)
+            if ($null -ne $scroll) { $scroll.ScrollIntoView() }
+        } catch [System.InvalidOperationException] {}
+        $element.SetFocus()
+        Start-Sleep -Milliseconds 250
+        Assert-M26Foreground
+        return $element
+    }
+    $observations = [System.Collections.Generic.List[object]]::new()
+    function Capture-M26 {
+        param([string]$Id, [string]$Heading, [string]$Description)
+        [void](Wait-M26Name -Name $Heading)
+        Assert-M26Foreground
+        Save-NativeFollowup -ScreenshotId $Id -Shortcut '' -ScreenTitle $Heading -Description $Description
+        Assert-M26Foreground
+        $observations.Add([ordered]@{screenshot_id=$Id; actual_visible_uia_name=$Heading; foreground_window_verified=$true})
+    }
+    function Open-M26Tab {
+        param([string]$From, [string]$Keys, [string]$To)
+        [void](Focus-M26Control -Name $From)
+        Send-M26Key -Keys $Keys
+        $focused = [System.Windows.Automation.AutomationElement]::FocusedElement
+        if ($null -eq $focused -or $focused.Current.Name -cne $To) {
+            throw ('ZYN-M26-005: native keyboard tab focus did not reach ' + $To)
+        }
+    }
+    [void](Focus-M26Control -Name 'Changelog')
+    Send-M26Key -Keys '{ENTER}'
+    Capture-M26 -Id 'M26-CAND-S01' -Heading 'No verified releases' -Description 'Actual native Changelog release unavailable state, without invented signed data'
+    [void](Wait-M26Name -Name 'Check release feed' -Disabled)
+    Open-M26Tab -From "What's New" -Keys '{RIGHT}' -To 'Known Issues'
+    Capture-M26 -Id 'M26-CAND-S02' -Heading 'Select a capability notice' -Description 'Actual native Known Issues view showing bundled capability notices, not live GitHub issues'
+    $search = Focus-M26Control -Name 'Search bundled notices'
+    Send-M26Key -Keys 'zzznomatch'
+    $value = $search.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+    if ($null -eq $value -or $value.Current.Value -cne 'zzznomatch') {
+        throw 'ZYN-M26-006: typed text did not reach real notice search'
+    }
+    Capture-M26 -Id 'M26-CAND-SEARCH-EMPTY' -Heading 'No matching notices. Reset filters to view all.' -Description 'Actual native typed search query, no-match feedback and reset control'
+    [void](Focus-M26Control -Name 'Reset filters')
+    Send-M26Key -Keys '{ENTER}'
+    [void](Focus-M26Control -Name 'Backup and restore not available' -Fragment)
+    Send-M26Key -Keys '{ENTER}'
+    Capture-M26 -Id 'M26-CAND-S04' -Heading 'Not a released fix or live issue status.' -Description 'Actual selected bundled capability notice, no verified linked issue or merge receipt'
+    [void](Wait-M26Name -Name 'Open linked issue' -Disabled)
+    Open-M26Tab -From 'Known Issues' -Keys '{RIGHT}' -To 'Version History'
+    Capture-M26 -Id 'M26-CAND-S03' -Heading 'No verified versions' -Description 'Actual native empty verified version history, comparison intentionally disabled'
+    [void](Wait-M26Name -Name 'Compare versions' -Disabled)
+    Open-M26Tab -From 'Version History' -Keys '{RIGHT}' -To 'Module Changes'
+    $module = Focus-M26Control -Name 'Module'
+    Send-M26Key -Keys '{HOME}{DOWN}{TAB}'
+    [void](Wait-M26Name -Name '1 bundled capability notices. Not live GitHub issues or release entries.')
+    Capture-M26 -Id 'M26-CAND-S05' -Heading 'Select a capability notice' -Description 'Actual native module-filtered capability notices after keyboard selection, not released history'
+    Open-M26Tab -From 'Module Changes' -Keys '{RIGHT}' -To 'Audit Timeline'
+    Capture-M26 -Id 'M26-CAND-S06' -Heading 'Audit access is not enabled' -Description 'Actual native audit timeline boundary with no authorized private event query or export'
+    [void](Wait-M26Name -Name 'Export change history' -Disabled)
+    Open-M26Tab -From 'Audit Timeline' -Keys '{RIGHT}' -To 'Notifications'
+    Capture-M26 -Id 'M26-CAND-S07' -Heading 'Notification settings unavailable' -Description 'Actual native notification preference boundary with disabled notification and unread settings'
+    [void](Wait-M26Name -Name "Enable What's New notifications" -Disabled)
+    Open-M26Tab -From 'Notifications' -Keys '{END}' -To 'Migration Notes'
+    Capture-M26 -Id 'M26-CAND-S08' -Heading 'No verified migration notes' -Description 'Actual native migration warning boundary with unavailable release-specific recovery guidance'
+    [void](Wait-M26Name -Name 'View rollback guidance' -Disabled)
+    Open-M26Tab -From 'Migration Notes' -Keys '{HOME}' -To "What's New"
+    Send-M26Key -Keys '{F1}'
+    Capture-M26 -Id 'M26-CAND-HELP' -Heading 'Changelog and release history' -Description 'Actual F1 native contextual navigation to bundled Changelog and release history Help article'
+    $receipt = [ordered]@{
+        schema_version=1; source_commit_sha=$SourceSha; built_commit_sha=$BuiltSha
+        github_run_id=[string]$env:GITHUB_RUN_ID; native_process_id=$TargetPid
+        status='M26_NATIVE_CANDIDATES_ONLY'; no_user_data=$true
+        independent_visual_review=$false; screen_reader_verified=$false
+        observations=@($observations.ToArray())
+    }
+    $receipt | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (
+        Join-Path $OutputDirectory 'M26-journey.capture.json') -Encoding UTF8
+    return
+}
+
 Save-NativeFollowup -ScreenshotId 'M01-S01-continued' -Shortcut '{PGDN}' -ScreenTitle 'Overview (continued below fold)' -Description 'Zynoa native Overview foundation progress, lower scroll position and footer'
 Save-NativeFollowup -ScreenshotId 'P01-Settings-preview' -Shortcut '^{2}' -ScreenTitle 'Settings (disabled P01 controls)' -Description 'Zynoa native Settings foundation screen with intentionally unavailable preferences'
 Save-NativeFollowup -ScreenshotId 'P01-Recovery-preview' -Shortcut '^{3}' -ScreenTitle 'Recovery (no verified backups)' -Description 'Zynoa native Recovery foundation screen with disabled restore action'

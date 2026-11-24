@@ -45,5 +45,30 @@ class ChangeCenterTests(unittest.TestCase):
         self.assertIn("onClick={onHelp}",view)
         self.assertNotIn('aria-disabled="false"', view)
 
+    def test_native_candidate_suite_is_separate_and_fail_closed(self):
+        script = (ROOT / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        workflow = (ROOT / ".github/workflows/p01-desktop.yml").read_text(encoding="utf-8")
+        from tools.verify_p02_m26_candidates import EXPECTED, verify
+        import tempfile
+        import json
+        for key in EXPECTED:
+            self.assertIn(key, script)
+        for marker in ("GetForegroundWindow", "ValuePattern", "ZYN-M26-005",
+                       "screen_reader_verified=$false", "independent_visual_review=$false"):
+            self.assertIn(marker,script)
+        self.assertIn("-M26Only",workflow)
+        self.assertIn("tools.verify_p02_m26_candidates",workflow)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "M26-journey.capture.json").write_text(json.dumps({
+                "schema_version": 1, "source_commit_sha": "a"*40, "built_commit_sha": "a"*40,
+                "github_run_id": "123", "native_process_id": 1, "no_user_data": True,
+                "status": "M26_NATIVE_CANDIDATES_ONLY", "independent_visual_review": True,
+                "screen_reader_verified": False, "observations": []}), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "false acceptance"):
+                verify(root,"a"*40,"123")
+            with self.assertRaisesRegex(ValueError, "wrong native journey identity"):
+                verify(root,"b"*40,"123")
+
 if __name__ == "__main__":
     unittest.main()

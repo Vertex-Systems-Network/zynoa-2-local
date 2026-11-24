@@ -27,7 +27,7 @@ jobs:
           git fetch --no-tags --depth=1 origin "$BASE_SHA"
           changed="$(git diff --name-only FETCH_HEAD HEAD)"
           test -n "$changed" || { echo "::error::Unexpected empty PR diff"; exit 1; }
-          if printf '%s\n' "$changed" | grep -qE '^(scripts/capture_p01_desktop\.ps1|scripts/probe_p02_native_a11y\.ps1|scripts/probe_p02_native_performance\.ps1|apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|tests/test_p01_locations.py|tests/test_p01_events.py|tests/test_p01_screenshot_capture.py|tests/test_p02_ui_contract.py|tests/test_p02_t03_navigation.py|tests/test_p02_m19_workflows.py|tests/test_p02_m02_controls.py|tests/test_p02_native_evidence.py|tests/test_p02_native_uia.py|tests/test_p02_native_performance.py|tools/verify_p02_native_performance.py|tests/test_p02_t10_performance_budget.py|tools/verify_p02_t10_performance_budget.py|docs/quality/P02_T10_PERFORMANCE_BUDGET.json|tests/test_p02_nvda_speech.py|tools/verify_p02_nvda_speech.py|scripts/probe_p02_nvda_speech.ps1|scripts/nvda/zynoaAudit.py|tests/test_p02_visual_review_pack.py|tools/build_p02_visual_review_pack.py|tests/test_p02_staged_native_assets.py|tools/stage_p02_native_assets.py|tests/test_p02_help_evidence.py|tests/test_p02_t02_acceptance.py|tools/verify_p02_native_evidence.py|tools/verify_p02_native_uia.py|tools/verify_p02_t02_acceptance.py|docs/screenshots/MANIFEST.json|docs/modules/M02.md|docs/evidence/P02_T03_ACCEPTANCE.md|docs/help/articles/M02.md|docs/help/articles/M19.md|docs/wiki/pages/M02.md|docs/wiki/pages/M19.md|docs/modules/M19.md|\.github/workflows/p01-desktop.yml)'; then
+          if printf '%s\n' "$changed" | grep -qE '^(scripts/capture_p01_desktop\.ps1|scripts/probe_p02_native_a11y\.ps1|scripts/probe_p02_native_performance\.ps1|apps/desktop/|tests/test_p01_desktop_shell.py|tests/test_p01_ipc_contract.py|tests/test_p01_native_security.py|tests/test_p01_diagnostics.py|tests/test_p01_vault.py|tests/test_p01_locations.py|tests/test_p01_events.py|tests/test_p01_screenshot_capture.py|tests/test_p02_ui_contract.py|tests/test_p02_t03_navigation.py|tests/test_p02_m19_workflows.py|tests/test_p02_m02_controls.py|tests/test_p02_native_evidence.py|tests/test_p02_t12_change_center.py|tools/verify_p02_m26_candidates.py|tests/test_p02_native_uia.py|tests/test_p02_native_performance.py|tools/verify_p02_native_performance.py|tests/test_p02_t10_performance_budget.py|tools/verify_p02_t10_performance_budget.py|docs/quality/P02_T10_PERFORMANCE_BUDGET.json|tests/test_p02_nvda_speech.py|tools/verify_p02_nvda_speech.py|scripts/probe_p02_nvda_speech.ps1|scripts/nvda/zynoaAudit.py|tests/test_p02_visual_review_pack.py|tools/build_p02_visual_review_pack.py|tests/test_p02_staged_native_assets.py|tools/stage_p02_native_assets.py|tests/test_p02_help_evidence.py|tests/test_p02_t02_acceptance.py|tools/verify_p02_native_evidence.py|tools/verify_p02_native_uia.py|tools/verify_p02_t02_acceptance.py|docs/screenshots/MANIFEST.json|docs/modules/M02.md|docs/evidence/P02_T03_ACCEPTANCE.md|docs/help/articles/M02.md|docs/help/articles/M19.md|docs/wiki/pages/M02.md|docs/wiki/pages/M19.md|docs/modules/M19.md|\.github/workflows/p01-desktop.yml)'; then
             echo "desktop=true" >> "$GITHUB_OUTPUT"
           else
             echo "desktop=false" >> "$GITHUB_OUTPUT"
@@ -59,6 +59,9 @@ jobs:
       - name: P02 M19 functional offline Help contracts
         if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
         run: python -m unittest tests.test_p02_m19_workflows -v
+      - name: P02-T12 Change Center and M26 candidate verifier contracts
+        if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
+        run: python -m unittest tests.test_p02_t12_change_center -v
       - name: P02 fail-closed native screenshot verifier contracts
         if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
         shell: pwsh
@@ -396,6 +399,33 @@ jobs:
           & $script -Executable $exe -SourceSha $env:ZYNOA_HEAD_SHA -OutputPath $capture
           python -m tools.verify_p02_t11_narrator --proof $capture --source-sha $env:ZYNOA_HEAD_SHA --run-id $env:ZYNOA_RUN_ID --report $report
           if ($LASTEXITCODE -ne 0) { throw 'ZYN-NAR-022: actual speech receipt rejected' }
+      - name: P02-T12 separate M26 native keyboard and screenshot candidates
+        if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
+        shell: pwsh
+        env:
+          ZYNOA_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
+          $builtSha = (& git -C $env:GITHUB_WORKSPACE rev-parse HEAD).Trim().ToLowerInvariant()
+          if ($builtSha -cne $env:ZYNOA_HEAD_SHA) { throw 'ZYN-M26-007: build SHA mismatch' }
+          $process = Start-Process -FilePath $exe -PassThru
+          try {
+            $deadline = (Get-Date).AddSeconds(45)
+            do {
+              Start-Sleep -Milliseconds 500
+              $process.Refresh()
+              if ($process.HasExited) { throw 'ZYN-M26-008: native process exited' }
+            } until ($process.MainWindowHandle -ne [IntPtr]::Zero -or (Get-Date) -ge $deadline)
+            if ($process.MainWindowHandle -eq [IntPtr]::Zero) { throw 'ZYN-M26-009: missing native window' }
+            $out = Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\_ci\M26'
+            & (Join-Path $env:GITHUB_WORKSPACE 'scripts\capture_p01_desktop.ps1') -TargetPid $process.Id -OutputDirectory $out -SourceSha $env:ZYNOA_HEAD_SHA -BuiltSha $builtSha -M26Only
+            python -m tools.verify_p02_m26_candidates --root $out --source-sha $builtSha --run-id $env:GITHUB_RUN_ID
+            if ($LASTEXITCODE -ne 0) { throw 'ZYN-M26-010: native candidate receipts rejected' }
+          } finally {
+            $process.Refresh()
+            if (-not $process.HasExited) { Stop-Process -Id $process.Id -Force; [void]$process.WaitForExit(10000) }
+            $process.Dispose()
+          }
       - uses: actions/upload-artifact@v6
         if: always()
         with:
@@ -437,4 +467,6 @@ jobs:
             docs/screenshots/_ci/M02/P02-native-uia.verify.json
             docs/screenshots/_ci/M19/*.png
             docs/screenshots/_ci/M19/*.capture.json
+            docs/screenshots/_ci/M26/M26-*.png
+            docs/screenshots/_ci/M26/M26-*.capture.json
           if-no-files-found: warn
