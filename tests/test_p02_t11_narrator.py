@@ -1,5 +1,6 @@
 """Fail closed on fabricated, stale or missing actual Narrator speech evidence."""
 import unittest
+from pathlib import Path
 from tools.verify_p02_t11_narrator import verify, InvalidNarratorProof, EXPECTED
 SHA = "a"*40
 RUN = "45300000001"
@@ -29,5 +30,12 @@ class NarratorReceiptTests(unittest.TestCase):
             p=sample();p[key]=value
             with self.subTest(key=key),self.assertRaises(InvalidNarratorProof):
                 verify(p,SHA,RUN)
+    def test_probe_uses_both_default_modifier_keys_and_records_failure_diagnostics(self):
+        source=(Path(__file__).resolve().parents[1]/"scripts/probe_p02_t11_narrator.ps1").read_text(encoding="utf-8")
+        for marker in ("[byte]0x2D,[byte]0x14","ExtendedInsert","MapVirtualKey","GetWindowThreadProcessId",
+                       "clipboard_changed","expected_phrase_found","os_build_revision","ZYN-NAR-005"):
+            self.assertIn(marker,source)
+        self.assertNotIn("Set-Clipboard -Value $ExpectedLabel",source)
+        self.assertNotIn("Set-Clipboard -Value $Control",source)
 if __name__=="__main__":
     unittest.main()

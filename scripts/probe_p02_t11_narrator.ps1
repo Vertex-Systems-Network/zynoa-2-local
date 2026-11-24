@@ -16,16 +16,24 @@ using System.Runtime.InteropServices;
 public static class ZynoaNarratorKeyboard {
  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
  [DllImport("user32.dll")] public static extern uint GetClipboardSequenceNumber();
+ [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+ [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr h, out uint pid);
+ [DllImport("user32.dll")] public static extern uint MapVirtualKey(uint code, uint mapType);
  [DllImport("user32.dll")] public static extern void keybd_event(byte vk, byte scan, uint flags, UIntPtr extra);
 }
 '@
 function Send-NarratorChord([byte[]]$Keys) {
   foreach ($key in $Keys) {
-    [ZynoaNarratorKeyboard]::keybd_event($key,0,0,[UIntPtr]::Zero)
+    $flags=if ($key -eq 0x2D) { [uint32]1 } else { [uint32]0 }
+    $scan=[byte]([ZynoaNarratorKeyboard]::MapVirtualKey($key,0) -band 0xFF)
+    [ZynoaNarratorKeyboard]::keybd_event($key,$scan,$flags,[UIntPtr]::Zero)
     Start-Sleep -Milliseconds 80
   }
   for ($i=$Keys.Count-1; $i -ge 0; $i--) {
-    [ZynoaNarratorKeyboard]::keybd_event($Keys[$i],0,2,[UIntPtr]::Zero)
+    $key=$Keys[$i]
+    $flags=if ($key -eq 0x2D) { [uint32]3 } else { [uint32]2 }
+    $scan=[byte]([ZynoaNarratorKeyboard]::MapVirtualKey($key,0) -band 0xFF)
+    [ZynoaNarratorKeyboard]::keybd_event($key,$scan,$flags,[UIntPtr]::Zero)
     Start-Sleep -Milliseconds 80
   }
 }
@@ -44,34 +52,53 @@ function Find-FocusableNativeControl($Root,[string]$Label) {
   throw 'ZYN-NAR-004: required native focus target missing'
 }
 function Read-ActualNarratorPhrase([string]$Stage,$Control,[string]$ExpectedLabel) {
-  # Never read the previous clipboard content; overwrite disposable CI clipboard.
-  $sentinel='ZYNOA-NARRATOR-'+[Guid]::NewGuid().ToString('N')
-  Set-Clipboard -Value $sentinel
-  $before=[ZynoaNarratorKeyboard]::GetClipboardSequenceNumber()
-  $Control.SetFocus()
-  Start-Sleep -Milliseconds 700
-  # Microsoft documented Narrator+Tab reads current item; Insert is the SR key.
-  Send-NarratorChord ([byte[]]@(0x2D,0x09))
-  Start-Sleep -Milliseconds 2200
-  # Microsoft documented Narrator+Ctrl+X copies the actual last spoken phrase.
-  Send-NarratorChord ([byte[]]@(0x2D,0x11,0x58))
-  for ($i=0;$i -lt 12;$i++) {
-    Start-Sleep -Milliseconds 300
-    $after=[ZynoaNarratorKeyboard]::GetClipboardSequenceNumber()
-    if ($after -eq $before) { continue }
-    $candidate=Get-Clipboard -Raw
-    if ($candidate -is [string] -and $candidate -ne $sentinel) {
-      $where=$candidate.IndexOf($ExpectedLabel,[StringComparison]::OrdinalIgnoreCase)
-      if ($where -ge 0) {
-        $start=[Math]::Max(0,$where-25)
-        $len=[Math]::Min($candidate.Length-$start,$ExpectedLabel.Length+65)
-        $excerpt=$candidate.Substring($start,$len).Replace([char]13,[char]32).Replace([char]10,[char]32)
-        return [ordered]@{stage=$Stage;label=$excerpt;clipboard_sequence_before=[int64]$before;
-          clipboard_sequence_after=[int64]$after;actual_speech_clipboard_changed=$true}
+  foreach ($modifier in @([byte]0x2D,[byte]0x14)) {
+    $keyName=if ($modifier -eq 0x2D) { 'ExtendedInsert' } else { 'CapsLock' }
+    # Never read the previous clipboard; the disposable CI clipboard is reset per attempt.
+    $sentinel='ZYNOA-NARRATOR-'+[Guid]::NewGuid().ToString('N')
+    Set-Clipboard -Value $sentinel
+    $before=[ZynoaNarratorKeyboard]::GetClipboardSequenceNumber()
+    if (-not [ZynoaNarratorKeyboard]::SetForegroundWindow($app.MainWindowHandle)) {
+      throw 'ZYN-NAR-013: app foreground unavailable before spoken-item query'
+    }
+    $Control.SetFocus()
+    Start-Sleep -Milliseconds 1200
+    $foregroundPid=[uint32]0
+    [void][ZynoaNarratorKeyboard]::GetWindowThreadProcessId([ZynoaNarratorKeyboard]::GetForegroundWindow(),[ref]$foregroundPid)
+    if ($foregroundPid -ne $app.Id) { throw 'ZYN-NAR-017: foreground PID differs from native app' }
+    # Narrator+Tab reads the current item. Both default modifier keys are supported.
+    Send-NarratorChord ([byte[]]@($modifier,0x09))
+    Start-Sleep -Milliseconds 3000
+    # Narrator+Ctrl+X copies the last actual spoken phrase on supporting OS versions.
+    Send-NarratorChord ([byte[]]@($modifier,0x11,0x58))
+    $changed=$false
+    $length=0
+    for ($i=0;$i -lt 16;$i++) {
+      Start-Sleep -Milliseconds 350
+      $after=[ZynoaNarratorKeyboard]::GetClipboardSequenceNumber()
+      if ($after -eq $before) { continue }
+      $changed=$true
+      $candidate=Get-Clipboard -Raw
+      if ($candidate -is [string] -and $candidate -ne $sentinel) {
+        $length=$candidate.Length
+        $where=$candidate.IndexOf($ExpectedLabel,[StringComparison]::OrdinalIgnoreCase)
+        if ($where -ge 0) {
+          $start=[Math]::Max(0,$where-25)
+          $len=[Math]::Min($candidate.Length-$start,$ExpectedLabel.Length+65)
+          $excerpt=$candidate.Substring($start,$len).Replace([char]13,[char]32).Replace([char]10,[char]32)
+          $proof.attempts+= [ordered]@{stage=$Stage;modifier=$keyName;clipboard_changed=$true;
+            clipboard_text_length=$length;expected_phrase_found=$true;foreground_pid=[int]$foregroundPid}
+          return [ordered]@{stage=$Stage;label=$excerpt;clipboard_sequence_before=[int64]$before;
+            clipboard_sequence_after=[int64]$after;actual_speech_clipboard_changed=$true}
+        }
       }
     }
+    # No arbitrary clipboard text is saved. Only booleans/length and PID are recorded.
+    $proof.attempts+= [ordered]@{stage=$Stage;modifier=$keyName;clipboard_changed=$changed;
+      clipboard_text_length=$length;expected_phrase_found=$false;foreground_pid=[int]$foregroundPid}
+    Write-Output ("ZYN-NAR-RETRY stage={0}; key={1}; clipboard_changed={2}; text_length={3}" -f $Stage,$keyName,$changed,$length) | Out-Host
   }
-  throw "ZYN-NAR-005: actual copied speech missing for stage $Stage"
+  throw "ZYN-NAR-005: actual copied speech missing for stage $Stage after both Narrator modifiers; inspect OS support and receipt attempts"
 }
 $path=Join-Path $env:WINDIR 'System32\Narrator.exe'
 if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw 'ZYN-NAR-006: Microsoft Narrator unavailable on runner' }
@@ -87,7 +114,10 @@ $proof=[ordered]@{schema_version=1;source_commit_sha=$SourceSha;github_run_id=[s
  narrator_executable_sha256=(Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant();
  narrator_signature_verified=$true;narrator_version=(Get-Item -LiteralPath $path).VersionInfo.FileVersion;
  app_pid=0;narrator_pid=0;native_uia_pid_match=$false;actual_keyboard_input_value='';
- events=@();status='INCOMPLETE';no_user_data=$true;full_narrator_certified=$false;product_release_approved=$false}
+ os_version=[Environment]::OSVersion.Version.ToString();
+ os_product_name=(Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name ProductName).ProductName;
+ os_build_revision=[int](Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name UBR).UBR;
+ attempts=@();events=@();status='INCOMPLETE';no_user_data=$true;full_narrator_certified=$false;product_release_approved=$false}
 try {
   Start-Process -FilePath $path | Out-Null
   for ($i=0;$i -lt 40;$i++) {
@@ -97,6 +127,8 @@ try {
   }
   if ($null -eq $narrator) { throw 'ZYN-NAR-010: Narrator process unavailable' }
   $proof.narrator_pid=[int]$narrator.Id
+  # Let the installed reader finish its initial startup before foregrounding the app.
+  Start-Sleep -Milliseconds 3500
   $app=Start-Process -FilePath $Executable -PassThru
   $proof.app_pid=[int]$app.Id
   $uia=$null
