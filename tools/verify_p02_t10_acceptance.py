@@ -51,15 +51,22 @@ def load(root: Path, relative: str) -> dict:
     return obj
 
 
-def audit_static(root: Path) -> dict:
-    """Trust only source-bound committed PNGs and separately reviewed originals."""
-    task_board = load(root, "docs/state/pr-tasks/P02.json")
+def verify_premerge_state(phase: dict, task_board: dict) -> None:
     tasks = {x["id"]: x for x in task_board["tasks"]}
     need(tasks["P02-T10"]["status"] in ("IN_PROGRESS", "DONE"), "invalid T10 board status")
     need(tasks["P02-T11"]["status"] == "IN_PROGRESS", "T11 must remain unmerged")
-    phase = load(root, "docs/state/PHASE.json")
     need(phase.get("phase") == "P02" and phase.get("phase_status") == "IN_PROGRESS",
          "P02 phase advanced without protected merge")
+
+
+def audit_static(root: Path) -> dict:
+    """Strict live premerge evidence, never a postmerge or next-phase approval."""
+    verify_premerge_state(load(root, "docs/state/PHASE.json"), load(root, "docs/state/pr-tasks/P02.json"))
+    return audit_visual_evidence(root)
+
+
+def audit_visual_evidence(root: Path) -> dict:
+    """Trust only source-bound committed PNGs and separately reviewed originals."""
     manifest = load(root, "docs/screenshots/MANIFEST.json")
     rows = [x for x in manifest.get("required", []) if x.get("module") in ("M02", "M19")]
     ids = [x.get("asset_id") for x in rows]

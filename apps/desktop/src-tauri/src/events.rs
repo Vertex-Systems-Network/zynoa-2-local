@@ -2,7 +2,7 @@
 //! No free-form user payload, no WebView IPC, remote upload or release promotion.
 use rusqlite::{params, Connection, ErrorCode, OpenFlags, TransactionBehavior};
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::Mutex;
 use std::time::Duration;
 
@@ -259,6 +259,7 @@ impl NativeEventLedger {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::path::PathBuf;
     use std::sync::atomic::{AtomicU64, Ordering};
     use std::time::{SystemTime, UNIX_EPOCH};
     static NEXT_FIXTURE: AtomicU64 = AtomicU64::new(0);

@@ -32,7 +32,8 @@ DENIED = (
 def require(cond, msg):
     if not cond: raise P02SecurityViolation(msg)
 
-def audit_sources(config, capability, ipc, frontend, workflow, phase, tasks):
+def audit_source_contract(config, capability, ipc, frontend, workflow):
+    """Check the P02 source contract, without inferring lifecycle or merge state."""
     require(isinstance(config,dict) and isinstance(capability,dict), "missing Tauri security sources")
     security=config.get("app",{}).get("security",{})
     require(security.get("capabilities")==["main-readonly"], "Tauri capability broadened")
@@ -81,11 +82,6 @@ def audit_sources(config, capability, ipc, frontend, workflow, phase, tasks):
             "untrusted PR workflow privilege or concurrency changed")
     for grant in ("pull-requests: write","contents: write","issues: write","actions: write"):
         require(grant not in workflow, "untrusted PR workflow has GitHub write scope: "+grant)
-    require(phase.get("phase")=="P02" and phase.get("phase_status")=="IN_PROGRESS",
-            "phase lock or premerge state bypassed")
-    item={x["id"]:x["status"] for x in tasks.get("tasks",[])}
-    require(item.get("P02-T10")=="DONE" and item.get("P02-T11")=="IN_PROGRESS",
-            "premerge task table claims falsely completed T11")
     return {
         "schema_version":1,
         "phase":"P02",
@@ -105,6 +101,19 @@ def audit_sources(config, capability, ipc, frontend, workflow, phase, tasks):
         "protected_merge_verified":False,
         "release_published":False
     }
+
+def verify_premerge_state(phase, tasks):
+    require(phase.get("phase")=="P02" and phase.get("phase_status")=="IN_PROGRESS",
+            "phase lock or premerge state bypassed")
+    item={x["id"]:x["status"] for x in tasks.get("tasks",[])}
+    require(item.get("P02-T10")=="DONE" and item.get("P02-T11")=="IN_PROGRESS",
+            "premerge task table claims falsely completed T11")
+
+
+def audit_sources(config, capability, ipc, frontend, workflow, phase, tasks):
+    # Live acceptance remains strictly premerge-only.
+    verify_premerge_state(phase, tasks)
+    return audit_source_contract(config, capability, ipc, frontend, workflow)
 
 def audit(root:Path):
     def contents(path):return (root/path).read_text(encoding="utf-8-sig")

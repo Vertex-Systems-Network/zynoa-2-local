@@ -43,8 +43,8 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
-      - uses: actions/setup-node@v4
-        with: { node-version: '22' }
+      - uses: actions/setup-node@v6
+        with: { node-version: '22', package-manager-cache: false }
       - name: Desktop shell and IPC safety contracts
         run: python -m unittest tests.test_p01_desktop_shell tests.test_p01_ipc_contract tests.test_p01_native_security tests.test_p01_diagnostics tests.test_p01_vault tests.test_p01_locations tests.test_p01_events tests.test_p01_screenshot_capture -v
       - name: P02 M02 comprehensive session preferences and state contracts
@@ -396,7 +396,7 @@ jobs:
           & $script -Executable $exe -SourceSha $env:ZYNOA_HEAD_SHA -OutputPath $capture
           python -m tools.verify_p02_t11_narrator --proof $capture --source-sha $env:ZYNOA_HEAD_SHA --run-id $env:ZYNOA_RUN_ID --report $report
           if ($LASTEXITCODE -ne 0) { throw 'ZYN-NAR-022: actual speech receipt rejected' }
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: p01-desktop-windows-build-evidence

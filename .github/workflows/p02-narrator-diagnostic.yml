@@ -23,7 +23,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
       - name: Retrieve exact known previous Windows build artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: p01-desktop-windows-build-evidence
           run-id: 45319452811
@@ -44,7 +44,7 @@ jobs:
           if ($parseErrors.Count -ne 0) { throw ('Narrator diagnostic script parse failed: ' + (($parseErrors | ForEach-Object { $_.Message + ' (line ' + $_.Extent.StartLineNumber + ')' }) -join '; ')) }
           & $script -Executable $exe -SourceSha $env:SOURCE_SHA -OutputPath "$env:GITHUB_WORKSPACE/diagnostic-output/narrator.capture.json" -DiagnosticBinarySourceSha 'fb1b38660ea86a973b8f96a0e03cdaeb9a741137' -DiagnosticBinarySha256 $digest
       - name: Upload only disposable diagnostic receipt (never exact-head approval)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: p02-narrator-diagnostic-only

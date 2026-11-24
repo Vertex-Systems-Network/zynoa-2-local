@@ -19,7 +19,7 @@ SUB = "docs/screenshots/_ci/M02/"
 
 class T10PreviewAcceptanceTests(unittest.TestCase):
     def test_all_29_committed_images_reviews_and_wiki_are_source_bound(self):
-        s = gate.audit_static(ROOT)
+        s = gate.audit_visual_evidence(ROOT)
         self.assertEqual(29, s["native_images_verified"])
         self.assertEqual(29, s["independent_image_reviews"])
         self.assertEqual(16, s["help_wiki_options"])
@@ -32,7 +32,7 @@ class T10PreviewAcceptanceTests(unittest.TestCase):
             return data + b"tampered" if str(path).endswith("M02-S01.png") else data
         with patch.object(Path, "read_bytes", changed):
             with self.assertRaisesRegex(gate.InvalidT10Acceptance, "original PNG or review hash mismatch"):
-                gate.audit_static(ROOT)
+                gate.audit_visual_evidence(ROOT)
 
     def test_false_remote_wiki_claim_is_rejected(self):
         original = gate.load
@@ -44,7 +44,33 @@ class T10PreviewAcceptanceTests(unittest.TestCase):
             return data
         with patch.object(gate, "load", corrupt):
             with self.assertRaisesRegex(gate.InvalidT10Acceptance, "remote readback"):
-                gate.audit_static(ROOT)
+                gate.audit_visual_evidence(ROOT)
+
+    def test_premerge_lifecycle_remains_fail_closed(self):
+        board = {"tasks": [{"id": "P02-T10", "status": "DONE"},
+                           {"id": "P02-T11", "status": "IN_PROGRESS"}]}
+        gate.verify_premerge_state({"phase": "P02", "phase_status": "IN_PROGRESS"}, board)
+        for state in ({"phase": "P02", "phase_status": "MERGED_VERIFIED"},
+                      {"phase": "P03", "phase_status": "IN_PROGRESS"}):
+            with self.assertRaises(gate.InvalidT10Acceptance):
+                gate.verify_premerge_state(state, board)
+        board["tasks"][1]["status"] = "DONE"
+        with self.assertRaises(gate.InvalidT10Acceptance):
+            gate.verify_premerge_state({"phase": "P02", "phase_status": "IN_PROGRESS"}, board)
+
+    def _audit_runtime_fixture(self, runtime):
+        # Exercise real evidence verification with explicit premerge lifecycle
+        # fixtures, independent of the checkout's later phase state.
+        original = gate.load
+        def fixture(root, path):
+            if path == "docs/state/PHASE.json":
+                return {"phase": "P02", "phase_status": "IN_PROGRESS"}
+            if path == "docs/state/pr-tasks/P02.json":
+                return {"tasks": [{"id": "P02-T10", "status": "DONE"},
+                                  {"id": "P02-T11", "status": "IN_PROGRESS"}]}
+            return original(root, path)
+        with patch.object(gate, "load", fixture):
+            return gate.audit(ROOT, Path(runtime), SHA, RUN)
 
     def _runtime(self, work):
         root = Path(work)
@@ -77,7 +103,7 @@ class T10PreviewAcceptanceTests(unittest.TestCase):
     def test_scoped_preview_passes_without_claiming_product_release(self):
         with tempfile.TemporaryDirectory() as d:
             self._runtime(d)
-            proof = gate.audit(ROOT, Path(d), SHA, RUN)
+            proof = self._audit_runtime_fixture(d)
             self.assertEqual("READY_FOR_T10_SCOPED_WINDOWS_PREVIEW_ACCEPTANCE", proof["status"])
             self.assertFalse(proof["full_narrator_certified"])
             self.assertFalse(proof["full_product_a11y_certified"])
@@ -102,7 +128,7 @@ class T10PreviewAcceptanceTests(unittest.TestCase):
                     obj["github_run_id"] = "99"
                 path.write_text(json.dumps(obj), encoding="utf-8")
                 with self.assertRaises(gate.InvalidT10Acceptance):
-                    gate.audit(ROOT, Path(d), SHA, RUN)
+                    self._audit_runtime_fixture(d)
 
     def test_windows_native_job_executes_final_audit_after_real_nvda(self):
         wf = (ROOT / ".github/workflows/p01-desktop.yml").read_text(encoding="utf-8")
