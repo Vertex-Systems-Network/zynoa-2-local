@@ -37,5 +37,12 @@ class NarratorReceiptTests(unittest.TestCase):
             self.assertIn(marker,source)
         self.assertNotIn("Set-Clipboard -Value $ExpectedLabel",source)
         self.assertNotIn("Set-Clipboard -Value $Control",source)
+    def test_palette_uses_real_accessible_entry_and_keyboard_input(self):
+        source=(Path(__file__).resolve().parents[1]/"scripts/probe_p02_t11_narrator.ps1").read_text(encoding="utf-8")
+        for marker in ("@(0x2D,0x33)", "NarratorPassThroughCtrlShiftP", "Search or run a command",
+                       "NativeToolbarInvoke", "InvokePattern", "ZYN-NAR-018",
+                       "SendWait('M19-OPT-06')", "ValuePattern", "M19-OPT-06 Wiki mapping and link checker"):
+            self.assertIn(marker,source)
+        self.assertNotIn("SetValue(",source)
 if __name__=="__main__":
     unittest.main()

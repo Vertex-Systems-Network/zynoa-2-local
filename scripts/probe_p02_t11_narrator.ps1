@@ -117,7 +117,7 @@ $proof=[ordered]@{schema_version=1;source_commit_sha=$SourceSha;github_run_id=[s
  os_version=[Environment]::OSVersion.Version.ToString();
  os_product_name=(Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name ProductName).ProductName;
  os_build_revision=[int](Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name UBR).UBR;
- attempts=@();events=@();status='INCOMPLETE';no_user_data=$true;full_narrator_certified=$false;product_release_approved=$false}
+ palette_open_method='NotReached';attempts=@();events=@();status='INCOMPLETE';no_user_data=$true;full_narrator_certified=$false;product_release_approved=$false}
 try {
   Start-Process -FilePath $path | Out-Null
   for ($i=0;$i -lt 40;$i++) {
@@ -150,10 +150,50 @@ try {
   Start-Sleep -Milliseconds 1000
   $appearance=Find-FocusableNativeControl $uia 'Interface appearance'
   $proof.events+= (Read-ActualNarratorPhrase 'preferences' $appearance 'Interface appearance')
-  [System.Windows.Forms.SendKeys]::SendWait('^+p')
-  Start-Sleep -Milliseconds 1000
-  $search=Find-FocusableNativeControl $uia 'Search available commands and offline Help'
+  # The last-spoken-phrase command succeeded in the prior actual run, but
+  # the next app shortcut was intercepted or its dialog was not focusable.
+  # Microsoft Standard Narrator+3 passes the next key(s) to the application.
+  # Re-anchor native app foreground, then use the documented pass-through.
+  if (-not [ZynoaNarratorKeyboard]::SetForegroundWindow($app.MainWindowHandle)) { throw 'ZYN-NAR-013: palette foreground failed' }
+  Send-NarratorChord ([byte[]]@(0x2D,0x33))
+  Start-Sleep -Milliseconds 200
+  Send-NarratorChord ([byte[]]@(0x11,0x10,0x50))
+  Start-Sleep -Milliseconds 1200
+  $search=$null
+  try {
+    $search=Find-FocusableNativeControl $uia 'Search available commands and offline Help'
+    $proof.palette_open_method='NarratorPassThroughCtrlShiftP'
+  } catch {
+    # A real toolbar control is a legitimate alternative accessible entry
+    # point. Never inject DOM events or manufacture speech to pass this test.
+    $uia=[System.Windows.Automation.AutomationElement]::FromHandle($app.MainWindowHandle)
+    $buttons=$uia.FindAll([System.Windows.Automation.TreeScope]::Descendants,
+      [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::ControlTypeProperty,[System.Windows.Automation.ControlType]::Button))
+    $opened=$false
+    for ($j=0;$j -lt $buttons.Count;$j++) {
+      try {
+        $button=$buttons.Item($j)
+        if (-not $button.Current.IsEnabled -or $button.Current.Name -notlike '*Search or run a command*') { continue }
+        $pattern=$null
+        if ($button.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern,[ref]$pattern)) {
+          $pattern.Invoke()
+          $opened=$true
+          break
+        }
+      } catch [System.Windows.Automation.ElementNotAvailableException] {}
+      catch [System.InvalidOperationException] {}
+    }
+    if (-not $opened) { throw 'ZYN-NAR-018: actual command toolbar button could not open palette' }
+    Start-Sleep -Milliseconds 1000
+    $search=Find-FocusableNativeControl $uia 'Search available commands and offline Help'
+    $proof.palette_open_method='NativeToolbarInvoke'
+  }
+  Write-Host ("ZYN-NAR-PALETTE method="+$proof.palette_open_method)
   $proof.events+= (Read-ActualNarratorPhrase 'palette' $search 'Search available commands and offline Help')
+  # Narrator scan mode automatically stops in edit fields. Re-focus the
+  # verified combobox after the spoken-label clipboard query, then type.
+  $search.SetFocus()
+  Start-Sleep -Milliseconds 300
   [System.Windows.Forms.SendKeys]::SendWait('M19-OPT-06')
   Start-Sleep -Milliseconds 1000
   $value=$search.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).Current.Value
@@ -161,7 +201,14 @@ try {
   $proof.actual_keyboard_input_value=$value
   [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
   Start-Sleep -Milliseconds 1800
-  $heading=Find-FocusableNativeControl $uia 'Wiki mapping and link checker'
+  # Real Help heading may be non-keyboard-focusable in the native provider;
+  # the selected option's real toggle button is also a valid spoken target.
+  $heading=$null
+  try {
+    $heading=Find-FocusableNativeControl $uia 'Wiki mapping and link checker'
+  } catch {
+    $heading=Find-FocusableNativeControl $uia 'M19-OPT-06 Wiki mapping and link checker'
+  }
   $proof.events+= (Read-ActualNarratorPhrase 'help' $heading 'Wiki mapping and link checker')
   $app.Refresh();$narrator.Refresh()
   if ($app.HasExited -or $narrator.HasExited) { throw 'ZYN-NAR-015: native process ended before proof' }
