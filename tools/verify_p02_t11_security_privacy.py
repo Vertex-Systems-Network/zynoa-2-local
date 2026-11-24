@@ -67,7 +67,7 @@ def audit_sources(config, capability, ipc, frontend, workflow, phase, tasks):
             require(needle not in src, "network/browser storage/code execution in "+path+": "+needle)
     help_ui=frontend["apps/desktop/src/ui/HelpWorkflows.tsx"]
     require("navigator.clipboard.writeText(content)" in help_ui
-            and "onClick={copy}" in help_ui
+            and "onClick={() => void copy()}" in help_ui
             and "Nothing was sent to a server" in help_ui,
             "local report clipboard must be explicit and manual")
     help_core=frontend["apps/desktop/src/ui/help-workflows.ts"]
