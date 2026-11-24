@@ -18,6 +18,8 @@ $portable = Join-Path $root 'portable'
 $proofDir = Split-Path -Parent $OutputPath
 New-Item -ItemType Directory -Force -Path $proofDir | Out-Null
 $proofFile = Join-Path $root 'spoken-allowlisted.jsonl'
+$stageFile = Join-Path $root 'active-stage.txt'
+Set-Content -LiteralPath $stageFile -Value 'initial' -Encoding UTF8
 $expectedHash = '6f80a5b0ca720a7d0d314b5be212f37388bbe81a1107ac3298c1821a1cd3f052'
 Invoke-WebRequest -Uri 'https://download.nvaccess.org/releases/2026.3.1/nvda_2026.3.1.exe' -OutFile $installer -TimeoutSec 150
 $actualHash = (Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -35,6 +37,7 @@ showWelcomeDialogAtStartup = False
 enableScratchpadDir = True
 '@ | Set-Content -LiteralPath (Join-Path $profile 'nvda.ini') -Encoding UTF8
 $env:ZYNOA_NVDA_SPEECH_PROOF = $proofFile
+$env:ZYNOA_NVDA_STAGE_FILE = $stageFile
 $nvda = $null
 $app = $null
 try {
@@ -76,10 +79,19 @@ public static class ZynoaNvdaFocus {
     throw 'ZYN-NVDA-009: native app cannot become foreground'
   }
   Start-Sleep -Milliseconds 500
+  Set-Content -LiteralPath $stageFile -Value 'preferences' -Encoding UTF8
   [System.Windows.Forms.SendKeys]::SendWait('^{2}')
-  Start-Sleep -Milliseconds 1200
-  [System.Windows.Forms.SendKeys]::SendWait('{TAB}')
-  Start-Sleep -Milliseconds 600
+  Start-Sleep -Milliseconds 900
+  $appearance = $uia.FindFirst(
+    [System.Windows.Automation.TreeScope]::Descendants,
+    [System.Windows.Automation.PropertyCondition]::new(
+      [System.Windows.Automation.AutomationElement]::NameProperty, 'Interface appearance'))
+  if ($null -eq $appearance -or -not $appearance.Current.IsKeyboardFocusable) {
+    throw 'ZYN-NVDA-013: actual labelled Preferences selector not focusable'
+  }
+  $appearance.SetFocus()
+  Start-Sleep -Milliseconds 2300
+  Set-Content -LiteralPath $stageFile -Value 'palette' -Encoding UTF8
   [System.Windows.Forms.SendKeys]::SendWait('^+p')
   Start-Sleep -Milliseconds 1200
   $input = $uia.FindFirst(
@@ -88,12 +100,15 @@ public static class ZynoaNvdaFocus {
       [System.Windows.Automation.AutomationElement]::NameProperty,
       'Search available commands and offline Help'))
   if ($null -eq $input) { throw 'ZYN-NVDA-010: real command search missing' }
+  $input.SetFocus()
+  Start-Sleep -Milliseconds 1600
   [System.Windows.Forms.SendKeys]::SendWait('M19-OPT-06')
   Start-Sleep -Milliseconds 1000
   $value = $input.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).Current.Value
   if ($value -cne 'M19-OPT-06') { throw 'ZYN-NVDA-011: keyboard never entered native search' }
+  Set-Content -LiteralPath $stageFile -Value 'help' -Encoding UTF8
   [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
-  Start-Sleep -Milliseconds 1500
+  Start-Sleep -Milliseconds 2700
   $app.Refresh(); $nvda.Refresh()
   if ($app.HasExited -or $nvda.HasExited) { throw 'ZYN-NVDA-012: app or NVDA died during journey' }
   $events = @((Get-Content -LiteralPath $proofFile -Encoding UTF8) | ForEach-Object { $_ | ConvertFrom-Json })

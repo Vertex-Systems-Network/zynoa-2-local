@@ -25,13 +25,14 @@ def verify(p, head):
     texts=[]
     for e in events:
         need(isinstance(e,dict) and e.get("kind") == "speech" and type(e.get("unix_ms")) is int and e["unix_ms"] > 0, "speech provenance invalid")
+        need(e.get("stage") in ("preferences", "palette", "help"), "unattributed NVDA speech event")
         label=e.get("label")
         need(isinstance(label,str) and 1 <= len(label) <= 280, "missing speech text")
         texts.append(label.lower())
     # Genuine synthesized speech from three separate app journeys, not UIA names.
-    need(any("preferences" in s or "interface appearance" in s for s in texts), "NVDA did not announce Preferences")
-    need(any("command palette" in s or "search available commands" in s for s in texts), "NVDA did not announce dialog/search")
-    need(any("wiki mapping and link checker" in s for s in texts), "NVDA did not announce selected option")
+    need(any(e["stage"] == "preferences" and ("preferences" in e["label"].lower() or "interface appearance" in e["label"].lower()) for e in events), "NVDA did not announce Preferences during actual preferences stage")
+    need(any(e["stage"] == "palette" and ("command palette" in e["label"].lower() or "search available commands" in e["label"].lower()) for e in events), "NVDA did not announce the palette during actual keyboard stage")
+    need(any(e["stage"] == "help" and "wiki mapping and link checker" in e["label"].lower() for e in events), "NVDA did not announce selected option during Help stage")
     return {"schema_version":1, "status":"SCOPED_LIVE_NVDA_SPEECH_PASS", "source_commit_sha":head, "github_run_id":p["github_run_id"], "screen_reader":"NVDA 2026.3.1", "spoken_evidence_events":len(texts), "native_keyboard_journey_verified":True, "narrator_verified":False, "full_product_release_approved":False}
 
 def main():

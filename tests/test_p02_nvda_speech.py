@@ -15,8 +15,8 @@ def sample():
         "app_pid":200,"nvda_pid":201,"native_uia_pid_match":True,
         "actual_keyboard_input_value":"M19-OPT-06","plugin_loaded":True,"no_user_data":True,
         "full_narrator_verified":False,"performance_budget_approved":False,
-        "events":[{"kind":"speech","label":label,"unix_ms":1795000000000+i}
-                  for i,label in enumerate(("Preferences","Search available commands and offline Help","Wiki mapping and link checker"))]
+        "events":[{"kind":"speech","stage":stage,"label":label,"unix_ms":1795000000000+i}
+                  for i,(stage,label) in enumerate((("preferences","Preferences"),("palette","Search available commands and offline Help"),("help","Wiki mapping and link checker")))]
     }
 class NVDAProofTests(unittest.TestCase):
     def test_scoped_valid_does_not_approve_narrator_or_release(self):
@@ -28,6 +28,10 @@ class NVDAProofTests(unittest.TestCase):
         for i in range(3):
             p=sample();p["events"].pop(i)
             with self.subTest(i=i),self.assertRaises(InvalidNvdaProof): verify(p,HEAD)
+    def test_stage_replay_is_not_three_real_screen_reader_journeys(self):
+        p=sample()
+        for item in p["events"]: item["stage"]="help"
+        with self.assertRaises(InvalidNvdaProof): verify(p,HEAD)
     def test_untrusted_or_fake_output_rejected(self):
         for key,val in (("source_commit_sha","b"*40),("plugin_loaded",False),
                         ("official_nvda_installer_sha256","b"*64),("native_uia_pid_match",False),
