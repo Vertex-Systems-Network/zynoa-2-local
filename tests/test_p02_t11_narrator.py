@@ -7,6 +7,7 @@ RUN = "45300000001"
 def sample():
     return {"schema_version":1,"status":"CAPTURED","source_commit_sha":SHA,"github_run_id":RUN,
         "target":"Real Microsoft Narrator speech copied from native Windows Tauri WebView2",
+        "binary_source_commit_sha":SHA,"diagnostic_artifact_reuse":False,
         "app_executable_sha256":"a"*64,"narrator_executable_sha256":"b"*64,
         "narrator_signature_verified":True,"narrator_version":"10.0.26100.1",
         "app_pid":222,"narrator_pid":333,"native_uia_pid_match":True,"actual_keyboard_input_value":"M19-OPT-06",
@@ -26,7 +27,7 @@ class NarratorReceiptTests(unittest.TestCase):
             with self.subTest(key=key),self.assertRaises(InvalidNarratorProof):
                 verify(p,SHA,RUN)
     def test_bad_identity_or_product_claim_fails(self):
-        for key,value in (("status","INCOMPLETE"),("github_run_id","9"),("narrator_signature_verified",False),("app_pid",333),("full_narrator_certified",True)):
+        for key,value in (("status","INCOMPLETE"),("github_run_id","9"),("narrator_signature_verified",False),("app_pid",333),("full_narrator_certified",True),("diagnostic_artifact_reuse",True),("binary_source_commit_sha","c"*40)):
             p=sample();p[key]=value
             with self.subTest(key=key),self.assertRaises(InvalidNarratorProof):
                 verify(p,SHA,RUN)
@@ -39,8 +40,8 @@ class NarratorReceiptTests(unittest.TestCase):
         self.assertNotIn("Set-Clipboard -Value $Control",source)
     def test_palette_uses_real_accessible_entry_and_keyboard_input(self):
         source=(Path(__file__).resolve().parents[1]/"scripts/probe_p02_t11_narrator.ps1").read_text(encoding="utf-8")
-        for marker in ("@(0x2D,0x33)", "NarratorPassThroughCtrlShiftP", "Search or run a command",
-                       "NativeToolbarInvoke", "InvokePattern", "ZYN-NAR-018",
+        for marker in ("@($script:workingNarratorModifier,0x33)", "NarratorPassThroughCtrlShiftP", "Search or run a command",
+                       "NativeToolbarInvoke", "InvokePattern", "ZYN-NAR-018", "TryGetClickablePoint", "NativeToolbarPhysicalClick", "Get-PaletteNativeState",
                        "SendWait('M19-OPT-06')", "ValuePattern", "M19-OPT-06 Wiki mapping and link checker"):
             self.assertIn(marker,source)
         self.assertNotIn("SetValue(",source)

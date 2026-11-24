@@ -1,0 +1,52 @@
+name: P02 Narrator isolated artifact diagnostic
+on:
+  pull_request:
+    paths:
+      - 'scripts/probe_p02_t11_narrator.ps1'
+      - 'tools/verify_p02_t11_narrator.py'
+      - 'tests/test_p02_t11_narrator.py'
+      - '.github/workflows/p02-narrator-diagnostic.yml'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: p02-narrator-diagnostic-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  narrator-diagnostic:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'phase/02-shared-ui'
+    runs-on: windows-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Retrieve exact known previous Windows build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: p01-desktop-windows-build-evidence
+          run-id: 45314800975
+          repository: Vertex-Systems-Network/zynoa-2-local
+          github-token: ${{ github.token }}
+          path: diagnostic-input
+      - name: Verify pinned previous binary SHA-256 and run actual Narrator probe
+        shell: pwsh
+        env:
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $exe=Join-Path $env:GITHUB_WORKSPACE 'diagnostic-input/apps/desktop/src-tauri/target/release/zynoa_desktop.exe'
+          $digest='65510471a742de5f66d89879e5e664afb5371e11b565801c07cb16e399703f8a'
+          if ((Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash.ToLowerInvariant() -cne $digest) { throw 'Pinned artifact executable digest mismatch' }
+          $script=Join-Path $env:GITHUB_WORKSPACE 'scripts/probe_p02_t11_narrator.ps1'
+          $parseErrors=$null
+          [void][System.Management.Automation.Language.Parser]::ParseFile($script,[ref]$null,[ref]$parseErrors)
+          if ($parseErrors.Count -ne 0) { throw 'Narrator diagnostic script parse failed' }
+          & $script -Executable $exe -SourceSha $env:SOURCE_SHA -OutputPath "$env:GITHUB_WORKSPACE/diagnostic-output/narrator.capture.json" -DiagnosticBinarySourceSha '4812e0fd69738307809abd15497afef4795ab6c2' -DiagnosticBinarySha256 $digest
+      - name: Upload only disposable diagnostic receipt (never exact-head approval)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p02-narrator-diagnostic-only
+          path: diagnostic-output/narrator.capture.json
+          retention-days: 7

@@ -15,6 +15,7 @@ def verify(proof, head, run_id):
             raise InvalidNarratorProof(why)
     need(isinstance(proof, dict) and proof.get("schema_version") == 1 and proof.get("status") == "CAPTURED", "incomplete speech receipt")
     need(bool(re.fullmatch(r"[a-f0-9]{40}", head)) and proof.get("source_commit_sha") == head, "stale source SHA")
+    need(proof.get("binary_source_commit_sha") == head and proof.get("diagnostic_artifact_reuse") is False, "diagnostic or stale binary cannot pass exact-head acceptance")
     need(run_id.isdigit() and proof.get("github_run_id") == run_id, "wrong CI run")
     need(proof.get("target") == "Real Microsoft Narrator speech copied from native Windows Tauri WebView2", "wrong assistive technology")
     for key in ("app_executable_sha256", "narrator_executable_sha256"):
