@@ -53,6 +53,16 @@ def verify_module_filter(proof) -> None:
             "wrong native reset inventory")
 
 
+def verify_notice_detail(proof) -> None:
+    require(isinstance(proof, dict), "missing native notice activation evidence")
+    require(proof.get("query_before") == "zzznomatch" and proof.get("query_after_reset") == "",
+            "actual query reset absent")
+    require(proof.get("notice_title") == MODULE_TITLES[0]
+            and proof.get("activation") == "focused_native_button_enter"
+            and proof.get("detail_marker") == EXPECTED["M26-CAND-S04"],
+            "actual keyboard notice activation absent")
+
+
 def verify(root: Path, source_sha: str, run_id: str) -> None:
     require(bool(re.fullmatch(r"[a-f0-9]{40}", source_sha)), "invalid source SHA")
     require(bool(re.fullmatch(r"[1-9][0-9]*", run_id)), "invalid run ID")
@@ -75,6 +85,7 @@ def verify(root: Path, source_sha: str, run_id: str) -> None:
             "source_focus_and_selection", "destination_focus_and_selection", "previous_tab_deselected")),
             "native selected-tab/focus proof absent")
     verify_module_filter(proof.get("module_filter"))
+    verify_notice_detail(proof.get("notice_detail"))
     observations = proof.get("observations")
     require(isinstance(observations, list) and len(observations) == len(EXPECTED),
             "missing native journey observations")

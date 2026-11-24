@@ -110,6 +110,16 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
         self.assertIn("[System.Windows.Forms.SendKeys]::SendWait('{F1}')",
                       src[control:gallery])
 
+    def test_glossary_capture_requires_actual_visible_heading(self):
+        src = (Path(__file__).resolve().parents[1] / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        start = src.index("$glossaryRoot=")
+        end = src.index("-ScreenshotId 'P02-T10-CTRL-M19-OPT-04'", start)
+        segment = src[start:end]
+        for marker in ("FAQ & glossary", "InvokePattern", "ZYN-SCREEN-045",
+                       "ZYN-SCREEN-046", "IsOffscreen", "ScrollItemPattern"):
+            self.assertIn(marker, segment)
+        self.assertIn("-ScreenshotId 'P02-T10-CTRL-M19-OPT-04' -Shortcut ''", src)
+
     def test_faq_capture_reselects_native_tab_after_glossary_scroll(self):
         root = Path(__file__).resolve().parents[1]
         src = (root / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")

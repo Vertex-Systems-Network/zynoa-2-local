@@ -313,9 +313,16 @@ public static class ZynoaM26Foreground {
             if ($null -ne $scroll) { $scroll.ScrollIntoView() }
         } catch [System.InvalidOperationException] {}
         $element.SetFocus()
-        Start-Sleep -Milliseconds 250
-        Assert-M26Foreground
-        return $element
+        $deadline=(Get-Date).AddSeconds(5)
+        do {
+            Assert-M26Foreground
+            try {
+                $fresh=Wait-M26Name -Name $Name -Focusable -Fragment:$Fragment
+                if ($fresh.Current.HasKeyboardFocus -and -not $fresh.Current.IsOffscreen) { return $fresh }
+            } catch [System.Windows.Automation.ElementNotAvailableException] {}
+            Start-Sleep -Milliseconds 150
+        } until ((Get-Date) -ge $deadline)
+        throw ('ZYN-M26-018: native keyboard focus not confirmed: '+$Name)
     }
     $observations = [System.Collections.Generic.List[object]]::new()
     function Capture-M26 {
@@ -405,8 +412,24 @@ public static class ZynoaM26Foreground {
     Capture-M26 -Id 'M26-CAND-SEARCH-EMPTY' -Heading 'No matching notices. Reset filters to view all.' -Description 'Actual native typed search query, no-match feedback and reset control'
     [void](Focus-M26Control -Name 'Reset filters')
     Send-M26Key -Keys '{ENTER}'
-    [void](Focus-M26Control -Name 'Backup and restore not available' -Fragment)
+    $resetDeadline=(Get-Date).AddSeconds(8)
+    $queryReset=$false
+    do {
+        $freshSearch=Wait-M26Name -Name 'Search bundled notices' -Focusable
+        try {
+            $queryReset=($freshSearch.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).Current.Value -ceq '')
+        } catch [System.Windows.Automation.ElementNotAvailableException] {}
+        if ($queryReset) { break }
+        Start-Sleep -Milliseconds 200
+    } until ((Get-Date) -ge $resetDeadline)
+    if (-not $queryReset) { throw 'ZYN-M26-019: actual search reset did not clear input' }
+    $notice=Focus-M26Control -Name 'Backup and restore not available' -Fragment
+    if ($notice.Current.ControlType -ne [System.Windows.Automation.ControlType]::Button) {
+        throw 'ZYN-M26-020: notice target is not a native button'
+    }
     Send-M26Key -Keys '{ENTER}'
+    [void](Wait-M26Name -Name 'Not a released fix or live issue status.' -Reveal)
+    $detailProof=[ordered]@{query_before='zzznomatch';query_after_reset=$freshSearch.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).Current.Value;notice_title='Backup and restore not available';activation='focused_native_button_enter';detail_marker='Not a released fix or live issue status.'}
     Capture-M26 -Id 'M26-CAND-S04' -Heading 'Not a released fix or live issue status.' -Description 'Actual selected bundled capability notice, no verified linked issue or merge receipt'
     [void](Wait-M26Name -Name 'Open linked issue' -Disabled)
     Open-M26Tab -From 'Known Issues' -Keys '{RIGHT}' -To 'Version History'
@@ -508,6 +531,7 @@ public static class ZynoaM26Foreground {
         observations=@($observations.ToArray())
         tab_transitions=@($tabTransitions.ToArray())
         module_filter=$filterProof
+        notice_detail=$detailProof
     }
     $receipt | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (
         Join-Path $OutputDirectory 'M26-journey.capture.json') -Encoding UTF8
@@ -713,8 +737,48 @@ if ($env:ZYNOA_CAPTURE_P02 -eq '1') {
     Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-03' -Shortcut '{ENTER}{PGDN}' -ScreenTitle 'M19 actual troubleshooting recovery steps' -Description 'Real native bundled troubleshooting wizard with selected issue first step and safe offline recovery actions' -FinalCandidateId 'M19-OPT-03'
     [System.Windows.Forms.SendKeys]::SendWait('^{2}')
     [System.Windows.Forms.SendKeys]::SendWait('{F1}')
-    Focus-P02NativeControl -AccessibleName 'FAQ & glossary'
-    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-04' -Shortcut '{ENTER}{PGDN}' -ScreenTitle 'M19 actual offline glossary' -Description 'Real native Help FAQ and glossary panel showing bundled definitions rather than a fake external dictionary' -FinalCandidateId 'M19-OPT-04'
+    # OPT-04 must show actual glossary, not an unchanged Articles & search
+    # page. A real named mode-button Invoke is idempotent across repaint.
+    $glossaryRoot=[System.Windows.Automation.AutomationElement]::FromHandle($hwnd)
+    if ($null -eq $glossaryRoot -or $glossaryRoot.Current.ProcessId -ne $TargetPid) { throw 'ZYN-SCREEN-042: glossary native UIA handle/PID mismatch' }
+    $glossaryCondition=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,'FAQ & glossary')
+    $glossaryActivated=$false
+    for ($glossaryAttempt=0;$glossaryAttempt -lt 8;$glossaryAttempt++) {
+        $glossaryRoot=[System.Windows.Automation.AutomationElement]::FromHandle($hwnd)
+        $items=$glossaryRoot.FindAll([System.Windows.Automation.TreeScope]::Descendants,$glossaryCondition)
+        for ($gi=0;$gi -lt $items.Count;$gi++) {
+            try {
+                $button=$items.Item($gi)
+                if ($button.Current.ControlType -ne [System.Windows.Automation.ControlType]::Button -or -not $button.Current.IsEnabled) { continue }
+                $invoke=$null
+                if ($button.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern,[ref]$invoke)) {
+                    $invoke.Invoke()
+                    $glossaryActivated=$true
+                    break
+                }
+            } catch [System.Windows.Automation.ElementNotAvailableException] {}
+        }
+        if ($glossaryActivated) { break }
+        Start-Sleep -Milliseconds 200
+    }
+    if (-not $glossaryActivated) { throw 'ZYN-SCREEN-045: actual glossary mode activation failed' }
+    Focus-P02NativeControl -AccessibleName 'Does a native connection mean my work is saved?'
+    $glossaryHeading=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,'Glossary')
+    $glossaryVisible=$false
+    for ($gi=0;$gi -lt 8;$gi++) {
+        $glossaryRoot=[System.Windows.Automation.AutomationElement]::FromHandle($hwnd)
+        $heading=$glossaryRoot.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$glossaryHeading)
+        if ($null -ne $heading) {
+            try {
+                if (-not $heading.Current.IsOffscreen) { $glossaryVisible=$true;break }
+                $scroll=$null
+                if ($heading.TryGetCurrentPattern([System.Windows.Automation.ScrollItemPattern]::Pattern,[ref]$scroll)) { $scroll.ScrollIntoView() }
+            } catch [System.Windows.Automation.ElementNotAvailableException] {}
+        }
+        Start-Sleep -Milliseconds 200
+    }
+    if (-not $glossaryVisible) { throw 'ZYN-SCREEN-046: actual glossary heading not visible' }
+    Save-NativeFollowup -ScreenshotId 'P02-T10-CTRL-M19-OPT-04' -Shortcut '' -ScreenTitle 'M19 actual offline glossary' -Description 'Real native Help FAQ and glossary panel showing bundled definitions rather than a fake external dictionary' -FinalCandidateId 'M19-OPT-04'
     # UIA-focus the real first FAQ <summary>, never guess tab order after
     # React/WebView2 has re-rendered the FAQ section. The actual disclosure
     # must be keyboard focusable or the capture fails closed (ZYN-SCREEN-043).

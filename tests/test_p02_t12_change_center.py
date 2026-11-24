@@ -128,5 +128,21 @@ class ChangeCenterTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             verify_module_filter(None)
 
+    def test_native_notice_activation_requires_actual_query_reset_and_keyboard(self):
+        from tools.verify_p02_m26_candidates import verify_notice_detail
+        script = (ROOT / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        for marker in ("HasKeyboardFocus", "ZYN-M26-018", "ZYN-M26-019", "ZYN-M26-020",
+                       "query_after_reset", "focused_native_button_enter"):
+            self.assertIn(marker, script)
+        valid = {"query_before":"zzznomatch","query_after_reset":"",
+                 "notice_title":"Backup and restore not available",
+                 "activation":"focused_native_button_enter",
+                 "detail_marker":"Not a released fix or live issue status."}
+        verify_notice_detail(valid)
+        for key,wrong in (("query_after_reset","zzznomatch"),("activation","fake"),
+                          ("notice_title","Signed updates not available"),("detail_marker","")):
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                verify_notice_detail({**valid,key:wrong})
+
 if __name__ == "__main__":
     unittest.main()
