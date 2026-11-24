@@ -57,6 +57,9 @@ class ChangeCenterTests(unittest.TestCase):
                        "screen_reader_verified=$false", "independent_visual_review=$false"):
             self.assertIn(marker,script)
         self.assertIn("-M26Only",workflow)
+        self.assertIn("steps.native_build.outcome == 'success'",workflow)
+        self.assertIn("!cancelled()",workflow)
+        self.assertNotIn("continue-on-error: true",workflow)
         self.assertIn("tools.verify_p02_m26_candidates",workflow)
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

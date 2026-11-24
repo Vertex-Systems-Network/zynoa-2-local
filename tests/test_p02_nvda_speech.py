@@ -48,4 +48,14 @@ class NVDAProofTests(unittest.TestCase):
             self.assertIn(word,plugin)
         for forbidden in ("selenium","playwright","mock_window","speech.speak("):
             self.assertNotIn(forbidden,plugin+ps)
+    def test_native_palette_retry_does_not_bypass_real_speech(self):
+        ps=(ROOT/"scripts/probe_p02_nvda_speech.ps1").read_text(encoding="utf-8")
+        for marker in ("Get-NvdaNativeRoot", "GetForegroundWindow", "Find-NvdaSearch",
+                       "InvokePattern", "native_toolbar_invoke", "Search or run a command",
+                       "ZYN-NVDA-010", "ZYN-NVDA-011", "ValuePattern",
+                       "actual_keyboard_input_value=$value"):
+            self.assertIn(marker,ps)
+        self.assertIn("if ($null -eq $input) { throw 'ZYN-NVDA-010",ps)
+        self.assertIn("if ($value -cne 'M19-OPT-06') { throw",ps)
+        self.assertIn("events=@($events | Where-Object { $_.kind -eq 'speech' })",ps)
 if __name__=="__main__":unittest.main()

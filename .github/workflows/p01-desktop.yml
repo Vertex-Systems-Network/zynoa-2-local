@@ -144,6 +144,7 @@ jobs:
         working-directory: apps/desktop/src-tauri
         run: cargo test --lib --release
       - name: Native Windows desktop build (no release or signature)
+        id: native_build
         working-directory: apps/desktop
         run: npm run tauri -- build --no-bundle
       - name: Verify desktop executable cold boot
@@ -400,7 +401,7 @@ jobs:
           python -m tools.verify_p02_t11_narrator --proof $capture --source-sha $env:ZYNOA_HEAD_SHA --run-id $env:ZYNOA_RUN_ID --report $report
           if ($LASTEXITCODE -ne 0) { throw 'ZYN-NAR-022: actual speech receipt rejected' }
       - name: P02-T12 separate M26 native keyboard and screenshot candidates
-        if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
+        if: ${{ !cancelled() && steps.native_build.outcome == 'success' && github.event.pull_request.head.ref == 'phase/02-shared-ui' }}
         shell: pwsh
         env:
           ZYNOA_HEAD_SHA: ${{ github.event.pull_request.head.sha }}

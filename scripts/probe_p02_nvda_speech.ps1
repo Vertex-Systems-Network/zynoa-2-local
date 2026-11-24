@@ -73,8 +73,47 @@ using System;
 using System.Runtime.InteropServices;
 public static class ZynoaNvdaFocus {
  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
+ [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
 }
 '@
+  function Get-NvdaNativeRoot {
+    $app.Refresh()
+    if ($app.HasExited -or $app.MainWindowHandle -eq [IntPtr]::Zero) {
+      throw 'ZYN-NVDA-014: native window disappeared'
+    }
+    $nativeRoot = [System.Windows.Automation.AutomationElement]::FromHandle($app.MainWindowHandle)
+    if ($null -eq $nativeRoot -or $nativeRoot.Current.ProcessId -ne $app.Id) {
+      throw 'ZYN-NVDA-015: native UIA root PID mismatch'
+    }
+    return $nativeRoot
+  }
+  function Assert-NvdaForeground {
+    $app.Refresh()
+    if ($app.HasExited -or $app.MainWindowHandle -eq [IntPtr]::Zero -or
+        [ZynoaNvdaFocus]::GetForegroundWindow() -ne $app.MainWindowHandle) {
+      throw 'ZYN-NVDA-016: native app is not foreground'
+    }
+  }
+  function Find-NvdaSearch {
+    param([int]$Attempts=12)
+    $condition = [System.Windows.Automation.PropertyCondition]::new(
+      [System.Windows.Automation.AutomationElement]::NameProperty, 'Search available commands and offline Help')
+    for ($attempt=0; $attempt -lt $Attempts; $attempt++) {
+      Assert-NvdaForeground
+      $nativeRoot = Get-NvdaNativeRoot
+      $matches = $nativeRoot.FindAll([System.Windows.Automation.TreeScope]::Descendants,$condition)
+      for ($j=0; $j -lt $matches.Count; $j++) {
+        try {
+          $item=$matches.Item($j)
+          if ($item.Current.IsKeyboardFocusable -and $item.Current.IsEnabled -and -not $item.Current.IsOffscreen) {
+            return $item
+          }
+        } catch [System.Windows.Automation.ElementNotAvailableException] {}
+      }
+      Start-Sleep -Milliseconds 400
+    }
+    return $null
+  }
   if (-not [ZynoaNvdaFocus]::SetForegroundWindow($app.MainWindowHandle)) {
     throw 'ZYN-NVDA-009: native app cannot become foreground'
   }
@@ -82,6 +121,8 @@ public static class ZynoaNvdaFocus {
   Set-Content -LiteralPath $stageFile -Value 'preferences' -Encoding UTF8
   [System.Windows.Forms.SendKeys]::SendWait('^{2}')
   Start-Sleep -Milliseconds 900
+  Assert-NvdaForeground
+  $uia = Get-NvdaNativeRoot
   $appearanceMatches = $uia.FindAll(
     [System.Windows.Automation.TreeScope]::Descendants,
     [System.Windows.Automation.PropertyCondition]::new(
@@ -121,21 +162,55 @@ public static class ZynoaNvdaReportFocus {
   [ZynoaNvdaReportFocus]::keybd_event(0x2D, 0, 2, [UIntPtr]::Zero)
   Start-Sleep -Milliseconds 2400
   Set-Content -LiteralPath $stageFile -Value 'palette' -Encoding UTF8
+  if (-not [ZynoaNvdaFocus]::SetForegroundWindow($app.MainWindowHandle)) {
+    throw 'ZYN-NVDA-016: unable to restore native foreground before palette'
+  }
+  Assert-NvdaForeground
   [System.Windows.Forms.SendKeys]::SendWait('^+p')
-  Start-Sleep -Milliseconds 1200
-  $input = $uia.FindFirst(
-    [System.Windows.Automation.TreeScope]::Descendants,
-    [System.Windows.Automation.PropertyCondition]::new(
-      [System.Windows.Automation.AutomationElement]::NameProperty,
-      'Search available commands and offline Help'))
+  $input = Find-NvdaSearch
+  $paletteMethod = 'keyboard'
+  if ($null -eq $input) {
+    # Bounded fallback to the actual enabled toolbar button. Do not fake speech
+    # or skip the exact input ValuePattern and three live speech requirements.
+    $nativeRoot = Get-NvdaNativeRoot
+    $buttons = $nativeRoot.FindAll([System.Windows.Automation.TreeScope]::Descendants,
+      [System.Windows.Automation.PropertyCondition]::new(
+        [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
+        [System.Windows.Automation.ControlType]::Button))
+    $button = $null
+    for ($j=0; $j -lt $buttons.Count; $j++) {
+      try {
+        $candidate = $buttons.Item($j)
+        if ($candidate.Current.IsEnabled -and -not $candidate.Current.IsOffscreen -and
+            $candidate.Current.Name -like '*Search or run a command*') {
+          $button = $candidate
+          break
+        }
+      } catch [System.Windows.Automation.ElementNotAvailableException] {}
+    }
+    if ($null -ne $button) {
+      $invoke = $null
+      if ($button.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern,[ref]$invoke)) {
+        Assert-NvdaForeground
+        $invoke.Invoke()
+        $paletteMethod = 'native_toolbar_invoke'
+        $input = Find-NvdaSearch
+      }
+    }
+  }
+  Write-Host ("ZYN-NVDA-PALETTE method="+$paletteMethod)
   if ($null -eq $input) { throw 'ZYN-NVDA-010: real command search missing' }
   $input.SetFocus()
   Start-Sleep -Milliseconds 1600
+  Assert-NvdaForeground
   [System.Windows.Forms.SendKeys]::SendWait('M19-OPT-06')
   Start-Sleep -Milliseconds 1000
+  $input = Find-NvdaSearch
+  if ($null -eq $input) { throw 'ZYN-NVDA-010: real command search missing after typing' }
   $value = $input.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).Current.Value
   if ($value -cne 'M19-OPT-06') { throw 'ZYN-NVDA-011: keyboard never entered native search' }
   Set-Content -LiteralPath $stageFile -Value 'help' -Encoding UTF8
+  Assert-NvdaForeground
   [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
   Start-Sleep -Milliseconds 2700
   $app.Refresh(); $nvda.Refresh()
@@ -152,6 +227,7 @@ public static class ZynoaNvdaReportFocus {
     app_pid=[int]$app.Id
     nvda_pid=[int]$nvda.Id
     native_uia_pid_match=$true
+    palette_open_method=$paletteMethod
     actual_keyboard_input_value=$value
     plugin_loaded=($events | Where-Object { $_.kind -eq 'plugin_loaded' }).Count -gt 0
     events=@($events | Where-Object { $_.kind -eq 'speech' })
