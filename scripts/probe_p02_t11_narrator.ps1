@@ -375,7 +375,23 @@ try {
 } finally {
   New-Item -ItemType Directory -Force -Path (Split-Path -Parent $OutputPath) | Out-Null
   $proof | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $OutputPath -Encoding UTF8
-  if ($null -ne $app) { $app.Refresh();if (-not $app.HasExited) { Stop-Process -Id $app.Id -Force };$app.Dispose() }
-  Get-Process -Name Narrator -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+  # Do not let a still-exiting screen reader or app contaminate the next
+  # independent native journey. Only the disposable CI session is touched.
+  $cleanupOk=$true
+  if ($null -ne $app) {
+    $app.Refresh()
+    if (-not $app.HasExited) { Stop-Process -Id $app.Id -Force }
+    if (-not $app.WaitForExit(5000)) { $cleanupOk=$false }
+    $app.Dispose()
+  }
+  $readers=@(Get-Process -Name Narrator -ErrorAction SilentlyContinue)
+  foreach ($reader in $readers) {
+    try {
+      if (-not $reader.HasExited) { Stop-Process -Id $reader.Id -Force -ErrorAction SilentlyContinue }
+      if (-not $reader.WaitForExit(5000)) { $cleanupOk=$false }
+    } finally { $reader.Dispose() }
+  }
+  if (Get-Process -Name Narrator -ErrorAction SilentlyContinue) { $cleanupOk=$false }
   Set-Clipboard -Value 'ZYNOA-NARRATOR-DISPOSABLE-CI-COMPLETE'
+  if (-not $cleanupOk) { throw 'ZYN-NAR-025: disposable native process cleanup not verified' }
 }

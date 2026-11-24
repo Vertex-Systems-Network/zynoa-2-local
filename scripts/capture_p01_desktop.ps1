@@ -257,6 +257,25 @@ public static class ZynoaM26Foreground {
             throw 'ZYN-M26-002: actual app not foreground'
         }
     }
+    # Recovery is only allowed at an intentional focus boundary, never during
+    # screenshot validation or after keyboard delivery. Verify the actual HWND.
+    function Restore-M26ForegroundForFocus {
+        $proc.Refresh()
+        if ($proc.HasExited -or $proc.MainWindowHandle -ne $hwnd) {
+            throw 'ZYN-M26-002: actual app not foreground'
+        }
+        if ([ZynoaM26Foreground]::GetForegroundWindow() -ne $hwnd) {
+            [void][ZynoaScreenWin32]::SetForegroundWindow($hwnd)
+            $deadline=(Get-Date).AddSeconds(2)
+            do {
+                Start-Sleep -Milliseconds 100
+                if ([ZynoaM26Foreground]::GetForegroundWindow() -eq $hwnd) { break }
+            } until ((Get-Date) -ge $deadline)
+            Assert-M26Foreground
+            Write-Host 'ZYN-M26-FOREGROUND-RECOVERED at native focus boundary'
+        }
+        Assert-M26Foreground
+    }
     function Wait-M26Name {
         param([string]$Name, [switch]$Focusable, [switch]$Disabled, [switch]$Fragment, [switch]$Reveal)
         $deadline = (Get-Date).AddSeconds(10)
@@ -307,21 +326,28 @@ public static class ZynoaM26Foreground {
     }
     function Focus-M26Control {
         param([string]$Name, [switch]$Fragment)
-        $element = Wait-M26Name -Name $Name -Focusable -Fragment:$Fragment
-        try {
-            $scroll = $element.GetCurrentPattern([System.Windows.Automation.ScrollItemPattern]::Pattern)
-            if ($null -ne $scroll) { $scroll.ScrollIntoView() }
-        } catch [System.InvalidOperationException] {}
-        $element.SetFocus()
-        $deadline=(Get-Date).AddSeconds(5)
-        do {
-            Assert-M26Foreground
+        for ($focusAttempt=0; $focusAttempt -lt 2; $focusAttempt++) {
+            Restore-M26ForegroundForFocus
+            $element = Wait-M26Name -Name $Name -Focusable -Fragment:$Fragment
             try {
-                $fresh=Wait-M26Name -Name $Name -Focusable -Fragment:$Fragment
-                if ($fresh.Current.HasKeyboardFocus -and -not $fresh.Current.IsOffscreen) { return $fresh }
-            } catch [System.Windows.Automation.ElementNotAvailableException] {}
-            Start-Sleep -Milliseconds 150
-        } until ((Get-Date) -ge $deadline)
+                $scroll = $element.GetCurrentPattern([System.Windows.Automation.ScrollItemPattern]::Pattern)
+                if ($null -ne $scroll) { $scroll.ScrollIntoView() }
+            } catch [System.InvalidOperationException] {}
+            $element.SetFocus()
+            $deadline=(Get-Date).AddSeconds(3)
+            do {
+                if ([ZynoaM26Foreground]::GetForegroundWindow() -ne $hwnd) { break }
+                Assert-M26Foreground
+                try {
+                    $fresh=Wait-M26Name -Name $Name -Focusable -Fragment:$Fragment
+                    if ($fresh.Current.HasKeyboardFocus -and -not $fresh.Current.IsOffscreen) {
+                        Assert-M26Foreground
+                        return $fresh
+                    }
+                } catch [System.Windows.Automation.ElementNotAvailableException] {}
+                Start-Sleep -Milliseconds 150
+            } until ((Get-Date) -ge $deadline)
+        }
         throw ('ZYN-M26-018: native keyboard focus not confirmed: '+$Name)
     }
     $observations = [System.Collections.Generic.List[object]]::new()
@@ -383,6 +409,7 @@ public static class ZynoaM26Foreground {
     }
     function Open-M26Tab {
         param([string]$From, [string]$Keys, [string]$To)
+        Restore-M26ForegroundForFocus
         $source=Read-M26Tab -Name $From
         if ($null -eq $source -or -not $source.Selected -or -not $source.Enabled) {
             throw ('ZYN-M26-012: unexpected source tab selection: '+$From)

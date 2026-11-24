@@ -157,5 +157,20 @@ class ChangeCenterTests(unittest.TestCase):
             self.assertIn(marker, glossary)
         self.assertNotIn("$invoke.Invoke()", glossary)
 
+    def test_foreground_recovery_only_at_intentional_focus_boundary(self):
+        script = (ROOT / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        recovery = script.split("function Restore-M26ForegroundForFocus {", 1)[1].split("function Wait-M26Name", 1)[0]
+        for marker in ("MainWindowHandle -ne $hwnd", "SetForegroundWindow($hwnd)",
+                       "GetForegroundWindow() -eq $hwnd", "AddSeconds(2)", "Assert-M26Foreground"):
+            self.assertIn(marker, recovery)
+        focus = script.split("function Focus-M26Control {", 1)[1].split("$observations =", 1)[0]
+        for marker in ("$focusAttempt -lt 2", "Restore-M26ForegroundForFocus", "HasKeyboardFocus", "Assert-M26Foreground"):
+            self.assertIn(marker, focus)
+        for start,end in (("function Send-M26Key {","function Focus-M26Control"),
+                          ("function Capture-M26 {","$tabTransitions =")):
+            section=script.split(start,1)[1].split(end,1)[0]
+            self.assertIn("Assert-M26Foreground",section)
+            self.assertNotIn("Restore-M26ForegroundForFocus",section)
+
 if __name__ == "__main__":
     unittest.main()

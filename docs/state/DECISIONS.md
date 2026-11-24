@@ -136,3 +136,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-24 | P02 | Repair native Help mode activation and submit one complete module-select keyboard gesture | Exact-head Windows failed native activation and foreground; keep strict foreground, actual UIA state and image checks, no runtime or privilege changes.
 
 2026-11-24 | P02 | Align inherited glossary static contract with actual keyboard-driven activation | Prior CI stopped before native build on obsolete substring and InvokePattern assertion; retain stronger PID/focus/foreground/panel/visibility gates. No runtime or verifier changes.
+
+2026-11-24 | P02 | Verify disposable Narrator process exit and bound M26 foreground recovery to intentional focus boundaries | Actual M26 foreground interruption after search-empty; preserve strict input/capture validation, no synthetic data or privileges.
