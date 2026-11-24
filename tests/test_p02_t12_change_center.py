@@ -87,5 +87,28 @@ class ChangeCenterTests(unittest.TestCase):
         self.assertIn("if ($item.Current.IsOffscreen", script)
         self.assertIn("Wait-M26Name -Name $Heading)", script)
 
+    def test_m26_tab_focus_after_commit_and_native_selection_proof(self):
+        view = (UI / "ChangeCenter.tsx").read_text(encoding="utf-8")
+        script = (ROOT / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        self.assertIn("useLayoutEffect",view)
+        self.assertIn("pendingTabFocus",view)
+        self.assertIn('aria-label="Search bundled notices"',view)
+        self.assertIn('aria-label="Module"',view)
+        for marker in ("SelectionItemPattern","HasKeyboardFocus","ControlType]::TabItem",
+                       "Wait-M26SelectedFocus","previous_tab_deselected=$true","ZYN-M26-013"):
+            self.assertIn(marker,script)
+        from tools.verify_p02_m26_candidates import verify
+        import tempfile
+        import json
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            (root/"M26-journey.capture.json").write_text(json.dumps({
+                "schema_version":1,"source_commit_sha":"a"*40,"built_commit_sha":"a"*40,
+                "github_run_id":"123","native_process_id":1,"no_user_data":True,
+                "status":"M26_NATIVE_CANDIDATES_ONLY","independent_visual_review":False,
+                "screen_reader_verified":False,"observations":[],"tab_transitions":[]}),encoding="utf-8")
+            with self.assertRaisesRegex(ValueError,"missing native keyboard transitions"):
+                verify(root,"a"*40,"123")
+
 if __name__ == "__main__":
     unittest.main()

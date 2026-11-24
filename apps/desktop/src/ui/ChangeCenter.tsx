@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { changeAvailability, filterChangeNotices, noticeModules, changeServicePanels, isChangeServiceSection, type ChangeTransport, type NoticeFilter } from "./change-center";
 
 const sections = [
@@ -38,12 +38,21 @@ export function ChangeCenter({transport,onHelp}:{transport:ChangeTransport;onHel
   const [module,setModule]=useState<NoticeFilter>("All");
   const [selected,setSelected]=useState<string|null>(null);
   const tabs=useRef<(HTMLButtonElement|null)[]>([]);
+  const pendingTabFocus=useRef<number|null>(null);
+  useLayoutEffect(()=>{
+    const index=pendingTabFocus.current;
+    pendingTabFocus.current=null;
+    if(index!==null)tabs.current[index]?.focus();
+  },[active]);
   const availability=changeAvailability(transport);
   const matches=filterChangeNotices(query,module);
   const current=matches.find(item=>item.id===selected);
   const select=(index:number,focus=false)=>{
-    setActive(sections[index].key);setSelected(null);
-    if(focus)tabs.current[index]?.focus();
+    const next=sections[index].key;
+    if(focus && next===active)tabs.current[index]?.focus();
+    else if(focus)pendingTabFocus.current=index;
+    else pendingTabFocus.current=null;
+    setActive(next);setSelected(null);
   };
   const filterable=active==="issues" || active==="modules";
   return <section className="studio-page change-center" aria-labelledby="change-title">
@@ -71,9 +80,9 @@ export function ChangeCenter({transport,onHelp}:{transport:ChangeTransport;onHel
       <>
         <div className="change-filters">
           <label className="help-tool-field">Search bundled notices
-            <input value={query} maxLength={120} onChange={event=>{setQuery(event.target.value);setSelected(null);}} placeholder="Search backup, updates or history" /></label>
+            <input aria-label="Search bundled notices" value={query} maxLength={120} onChange={event=>{setQuery(event.target.value);setSelected(null);}} placeholder="Search backup, updates or history" /></label>
           <label className="help-tool-field">Module
-            <select value={module} onChange={event=>{const value=noticeModules.find(x=>x===event.target.value);if(value){setModule(value);setSelected(null);}}}>
+            <select aria-label="Module" value={module} onChange={event=>{const value=noticeModules.find(x=>x===event.target.value);if(value){setModule(value);setSelected(null);}}}>
               {noticeModules.map(value=><option key={value} value={value}>{value==="All"?"All modules":value}</option>)}
             </select></label>
           <button type="button" className="subtle-action" onClick={()=>{setQuery("");setModule("All");setSelected(null);}}>Reset filters</button>

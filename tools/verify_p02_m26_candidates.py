@@ -8,6 +8,16 @@ import re
 
 from tools.verify_p02_native_evidence import _png_dimensions, ORIGIN, STATUS
 
+EXPECTED_TRANSITIONS = (
+    ("What\x27s New", "{RIGHT}", "Known Issues"),
+    ("Known Issues", "{RIGHT}", "Version History"),
+    ("Version History", "{RIGHT}", "Module Changes"),
+    ("Module Changes", "{RIGHT}", "Audit Timeline"),
+    ("Audit Timeline", "{RIGHT}", "Notifications"),
+    ("Notifications", "{END}", "Migration Notes"),
+    ("Migration Notes", "{HOME}", "What\x27s New"),
+)
+
 EXPECTED = {
     "M26-CAND-S01": "No verified releases",
     "M26-CAND-S02": "Select a capability notice",
@@ -39,6 +49,15 @@ def verify(root: Path, source_sha: str, run_id: str) -> None:
     require(proof.get("status") == "M26_NATIVE_CANDIDATES_ONLY"
             and proof.get("independent_visual_review") is False
             and proof.get("screen_reader_verified") is False, "false acceptance claim")
+    transitions = proof.get("tab_transitions")
+    require(isinstance(transitions, list) and len(transitions) == len(EXPECTED_TRANSITIONS),
+            "missing native keyboard transitions")
+    for item, expected in zip(transitions, EXPECTED_TRANSITIONS):
+        require(isinstance(item, dict) and (item.get("from"), item.get("key"), item.get("to")) == expected,
+                "wrong native keyboard transition")
+        require(all(item.get(key) is True for key in (
+            "source_focus_and_selection", "destination_focus_and_selection", "previous_tab_deselected")),
+            "native selected-tab/focus proof absent")
     observations = proof.get("observations")
     require(isinstance(observations, list) and len(observations) == len(EXPECTED),
             "missing native journey observations")

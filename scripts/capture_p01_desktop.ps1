@@ -327,14 +327,68 @@ public static class ZynoaM26Foreground {
         [void](Wait-M26Name -Name $Heading)
         $observations.Add([ordered]@{screenshot_id=$Id; actual_visible_uia_name=$Heading; foreground_window_verified=$true})
     }
+    $tabTransitions = [System.Collections.Generic.List[object]]::new()
+    function Read-M26Tab {
+        param([string]$Name)
+        Assert-M26Foreground
+        $root = [System.Windows.Automation.AutomationElement]::FromHandle($hwnd)
+        if ($null -eq $root -or $root.Current.ProcessId -ne $TargetPid) {
+            throw 'ZYN-M26-003: UIA root PID mismatch'
+        }
+        $nameCondition = [System.Windows.Automation.PropertyCondition]::new(
+            [System.Windows.Automation.AutomationElement]::NameProperty, $Name)
+        $typeCondition = [System.Windows.Automation.PropertyCondition]::new(
+            [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
+            [System.Windows.Automation.ControlType]::TabItem)
+        $condition = [System.Windows.Automation.AndCondition]::new($nameCondition,$typeCondition)
+        $tab = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$condition)
+        if ($null -eq $tab) { return $null }
+        $pattern = $null
+        if (-not $tab.TryGetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern,[ref]$pattern)) {
+            throw ('ZYN-M26-011: native tab selection provider unavailable: ' + $Name)
+        }
+        return [pscustomobject]@{
+            Element=$tab
+            Selected=[bool]$pattern.Current.IsSelected
+            Focused=[bool]$tab.Current.HasKeyboardFocus
+            Enabled=[bool]$tab.Current.IsEnabled
+            Visible=(-not $tab.Current.IsOffscreen)
+        }
+    }
+    function Wait-M26SelectedFocus {
+        param([string]$Name)
+        $deadline=(Get-Date).AddSeconds(8)
+        do {
+            try {
+                $state=Read-M26Tab -Name $Name
+                if ($null -ne $state -and $state.Selected -and $state.Focused -and $state.Enabled -and $state.Visible) {
+                    return $state
+                }
+            } catch [System.Windows.Automation.ElementNotAvailableException] {}
+            Start-Sleep -Milliseconds 200
+        } until ((Get-Date) -ge $deadline)
+        # Report only fixed fixture tab states, never arbitrary accessible names.
+        $state=Read-M26Tab -Name $Name
+        if ($null -ne $state) {
+            Write-Host ("ZYN-M26-TAB name="+$Name+" selected="+$state.Selected+" focus="+$state.Focused+" visible="+$state.Visible)
+        }
+        throw ('ZYN-M26-005: native selected tab and keyboard focus did not reach ' + $Name)
+    }
     function Open-M26Tab {
         param([string]$From, [string]$Keys, [string]$To)
-        [void](Focus-M26Control -Name $From)
-        Send-M26Key -Keys $Keys
-        $focused = [System.Windows.Automation.AutomationElement]::FocusedElement
-        if ($null -eq $focused -or $focused.Current.Name -cne $To) {
-            throw ('ZYN-M26-005: native keyboard tab focus did not reach ' + $To)
+        $source=Read-M26Tab -Name $From
+        if ($null -eq $source -or -not $source.Selected -or -not $source.Enabled) {
+            throw ('ZYN-M26-012: unexpected source tab selection: '+$From)
         }
+        $source.Element.SetFocus()
+        [void](Wait-M26SelectedFocus -Name $From)
+        # A single actual key; never retry by clicking or selecting destination.
+        Send-M26Key -Keys $Keys
+        [void](Wait-M26SelectedFocus -Name $To)
+        $old=Read-M26Tab -Name $From
+        if ($null -eq $old -or $old.Selected) { throw 'ZYN-M26-013: source tab still selected' }
+        $tabTransitions.Add([ordered]@{from=$From;key=$Keys;to=$To;source_focus_and_selection=$true;destination_focus_and_selection=$true;previous_tab_deselected=$true})
+        Write-Host ("ZYN-M26-TAB-PASS "+$From+" "+$Keys+" "+$To)
     }
     [void](Focus-M26Control -Name 'Changelog')
     Send-M26Key -Keys '{ENTER}'
@@ -381,6 +435,7 @@ public static class ZynoaM26Foreground {
         status='M26_NATIVE_CANDIDATES_ONLY'; no_user_data=$true
         independent_visual_review=$false; screen_reader_verified=$false
         observations=@($observations.ToArray())
+        tab_transitions=@($tabTransitions.ToArray())
     }
     $receipt | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (
         Join-Path $OutputDirectory 'M26-journey.capture.json') -Encoding UTF8
