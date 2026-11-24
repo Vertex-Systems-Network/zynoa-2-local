@@ -77,5 +77,12 @@ class NarratorReceiptTests(unittest.TestCase):
         p=sample();p["events"].pop(2)
         with self.assertRaises(InvalidNarratorProof):
             verify(p,SHA,RUN)
+    def test_startup_retry_is_bounded_and_before_actual_speech(self):
+        source=(Path(__file__).resolve().parents[1]/"scripts/probe_p02_t11_narrator.ps1").read_text(encoding="utf-8")
+        self.assertIn("$launch -lt 2",source)
+        self.assertIn("ZYN-NAR-STARTUP-RETRY",source)
+        self.assertIn("$app.WaitForExit(5000)",source)
+        self.assertLess(source.index("ZYN-NAR-STARTUP-RETRY"),source.index("Read-ActualNarratorPhrase 'preferences'"))
+        self.assertIn("if ($null -eq $prefsNav) { throw",source)
 if __name__=="__main__":
     unittest.main()
