@@ -67,7 +67,7 @@ class NativePerformanceTests(unittest.TestCase):
         ps=(ROOT/"scripts/probe_p02_native_performance.ps1").read_text(encoding="utf-8")
         for word in ("Start-Process","IsWindowVisible","MainWindowHandle","AutomationElement",
                      "ProcessId","Get-FileHash","GITHUB_RUN_ID","Stop-Process","Typed native handshake connected","real_native_ipc_status_in_uia = $true",
-                     "full_screen_reader_verified = $false","performance_budget_approved = $false"):
+                     "full_screen_reader_verified = $false","performance_budget_approved = $false", "exact_native_status_property", "fallback_native_status_substring", "WaitForExit(10000)"):
             self.assertIn(word,ps)
         for forbidden in ("Invoke-WebRequest","Get-Clipboard","Remove-Item"):self.assertNotIn(forbidden,ps)
         yml=(ROOT/".github/workflows/p01-desktop.yml").read_text(encoding="utf-8")

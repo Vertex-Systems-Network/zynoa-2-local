@@ -22,6 +22,11 @@ public static class ZynoaPerfWin32 {
 '@
 $exeSha = (Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant()
 $samples = [System.Collections.Generic.List[object]]::new()
+# Exact accessible status is in the actual running React/Tauri source. This
+# property filter executes in the UIA provider and avoids repeated bulk walks.
+$exactNativeStatus = [System.Windows.Automation.PropertyCondition]::new(
+  [System.Windows.Automation.AutomationElement]::NameProperty,
+  'Typed native handshake connected · workspace not configured')
 for ($index=1; $index -le 3; $index++) {
   $proc = $null
   $timer = [System.Diagnostics.Stopwatch]::StartNew()
@@ -30,6 +35,8 @@ for ($index=1; $index -le 3; $index++) {
     $ready = $false
     $windowMs = $null
     $handshakeMs = $null
+    $lookupCount = 0
+    $lookupMethod = 'not_found'
     $deadline = (Get-Date).AddSeconds(60)
     do {
       Start-Sleep -Milliseconds 125
@@ -41,21 +48,38 @@ for ($index=1; $index -le 3; $index++) {
           $element = [System.Windows.Automation.AutomationElement]::FromHandle($hwnd)
           if ($null -ne $element -and $element.Current.ProcessId -eq $proc.Id -and -not $element.Current.IsOffscreen) {
             if ($null -eq $windowMs) { $windowMs = [int64]$timer.ElapsedMilliseconds }
-            # A native HWND can display before React and typed IPC are ready.
-            # Observe the real connected status inside the live WebView2 UIA tree.
-            $controls = $element.FindAll(
+            # Prefer one exact native status-name match over walking hundreds of
+            # WebView2 descendants every 125ms. Full-tree UIA enumeration can
+            # block the native runner for multiple seconds under CI contention.
+            $connected = $element.FindFirst(
               [System.Windows.Automation.TreeScope]::Descendants,
-              [System.Windows.Automation.Condition]::TrueCondition)
-            for ($k=0; $k -lt $controls.Count; $k++) {
-              try {
-                $control = $controls.Item($k)
-                if (-not $control.Current.IsOffscreen -and
-                    ([string]$control.Current.Name).Contains('Typed native handshake connected')) {
-                  $ready = $true
-                  $handshakeMs = [int64]$timer.ElapsedMilliseconds
-                  break
-                }
-              } catch [System.Windows.Automation.ElementNotAvailableException] {}
+              $exactNativeStatus)
+            if ($null -ne $connected -and -not $connected.Current.IsOffscreen) {
+              $ready = $true
+              $handshakeMs = [int64]$timer.ElapsedMilliseconds
+              $lookupMethod = 'exact_native_status_property'
+              break
+            }
+            # Provider variants sometimes aggregate status text into a larger
+            # accessible element. Retain the original proven fallback every
+            # fourth poll; never infer readiness from process/window alone.
+            $lookupCount++
+            if (($lookupCount % 4) -eq 0) {
+              $controls = $element.FindAll(
+                [System.Windows.Automation.TreeScope]::Descendants,
+                [System.Windows.Automation.Condition]::TrueCondition)
+              for ($k=0; $k -lt $controls.Count; $k++) {
+                try {
+                  $control = $controls.Item($k)
+                  if (-not $control.Current.IsOffscreen -and
+                      ([string]$control.Current.Name).Contains('Typed native handshake connected')) {
+                    $ready = $true
+                    $handshakeMs = [int64]$timer.ElapsedMilliseconds
+                    $lookupMethod = 'fallback_native_status_substring'
+                    break
+                  }
+                } catch [System.Windows.Automation.ElementNotAvailableException] {}
+              }
             }
             if ($ready) { break }
           }
@@ -69,6 +93,7 @@ for ($index=1; $index -le 3; $index++) {
       native_process_id = [int]$proc.Id
       window_first_visible_ms = [int64]$windowMs
       native_handshake_ready_ms = [int64]$handshakeMs
+      native_status_lookup_method = $lookupMethod
       real_native_ipc_status_in_uia = $true
       real_native_visible_hwnd = $true
       native_uia_window_pid_matches = $true
@@ -79,7 +104,11 @@ for ($index=1; $index -le 3; $index++) {
       $proc.Refresh()
       if (-not $proc.HasExited) {
         Stop-Process -Id $proc.Id -Force -ErrorAction Stop
-        Start-Sleep -Milliseconds 300
+        # Confirm the real native parent has exited before measuring another
+        # fresh process; do not overlap WebView2 startup/teardown workloads.
+        [void]$proc.WaitForExit(10000)
+        if (-not $proc.HasExited) { throw 'ZYN-PERF-007: native process did not terminate' }
+        Start-Sleep -Milliseconds 1800
       }
       $proc.Dispose()
     }

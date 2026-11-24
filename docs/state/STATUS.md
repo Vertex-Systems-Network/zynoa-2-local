@@ -2,6 +2,9 @@
 
 ## CURRENT (read this first; history below is archive)
 
+- **P02-T10 REOPENED on new exact head (2026-11-24):** [Windows #45303604148](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45303604148) failed the real native IPC budget even though earlier #45301683751 passed: 1,357 / **7,052** / **4,976** ms (median 4,976ms > 2,000ms, individual >3,000ms); cold native metadata 8,636ms, 69 images 93,217ms. T10 board restored to **IN_PROGRESS**, T11 still open, PR draft, main untouched. Newly optimized exact UIA status-property search with original fallback and confirmed process teardown will retest under unchanged budget; NO limit relaxation or fabricated PASS. [Earlier scoped image/NVDA evidence](../evidence/P02_T10_SCOPED_DONE_20261124.md) remains valid for older source only.
+
+
 - **P02-T10 DONE — native Windows preview acceptance, not final product release (2026-11-24):** [Windows native run #45301683751](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45301683751) passed 29 source-verified native screenshot images, 9/9 UI Automation keyboard checks, three-stage live NVDA spoken feedback, 16 Help option references, remote Wiki preview publication proof and enforced Windows preview budget (6,660ms native metadata; 93,767ms source-bound screenshot suite; IPC 898/815/845ms). Original [artifact #14879537115](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45301683751/artifacts/14879537115) read back; [scope and exclusions](../evidence/P02_T10_SCOPED_DONE_20261124.md). New fail-closed exact-head combined acceptance verifier prevents false DONE. **T11 remains IN_PROGRESS**: full Narrator/all-state product accessibility, real-hardware performance SLA/outlier investigation, owner review/security/issues/protected merge. PR #12 Draft; main unchanged, phase P02 IN_PROGRESS; 10/11 tasks DONE.
 
 
