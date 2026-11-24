@@ -64,6 +64,8 @@ jobs:
         run: |
           python -m unittest tests.test_p02_native_evidence -v
           if ($LASTEXITCODE -ne 0) { throw 'P02 native provenance verifier contract failure' }
+          python -m unittest tests.test_p02_t10_acceptance -v
+          if ($LASTEXITCODE -ne 0) { throw 'P02 T10 original screenshot/Wiki/live-proof acceptance contract failure' }
           python -m unittest tests.test_p02_t10_readiness -v
           if ($LASTEXITCODE -ne 0) { throw 'P02 T10 readiness contract failure' }
           python -m unittest tests.test_p02_visual_review_pack -v
@@ -343,6 +345,15 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'ZYN-NVDA-021: real screen reader invocation failed' }
           python -m tools.verify_p02_nvda_speech --proof $capture --source-sha $env:ZYNOA_HEAD_SHA --report $report
           if ($LASTEXITCODE -ne 0) { throw 'ZYN-NVDA-022: live NVDA speech did not prove native labels and focus' }
+      - name: P02-T10 exact-source native preview final acceptance
+        if: github.event.pull_request.head.ref == 'phase/02-shared-ui'
+        shell: pwsh
+        env:
+          ZYNOA_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          ZYNOA_RUN_ID: ${{ github.run_id }}
+        run: |
+          python -m tools.verify_p02_t10_acceptance --root . --runtime . --source-sha $env:ZYNOA_HEAD_SHA --run-id $env:ZYNOA_RUN_ID --report docs/screenshots/_ci/M02/P02-T10-scoped-acceptance.verify.json
+          if ($LASTEXITCODE -ne 0) { throw 'ZYN-P02-T10-021: authentic final preview acceptance failed' }
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -372,6 +383,7 @@ jobs:
             docs/screenshots/_ci/M02/P02-nvda-speech.capture.json
             docs/screenshots/_ci/M02/P02-nvda-speech.verify.json
             docs/screenshots/_ci/M02/P02-T10-readiness.json
+            docs/screenshots/_ci/M02/P02-T10-scoped-acceptance.verify.json
             docs/screenshots/_ci/M02/P02-T10-29-review-index.json
             docs/screenshots/_ci/M02/P02-T10-69-native-review.html
             docs/screenshots/_ci/M02/P02-T10-29-native-review-candidates.zip
