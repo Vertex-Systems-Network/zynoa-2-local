@@ -2,7 +2,7 @@
 
 1. Verify repository exact origin, clean/understood worktree and GitHub remote current `main` SHA.
 2. Verify active phase lease, scope path allowlist, current PR, CI state and unresolved critical issues.
-3. Read `AGENTS.md`, appropriate agent wrapper, MASTER_PLAN_V3, module dossier, design ADR, memory/decisions and latest handoff.
+3. Read `AGENTS.md`, the agent wrapper, `docs/agent/AI_STRICT_PROTOCOL.md`, canonical `docs/MASTER_PLAN_V3_2.md`, phase delivery including all cross-cutting addenda, module dossiers, design ADR, decisions and latest handoff. Reconcile the task manifest against these requirements before implementation or completion.
 4. Verify local environment, package versions, Windows target, Ollama and optional engine health; capture baseline warnings/errors and performance.
 5. Search/revalidate official dependencies and UX options; record URLs/date/license and ≥2 feasible alternatives, or justify why only one.
 6. Define user stories, IDs, each UI control type/default/validation/state/keyboard behavior/help/screenshot target and real backend link.

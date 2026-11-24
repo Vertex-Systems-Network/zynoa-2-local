@@ -14,7 +14,11 @@ class P02UIContractTests(unittest.TestCase):
         from tools.phase_controller import PHASE_ORDER
         self.assertEqual("P02", manifest["phase"])
         self.assertEqual(12, manifest["pr_number"])
-        self.assertEqual(11, len(manifest["tasks"]))
+        ids = [x["id"] for x in manifest["tasks"]]
+        self.assertEqual(len(ids), len(set(ids)))
+        self.assertTrue({f"P02-T{i:02d}" for i in range(1, 14)} <= set(ids))
+        self.assertIn("M26", next(t["title"] for t in manifest["tasks"] if t["id"] == "P02-T12"))
+        self.assertIn("M23/M24/M25", next(t["title"] for t in manifest["tasks"] if t["id"] == "P02-T13"))
         self.assertTrue(all(x["status"] in ("DONE", "IN_PROGRESS", "TODO", "BLOCKED")
                             for x in manifest["tasks"]))
         if phase["phase"] == "P02":

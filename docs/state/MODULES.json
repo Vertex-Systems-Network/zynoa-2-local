@@ -1,13 +1,13 @@
 [
   {
     "module": "M01",
-    "state": "NOT_STARTED",
+    "state": "IN_PROGRESS",
     "phase_gate_evidence": null,
     "completed_commit_sha": null
   },
   {
     "module": "M02",
-    "state": "NOT_STARTED",
+    "state": "IN_PROGRESS",
     "phase_gate_evidence": null,
     "completed_commit_sha": null
   },
@@ -91,25 +91,25 @@
   },
   {
     "module": "M16",
-    "state": "NOT_STARTED",
+    "state": "IN_PROGRESS",
     "phase_gate_evidence": null,
     "completed_commit_sha": null
   },
   {
     "module": "M17",
-    "state": "NOT_STARTED",
+    "state": "IN_PROGRESS",
     "phase_gate_evidence": null,
     "completed_commit_sha": null
   },
   {
     "module": "M18",
-    "state": "NOT_STARTED",
+    "state": "IN_PROGRESS",
     "phase_gate_evidence": null,
     "completed_commit_sha": null
   },
   {
     "module": "M19",
-    "state": "NOT_STARTED",
+    "state": "IN_PROGRESS",
     "phase_gate_evidence": null,
     "completed_commit_sha": null
   },
@@ -127,19 +127,19 @@
   },
   {
     "module": "M22",
-    "state": "NOT_STARTED",
+    "state": "IN_PROGRESS",
     "phase_gate_evidence": null,
     "completed_commit_sha": null
   },
   {
     "module": "M23",
-    "state": "NOT_STARTED",
+    "state": "IN_PROGRESS",
     "phase_gate_evidence": null,
     "completed_commit_sha": null
   },
   {
     "module": "M24",
-    "state": "NOT_STARTED",
+    "state": "IN_PROGRESS",
     "phase_gate_evidence": null,
     "completed_commit_sha": null
   },
@@ -151,7 +151,7 @@
   },
   {
     "module": "M26",
-    "state": "NOT_STARTED",
+    "state": "IN_PROGRESS",
     "phase_gate_evidence": null,
     "completed_commit_sha": null
   }
