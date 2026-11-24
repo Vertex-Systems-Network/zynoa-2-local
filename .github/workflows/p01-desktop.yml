@@ -64,6 +64,10 @@ jobs:
         run: |
           python -m unittest tests.test_p02_native_evidence -v
           if ($LASTEXITCODE -ne 0) { throw 'P02 native provenance verifier contract failure' }
+          python -m unittest tests.test_p02_t11_security_privacy -v
+          if ($LASTEXITCODE -ne 0) { throw 'P02 T11 security/privacy negative regression tests failed' }
+          python -m tools.verify_p02_t11_security_privacy --root . --report docs/screenshots/_ci/M02/P02-T11-source-security.verify.json
+          if ($LASTEXITCODE -ne 0) { throw 'P02 T11 source security/privacy gate failed' }
           python -m unittest tests.test_p02_t10_acceptance -v
           if ($LASTEXITCODE -ne 0) { throw 'P02 T10 original screenshot/Wiki/live-proof acceptance contract failure' }
           python -m unittest tests.test_p02_t10_readiness -v
@@ -384,6 +388,7 @@ jobs:
             docs/screenshots/_ci/M02/P02-nvda-speech.verify.json
             docs/screenshots/_ci/M02/P02-T10-readiness.json
             docs/screenshots/_ci/M02/P02-T10-scoped-acceptance.verify.json
+            docs/screenshots/_ci/M02/P02-T11-source-security.verify.json
             docs/screenshots/_ci/M02/P02-T10-29-review-index.json
             docs/screenshots/_ci/M02/P02-T10-69-native-review.html
             docs/screenshots/_ci/M02/P02-T10-29-native-review-candidates.zip

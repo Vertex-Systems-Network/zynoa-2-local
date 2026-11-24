@@ -1,5 +1,8 @@
 # P02-T11 — Protected Merge and Final Acceptance Preflight
 
+- **2026-11-24 T11 source-security audit started:** [security/privacy evidence](P02_T11_SECURITY_PRIVACY_REVIEW_20261124.md) and fail-closed negative test/CI check authored. Six inline PR review threads now verified resolved; strict read-only Tauri capability/CSP/IPC and no-network Help source reviewed. This is preparation, NOT final owner approval, Narrator/product performance signoff or merge; T11 stays IN_PROGRESS.
+
+
 - **P02-T10 DONE — verified latest native Windows preview acceptance (2026-11-24):** [exact-source Windows CI #45305110513](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45305110513) **SUCCESS** at `1831de8433f2649684971fafbd83193db529330b`. Final consolidated guard `READY_FOR_T10_SCOPED_WINDOWS_PREVIEW_ACCEPTANCE` passed with 29/29 original SHA/Git-blob screenshot reviews, 16/16 Help/Wiki option references, 9/9 native UIA keyboard checks, authentic three-stage NVDA speech, hosted Wiki remote preview readback, enforced unchanged P02 CI preview budget: 11,662ms cold native metadata, 92,602ms 69-frame capture, 651/757/723ms warm IPC (median 723ms). Earlier genuine #45303604148 7,052ms warm outlier was investigated and fixed by exact native UIA property lookup with conservative fallback and clean process-exit sequencing. Historical 42,582ms cold outlier retained; no budget relaxation. **T11 still IN_PROGRESS** for full Narrator/all-state/product hardware SLA, owner review/security/issue gate and protected main merge; PR #12 stays Draft, P02 phase IN_PROGRESS, P03 forbidden. [Scoped completion evidence](../evidence/P02_T10_SCOPED_DONE_20261124.md).
 
 

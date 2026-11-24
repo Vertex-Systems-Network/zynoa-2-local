@@ -1,0 +1,51 @@
+{
+  "change_id": "CHG-P02-T11-SECURITY-PREMERGE-20261124",
+  "module_id": "M02",
+  "kind": "security",
+  "title": "P02 T11 fail-closed source security/privacy and PR merge-gate preparation",
+  "summary": "Added source-based independent security/privacy contract tests and strict Windows CI audit for final M02/M19 P02 preview. Reviews original Tauri CSP, main-readonly privilege allowlist, typed Rust IPC scope/version/bounds, local-only Help and user-initiated report clipboard, absence of arbitrary network/browser storage/dynamic HTML/script injection, and untrusted PR workflow read-only permissions. Negative tests reject forged privilege expansion, external fetch and false T11 DONE. Reviewed outstanding inline PR comments; current source and tests prove each obsolete finding addressed; six review threads now resolved. This does not certify Narrator, all product states, hardware performance SLA, independent merge approval or release.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/14",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/15"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12",
+  "affected_option_ids": [
+    "M02-OPT-02",
+    "M02-OPT-05",
+    "M19-OPT-01",
+    "M19-OPT-06"
+  ],
+  "docs_paths": [
+    "docs/evidence/P02_T11_SECURITY_PRIVACY_REVIEW_20261124.md",
+    "docs/evidence/P02_T11_CLOSEOUT_PREFLIGHT.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M02.md",
+    "docs/help/articles/M19.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M02.md",
+    "docs/wiki/pages/M19.md"
+  ],
+  "test_evidence": [
+    "tests/test_p02_t11_security_privacy.py",
+    "tools/verify_p02_t11_security_privacy.py",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45305110513"
+  ],
+  "commit_sha": "0685963dfd0c59d5980679aa5adb4bed14726c3e",
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No changes to SQLite state, disk data, Rust privileges, user network connectivity or user files. Source-only CI regression and documentation. Rollback by reverting test/gate/doc commit.",
+  "created_at": "2026-11-24",
+  "updated_at": "2026-11-24",
+  "version_bump": "none",
+  "docs_impact": true,
+  "data_migration": false
+}

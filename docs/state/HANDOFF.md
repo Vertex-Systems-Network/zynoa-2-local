@@ -1,5 +1,8 @@
 # Handoff (canonical starter)
 
+- **P02-T11 IN_PROGRESS (2026-11-24):** Source security/privacy review and fail-closed negative/CI gate for local Tauri M02/M19 UI committed. All 6 prior inline PR review threads resolved after verifying fixes; required GitHub ruleset 27593065 and trusted governance-lint App 15368 read back. T11 pending current-head CI, full Narrator/production QA, independent owner review and protected merge. PR #12 remains Draft, main/phase unchanged. [Security review](../evidence/P02_T11_SECURITY_PRIVACY_REVIEW_20261124.md).
+
+
 - **P02-T10 DONE — verified latest native Windows preview acceptance (2026-11-24):** [exact-source Windows CI #45305110513](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45305110513) **SUCCESS** at `1831de8433f2649684971fafbd83193db529330b`. Final consolidated guard `READY_FOR_T10_SCOPED_WINDOWS_PREVIEW_ACCEPTANCE` passed with 29/29 original SHA/Git-blob screenshot reviews, 16/16 Help/Wiki option references, 9/9 native UIA keyboard checks, authentic three-stage NVDA speech, hosted Wiki remote preview readback, enforced unchanged P02 CI preview budget: 11,662ms cold native metadata, 92,602ms 69-frame capture, 651/757/723ms warm IPC (median 723ms). Earlier genuine #45303604148 7,052ms warm outlier was investigated and fixed by exact native UIA property lookup with conservative fallback and clean process-exit sequencing. Historical 42,582ms cold outlier retained; no budget relaxation. **T11 still IN_PROGRESS** for full Narrator/all-state/product hardware SLA, owner review/security/issue gate and protected main merge; PR #12 stays Draft, P02 phase IN_PROGRESS, P03 forbidden. [Scoped completion evidence](../evidence/P02_T10_SCOPED_DONE_20261124.md).
 
 
