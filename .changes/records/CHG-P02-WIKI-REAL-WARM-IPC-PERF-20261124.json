@@ -3,7 +3,7 @@
   "module_id": "M19",
   "kind": "enhancement",
   "title": "Real hosted P02 Wiki preview and native three-run visible-window and IPC readiness timing",
-  "summary": "Safely published M02/M19 preview pages only to existing GitHub Wiki after a verified preflight, hash-bound remote git readback and zero modification to Home; removed one-shot credential-enabled CI workflow. Added three real Tauri Windows native warm-process first-window evidence with source/executable hash and fail-closed tests. First run 45286192929 passed with window first visible 250/133/139 ms; these are not native IPC or approved performance. Follow-up native performance script requires explicit native UIA 'Typed native handshake connected' before readiness timing and rejects fabricated timing/provenance. Full screen-reader, cold-start performance budgets, final module, release and protected merge remain pending.",
+  "summary": "Safely published M02/M19 preview pages only to existing GitHub Wiki after a verified preflight, hash-bound remote git readback and zero modification to Home; removed one-shot credential-enabled CI workflow. Added three real Tauri Windows native warm-process first-window evidence with source/executable hash and fail-closed tests. First run 45286192929 passed with window first visible 250/133/139 ms; these are not native IPC or approved performance. Follow-up native performance script requires explicit native UIA 'Typed native handshake connected' before readiness timing and rejects fabricated timing/provenance. Full screen-reader, cold-start performance budgets, final module, release and protected merge remain pending. Added independently failing-closed live NVDA 2026.3.1 speech capture with official SHA256-pinned portable NVDA and three real native keyboard journeys. The new CI step must succeed on exact head before any NVDA approval; Narrator remains separate, no synthetic speech or silent waiver.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [],
@@ -17,7 +17,8 @@
     "docs/evidence/P02_T10_PERFORMANCE_OBSERVATIONS_20261124.md",
     "docs/evidence/P02_T11_CLOSEOUT_PREFLIGHT.md",
     "docs/state/HANDOFF.md",
-    "docs/state/DECISIONS.md"
+    "docs/state/DECISIONS.md",
+    "docs/evidence/P02_T10_NVDA_LIVE_GATE.md"
   ],
   "help_paths": [
     "docs/help/articles/M02.md",
@@ -31,7 +32,9 @@
     "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45284338605",
     "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45286192929",
     "tests/test_p02_native_performance.py",
-    "scripts/probe_p02_native_performance.ps1"
+    "scripts/probe_p02_native_performance.ps1",
+    "tests/test_p02_nvda_speech.py",
+    "tools/verify_p02_nvda_speech.py"
   ],
   "commit_sha": "fffb5101473908ebc393841d98a4daa6cbbebe15",
   "release": null,
