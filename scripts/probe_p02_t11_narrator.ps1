@@ -125,8 +125,30 @@ function Read-ActualNarratorPhrase([string]$Stage,$Control,[string]$ExpectedLabe
     if (-not [ZynoaNarratorKeyboard]::SetForegroundWindow($app.MainWindowHandle)) {
       throw 'ZYN-NAR-013: app foreground unavailable before spoken-item query'
     }
+    # The keyboard focus and Narrator scan cursor may differ, especially in an
+    # aria-activedescendant combobox. Force a genuine focus transition for the
+    # palette, then move Narrator's reading cursor to the system cursor.
+    if ($Stage -eq 'palette') {
+      $close=Find-FocusableNativeControl (Get-CurrentNativeRoot) 'Close command palette' 4
+      $close.SetFocus()
+      Start-Sleep -Milliseconds 250
+      $Control=Find-FocusableNativeControl (Get-CurrentNativeRoot) $ExpectedLabel 4
+    }
     $Control.SetFocus()
-    Start-Sleep -Milliseconds 1200
+    Start-Sleep -Milliseconds 700
+    $nativeFocus=[System.Windows.Automation.AutomationElement]::FocusedElement
+    $focusMatches=$false
+    if ($null -ne $nativeFocus) {
+      $focusMatches=$nativeFocus.Current.Name -eq $ExpectedLabel
+    }
+    # Microsoft Standard Narrator+Left bracket moves the reading cursor to
+    # system focus. 0xDB is VK_OEM_4 on this English Windows runner.
+    if ($Stage -ne 'preferences') {
+      Send-NarratorChord ([byte[]]@($modifier,0xDB))
+      Start-Sleep -Milliseconds 700
+    } else {
+      Start-Sleep -Milliseconds 500
+    }
     $foregroundPid=[uint32]0
     [void][ZynoaNarratorKeyboard]::GetWindowThreadProcessId([ZynoaNarratorKeyboard]::GetForegroundWindow(),[ref]$foregroundPid)
     if ($foregroundPid -ne $app.Id) { throw 'ZYN-NAR-017: foreground PID differs from native app' }
@@ -137,6 +159,8 @@ function Read-ActualNarratorPhrase([string]$Stage,$Control,[string]$ExpectedLabe
     Send-NarratorChord ([byte[]]@($modifier,0x11,0x58))
     $changed=$false
     $length=0
+    $knownLabels=@()
+    $observedHash=''
     for ($i=0;$i -lt 16;$i++) {
       Start-Sleep -Milliseconds 350
       $after=[ZynoaNarratorKeyboard]::GetClipboardSequenceNumber()
@@ -145,6 +169,15 @@ function Read-ActualNarratorPhrase([string]$Stage,$Control,[string]$ExpectedLabe
       $candidate=Get-Clipboard -Raw
       if ($candidate -is [string] -and $candidate -ne $sentinel) {
         $length=$candidate.Length
+        # No unrelated clipboard text leaves the disposable runner. A bounded
+        # allowlist and digest distinguish genuine wrong-label announcements.
+        $knownLabels=@()
+        foreach ($known in @('Interface appearance','Search available commands and offline Help','Search views, help, settings','Command palette','Close command palette','Overview','Home and native startup status','Available commands and bundled Help results','Wiki mapping and link checker','combo box','edit','list box','selected','scan mode','no item','no focus')) {
+          if ($candidate.IndexOf($known,[StringComparison]::OrdinalIgnoreCase) -ge 0) { $knownLabels+=$known }
+        }
+        $sha=[System.Security.Cryptography.SHA256]::Create()
+        try { $observedHash=[BitConverter]::ToString($sha.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($candidate))).Replace('-','').ToLowerInvariant() }
+        finally { $sha.Dispose() }
         $where=$candidate.IndexOf($ExpectedLabel,[StringComparison]::OrdinalIgnoreCase)
         if ($where -ge 0) {
           $start=[Math]::Max(0,$where-25)
@@ -152,7 +185,7 @@ function Read-ActualNarratorPhrase([string]$Stage,$Control,[string]$ExpectedLabe
           $excerpt=$candidate.Substring($start,$len).Replace([char]13,[char]32).Replace([char]10,[char]32)
           $script:workingNarratorModifier=$modifier
           $proof.attempts+= [ordered]@{stage=$Stage;modifier=$keyName;clipboard_changed=$true;
-            clipboard_text_length=$length;expected_phrase_found=$true;foreground_pid=[int]$foregroundPid}
+            clipboard_text_length=$length;expected_phrase_found=$true;foreground_pid=[int]$foregroundPid;system_focus_label_matches=$focusMatches;known_spoken_labels=$knownLabels;copied_phrase_sha256=$observedHash}
           return [ordered]@{stage=$Stage;label=$excerpt;clipboard_sequence_before=[int64]$before;
             clipboard_sequence_after=[int64]$after;actual_speech_clipboard_changed=$true}
         }
@@ -160,7 +193,7 @@ function Read-ActualNarratorPhrase([string]$Stage,$Control,[string]$ExpectedLabe
     }
     # No arbitrary clipboard text is saved. Only booleans/length and PID are recorded.
     $proof.attempts+= [ordered]@{stage=$Stage;modifier=$keyName;clipboard_changed=$changed;
-      clipboard_text_length=$length;expected_phrase_found=$false;foreground_pid=[int]$foregroundPid}
+      clipboard_text_length=$length;expected_phrase_found=$false;foreground_pid=[int]$foregroundPid;system_focus_label_matches=$focusMatches;known_spoken_labels=$knownLabels;copied_phrase_sha256=$observedHash}
     Write-Output ("ZYN-NAR-RETRY stage={0}; key={1}; clipboard_changed={2}; text_length={3}" -f $Stage,$keyName,$changed,$length) | Out-Host
   }
   throw "ZYN-NAR-005: actual copied speech missing for stage $Stage after both Narrator modifiers; inspect OS support and receipt attempts"
@@ -212,10 +245,21 @@ try {
   if ($null -eq $uia) { throw 'ZYN-NAR-012: native app identity unavailable' }
   $proof.native_uia_pid_match=$true
   if (-not [ZynoaNarratorKeyboard]::SetForegroundWindow($app.MainWindowHandle)) { throw 'ZYN-NAR-013: foreground failed' }
-  Start-Sleep -Milliseconds 600
+  # A native HWND alone is not WebView readiness. Wait for the actual
+  # navigation control before keyboard navigation on a fresh isolated host.
+  $prefsNav=Find-FocusableNativeControl $uia 'Preferences (Ctrl+2)' 45
+  $prefsNav.SetFocus()
   [System.Windows.Forms.SendKeys]::SendWait('^{2}')
-  Start-Sleep -Milliseconds 1000
-  $appearance=Find-FocusableNativeControl $uia 'Interface appearance'
+  Start-Sleep -Milliseconds 800
+  try {
+    $appearance=Find-FocusableNativeControl $uia 'Interface appearance' 6
+  } catch {
+    $prefsNav=Find-FocusableNativeControl $uia 'Preferences (Ctrl+2)' 8
+    $invoke=$null
+    if (-not $prefsNav.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern,[ref]$invoke)) { throw }
+    $invoke.Invoke()
+    $appearance=Find-FocusableNativeControl $uia 'Interface appearance' 16
+  }
   $proof.events+= (Read-ActualNarratorPhrase 'preferences' $appearance 'Interface appearance')
   # Re-use the Narrator modifier that actually produced the previous spoken phrase.
   # Keep app foreground, issue the documented pass-through, then send the real shortcut.
@@ -262,6 +306,8 @@ try {
   $search=Find-FocusableNativeControl $uia 'Search available commands and offline Help'
   $search.SetFocus()
   Start-Sleep -Milliseconds 300
+  # The field's actual ValuePattern is still checked below; do not set its
+  # value directly or bypass the real keyboard journey.
   [System.Windows.Forms.SendKeys]::SendWait('M19-OPT-06')
   Start-Sleep -Milliseconds 1000
   $value=$search.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).Current.Value

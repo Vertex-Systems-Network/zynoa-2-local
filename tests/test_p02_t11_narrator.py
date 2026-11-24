@@ -54,5 +54,13 @@ class NarratorReceiptTests(unittest.TestCase):
         self.assertIn("$DiagnosticBinarySourceSha -cnotmatch '^[a-f0-9]{40}$'",source)
         self.assertIn("$DiagnosticBinarySha256 -cnotmatch '^[a-f0-9]{64}$'",source)
         self.assertTrue(source.rstrip().endswith("Set-Clipboard -Value 'ZYNOA-NARRATOR-DISPOSABLE-CI-COMPLETE'\n}"))
+    def test_narrator_cursor_is_aligned_with_real_keyboard_focus(self):
+        source=(Path(__file__).resolve().parents[1]/"scripts/probe_p02_t11_narrator.ps1").read_text(encoding="utf-8")
+        for marker in ("Preferences (Ctrl+2)", "Close command palette", "FocusedElement", "@($modifier,0xDB)",
+                       "system_focus_label_matches", "known_spoken_labels", "copied_phrase_sha256"):
+            self.assertIn(marker,source)
+        self.assertIn("candidate.IndexOf($ExpectedLabel",source)
+        self.assertNotIn("SetValue(",source)
+        self.assertNotIn("Set-Clipboard -Value $ExpectedLabel",source)
 if __name__=="__main__":
     unittest.main()

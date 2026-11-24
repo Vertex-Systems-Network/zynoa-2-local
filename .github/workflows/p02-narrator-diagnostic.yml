@@ -26,7 +26,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: p01-desktop-windows-build-evidence
-          run-id: 45314800975
+          run-id: 45319452811
           repository: Vertex-Systems-Network/zynoa-2-local
           github-token: ${{ github.token }}
           path: diagnostic-input
@@ -36,13 +36,13 @@ jobs:
           SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           $exe=Join-Path $env:GITHUB_WORKSPACE 'diagnostic-input/apps/desktop/src-tauri/target/release/zynoa_desktop.exe'
-          $digest='65510471a742de5f66d89879e5e664afb5371e11b565801c07cb16e399703f8a'
+          $digest='bf3d3482903de43138fd3a4004b2808805c7f049c4957793039510821f3a8620'
           if ((Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash.ToLowerInvariant() -cne $digest) { throw 'Pinned artifact executable digest mismatch' }
           $script=Join-Path $env:GITHUB_WORKSPACE 'scripts/probe_p02_t11_narrator.ps1'
           $parseErrors=$null
           [void][System.Management.Automation.Language.Parser]::ParseFile($script,[ref]$null,[ref]$parseErrors)
           if ($parseErrors.Count -ne 0) { throw ('Narrator diagnostic script parse failed: ' + (($parseErrors | ForEach-Object { $_.Message + ' (line ' + $_.Extent.StartLineNumber + ')' }) -join '; ')) }
-          & $script -Executable $exe -SourceSha $env:SOURCE_SHA -OutputPath "$env:GITHUB_WORKSPACE/diagnostic-output/narrator.capture.json" -DiagnosticBinarySourceSha '4812e0fd69738307809abd15497afef4795ab6c2' -DiagnosticBinarySha256 $digest
+          & $script -Executable $exe -SourceSha $env:SOURCE_SHA -OutputPath "$env:GITHUB_WORKSPACE/diagnostic-output/narrator.capture.json" -DiagnosticBinarySourceSha 'fb1b38660ea86a973b8f96a0e03cdaeb9a741137' -DiagnosticBinarySha256 $digest
       - name: Upload only disposable diagnostic receipt (never exact-head approval)
         uses: actions/upload-artifact@v4
         if: always()
