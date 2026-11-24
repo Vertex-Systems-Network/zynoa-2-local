@@ -100,7 +100,26 @@ public static class ZynoaNvdaFocus {
     throw 'ZYN-NVDA-013: no actual focusable Preferences selector found'
   }
   $appearance.SetFocus()
-  Start-Sleep -Milliseconds 2300
+  Start-Sleep -Milliseconds 350
+  # NVDA+Tab is NVDA's user-initiated "report current focus" shortcut.
+  # A programmatic UIA SetFocus alone does not guarantee spoken feedback.
+  # Send actual Windows keyboard events; never fabricate a speech receipt.
+  Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class ZynoaNvdaReportFocus {
+  [DllImport("user32.dll")]
+  public static extern void keybd_event(byte vk, byte scan, uint flags, UIntPtr extra);
+}
+'@
+  [ZynoaNvdaReportFocus]::keybd_event(0x2D, 0, 0, [UIntPtr]::Zero)
+  Start-Sleep -Milliseconds 120
+  [ZynoaNvdaReportFocus]::keybd_event(0x09, 0, 0, [UIntPtr]::Zero)
+  Start-Sleep -Milliseconds 120
+  [ZynoaNvdaReportFocus]::keybd_event(0x09, 0, 2, [UIntPtr]::Zero)
+  Start-Sleep -Milliseconds 120
+  [ZynoaNvdaReportFocus]::keybd_event(0x2D, 0, 2, [UIntPtr]::Zero)
+  Start-Sleep -Milliseconds 2400
   Set-Content -LiteralPath $stageFile -Value 'palette' -Encoding UTF8
   [System.Windows.Forms.SendKeys]::SendWait('^+p')
   Start-Sleep -Milliseconds 1200

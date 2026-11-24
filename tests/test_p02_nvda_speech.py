@@ -42,7 +42,7 @@ class NVDAProofTests(unittest.TestCase):
     def test_live_probe_and_no_mock_browser(self):
         ps=(ROOT/"scripts/probe_p02_nvda_speech.ps1").read_text(encoding="utf-8")
         plugin=(ROOT/"scripts/nvda/zynoaAudit.py").read_text(encoding="utf-8")
-        for word in ("Get-FileHash","Invoke-WebRequest","SetForegroundWindow","SendKeys","M19-OPT-06","nvda.exe"):
+        for word in ("Get-FileHash","Invoke-WebRequest","SetForegroundWindow","SendKeys","M19-OPT-06","nvda.exe","ZynoaNvdaReportFocus","keybd_event(0x2D","keybd_event(0x09"):
             self.assertIn(word,ps)
         for word in ("pre_synthSpeak.register","pre_synthSpeak.unregister","plugin_loaded"):
             self.assertIn(word,plugin)
