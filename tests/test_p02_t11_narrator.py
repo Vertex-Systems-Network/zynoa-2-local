@@ -11,6 +11,7 @@ def sample():
         "app_executable_sha256":"a"*64,"narrator_executable_sha256":"b"*64,
         "narrator_signature_verified":True,"narrator_version":"10.0.26100.1",
         "app_pid":222,"narrator_pid":333,"native_uia_pid_match":True,"actual_keyboard_input_value":"M19-OPT-06",
+        "actual_no_match_keyboard_input_value":"zynoa-no-match-7f6c","actual_no_match_result_verified":True,
         "no_user_data":True,"full_narrator_certified":False,"product_release_approved":False,
         "events":[{"stage":stage,"label":label,"clipboard_sequence_before":10+i*3,
                    "clipboard_sequence_after":11+i*3,"actual_speech_clipboard_changed":True}
@@ -19,6 +20,7 @@ class NarratorReceiptTests(unittest.TestCase):
     def test_scoped_receipt_not_release_certification(self):
         r=verify(sample(),SHA,RUN)
         self.assertEqual(r["narrator_live_spoken_journeys"],3)
+        self.assertEqual(r["narrator_live_spoken_stages"],4)
         self.assertFalse(r["full_narrator_certified"])
         self.assertFalse(r["protected_merge_verified"])
     def test_bad_label_stale_or_replayed_clipboard_fails(self):
@@ -62,5 +64,18 @@ class NarratorReceiptTests(unittest.TestCase):
         self.assertIn("candidate.IndexOf($ExpectedLabel",source)
         self.assertNotIn("SetValue(",source)
         self.assertNotIn("Set-Clipboard -Value $ExpectedLabel",source)
+    def test_real_empty_result_input_label_and_selected_result_speech_are_required(self):
+        source=(Path(__file__).resolve().parents[1]/"scripts/probe_p02_t11_narrator.ps1").read_text(encoding="utf-8")
+        for marker in ("SendWait('zynoa-no-match-7f6c')","No matching commands","ZYN-NAR-023","ZYN-NAR-024",
+                       "Read-ActualNarratorPhrase 'palette_result'", "SendWait('^a')"):
+            self.assertIn(marker,source)
+        self.assertNotIn("SetValue(",source)
+        for key,value in (("actual_no_match_keyboard_input_value","wrong"),("actual_no_match_result_verified",False)):
+            p=sample();p[key]=value
+            with self.subTest(key=key),self.assertRaises(InvalidNarratorProof):
+                verify(p,SHA,RUN)
+        p=sample();p["events"].pop(2)
+        with self.assertRaises(InvalidNarratorProof):
+            verify(p,SHA,RUN)
 if __name__=="__main__":
     unittest.main()

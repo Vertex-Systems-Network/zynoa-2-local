@@ -7,7 +7,7 @@ import re
 class InvalidNarratorProof(ValueError):
     pass
 
-EXPECTED = {"preferences": "interface appearance", "palette": "search available commands and offline help", "help": "wiki mapping and link checker"}
+EXPECTED = {"preferences": "interface appearance", "palette": "search available commands and offline help", "palette_result": "wiki mapping and link checker", "help": "wiki mapping and link checker"}
 
 def verify(proof, head, run_id):
     def need(ok, why):
@@ -25,9 +25,10 @@ def verify(proof, head, run_id):
         need(type(proof.get(key)) is int and proof[key] > 0, "live process missing")
     need(proof["app_pid"] != proof["narrator_pid"] and proof.get("native_uia_pid_match") is True, "native app PID mismatch")
     need(proof.get("actual_keyboard_input_value") == "M19-OPT-06", "keyboard journey missing")
+    need(proof.get("actual_no_match_keyboard_input_value") == "zynoa-no-match-7f6c" and proof.get("actual_no_match_result_verified") is True, "real empty-result keyboard journey missing")
     need(proof.get("no_user_data") is True and proof.get("full_narrator_certified") is False and proof.get("product_release_approved") is False, "unsafe data or unsupported product claim")
     events = proof.get("events")
-    need(isinstance(events, list) and len(events) == 3, "three actual Narrator speech stages required")
+    need(isinstance(events, list) and len(events) == 4, "four actual Narrator speech stages required")
     last_sequence = -1
     for stage, event in zip(EXPECTED, events):
         need(isinstance(event, dict) and event.get("stage") == stage, "missing/replayed stage")
@@ -36,7 +37,7 @@ def verify(proof, head, run_id):
         before, after = event.get("clipboard_sequence_before"), event.get("clipboard_sequence_after")
         need(type(before) is int and type(after) is int and last_sequence < before < after and event.get("actual_speech_clipboard_changed") is True, "stale or replayed clipboard")
         last_sequence = after
-    return {"schema_version": 1, "status": "SCOPED_LIVE_MICROSOFT_NARRATOR_SPEECH_PASS", "source_commit_sha": head, "github_run_id": run_id, "narrator_live_spoken_journeys": 3, "full_narrator_certified": False, "product_release_approved": False, "protected_merge_verified": False}
+    return {"schema_version": 1, "status": "SCOPED_LIVE_MICROSOFT_NARRATOR_SPEECH_PASS", "source_commit_sha": head, "github_run_id": run_id, "narrator_live_spoken_journeys": 3, "narrator_live_spoken_stages": 4, "full_narrator_certified": False, "product_release_approved": False, "protected_merge_verified": False}
 
 def main():
     a = argparse.ArgumentParser()

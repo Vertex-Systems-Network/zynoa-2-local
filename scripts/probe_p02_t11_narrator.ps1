@@ -151,7 +151,15 @@ function Read-ActualNarratorPhrase([string]$Stage,$Control,[string]$ExpectedLabe
     }
     $foregroundPid=[uint32]0
     [void][ZynoaNarratorKeyboard]::GetWindowThreadProcessId([ZynoaNarratorKeyboard]::GetForegroundWindow(),[ref]$foregroundPid)
-    if ($foregroundPid -ne $app.Id) { throw 'ZYN-NAR-017: foreground PID differs from native app' }
+    if ($foregroundPid -ne $app.Id) {
+      # Narrator startup/help can briefly acquire foreground. Restore actual
+      # app focus once and independently recheck before any speech command.
+      if (-not [ZynoaNarratorKeyboard]::SetForegroundWindow($app.MainWindowHandle)) { throw 'ZYN-NAR-013: foreground recovery failed' }
+      $Control.SetFocus()
+      Start-Sleep -Milliseconds 500
+      [void][ZynoaNarratorKeyboard]::GetWindowThreadProcessId([ZynoaNarratorKeyboard]::GetForegroundWindow(),[ref]$foregroundPid)
+      if ($foregroundPid -ne $app.Id) { throw 'ZYN-NAR-017: foreground PID differs from native app' }
+    }
     # Narrator+Tab reads the current item. Both default modifier keys are supported.
     Send-NarratorChord ([byte[]]@($modifier,0x09))
     Start-Sleep -Milliseconds 3000
@@ -213,7 +221,7 @@ $proof=[ordered]@{schema_version=1;source_commit_sha=$SourceSha;github_run_id=[s
  app_executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();
  narrator_executable_sha256=(Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant();
  narrator_signature_verified=$true;narrator_version=(Get-Item -LiteralPath $path).VersionInfo.FileVersion;
- app_pid=0;narrator_pid=0;native_uia_pid_match=$false;actual_keyboard_input_value='';
+ app_pid=0;narrator_pid=0;native_uia_pid_match=$false;actual_keyboard_input_value='';actual_no_match_keyboard_input_value='';actual_no_match_result_verified=$false;
  os_version=[Environment]::OSVersion.Version.ToString();
  os_product_name=(Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name ProductName).ProductName;
  os_build_revision=[int](Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name UBR).UBR;
@@ -300,6 +308,22 @@ try {
     }
   }
   Write-Host ("ZYN-NAR-PALETTE method="+$proof.palette_open_method)
+  # Exact prior speech receipt: both modifiers announced selected Overview,
+  # not the input. This is expected aria-activedescendant behavior while results
+  # exist. Use the genuine keyboard-operated empty-result state to verify the
+  # input's own label without disabling its accessible result semantics.
+  $search.SetFocus()
+  [System.Windows.Forms.SendKeys]::SendWait('zynoa-no-match-7f6c')
+  Start-Sleep -Milliseconds 850
+  $search=Find-FocusableNativeControl $uia 'Search available commands and offline Help'
+  $emptyValue=$search.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).Current.Value
+  if ($emptyValue -cne 'zynoa-no-match-7f6c') { throw 'ZYN-NAR-023: native no-result keyboard query mismatch' }
+  $emptyRoot=Get-CurrentNativeRoot
+  $emptyCondition=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,'No matching commands')
+  $emptyResult=$emptyRoot.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$emptyCondition)
+  if ($null -eq $emptyResult) { throw 'ZYN-NAR-024: actual no-match result state absent' }
+  $proof.actual_no_match_keyboard_input_value=$emptyValue
+  $proof.actual_no_match_result_verified=$true
   $proof.events+= (Read-ActualNarratorPhrase 'palette' $search 'Search available commands and offline Help')
   # Narrator scan mode automatically stops in edit fields. Re-focus the
   # verified combobox after the spoken-label clipboard query, then type.
@@ -308,11 +332,17 @@ try {
   Start-Sleep -Milliseconds 300
   # The field's actual ValuePattern is still checked below; do not set its
   # value directly or bypass the real keyboard journey.
+  [System.Windows.Forms.SendKeys]::SendWait('^a')
   [System.Windows.Forms.SendKeys]::SendWait('M19-OPT-06')
   Start-Sleep -Milliseconds 1000
   $value=$search.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).Current.Value
   if ($value -cne 'M19-OPT-06') { throw 'ZYN-NAR-014: native keyboard input missing' }
   $proof.actual_keyboard_input_value=$value
+  # Independently require the real selected Help result's speech before
+  # navigating. The fourth stage is not a replacement for input-label proof.
+  $proof.events+= (Read-ActualNarratorPhrase 'palette_result' $search 'Wiki mapping and link checker')
+  $search=Find-FocusableNativeControl $uia 'Search available commands and offline Help'
+  $search.SetFocus()
   [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
   Start-Sleep -Milliseconds 1800
   # Real Help heading may be non-keyboard-focusable in the native provider;
