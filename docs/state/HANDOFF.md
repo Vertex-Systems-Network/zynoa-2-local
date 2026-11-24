@@ -1,5 +1,7 @@
 # Handoff (canonical starter)
 
+- **P02-T12 Narrator cleanup source contract (2026-11-24):** Governance #45371337780 and Windows #45371337885 stopped at the same obsolete script-tail assertion; five other workflows passed. Updated contract requires clipboard cleanup followed by the unique fail-closed process-exit guard and bounded app/reader termination checks. Source readback satisfied; fresh runtime CI required. T12 IN_PROGRESS, T13 TODO, lease released.
+
 - **P02-T12 foreground interruption after search (2026-11-24):** Windows #45350997630 passed existing native/T10/performance/NVDA/Narrator but M26 failed ZYN-M26-002 after search-empty. Original artifact 14900667235, three hash-verified and visually inspected candidate frames, no final approval. Verified process exit and bounded focus-boundary-only HWND recovery candidate repair; strict screenshot and keyboard gates retained. New exact-head CI required; T12 IN_PROGRESS; T13 TODO; lease released.
 
 - **P02-T12 source-contract reconciliation (2026-11-24):** Governance #45350029838 and Windows #45350029863 failed the same obsolete glossary source assertion before native build; five companion workflows passed. Updated inherited test to require actual named mode/panel, PID, verified keyboard focus and foreground, Enter ordering, fail-closed activation/visibility before capture. Manual source marker/order checks passed; no runtime tests executed locally. Fresh CI required. T12 IN_PROGRESS; T13 TODO; lease released.

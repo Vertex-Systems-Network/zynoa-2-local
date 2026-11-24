@@ -55,7 +55,15 @@ class NarratorReceiptTests(unittest.TestCase):
             self.assertEqual(source.count(marker), 1, marker)
         self.assertIn("$DiagnosticBinarySourceSha -cnotmatch '^[a-f0-9]{40}$'",source)
         self.assertIn("$DiagnosticBinarySha256 -cnotmatch '^[a-f0-9]{64}$'",source)
-        self.assertTrue(source.rstrip().endswith("Set-Clipboard -Value 'ZYNOA-NARRATOR-DISPOSABLE-CI-COMPLETE'\n}"))
+        cleanup = source.rsplit("} finally {", 1)[1]
+        marker = "Set-Clipboard -Value 'ZYNOA-NARRATOR-DISPOSABLE-CI-COMPLETE'"
+        guard = "if (-not $cleanupOk) { throw 'ZYN-NAR-025: disposable native process cleanup not verified' }"
+        self.assertTrue(cleanup.rstrip().endswith(guard + "\n}"))
+        self.assertLess(cleanup.index(marker), cleanup.index(guard))
+        self.assertIn("$app.WaitForExit(5000)", source)
+        self.assertIn("$reader.WaitForExit(5000)", source)
+        self.assertIn("if (Get-Process -Name Narrator -ErrorAction SilentlyContinue) { $cleanupOk=$false }", cleanup)
+        self.assertEqual(source.count("ZYN-NAR-025"), 1)
     def test_narrator_cursor_is_aligned_with_real_keyboard_focus(self):
         source=(Path(__file__).resolve().parents[1]/"scripts/probe_p02_t11_narrator.ps1").read_text(encoding="utf-8")
         for marker in ("Preferences (Ctrl+2)", "Close command palette", "FocusedElement", "@($modifier,0xDB)",
