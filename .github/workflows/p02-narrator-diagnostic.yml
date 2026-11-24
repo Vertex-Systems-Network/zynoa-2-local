@@ -41,7 +41,7 @@ jobs:
           $script=Join-Path $env:GITHUB_WORKSPACE 'scripts/probe_p02_t11_narrator.ps1'
           $parseErrors=$null
           [void][System.Management.Automation.Language.Parser]::ParseFile($script,[ref]$null,[ref]$parseErrors)
-          if ($parseErrors.Count -ne 0) { throw 'Narrator diagnostic script parse failed' }
+          if ($parseErrors.Count -ne 0) { throw ('Narrator diagnostic script parse failed: ' + (($parseErrors | ForEach-Object { $_.Message + ' (line ' + $_.Extent.StartLineNumber + ')' }) -join '; ')) }
           & $script -Executable $exe -SourceSha $env:SOURCE_SHA -OutputPath "$env:GITHUB_WORKSPACE/diagnostic-output/narrator.capture.json" -DiagnosticBinarySourceSha '4812e0fd69738307809abd15497afef4795ab6c2' -DiagnosticBinarySha256 $digest
       - name: Upload only disposable diagnostic receipt (never exact-head approval)
         uses: actions/upload-artifact@v4

@@ -45,5 +45,14 @@ class NarratorReceiptTests(unittest.TestCase):
                        "SendWait('M19-OPT-06')", "ValuePattern", "M19-OPT-06 Wiki mapping and link checker"):
             self.assertIn(marker,source)
         self.assertNotIn("SetValue(",source)
+    def test_probe_has_single_script_body_and_complete_diagnostic_identity_regex(self):
+        source=(Path(__file__).resolve().parents[1]/"scripts/probe_p02_t11_narrator.ps1").read_text(encoding="utf-8")
+        for marker in ("Add-Type -AssemblyName System.Windows.Forms", "function Send-NarratorChord",
+                       "function Get-CurrentNativeRoot", "function Read-ActualNarratorPhrase",
+                       "$proof=[ordered]@{", "Set-Clipboard -Value 'ZYNOA-NARRATOR-DISPOSABLE-CI-COMPLETE'"):
+            self.assertEqual(source.count(marker), 1, marker)
+        self.assertIn("$DiagnosticBinarySourceSha -cnotmatch '^[a-f0-9]{40}$'",source)
+        self.assertIn("$DiagnosticBinarySha256 -cnotmatch '^[a-f0-9]{64}$'",source)
+        self.assertTrue(source.rstrip().endswith("Set-Clipboard -Value 'ZYNOA-NARRATOR-DISPOSABLE-CI-COMPLETE'\n}"))
 if __name__=="__main__":
     unittest.main()
