@@ -32,6 +32,30 @@ jobs:
           else
             echo "desktop=false" >> "$GITHUB_OUTPUT"
           fi
+
+  wiki-rendered:
+    needs: changes
+    if: needs.changes.outputs.desktop == 'true' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'phase/02-shared-ui'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: P02 T11 public rendered Wiki negative tests
+        run: python -m unittest tests.test_p02_t11_wiki_render -v
+      - name: Verify actual hosted Wiki in headless Chrome and pinned source paths
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: python -m tools.verify_p02_t11_wiki_render --root . --source-sha "$HEAD_SHA" --run-id "$RUN_ID" --report docs/screenshots/_ci/M02/P02-T11-wiki-browser.verify.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p02-t11-public-wiki-browser
+          path: docs/screenshots/_ci/M02/P02-T11-wiki-browser.verify.json
+          if-no-files-found: error
+          retention-days: 14
   desktop-windows:
     needs: changes
     if: needs.changes.outputs.desktop == 'true' && github.event.pull_request.head.repo.full_name == github.repository && (github.event.pull_request.head.ref == 'phase/01-foundation' || github.event.pull_request.head.ref == 'phase/02-shared-ui')

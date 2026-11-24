@@ -1,5 +1,8 @@
 # P02-T11 — Protected Merge and Final Acceptance Preflight
 
+- **2026-11-24 T11 latest completed source CI:** At `ac8b8ed5f8029e826cff8cbf7cabc86ab1d8e149`, all five workflows passed, including [Windows #45307557723](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45307557723), source security/privacy, 29 originals, 9 UIA, authentic NVDA three-stage speech, and strict unchanged CI budget. Warm IPC 864/891/891ms, cold metadata **40,136ms**, 69 capture 93,556ms. The cold observation is within 45s CI guardrail but remains close to historical 42,582ms, and no representative production SLA/outlier resolution is claimed. Added read-only, public GitHub Wiki Chrome DOM + pinned source-file validation with independent negative tests; corrected stale canonical source statements about prior hosted preview publication without changing the published bytes or enabling in-app external links. Current-head new CI must pass. All six review threads resolved. T11 remains IN_PROGRESS; separate explicit exact-head merge authority and remaining product/accessibility/merge gates not waived.
+
+
 - **2026-11-24 T11 source-security audit started:** [security/privacy evidence](P02_T11_SECURITY_PRIVACY_REVIEW_20261124.md) and fail-closed negative test/CI check authored. Six inline PR review threads now verified resolved; strict read-only Tauri capability/CSP/IPC and no-network Help source reviewed. This is preparation, NOT final owner approval, Narrator/product performance signoff or merge; T11 stays IN_PROGRESS.
 
 
