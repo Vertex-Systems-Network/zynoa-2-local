@@ -82,12 +82,22 @@ public static class ZynoaNvdaFocus {
   Set-Content -LiteralPath $stageFile -Value 'preferences' -Encoding UTF8
   [System.Windows.Forms.SendKeys]::SendWait('^{2}')
   Start-Sleep -Milliseconds 900
-  $appearance = $uia.FindFirst(
+  $appearanceMatches = $uia.FindAll(
     [System.Windows.Automation.TreeScope]::Descendants,
     [System.Windows.Automation.PropertyCondition]::new(
       [System.Windows.Automation.AutomationElement]::NameProperty, 'Interface appearance'))
-  if ($null -eq $appearance -or -not $appearance.Current.IsKeyboardFocusable) {
-    throw 'ZYN-NVDA-013: actual labelled Preferences selector not focusable'
+  $appearance = $null
+  for ($i=0; $i -lt $appearanceMatches.Count; $i++) {
+    try {
+      $candidate = $appearanceMatches.Item($i)
+      if ($candidate.Current.IsKeyboardFocusable -and $candidate.Current.IsEnabled -and -not $candidate.Current.IsOffscreen) {
+        $appearance = $candidate
+        break
+      }
+    } catch [System.Windows.Automation.ElementNotAvailableException] {}
+  }
+  if ($null -eq $appearance) {
+    throw 'ZYN-NVDA-013: no actual focusable Preferences selector found'
   }
   $appearance.SetFocus()
   Start-Sleep -Milliseconds 2300
