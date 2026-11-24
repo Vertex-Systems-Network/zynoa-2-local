@@ -112,12 +112,23 @@ class P02NativeEvidenceGateTests(unittest.TestCase):
 
     def test_glossary_capture_requires_actual_visible_heading(self):
         src = (Path(__file__).resolve().parents[1] / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
-        start = src.index("$glossaryRoot=")
+        start = src.index("$glossaryCondition=")
         end = src.index("-ScreenshotId 'P02-T10-CTRL-M19-OPT-04'", start)
         segment = src[start:end]
-        for marker in ("FAQ & glossary", "InvokePattern", "ZYN-SCREEN-045",
-                       "ZYN-SCREEN-046", "IsOffscreen", "ScrollItemPattern"):
+        for marker in ("FAQ & glossary", "Practical answers, no network.",
+                       "Current.ProcessId -ne $TargetPid", "IsKeyboardFocusable",
+                       "$button.SetFocus()", "$button.Current.HasKeyboardFocus",
+                       "SetForegroundWindow($hwnd)", "SendWait('{ENTER}')",
+                       "FindFirst([System.Windows.Automation.TreeScope]::Descendants,$glossaryPanelCondition)",
+                       "if (-not $glossaryActivated) { throw 'ZYN-SCREEN-045",
+                       "if (-not $heading.Current.IsOffscreen)",
+                       "ScrollItemPattern",
+                       "if (-not $glossaryVisible) { throw 'ZYN-SCREEN-046"):
             self.assertIn(marker, segment)
+        self.assertLess(segment.index("$button.SetFocus()"), segment.index("$button.Current.HasKeyboardFocus"))
+        self.assertLess(segment.index("$button.Current.HasKeyboardFocus"), segment.index("SendWait('{ENTER}')"))
+        self.assertLess(segment.index("SendWait('{ENTER}')"), segment.index("ZYN-SCREEN-045"))
+        self.assertLess(segment.index("ZYN-SCREEN-045"), segment.index("ZYN-SCREEN-046"))
         self.assertIn("-ScreenshotId 'P02-T10-CTRL-M19-OPT-04' -Shortcut ''", src)
 
     def test_faq_capture_reselects_native_tab_after_glossary_scroll(self):
