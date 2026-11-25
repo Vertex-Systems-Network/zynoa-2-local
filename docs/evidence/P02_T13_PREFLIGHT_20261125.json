@@ -35,5 +35,29 @@
     "frontend": "one inherited catalog assertion failed",
     "native": "not run",
     "companion_workflows_passed": 6
+  },
+  "second_ci": {
+    "source_sha": "142b21b75dab9cef5c9c58fb3feedb360ca017b4",
+    "run_id": 45580646849,
+    "job_id": 139089655426,
+    "artifact_id": 15006229214,
+    "artifact_sha256": "3bfc3092fb7ca75ead284cf36c5f07ac3a48ca38cfb679154b075494b0263f5f",
+    "frontend": "PASS",
+    "native_candidates": {
+      "M23": 25,
+      "M24": 26,
+      "M25": 21
+    },
+    "full_candidate_verifiers": {
+      "M24": "PASS",
+      "M25": "PASS",
+      "M23": "incomplete"
+    },
+    "missing": [
+      "M23-S09",
+      "M23-OPT-18"
+    ],
+    "legacy_nvda": "actual Help heading absent",
+    "final_visual_review": false
   }
 }

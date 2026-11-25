@@ -346,6 +346,16 @@ public static class ZynoaNvdaReportFocus {
   if ($value -cne 'M19-OPT-06') { throw 'ZYN-NVDA-011: keyboard never entered native search' }
   Set-Content -LiteralPath $stageFile -Value 'help' -Encoding UTF8
   Assert-NvdaForeground
+  # NVDA+F2 passes the next key to the focused application rather than
+  # interpreting Enter as a browse-mode command. Use real keyboard events.
+  [ZynoaNvdaReportFocus]::keybd_event(0x2D,0,0,[UIntPtr]::Zero)
+  Start-Sleep -Milliseconds 120
+  [ZynoaNvdaReportFocus]::keybd_event(0x71,0,0,[UIntPtr]::Zero)
+  Start-Sleep -Milliseconds 120
+  [ZynoaNvdaReportFocus]::keybd_event(0x71,0,2,[UIntPtr]::Zero)
+  [ZynoaNvdaReportFocus]::keybd_event(0x2D,0,2,[UIntPtr]::Zero)
+  Start-Sleep -Milliseconds 250
+  Assert-NvdaForeground
   [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
   Start-Sleep -Milliseconds 700
   # Verify the genuine destination reached by Enter, then explicitly request
@@ -362,8 +372,9 @@ public static class ZynoaNvdaReportFocus {
       for ($i=0;$i -lt $items.Count;$i++) {
         try {
           $item=$items.Item($i)
+          # Native heading can initially be below the viewport. Allow only
+          # the exact focusable text heading, then require visible actual focus.
           if ($item.Current.IsKeyboardFocusable -and $item.Current.IsEnabled -and
-              -not $item.Current.IsOffscreen -and
               ($item.Current.ControlType -eq [System.Windows.Automation.ControlType]::Text)) {
             return $item
           }
@@ -379,7 +390,7 @@ public static class ZynoaNvdaReportFocus {
     Start-Sleep -Milliseconds 350
     $heading=Find-NvdaHelpHeading
   }
-  if (-not $heading.Current.HasKeyboardFocus) { throw 'ZYN-NVDA-019: actual Help heading focus absent' }
+  if (-not $heading.Current.HasKeyboardFocus -or $heading.Current.IsOffscreen) { throw 'ZYN-NVDA-019: actual visible Help heading focus absent' }
   Assert-NvdaForeground
   [ZynoaNvdaReportFocus]::keybd_event(0x2D,0,0,[UIntPtr]::Zero)
   Start-Sleep -Milliseconds 120
@@ -390,7 +401,8 @@ public static class ZynoaNvdaReportFocus {
   [ZynoaNvdaReportFocus]::keybd_event(0x2D,0,2,[UIntPtr]::Zero)
   Start-Sleep -Milliseconds 2200
   Assert-NvdaForeground
-  if (-not (Find-NvdaHelpHeading).Current.HasKeyboardFocus) { throw 'ZYN-NVDA-019: Help focus lost after NVDA report' }
+  $heading=Find-NvdaHelpHeading
+  if (-not $heading.Current.HasKeyboardFocus -or $heading.Current.IsOffscreen) { throw 'ZYN-NVDA-019: Help focus lost after NVDA report' }
   $app.Refresh(); $nvda.Refresh()
   if ($app.HasExited -or $nvda.HasExited) { throw 'ZYN-NVDA-012: app or NVDA died during journey' }
   $events = @((Get-Content -LiteralPath $proofFile -Encoding UTF8) | ForEach-Object { $_ | ConvertFrom-Json })

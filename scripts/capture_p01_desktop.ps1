@@ -423,9 +423,23 @@ public static class ZynoaM26Foreground {
         Send-M26Key '{ENTER}'
         foreach ($screen in $center.screens) {
             $script:m26Stage=$screen.id
-            [void](Focus-M26Control -Name ('Open '+$screen.id+' '+$screen.title))
+            $navName='Open '+$screen.id+' '+$screen.title
+            $headingName=$screen.id+' '+$screen.title
+            [void](Focus-M26Control -Name $navName)
             Send-M26Key '{ENTER}'
-            Capture-SystemTarget -Asset $screen.id -Name ($screen.id+' '+$screen.title) -Kind 'screen'
+            try {
+                [void](Focus-M26Control -Name $headingName)
+            } catch {
+                if ($_.Exception.Message -notlike 'ZYN-M26-004:*') { throw }
+                # Native button activation may be swallowed when scrolling from
+                # the last option group. Retry once via the actual focused button.
+                # A verified heading is still mandatory; no direct route injection.
+                Write-Host ('ZYN-T13-KEYBOARD-RETRY '+$screen.id)
+                [void](Focus-M26Control -Name $navName)
+                Send-M26Key ' '
+                [void](Focus-M26Control -Name $headingName)
+            }
+            Capture-SystemTarget -Asset $screen.id -Name $headingName -Kind 'screen'
             foreach ($id in $screen.options) {
                 $option=@($center.options | Where-Object { $_.id -ceq $id })
                 if ($option.Count -ne 1) { throw 'ZYN-T13-004: missing option' }

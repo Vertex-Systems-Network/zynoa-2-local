@@ -174,3 +174,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P02 | Consolidated T13 UI implementation on active PR after owner explicitly prioritized phase completion | Existing P02 scope includes three system centers; preserve six shortcuts, use session-only drafts and actual disabled service controls; native 74-candidate verifier; no premature task DONE or backend mutation.
 
 2026-11-25 | P02 | Preserve Help category correctness under expanded T13 catalog, improve screen search and keyboard return | First TypeScript and six companion gates passed; fixed inherited exact-count assumption without weakening membership checks; no native or release acceptance claim.
+
+2026-11-25 | P02 | Close scoped T12 only after all dedicated exact-source native/speech gates, 28 final images and Wiki proof | Overall Windows still failed T13 and legacy M19; retain T11/T13 merge blockers. Retry M23 real keyboard button once and pass actual Enter through NVDA; verifier unchanged.

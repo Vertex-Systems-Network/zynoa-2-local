@@ -32,7 +32,7 @@ class T13Contracts(unittest.TestCase):
         self.assertIn('backup: "backup-center", locations: "data-locations", updates: "update-center"',app)
     def test_native_capture_and_fail_closed(self):
         capture=(ROOT/"scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
-        for token in ("SystemCenterModule","Capture-SystemTarget","Focus-M26Control","Wait-M26Name","Save-NativeFollowup","Assert-M26Foreground","T13-journey.capture.json"):
+        for token in ("SystemCenterModule","Capture-SystemTarget","Focus-M26Control","Wait-M26Name","Save-NativeFollowup","Assert-M26Foreground","T13-journey.capture.json","ZYN-T13-KEYBOARD-RETRY","Send-M26Key ' '"):
             self.assertIn(token,capture)
         with tempfile.TemporaryDirectory() as d:
             with self.assertRaises(OSError):verify(Path(d),"M23","a"*40,"123")

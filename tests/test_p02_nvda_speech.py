@@ -87,7 +87,7 @@ class NVDAProofTests(unittest.TestCase):
         branch=ps.split("Set-Content -LiteralPath $stageFile -Value 'help'",1)[1]
         for marker in ("SendWait('{ENTER}')","Find-NvdaHelpHeading","Get-NvdaNativeRoot",
                        "Wiki mapping and link checker","ControlType]::Text","HasKeyboardFocus",
-                       "ZYN-NVDA-018","ZYN-NVDA-019","keybd_event(0x2D","keybd_event(0x09",
+                       "ZYN-NVDA-018","ZYN-NVDA-019","keybd_event(0x2D","keybd_event(0x09","keybd_event(0x71","IsOffscreen",
                        "Assert-NvdaForeground"):
             self.assertIn(marker,branch)
         self.assertNotIn("InvokePattern",branch)

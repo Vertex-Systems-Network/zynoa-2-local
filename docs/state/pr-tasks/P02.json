@@ -75,8 +75,8 @@
     {
       "id": "P02-T12",
       "title": "M26 integrated changelog, known issues, version history and module changes UI foundation with native evidence",
-      "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/16"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45580646849"
     },
     {
       "id": "P02-T13",
