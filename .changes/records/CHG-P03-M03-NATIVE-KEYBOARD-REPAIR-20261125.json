@@ -3,7 +3,7 @@
   "module_id": "M03",
   "kind": "bugfix",
   "title": "Bounded native keyboard proof and failure diagnostics",
-  "summary": "Retain exact real input proof; bounded paced keyboard retry with physical click and safe failure evidence. No application authority change.",
+  "summary": "Retain exact real input proof; bounded paced keyboard retry, actual supported UIA button activation, safe failure evidence and content-responsive Chat pane layout.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [
@@ -21,7 +21,9 @@
     "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45629508632",
     "scripts/probe_p03_chat_ui.ps1",
     ".github/workflows/p03-native-baseline.yml",
-    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45631743384"
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45631743384",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45632415583",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45632415583/artifacts/15030958332"
   ],
   "commit_sha": "a79018d4f77fe0c6b3310c15f5a9263b091bea97",
   "release": null,

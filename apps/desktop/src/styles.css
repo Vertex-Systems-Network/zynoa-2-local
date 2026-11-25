@@ -658,4 +658,12 @@ main:focus{outline:none}
 .shell .chat-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
 .shell .chat-notice { overflow-wrap:anywhere; color:var(--text-secondary); font-size:13px; line-height:1.6; }
 .shell .chat-pane [role="alert"] { border-left:3px solid var(--outline); padding:10px; }
-@media(max-width:1050px){.shell .chat-layout { grid-template-columns:minmax(0,1fr); }}
+/* Use the actual available work area, not the full window width. */
+.shell [data-testid="chat-view"] { container-type:inline-size; }
+.shell [data-testid="chat-view"] .section-heading { gap:12px; margin-bottom:12px; }
+.shell [data-testid="chat-view"] .section-heading .lead { margin-bottom:10px; }
+.shell .chat-layout { grid-template-columns:minmax(190px, 1fr) minmax(0, 1.75fr); }
+.shell .chat-pane { border-color:var(--line); }
+.shell .chat-pane input,.shell .chat-pane textarea { min-height:44px; }
+.shell .chat-pane textarea { min-height:100px; }
+@container(max-width:580px){.shell .chat-layout { grid-template-columns:minmax(0,1fr); }}

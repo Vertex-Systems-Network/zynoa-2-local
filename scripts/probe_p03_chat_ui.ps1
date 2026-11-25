@@ -88,8 +88,23 @@ function Focus-Control($Control) {
 function Click-Control([string]$Name) {
  $control=Wait-Name $Name 'Button' $true
  Focus-Control $control
- $pattern=$control.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
- $pattern.Invoke()
+ # ARIA pressed buttons may expose TogglePattern rather than InvokePattern.
+ # Select the actual supported provider pattern, never assume ControlType.Button
+ # implies InvokePattern. A physical click is bounded to the native HWND.
+ $pattern=$null
+ if ($control.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern,[ref]$pattern)) {
+   $pattern.Invoke()
+   Write-Output ('Native activation: '+$Name+' via InvokePattern')
+ } else {
+   $pattern=$null
+   if ($control.TryGetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern,[ref]$pattern)) {
+     $pattern.Toggle()
+     Write-Output ('Native activation: '+$Name+' via TogglePattern')
+   } else {
+     Focus-ByPhysicalClick $control
+     Write-Output ('Native activation: '+$Name+' via physical click')
+   }
+ }
 }
 function Focus-ByPhysicalClick($Control) {
  Focus-Control $Control
@@ -193,7 +208,9 @@ try {
  $script:stage='reopen conversation from UI'
  Click-Control $title
  [void](Wait-Name $content)
- [void](Wait-Name 'Message' 'Edit' $true)
+ $composer=Wait-Name 'Message' 'Edit' $true
+ Focus-Control $composer
+ [void](Wait-Name $content)
  Capture 'M03-S02-candidate.png'
  Stop-Native
  $script:stage='independent reopened fixture check'
