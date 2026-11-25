@@ -22,6 +22,7 @@ class FakeTransport:
         self.suite_id = 99
         self.run_overrides = {}
         self.job_overrides = {}
+        self.associated_prs = []
         self.checks = [{
             "name": "governance-lint", "head_sha": SHA,
             "status": "completed", "conclusion": "success", "app": {"id": 15368},
@@ -120,6 +121,11 @@ class FakeTransport:
             return {"name": "main", "protected": self.main_protected, "commit": {"sha": self.main_sha}}
         if path.endswith("/commits/" + SHA + "/check-runs"):
             return {"total_count": len(self.checks), "check_runs": self.checks}
+        if path.endswith("/commits/" + SHA + "/pulls"):
+            assert parse_qs(urlparse(url).query) == {"per_page": ["2"]}
+            return self.associated_prs
+        if path.endswith(f"/compare/{MERGE}...{SHA}"):
+            return {"status": "ahead"}
         if path.endswith("/issues/3"):
             return {"number": 3, "state": "open" if self.issue_open else "closed"}
         if path.endswith("/issues"):
@@ -173,6 +179,41 @@ class GitHubEvidenceTests(unittest.TestCase):
                 self.assertFalse(result["workflow_provenance_verified"])
                 self.assertFalse(result["checks_passed"])
                 self.assertFalse(result["transition_ready"])
+
+    def test_cleared_actions_pr_list_requires_unique_verified_merge_association(self):
+        client, fake = self.build()
+        fake.run_overrides = {"pull_requests": [], "created_at": "2026-11-17T23:48:00Z"}
+        fake.job_overrides = {"completed_at": "2026-11-17T23:58:00Z"}
+        associated = {
+            "number": 1, "state": "closed", "merged_at": "2026-11-18T00:00:00Z",
+            "head": {"ref": BRANCH, "sha": SHA, "repo": {"full_name": REPO}},
+            "base": {"ref": "main", "repo": {"full_name": REPO}},
+        }
+        fake.associated_prs = [associated]
+        self.assertTrue(client.observe(STATE)["checks_passed"])
+
+        for associations in ([], [associated, {**associated, "number": 2}], [{**associated, "number": 2}]):
+            with self.subTest(associations=associations):
+                fake.associated_prs = associations
+                self.assertFalse(client.observe(STATE)["checks_passed"])
+
+        fake.associated_prs = [associated]
+        fake.job_overrides["completed_at"] = "2026-11-18T00:01:00Z"
+        self.assertFalse(client.observe(STATE)["checks_passed"])
+        fake.job_overrides["completed_at"] = "2026-11-17T23:58:00Z"
+        fake.pr_merged = False
+        self.assertFalse(client.observe(STATE)["checks_passed"])
+
+    def test_compare_only_accepts_two_pinned_commit_shas(self):
+        client, fake = self.build()
+        self.assertEqual({"status": "ahead"}, client.compare_commits(MERGE, SHA))
+        count = fake.request_count
+        for invalid in ("main", "../main", SHA + "?page=1", SHA + "/files"):
+            with self.subTest(invalid=invalid), self.assertRaises(GitHubEvidenceError):
+                client.compare_commits(MERGE, invalid)
+        with self.assertRaises(GitHubEvidenceError):
+            client._get("/contents/../rules")
+        self.assertEqual(count, fake.request_count)
 
     def test_forged_job_or_check_url_cannot_grant_merge_readiness(self):
         for key, forged in (

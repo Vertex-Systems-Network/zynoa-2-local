@@ -110,7 +110,7 @@ def _main_ancestry(reader: GitHubGateway, observed: dict, expected_sha: str) -> 
         return observed.get("main_matches_merge") is True
     # A legitimate closeout PR advances protected main. Verify the merged
     # primary PR's exact SHA is an ancestor using GitHub's live comparison.
-    comparison = reader._get("/compare/" + merge_sha + "..." + main_sha)
+    comparison = reader.compare_commits(merge_sha, main_sha)
     base = comparison.get("base_commit") if isinstance(comparison, dict) else None
     common = comparison.get("merge_base_commit") if isinstance(comparison, dict) else None
     return (

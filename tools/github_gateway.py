@@ -19,6 +19,8 @@ from typing import Any, Callable, Mapping
 _API = "https://api.github.com"
 _REPO_PATTERN = re.compile(r"^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$")
 _SHA_PATTERN = re.compile(r"^[0-9a-f]{40}$")
+_PINNED_COMPARE_ROUTE = re.compile(r"/compare/[0-9a-f]{40}\.\.\.[0-9a-f]{40}")
+_GITHUB_UTC_TIME = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z")
 # The accepted app identity is host-owned policy, not something a branch ruleset
 # or PR-authored check can redefine. GitHub Actions App ID is 15368.
 _TRUSTED_CHECK_APPS = {"governance-lint": 15368, "workspace-windows": 15368}
@@ -89,7 +91,8 @@ class GitHubGateway:
         self.timeout = timeout
 
     def _get(self, suffix: str, params: Mapping[str, str] | None = None) -> Any:
-        if (suffix and not suffix.startswith("/")) or ".." in suffix or "://" in suffix or "#" in suffix:
+        if ((suffix and not suffix.startswith("/")) or "://" in suffix or "#" in suffix
+                or (".." in suffix and not _PINNED_COMPARE_ROUTE.fullmatch(suffix))):
             raise GitHubEvidenceError("unsafe API route")
         query = ("?" + urllib.parse.urlencode(params)) if params else ""
         return self.transport(
@@ -117,6 +120,12 @@ class GitHubGateway:
         if not _SHA_PATTERN.fullmatch(sha):
             raise GitHubEvidenceError("invalid commit SHA")
         return self._get("/commits/" + sha + "/check-runs", {"per_page": "100"})
+
+    def compare_commits(self, base_sha: str, head_sha: str) -> dict:
+        route = f"/compare/{base_sha}...{head_sha}"
+        if not _PINNED_COMPARE_ROUTE.fullmatch(route):
+            raise GitHubEvidenceError("comparison requires pinned commit SHAs")
+        return self._get(route)
 
     def workflow_run(self, run_id: int) -> dict:
         """Authenticate an Actions run, not just a check name/provider."""
@@ -346,7 +355,7 @@ class GitHubGateway:
     def _verify_actions_provenance(
         self, observed_checks: Mapping[str, list[dict]],
         required_checks: tuple[str, ...], head_sha: str,
-        branch: str, pr_number: int,
+        branch: str, pr_number: int, merged_at: str | None = None,
     ) -> bool:
         """Link each required check to a trusted Actions run AND exact job.
 
@@ -398,11 +407,12 @@ class GitHubGateway:
             ):
                 return False
             prs = run.get("pull_requests")
-            if not isinstance(prs, list) or not any(
+            if not isinstance(prs, list):
+                return False
+            linked_pr = any(
                 isinstance(pr, dict) and type(pr.get("number")) is int
                 and pr["number"] == pr_number for pr in prs
-            ):
-                return False
+            )
             job = self.workflow_job(job_id)
             if not isinstance(job, dict) or (
                 job.get("id") != job_id or job.get("run_id") != run_id
@@ -411,7 +421,40 @@ class GitHubGateway:
                 or job.get("conclusion") != "success"
             ):
                 return False
+            if not linked_pr and (prs or not self._verify_merged_check_association(
+                head_sha, branch, pr_number, merged_at, run, job
+            )):
+                return False
         return True
+
+    def _verify_merged_check_association(
+        self, head_sha: str, branch: str, pr_number: int,
+        merged_at: str | None, run: Mapping, job: Mapping,
+    ) -> bool:
+        """Resolve an Actions run whose PR list was emptied after merge."""
+        created_at, completed_at = run.get("created_at"), job.get("completed_at")
+        if not all(isinstance(value, str) and _GITHUB_UTC_TIME.fullmatch(value)
+                   for value in (created_at, completed_at, merged_at)):
+            return False
+        if not created_at <= completed_at <= merged_at:
+            return False
+
+        # More than one associated PR makes the empty Actions list ambiguous.
+        associated = self._get(f"/commits/{head_sha}/pulls", {"per_page": "2"})
+        if not isinstance(associated, list) or len(associated) != 1:
+            return False
+        pr = associated[0]
+        if not isinstance(pr, dict):
+            return False
+        head, base = pr.get("head"), pr.get("base")
+        return (
+            type(pr.get("number")) is int and pr["number"] == pr_number
+            and pr.get("state") == "closed" and pr.get("merged_at") == merged_at
+            and isinstance(head, dict) and head.get("sha") == head_sha and head.get("ref") == branch
+            and isinstance(head.get("repo"), dict) and head["repo"].get("full_name") == _APPROVED_REPO
+            and isinstance(base, dict) and base.get("ref") == "main"
+            and isinstance(base.get("repo"), dict) and base["repo"].get("full_name") == _APPROVED_REPO
+        )
 
     def observe(self, state: Mapping[str, Any], required_checks: tuple[str, ...] = ("governance-lint",),
                 blocker_numbers: tuple[int, ...] | None = None) -> dict:
@@ -466,7 +509,8 @@ class GitHubGateway:
         if checks_passed:
             try:
                 workflow_provenance_verified = self._verify_actions_provenance(
-                    observed, required_checks, head_sha, phase_branch, number
+                    observed, required_checks, head_sha, phase_branch, number,
+                    pr.get("merged_at") if pr.get("merged") is True else None,
                 )
             except (GitHubEvidenceError, ValueError, TypeError):
                 workflow_provenance_verified = False
