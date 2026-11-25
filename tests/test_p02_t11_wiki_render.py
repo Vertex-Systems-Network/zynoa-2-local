@@ -21,5 +21,15 @@ class WikiBrowserProofTests(unittest.TestCase):
     def test_released_claim_without_preview_rejected(self):
         with self.assertRaises(WikiProofError):
             audit_dom("M02",fixture().replace("Preview","Released"),SHA)
+    def test_m26_requires_all_twenty_rendered_options_and_exact_documentation_links(self):
+        ids=" ".join(f"M26-OPT-{i:02d}" for i in range(1,21))
+        links="".join(f'<a href="/{REPO}/blob/{SHA}/{path}">Source</a>' for path in
+                      ("docs/help/articles/M26.md","docs/wiki/pages/M26.md","docs/modules/M26.md"))
+        html=f'<div id="wiki-body"><h1>Unshipped preview</h1><p>{ids}</p>{links}</div>'
+        self.assertEqual(audit_dom("M26",html,SHA)["rendered_option_ids"],20)
+        for bad in (html.replace("M26-OPT-20","missing"),html.replace("docs/help/articles/M26.md","docs/help/articles/M19.md"),
+                    html.replace(SHA,"main"),html.replace("Unshipped preview","Released")):
+            with self.assertRaises(WikiProofError):audit_dom("M26",bad,SHA)
+
 if __name__=="__main__":
     unittest.main()
