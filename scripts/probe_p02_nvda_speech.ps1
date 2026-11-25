@@ -127,6 +127,8 @@ using System.Runtime.InteropServices;
 public static class ZynoaNvdaReportFocus {
   [DllImport("user32.dll")]
   public static extern void keybd_event(byte vk, byte scan, uint flags, UIntPtr extra);
+  [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
+  [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extra);
 }
 '@
   if ($M26Only) {
@@ -205,7 +207,10 @@ public static class ZynoaNvdaReportFocus {
     $input=Find-M26NvdaControl -Name 'Search bundled notices' -Focusable
     $query=$input.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).Current.Value
     if ($query -cne 'zzznomatch') { throw 'ZYN-M26-NVDA-008: actual keyboard query absent' }
-    [void](Find-M26NvdaControl -Name 'No matching notices. Reset filters to view all.')
+    # A real no-match reset button can be focused and announced even
+    # when the asynchronous live region was silent on this run.
+    [void](Focus-M26NvdaControl -Name 'No matching notices. Reset filters to view all.')
+    Request-M26NvdaFocusSpeech
     $app.Refresh();$nvda.Refresh()
     if ($app.HasExited -or $nvda.HasExited) { throw 'ZYN-M26-NVDA-009: native process ended' }
     $events=@((Get-Content -LiteralPath $proofFile -Encoding UTF8) | ForEach-Object { $_ | ConvertFrom-Json })
@@ -308,16 +313,22 @@ public static class ZynoaNvdaReportFocus {
     Assert-NvdaForeground
     $input=Find-NvdaSearch
     if ($null -eq $input -or -not $input.Current.HasKeyboardFocus) { throw 'ZYN-NVDA-011: actual palette input focus absent' }
-    # If the first real typing was intercepted, explicitly request NVDA focus
-    # mode before the one bounded retry; never set the UIA value directly.
+    # If first typing was intercepted, use the real native edit click
+    # before the one bounded retry; never set the UIA value directly.
     if ($typingAttempt -eq 1) {
       Write-Host 'ZYN-NVDA-TYPING-RETRY: actual value mismatch; retry focused input once'
-      [ZynoaNvdaReportFocus]::keybd_event(0x2D,0,0,[UIntPtr]::Zero)
-      Start-Sleep -Milliseconds 120
-      [ZynoaNvdaReportFocus]::keybd_event(0x20,0,0,[UIntPtr]::Zero)
-      Start-Sleep -Milliseconds 120
-      [ZynoaNvdaReportFocus]::keybd_event(0x20,0,2,[UIntPtr]::Zero)
-      [ZynoaNvdaReportFocus]::keybd_event(0x2D,0,2,[UIntPtr]::Zero)
+      # Real provider-derived click on the named edit field, no guessed
+      # coordinate and no UIA SetValue. Mouse focus can enter NVDA edit mode.
+      $point=New-Object System.Windows.Point
+      if (-not $input.TryGetClickablePoint([ref]$point) -or
+          -not (Get-NvdaNativeRoot).Current.BoundingRectangle.Contains($point)) {
+        throw 'ZYN-NVDA-011: actual input click target absent'
+      }
+      if (-not [ZynoaNvdaReportFocus]::SetCursorPos([int]$point.X,[int]$point.Y)) {
+        throw 'ZYN-NVDA-011: actual input pointer move failed'
+      }
+      [ZynoaNvdaReportFocus]::mouse_event(2,0,0,0,[UIntPtr]::Zero)
+      [ZynoaNvdaReportFocus]::mouse_event(4,0,0,0,[UIntPtr]::Zero)
       Start-Sleep -Milliseconds 500
       Assert-NvdaForeground
       $input=Find-NvdaSearch
@@ -330,6 +341,7 @@ public static class ZynoaNvdaReportFocus {
     if ($null -eq $input) { throw 'ZYN-NVDA-010: real command search missing after typing' }
     $value=$input.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).Current.Value
     if ($value -ceq 'M19-OPT-06') { break }
+    Write-Host ("ZYN-NVDA-TYPING-MISMATCH attempt="+$typingAttempt+" length="+$value.Length)
   }
   if ($value -cne 'M19-OPT-06') { throw 'ZYN-NVDA-011: keyboard never entered native search' }
   Set-Content -LiteralPath $stageFile -Value 'help' -Encoding UTF8

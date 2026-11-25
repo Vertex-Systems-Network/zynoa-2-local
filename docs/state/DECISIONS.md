@@ -156,3 +156,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P02 | Preserve actual input accessibility focus and decouple native option verification from screen failure | Both M26 live screen-reader gates passed; option journey previously skipped, legacy default active descendant can report result rather than edit, strict aggregate CI remains fail closed.
 
 2026-11-25 | P02 | Synchronize T04 source assertions with deliberate palette result navigation | Same inherited assertion blocked Windows and Governance before native execution; preserve modal isolation, keyboard movement, default Enter and focus return requirements.
+
+2026-11-25 | P02 | Record all 30 native candidates, reject OPT-13 visible focus gap, request genuine empty reset speech | Native screen/option gates passed but independent review finds focus ring missing and live NVDA empty speech absent; do not treat machine receipt as final visual or speech approval.

@@ -66,11 +66,21 @@ class NVDAProofTests(unittest.TestCase):
         self.assertIn("setQuery(event.target.value); setSelected(0); setResultNavigation(false);",view)
         self.assertIn("execute(matches[Math.min(selected, matches.length - 1)])",view)
 
+    def test_m26_no_match_speech_is_requested_on_real_reset_control(self):
+        ps=(ROOT/"scripts/probe_p02_nvda_speech.ps1").read_text(encoding="utf-8")
+        branch=ps.split("Set-Content -LiteralPath $stageFile -Value 'm26_empty'",1)[1].split("$app.Refresh();$nvda.Refresh()",1)[0]
+        self.assertIn("Focus-M26NvdaControl -Name 'No matching notices. Reset filters to view all.'",branch)
+        self.assertIn("Request-M26NvdaFocusSpeech",branch)
+        self.assertIn("if ($query -cne 'zzznomatch')",branch)
+
     def test_palette_typing_retry_is_bounded_and_requires_actual_value(self):
         ps=(ROOT/"scripts/probe_p02_nvda_speech.ps1").read_text(encoding="utf-8")
         for marker in ("$typingAttempt -lt 2","HasKeyboardFocus","ZYN-NVDA-TYPING-RETRY","SendWait('^a')","SendWait('M19-OPT-06')","if ($value -cne 'M19-OPT-06') { throw"):
             self.assertIn(marker,ps)
         self.assertNotIn("SetValue(",ps)
+        self.assertIn("TryGetClickablePoint([ref]$point)",ps)
+        self.assertIn("BoundingRectangle.Contains($point)",ps)
+        self.assertIn("ZYN-NVDA-TYPING-MISMATCH",ps)
 
     def test_m26_scoped_speech_requires_three_distinct_actual_stages(self):
         from tools.verify_p02_nvda_speech import verify_m26

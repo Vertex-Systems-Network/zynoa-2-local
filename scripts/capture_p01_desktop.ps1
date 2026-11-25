@@ -532,7 +532,12 @@ public static class ZynoaM26Foreground {
                 $disabledVerified=$true
             }
             if ($VisibleName -ne '') { [void](Wait-M26Name -Name $VisibleName -Visible) }
+            # Reconfirm stable actual focus after the compositor has painted.
+            # This does not substitute for independent pixel-level review.
+            Start-Sleep -Milliseconds 350
             Assert-M26Foreground
+            $stable=Wait-M26Name -Name $FocusName -Focusable -Visible -Fragment:$FocusFragment
+            if (-not $stable.Current.HasKeyboardFocus) { throw 'ZYN-M26-OPT-003: option focus lost before capture' }
             Save-NativeFollowup -ScreenshotId $id -Shortcut '' -ScreenTitle $Label -Description ("Actual native P02 option "+$optionId+" showing focused "+$Label+" and its truthful "+$State+" state")
             Assert-M26Foreground
             $after=Wait-M26Name -Name $FocusName -Focusable -Visible -Fragment:$FocusFragment

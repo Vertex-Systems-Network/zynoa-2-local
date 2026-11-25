@@ -251,6 +251,8 @@ class ChangeCenterTests(unittest.TestCase):
         import copy
         script=(ROOT/"scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
         self.assertEqual(len(EXPECTED),20)
+        self.assertIn("option focus lost before capture",script)
+        self.assertIn("$stable.Current.HasKeyboardFocus",script)
         self.assertIn("-M26OptionsOnly",(ROOT/".github/workflows/p01-desktop.yml").read_text(encoding="utf-8"))
         for i in range(1,21):
             self.assertIn(f"Capture-M26Option -Number {i} -Label ",script)
