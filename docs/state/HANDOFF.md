@@ -1,5 +1,7 @@
 # Handoff (canonical starter)
 
+- **Owner-directed P02 CI continuation pilot and final native images:** OPT-13 original transfer #45571989045 successful; canonical manifest M26 28/28 VERIFIED (PNG only). Added read-only bounded CI-triggered local model repair candidate generation with exact task/CI identity, narrow TSX edit scope and static check; no autonomous push or persistent worker claims. All actual pilot tests/inference pending fresh CI. T12 IN_PROGRESS, T13 TODO, issue #3 OPEN; lease released.
+
 - **P02-T12 all dedicated M26 gates pass, OPT-13 visual correction accepted:** exact 7c0a429 Windows #45569644620, 10+20 native candidates and live NVDA 3/Narrator 5 pass; six companions pass. Original replacement OPT-13 independently reviewed, gold focus outline visible, blob 325124fdcbd0535a96c0641b08214fdfb1a6f761. Read-only one-shot transfer initiated; manifest remains 27/28 until blob committed. Legacy NVDA Help speech still fails overall CI. T12 IN_PROGRESS, T13 TODO, lease released.
 
 - **P02-T12 27 original screenshots published:** read-only #45568255045 all 7 batches passed; exact independent Git blob hashes matched. Canonical paths/manifest 8 screens + 19 controls VERIFIED (PNG-only); OPT-13 PENDING, no full release or exact-head approval. Removed temporary transfer workflow. T12 IN_PROGRESS, T13 TODO; lease released.

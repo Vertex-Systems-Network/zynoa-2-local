@@ -164,3 +164,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P02 | Commit 27 verified native M26 images to canonical paths | Original a45ab65 run receipts, independent pixel review and seven read-only transfer batches match; leave OPT-13 pending and retain final exact-head acceptance.
 
 2026-11-25 | P02 | Accept corrected OPT-13 visual candidate from exact-source fully passing scoped M26 run | Actual visible focus, disabled control and explanation confirmed on original 998x701 PNG; one-shot original transfer before manifest finalization; legacy Help speech remains separate blocker.
+
+2026-11-25 | P02 | Owner-directed automation pilot on existing GitHub-hosted Windows CI dependency, no paid host or secrets | Read-only model candidate and static check are permitted, PR code cannot receive protected writer authority; no persistent worker claim, keep phase order and #3 open. Also publish final independently reviewed OPT-13 original.
