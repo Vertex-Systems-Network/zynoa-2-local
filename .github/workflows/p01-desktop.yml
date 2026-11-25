@@ -415,7 +415,7 @@ jobs:
           }
       - name: P02-T12 M26 twenty native option candidates
         id: m26_options
-        if: ${{ !cancelled() && steps.m26_native.outcome == 'success' && github.event.pull_request.head.ref == 'phase/02-shared-ui' }}
+        if: ${{ !cancelled() && steps.native_build.outcome == 'success' && github.event.pull_request.head.ref == 'phase/02-shared-ui' }}
         shell: pwsh
         env:
           ZYNOA_HEAD_SHA: ${{ github.event.pull_request.head.sha }}

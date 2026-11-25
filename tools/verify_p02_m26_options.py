@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import re
 from tools.verify_p02_native_evidence import _png_dimensions, ORIGIN, STATUS
-from tools.verify_p02_m26_candidates import EXPECTED_TRANSITIONS, MODULE_TITLES, verify as verify_screens
+from tools.verify_p02_m26_candidates import EXPECTED_TRANSITIONS, MODULE_TITLES
 
 EXPECTED = {
     "M26-OPT-01": ("Filter release channel or version", "disabled", "Filter release channel or version unavailable"),
@@ -69,7 +69,8 @@ def verify_receipt(proof, source_sha, run_id):
     return observations
 
 def verify(root, source_sha, run_id):
-    verify_screens(root.parent,source_sha,run_id)
+    # Independent native option gate: the separate screen gate remains
+    # mandatory in CI, but a failed screen journey must not discard option proof.
     proof=json.loads((root/"M26-options.capture.json").read_text(encoding="utf-8-sig"))
     items=verify_receipt(proof,source_sha,run_id)
     hashes=set()

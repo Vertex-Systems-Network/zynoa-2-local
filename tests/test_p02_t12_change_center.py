@@ -74,6 +74,13 @@ class ChangeCenterTests(unittest.TestCase):
         self.assertIn("!cancelled()",workflow)
         self.assertNotIn("continue-on-error: true",workflow)
         self.assertIn("tools.verify_p02_m26_candidates",workflow)
+        section=workflow.split("name: P02-T12 M26 twenty native option candidates",1)[1].split("name: P02 live NVDA",1)[0]
+        self.assertIn("steps.native_build.outcome == 'success'",section)
+        self.assertNotIn("steps.m26_native.outcome",section)
+        self.assertIn("tools.verify_p02_m26_options",section)
+        option_verifier=(ROOT/"tools/verify_p02_m26_options.py").read_text(encoding="utf-8")
+        self.assertNotIn("verify_screens(",option_verifier)
+        self.assertIn("verify_receipt(proof,source_sha,run_id)",option_verifier)
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "M26-journey.capture.json").write_text(json.dumps({
@@ -177,7 +184,8 @@ class ChangeCenterTests(unittest.TestCase):
                        "GetForegroundWindow() -eq $hwnd", "AddSeconds(2)", "Assert-M26Foreground"):
             self.assertIn(marker, recovery)
         focus = script.split("function Focus-M26Control {", 1)[1].split("$observations =", 1)[0]
-        for marker in ("$focusAttempt -lt 2", "Restore-M26ForegroundForFocus", "HasKeyboardFocus", "Assert-M26Foreground"):
+        for marker in ("$focusAttempt -lt 2", "Restore-M26ForegroundForFocus", "HasKeyboardFocus", "Assert-M26Foreground",
+                       "ZYN-M26-FOCUS-RETRY", "$_.Exception.Message -notlike 'ZYN-M26-002:*'"):
             self.assertIn(marker, focus)
         for start,end in (("function Send-M26Key {","function Focus-M26Control"),
                           ("function Capture-M26 {","$tabTransitions =")):

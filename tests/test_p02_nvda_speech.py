@@ -58,6 +58,14 @@ class NVDAProofTests(unittest.TestCase):
         self.assertIn("if ($null -eq $input) { throw 'ZYN-NVDA-010",ps)
         self.assertIn("if ($value -cne 'M19-OPT-06') { throw",ps)
         self.assertIn("events=@($events | Where-Object { $_.kind -eq 'speech' })",ps)
+    def test_palette_accessible_edit_focus_not_replaced_by_default_result(self):
+        view=(ROOT/"apps/desktop/src/ui/CommandPalette.tsx").read_text(encoding="utf-8")
+        self.assertIn("useState(false)",view)
+        self.assertIn("setResultNavigation(matches.length > 0)",view)
+        self.assertIn("aria-activedescendant={resultNavigation && matches.length",view)
+        self.assertIn("setQuery(event.target.value); setSelected(0); setResultNavigation(false);",view)
+        self.assertIn("execute(matches[Math.min(selected, matches.length - 1)])",view)
+
     def test_palette_typing_retry_is_bounded_and_requires_actual_value(self):
         ps=(ROOT/"scripts/probe_p02_nvda_speech.ps1").read_text(encoding="utf-8")
         for marker in ("$typingAttempt -lt 2","HasKeyboardFocus","ZYN-NVDA-TYPING-RETRY","SendWait('^a')","SendWait('M19-OPT-06')","if ($value -cne 'M19-OPT-06') { throw"):

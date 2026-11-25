@@ -359,26 +359,33 @@ public static class ZynoaM26Foreground {
     function Focus-M26Control {
         param([string]$Name, [switch]$Fragment)
         for ($focusAttempt=0; $focusAttempt -lt 2; $focusAttempt++) {
-            Restore-M26ForegroundForFocus
-            $element = Wait-M26Name -Name $Name -Focusable -Fragment:$Fragment
             try {
-                $scroll = $element.GetCurrentPattern([System.Windows.Automation.ScrollItemPattern]::Pattern)
-                if ($null -ne $scroll) { $scroll.ScrollIntoView() }
-            } catch [System.InvalidOperationException] {}
-            $element.SetFocus()
-            $deadline=(Get-Date).AddSeconds(3)
-            do {
-                if ([ZynoaM26Foreground]::GetForegroundWindow() -ne $hwnd) { break }
-                Assert-M26Foreground
+                Restore-M26ForegroundForFocus
+                $element = Wait-M26Name -Name $Name -Focusable -Fragment:$Fragment
                 try {
-                    $fresh=Wait-M26Name -Name $Name -Focusable -Fragment:$Fragment
-                    if ($fresh.Current.HasKeyboardFocus -and -not $fresh.Current.IsOffscreen) {
-                        Assert-M26Foreground
-                        return $fresh
-                    }
-                } catch [System.Windows.Automation.ElementNotAvailableException] {}
-                Start-Sleep -Milliseconds 150
-            } until ((Get-Date) -ge $deadline)
+                    $scroll = $element.GetCurrentPattern([System.Windows.Automation.ScrollItemPattern]::Pattern)
+                    if ($null -ne $scroll) { $scroll.ScrollIntoView() }
+                } catch [System.InvalidOperationException] {}
+                $element.SetFocus()
+                $deadline=(Get-Date).AddSeconds(3)
+                do {
+                    Assert-M26Foreground
+                    try {
+                        $fresh=Wait-M26Name -Name $Name -Focusable -Fragment:$Fragment
+                        if ($fresh.Current.HasKeyboardFocus -and -not $fresh.Current.IsOffscreen) {
+                            Assert-M26Foreground
+                            return $fresh
+                        }
+                    } catch [System.Windows.Automation.ElementNotAvailableException] {}
+                    Start-Sleep -Milliseconds 150
+                } until ((Get-Date) -ge $deadline)
+            } catch {
+                # The entire focus acquisition can race WebView2 activation,
+                # including discovery and ScrollIntoView. Retry only here,
+                # before any action key or screenshot is delivered.
+                if ($focusAttempt -ne 0 -or $_.Exception.Message -notlike 'ZYN-M26-002:*') { throw }
+                Write-Host 'ZYN-M26-FOCUS-RETRY: foreground changed during native focus acquisition'
+            }
         }
         throw ('ZYN-M26-018: native keyboard focus not confirmed: '+$Name)
     }

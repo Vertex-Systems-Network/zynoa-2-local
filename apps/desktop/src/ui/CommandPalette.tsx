@@ -19,6 +19,9 @@ export function CommandPalette({ open, onClose, onNavigate, onOpenHelp, returnFo
   const navigationRef = useRef(false);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(0);
+  // Keep the real edit field as the accessibility focus until the user
+  // explicitly navigates results. A default Enter target is not a focus move.
+  const [resultNavigation, setResultNavigation] = useState(false);
   const matches = useMemo(() => searchWorkspace(query, shortcuts), [query, shortcuts]);
 
   useEffect(() => {
@@ -45,6 +48,7 @@ export function CommandPalette({ open, onClose, onNavigate, onOpenHelp, returnFo
     if (!open) {
       setQuery("");
       setSelected(0);
+      setResultNavigation(false);
     }
   }, [open]);
 
@@ -66,6 +70,7 @@ export function CommandPalette({ open, onClose, onNavigate, onOpenHelp, returnFo
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
       const direction = event.key === "ArrowDown" ? 1 : -1;
+      setResultNavigation(matches.length > 0);
       setSelected(current =>
         matches.length ? (current + direction + matches.length) % matches.length : 0
       );
@@ -107,12 +112,12 @@ export function CommandPalette({ open, onClose, onNavigate, onOpenHelp, returnFo
         <label className="search-control" htmlFor="command-query">
           <span aria-hidden="true">⌕</span>
           <input id="command-query" ref={inputRef} autoFocus value={query} maxLength={100}
-            onChange={event => { setQuery(event.target.value); setSelected(0); }}
+            onChange={event => { setQuery(event.target.value); setSelected(0); setResultNavigation(false); }}
             autoComplete="off" spellCheck={false}
             role="combobox" aria-autocomplete="list" aria-expanded={true}
             aria-label="Search available commands and offline Help"
             aria-controls="command-results"
-            aria-activedescendant={matches.length ? "command-" + matches[Math.min(selected, matches.length - 1)].id : undefined}
+            aria-activedescendant={resultNavigation && matches.length ? "command-" + matches[Math.min(selected, matches.length - 1)].id : undefined}
             placeholder="Search views, help, settings…" />
           <kbd>ESC</kbd>
         </label>
@@ -123,7 +128,7 @@ export function CommandPalette({ open, onClose, onNavigate, onOpenHelp, returnFo
               id={"command-" + command.id}
               role="option" aria-selected={selected === index}
               className={"command-result " + (selected === index ? "active" : "")} data-kind={command.kind}
-              onMouseEnter={() => setSelected(index)}
+              onMouseEnter={() => { setSelected(index); setResultNavigation(false); }}
               onClick={() => execute(command)}>
               <span className="command-glyph" aria-hidden="true">{command.symbol}</span>
               <span><strong>{command.title}</strong><small>{command.description}</small></span>
