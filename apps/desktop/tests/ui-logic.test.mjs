@@ -318,7 +318,7 @@ test("unified search preserves remaps, ignores malformed keys and never invents 
   assert.equal(searchWorkspace("__proto__").length, 0);
 });
 
-import { changeNotices, filterChangeNotices, changeAvailability, changeServicePanels, isChangeServiceSection } from "../.ui-tests/change-center.js";
+import { changeNotices, filterChangeNotices, changeAvailability, resolveNoticeSelection, changeServicePanels, isChangeServiceSection } from "../.ui-tests/change-center.js";
 test("M26 bundled limitations are not released changes and filters remain local", () => {
   assert.equal(findCommands("Changelog")[0].view, "changelog");
   assert.equal(searchWorkspace("Changelog")[0].keys, "VIEW");
@@ -355,4 +355,22 @@ test("M26 service boundaries are explicit and never imply authorization", () => 
     assert.equal(changeAvailability(transport).releaseFeedAvailable,false);
     assert.equal(changeAvailability(transport).liveIssuesAvailable,false);
   }
+});
+
+ test("M26 runtime guidance and notice selection are truthful across every transport", () => {
+  const expected={pending:"loading",connected:"active",unavailable:"error",preview:"offline"};
+  for(const [transport,state] of Object.entries(expected)){
+    const availability=changeAvailability(transport);
+    assert.equal(availability.runtimeState,state);
+    assert.ok(availability.guidance.length>30);
+    assert.equal(availability.verifiedReleaseCount,0);
+    assert.equal(availability.releaseFeedAvailable,false);
+    assert.equal(availability.liveIssuesAvailable,false);
+  }
+  const all=filterChangeNotices("","All");
+  assert.equal(resolveNoticeSelection(all,null),undefined);
+  assert.equal(resolveNoticeSelection(all,"__proto__"),undefined);
+  assert.equal(resolveNoticeSelection(all,all[0].id),all[0]);
+  assert.equal(resolveNoticeSelection(filterChangeNotices("","M24"),all[0].id),undefined);
+  assert.equal(resolveNoticeSelection(filterChangeNotices("zzznomatch","All"),all[0].id),undefined);
 });

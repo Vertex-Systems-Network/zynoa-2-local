@@ -42,10 +42,21 @@ class ChangeCenterTests(unittest.TestCase):
                        "No verified migration notes", "Export change history", "View rollback guidance"):
             self.assertIn(marker,core)
         self.assertIn('<button type="button" disabled aria-describedby={reasonId}>{label}</button>',view)
-        self.assertIn('role="group" aria-label={label+" unavailable"} tabIndex={-1}',view)
+        self.assertIn('role="group" aria-label={label+" unavailable"} aria-describedby={reasonId} tabIndex={0}',view)
         self.assertIn('<p id={reasonId}>{reason}</p>',view)
         self.assertIn("onClick={onHelp}",view)
         self.assertNotIn('aria-disabled="false"', view)
+
+    def test_product_keyboard_notice_detail_reset_and_runtime_guidance(self):
+        view=(UI/"ChangeCenter.tsx").read_text(encoding="utf-8")
+        css=(ROOT/"apps/desktop/src/styles.css").read_text(encoding="utf-8")
+        for marker in ('onClick={resetFilters}>No matching notices.', 'searchInput.current?.focus()',
+                       'pendingNoticeFocus.current=event.detail===0', 'detailHeading.current?.focus()',
+                       'noticeButtons.current.get(selected)?.focus()', 'Back to notice list',
+                       'data-runtime-state={availability.runtimeState}', 'availability.guidance'):
+            self.assertIn(marker,view)
+        self.assertIn('@container (max-width:540px)',css)
+        self.assertIn('max-height:none; overflow:visible;',css)
 
     def test_native_candidate_suite_is_separate_and_fail_closed(self):
         script = (ROOT / "scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")

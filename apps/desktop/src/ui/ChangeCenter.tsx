@@ -1,5 +1,5 @@
 import { useId, useLayoutEffect, useRef, useState } from "react";
-import { changeAvailability, filterChangeNotices, noticeModules, changeServicePanels, isChangeServiceSection, type ChangeTransport, type NoticeFilter } from "./change-center";
+import { changeAvailability, filterChangeNotices, noticeModules, resolveNoticeSelection, changeServicePanels, isChangeServiceSection, type ChangeTransport, type NoticeFilter } from "./change-center";
 
 const sections = [
   {key:"releases", label:"What's New"},
@@ -14,7 +14,7 @@ type Section = (typeof sections)[number]["key"];
 
 function UnavailableAction({label,reason}:{label:string;reason:string}) {
   const reasonId=useId();
-  return <div className="change-unavailable-action" role="group" aria-label={label+" unavailable"} tabIndex={-1}>
+  return <div className="change-unavailable-action" role="group" aria-label={label+" unavailable"} aria-describedby={reasonId} tabIndex={0}>
     <button type="button" disabled aria-describedby={reasonId}>{label}</button>
     <p id={reasonId}>{reason}</p>
   </div>;
@@ -40,6 +40,18 @@ export function ChangeCenter({transport,onHelp}:{transport:ChangeTransport;onHel
   const [selected,setSelected]=useState<string|null>(null);
   const tabs=useRef<(HTMLButtonElement|null)[]>([]);
   const pendingTabFocus=useRef<number|null>(null);
+  const searchInput=useRef<HTMLInputElement|null>(null);
+  const detailHeading=useRef<HTMLHeadingElement|null>(null);
+  const noticeButtons=useRef(new Map<string,HTMLButtonElement>());
+  const pendingNoticeFocus=useRef<string|null>(null);
+  const returnToNotice=()=>{
+    if(selected)noticeButtons.current.get(selected)?.focus();
+  };
+  const resetFilters=()=>{
+    pendingNoticeFocus.current=null;
+    setQuery("");setModule("All");setSelected(null);
+    searchInput.current?.focus();
+  };
   useLayoutEffect(()=>{
     const index=pendingTabFocus.current;
     pendingTabFocus.current=null;
@@ -47,12 +59,19 @@ export function ChangeCenter({transport,onHelp}:{transport:ChangeTransport;onHel
   },[active]);
   const availability=changeAvailability(transport);
   const matches=filterChangeNotices(query,module);
-  const current=matches.find(item=>item.id===selected);
+  const current=resolveNoticeSelection(matches,selected);
+  useLayoutEffect(()=>{
+    if(current && pendingNoticeFocus.current===current.id){
+      pendingNoticeFocus.current=null;
+      detailHeading.current?.focus();
+    }
+  },[current]);
   const select=(index:number,focus=false)=>{
     const next=sections[index].key;
     if(focus && next===active)tabs.current[index]?.focus();
     else if(focus)pendingTabFocus.current=index;
     else pendingTabFocus.current=null;
+    pendingNoticeFocus.current=null;
     setActive(next);setSelected(null);
   };
   const filterable=active==="issues" || active==="modules";
@@ -63,7 +82,10 @@ export function ChangeCenter({transport,onHelp}:{transport:ChangeTransport;onHel
         <p className="lead">Understand what is shipped, what is unavailable and where to find local guidance. Unreleased work is never presented as an installed fix.</p></div>
       <div className="heading-actions"><button type="button" className="subtle-action" onClick={onHelp}>Changelog help</button></div>
     </div>
-    <div className="notice" role="status">{availability.status}. Signed release feed and live issue inventory are unavailable. No network request has been made.</div>
+    <div className="notice change-runtime-status" role="status" data-runtime-state={availability.runtimeState}>
+      <span className="change-runtime-label">{availability.status}</span>
+      <span>{availability.guidance} Signed release feed and live issue inventory are unavailable. No network request has been made.</span>
+    </div>
     <div className="change-tabs" role="tablist" aria-label="Change history views">
       {sections.map((item,index)=><button key={item.key} type="button" role="tab" id={"change-tab-"+item.key}
         aria-selected={active===item.key} aria-controls={"change-panel-"+item.key} tabIndex={active===item.key?0:-1}
@@ -81,29 +103,38 @@ export function ChangeCenter({transport,onHelp}:{transport:ChangeTransport;onHel
       <>
         <div className="change-filters">
           <label className="help-tool-field">Search bundled notices
-            <input aria-label="Search bundled notices" value={query} maxLength={120} onChange={event=>{setQuery(event.target.value);setSelected(null);}} placeholder="Search backup, updates or history" /></label>
+            <input ref={searchInput} aria-label="Search bundled notices" value={query} maxLength={120} onChange={event=>{pendingNoticeFocus.current=null;setQuery(event.target.value);setSelected(null);}} placeholder="Search backup, updates or history" /></label>
           <label className="help-tool-field">Module
-            <select aria-label="Module" value={module} onChange={event=>{const value=noticeModules.find(x=>x===event.target.value);if(value){setModule(value);setSelected(null);}}}>
+            <select aria-label="Module" value={module} onChange={event=>{const value=noticeModules.find(x=>x===event.target.value);if(value){pendingNoticeFocus.current=null;setModule(value);setSelected(null);}}}>
               {noticeModules.map(value=><option key={value} value={value}>{value==="All"?"All modules":value}</option>)}
             </select></label>
-          <button type="button" className="subtle-action" onClick={()=>{setQuery("");setModule("All");setSelected(null);}}>Reset filters</button>
+          <button type="button" className="subtle-action" onClick={resetFilters}>Reset filters</button>
         </div>
         <p className="help-tool-muted" role="status">{matches.length} bundled capability {matches.length===1?"notice":"notices"}. Not live GitHub issues or release entries.</p>
         <div className="help-option-layout">
           <div className="help-option-list" role="group" aria-label="Bundled capability notices">
             {matches.map(notice=><button key={notice.id} type="button" aria-pressed={current?.id===notice.id}
-              onClick={()=>setSelected(notice.id)}><code>{notice.module}</code><span>{notice.title}</span></button>)}
-            {!matches.length&&<p role="status" tabIndex={-1}>No matching notices. Reset filters to view all.</p>}
+              aria-controls="change-notice-detail" ref={node=>{if(node)noticeButtons.current.set(notice.id,node);else noticeButtons.current.delete(notice.id);}}
+              onClick={event=>{
+                pendingNoticeFocus.current=event.detail===0?notice.id:null;
+                if(current?.id===notice.id && event.detail===0){pendingNoticeFocus.current=null;detailHeading.current?.focus();}
+                else setSelected(notice.id);
+              }}><code>{notice.module}</code><span>{notice.title}</span></button>)}
+            {!matches.length&&<button type="button" className="change-empty-reset" onClick={resetFilters}>No matching notices. Reset filters to view all.</button>}
           </div>
-          <article className="help-option-detail" aria-label="Capability notice detail">
+          <article id="change-notice-detail" className="help-option-detail" aria-label="Capability notice detail">
             {current?<><span className="small-caps">{current.module} / CAPABILITY LIMITATION</span>
-              <h3 tabIndex={-1}>{current.title}</h3><p>{current.description}</p><p tabIndex={-1}>Not a released fix or live issue status.</p>
+              <h3 ref={detailHeading} tabIndex={-1}>{current.title}</h3><p>{current.description}</p><p tabIndex={-1}>Not a released fix or live issue status.</p>
+              <div className="change-detail-navigation">
+                <button type="button" className="subtle-action" onClick={returnToNotice}>Back to notice list</button>
+                <button type="button" className="subtle-action" onClick={onHelp}>Read contextual guidance</button>
+              </div>
               <div className="change-unavailable-actions">
                 <UnavailableAction label="Open linked issue" reason="No verified issue link is attached to this bundled notice."/>
                 <UnavailableAction label="Open linked pull request" reason="No verified merge receipt is attached to this bundled notice."/>
                 <UnavailableAction label="Report problem from change" reason="No authorized change-reporting service is connected."/>
               </div>
-              <button type="button" className="subtle-action" onClick={onHelp}>Read contextual guidance</button></>:
+              </>:
               <><h3 tabIndex={-1}>Select a capability notice</h3><p>Details are bundled and can be read offline.</p></>}
           </article>
         </div>

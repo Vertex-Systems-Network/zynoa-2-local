@@ -150,3 +150,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P02 | Accept actual hosted M26 Wiki preview and remove temporary writer | Independent public Git clone and Chrome readback passed for all twenty option IDs and exact pinned source; keep only read-only PR verification and original receipts. No release or native approval inferred.
 
 2026-11-25 | P02 | Retry only a foreground-invalidated native journey on a fresh process; repair actual reader navigation/input | Original M26 NVDA three-stage proof passed; observed WebView2 foreground loss, baseline palette value mismatch and Narrator entry failure; keep every actual state, speech and provenance requirement.
+
+2026-11-25 | P02 | Improve real M26 keyboard workflow and responsive UI before further acceptance | Empty-state reset, notice detail focus/return, disabled reason Tab navigation and actual transport guidance solve user-facing gaps; preserve strict source/runtime evidence and phase order.

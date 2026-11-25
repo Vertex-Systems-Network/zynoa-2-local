@@ -15,10 +15,18 @@ export function filterChangeNotices(query:string,module:NoticeFilter):ChangeNoti
   return changeNotices.filter(item=>(module==="All" || item.module===module) &&
     words.every(word=>[item.module,item.title,item.description].join(" ").toLocaleLowerCase().includes(word)));
 }
+export function resolveNoticeSelection(matches:readonly ChangeNotice[], selected:string|null):ChangeNotice|undefined {
+  return selected===null?undefined:matches.find(item=>item.id===selected);
+}
 export function changeAvailability(transport:ChangeTransport) {
   const status = transport==="pending" ? "Checking local runtime" : transport==="connected" ?
     "Local runtime connected" : transport==="preview" ? "Browser preview" : "Local runtime unavailable";
-  return {status,verifiedReleaseCount:0,liveIssuesAvailable:false,releaseFeedAvailable:false} as const;
+  const runtimeState=transport==="pending"?"loading":transport==="connected"?"active":transport==="preview"?"offline":"error";
+  const guidance=transport==="pending"?"Local notices and Help remain available while the runtime is checked.":
+    transport==="connected"?"Local capability notices are available; runtime connection does not verify a release.":
+    transport==="preview"?"Bundled notices and Help work offline in this browser preview.":
+    "The native runtime is unavailable; bundled notices and Help remain readable offline.";
+  return {status,runtimeState,guidance,verifiedReleaseCount:0,liveIssuesAvailable:false,releaseFeedAvailable:false} as const;
 }
 
 /** P02 capability boundaries: descriptions are local, not simulated remote results. */
