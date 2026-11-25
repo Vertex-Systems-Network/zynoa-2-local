@@ -3,7 +3,7 @@
   "module_id": "M23",
   "kind": "feature",
   "title": "Backup Center shared UI foundation",
-  "summary": "Actual navigable P02 system UI with explicit unavailable operations, session drafts, keyboard focus, bundled Help and native evidence harness. Full service remains deferred to P03. Original Windows captures are reviewed and linked in the illustrated Help guide.",
+  "summary": "Actual navigable P02 system UI with explicit unavailable operations, session drafts, keyboard focus, bundled Help and native evidence harness. Full service remains deferred to P03. Original Windows captures are reviewed and linked in the illustrated Help guide. Scoped native Windows candidate verification and the published illustrated Wiki preview passed.",
   "status": "implementing",
   "audience": "user",
   "source_issue_urls": [
@@ -20,7 +20,10 @@
     "docs/wiki/pages/M23.md"
   ],
   "test_evidence": [
-    "docs/screenshots/M23/T13-native-visual.review.json"
+    "docs/screenshots/M23/T13-native-visual.review.json",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45587126067",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45587126067/artifacts/15009867688",
+    "docs/evidence/P02_T13_WIKI_PREVIEW_PUBLISHED_20261125.json"
   ],
   "commit_sha": null,
   "release": null,

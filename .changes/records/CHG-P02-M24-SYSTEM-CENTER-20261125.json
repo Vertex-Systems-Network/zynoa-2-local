@@ -3,7 +3,7 @@
   "module_id": "M24",
   "kind": "feature",
   "title": "Data Locations shared UI foundation",
-  "summary": "Actual navigable P02 system UI with explicit unavailable operations, session drafts, keyboard focus, bundled Help and native evidence harness. Full service remains deferred to P05. Windows run 45583693785 produced 26 checksum-verified M24 candidates. Independent inspection found a missing visible ring on M24-OPT-13. The capture now uses Tab and Shift+Tab and still requires exact native focus before accepting the frame. Original Windows captures are reviewed and linked in the illustrated Help guide.",
+  "summary": "Actual navigable P02 system UI with explicit unavailable operations, session drafts, keyboard focus, bundled Help and native evidence harness. Full service remains deferred to P05. Windows run 45583693785 produced 26 checksum-verified M24 candidates. Independent inspection found a missing visible ring on M24-OPT-13. The capture now uses Tab and Shift+Tab and still requires exact native focus before accepting the frame. Original Windows captures are reviewed and linked in the illustrated Help guide. Scoped native Windows candidate verification and the published illustrated Wiki preview passed.",
   "status": "implementing",
   "audience": "user",
   "source_issue_urls": [
@@ -22,7 +22,10 @@
   "test_evidence": [
     "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45583693785",
     "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45583693785/artifacts/15009090335",
-    "docs/screenshots/M24/T13-native-visual.review.json"
+    "docs/screenshots/M24/T13-native-visual.review.json",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45587126067",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45587126067/artifacts/15009867688",
+    "docs/evidence/P02_T13_WIKI_PREVIEW_PUBLISHED_20261125.json"
   ],
   "commit_sha": null,
   "release": null,

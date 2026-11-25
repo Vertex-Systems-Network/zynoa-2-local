@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "phase": "P02",
+  "task": "P02-T13",
+  "source_sha": "4f851056a83e66a57f0ac6b57842f82770972866",
+  "wiki_base_sha": "c2ed812481f5d29bb94661c54208be9567dff216",
+  "wiki_sha": "bb645085caae4c8d06500b0eaea084b0d78ee2ae",
+  "full_module_release_approved": false,
+  "pages": [
+    {
+      "module": "M23",
+      "url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/wiki/M23",
+      "published_markdown_sha256": "ffd03b5d7c6bb4651e0caa0f4e37875dbde53140bae5ef9de5e1db587cc67301",
+      "resolved_pinned_help_anchors": 27
+    },
+    {
+      "module": "M24",
+      "url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/wiki/M24",
+      "published_markdown_sha256": "60e7043921ba6bfb16b81a56a04e4184efc5df837d49908fce095ef62bb4635a",
+      "resolved_pinned_help_anchors": 26
+    },
+    {
+      "module": "M25",
+      "url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/wiki/M25",
+      "published_markdown_sha256": "706869b34e4501e6a0cf26304f52362f3216c1e80a313ad39e82a61ea04f96c5",
+      "resolved_pinned_help_anchors": 21
+    }
+  ],
+  "unauthenticated_wiki_clone_verified": true,
+  "existing_pages_untouched": true
+}

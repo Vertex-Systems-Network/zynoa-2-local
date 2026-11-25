@@ -91,6 +91,26 @@
     "earlier_run_asset": "M24-OPT-13",
     "identical_desktop_tree": "0ebf052024a7486fa622e882413a7188b0695767",
     "manifest": "docs/screenshots/MANIFEST.json",
-    "wiki_publication": "PENDING"
+    "wiki_publication": "docs/evidence/P02_T13_WIKI_PREVIEW_PUBLISHED_20261125.json"
+  },
+  "scoped_acceptance": {
+    "status": "P02_T13_SHARED_UI_PREVIEW_VERIFIED",
+    "source_sha": "4f851056a83e66a57f0ac6b57842f82770972866",
+    "run_id": 45587126067,
+    "job_id": 139111584590,
+    "passing_step": 33,
+    "artifact_id": 15009867688,
+    "artifact_sha256": "95750d92b43ea61b9dd9a696091ffdba334812756994a7ce155717e50c2cdd11",
+    "native_candidate_counts": {
+      "M23": 27,
+      "M24": 26,
+      "M25": 21
+    },
+    "m24_opt_13_visible_focus_confirmed": true,
+    "canonical_reviewed_native_frames": 74,
+    "hosted_wiki_help_anchors": 74,
+    "scope_issue_closed": 17,
+    "full_windows_workflow": "FAILURE",
+    "p02_protected_merge_verified": false
   }
 }
