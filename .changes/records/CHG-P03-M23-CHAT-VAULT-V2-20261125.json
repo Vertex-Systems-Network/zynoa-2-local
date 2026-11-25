@@ -3,7 +3,7 @@
   "module_id": "M23",
   "kind": "feature",
   "title": "Native transactional chat data schema v2",
-  "summary": "Add normalized native chat data, verified pre-migration online backup, atomic journal and typed postcommit acknowledgements, scoped history and staged restore tests. Native CI evidence pending; no UI exposure.",
+  "summary": "Add normalized native chat data, verified pre-migration online backup, atomic journal and typed postcommit acknowledgements, scoped history and staged restore. Exact-source native CI and original proof verified; no UI exposure.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [],
@@ -19,12 +19,14 @@
   "test_evidence": [
     "tests/test_p03_chat_vault_contract.py",
     ".github/workflows/p03-native-baseline.yml",
-    "apps/desktop/src-tauri/src/vault.rs"
+    "apps/desktop/src-tauri/src/vault.rs",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45620810721",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45620812774"
   ],
-  "commit_sha": "10e3da996f658239ec659e5e7c2334eee6b4eabc",
+  "commit_sha": "8d3944b35b08641f416967da8b758fedd98e7bce",
   "release": null,
   "verification": {
-    "tests_passed": false,
+    "tests_passed": true,
     "merge_verified": false,
     "release_published": false
   },

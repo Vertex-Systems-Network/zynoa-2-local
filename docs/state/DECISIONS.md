@@ -196,3 +196,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P03 | Accept T01 scoped baseline and proceed to T02 | Native and local-model artifact readback and exact-head CI verified; inherited warnings recorded. T02 additive v2 migration and real Rust tests first.
 
 2026-11-25 | P03 | Implement additive native v2 normalized chat tables and pre-migration verified SQLite backup under reserved writer lock | Preserve v1 opaque records, no inferred history conversion. Typed postcommit receipts, journal atomicity, parent FK and bounded ordinal paging; no UI or portable encryption in T02. Native tests/boot proof pending.
+
+2026-11-25 | P03 | Accept T02 native storage scope from exact-source Windows CI and independently hash-verified original proof | Nine focused real SQLite tests, 41 total Rust tests, native boot/schema v2 and all regression checks passed. T03 next; 8 new dead-code warnings tracked for wiring and T14. No UI or encrypted backup claim.

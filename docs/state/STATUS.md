@@ -1,5 +1,7 @@
 # Status — 2026-11-25
 
+**P03-T01 and T02 DONE** — 2/16 (12% floor), native exact-source Windows migration, rollback and staged restoration accepted; [T02 evidence](../evidence/P03_T02_CHAT_VAULT.md). Governance 753 pass, Rust 41/41, focused migration 9/9, original proof ZIP independently verified. Native warnings 44 versus 36 baseline; T03/T14 resolution pending. Next T03; no merge or release.
+
 **P03-T01 DONE; T02 IN_PROGRESS** — exact-head Windows and local model baseline verified, original proof ZIPs hash-checked, [preflight evidence](../evidence/P03_T01_PREFLIGHT.md). 1/16 tasks completed. Inherited build warnings tracked; no P03 release or merge.
 
 **Current P03 status on phase branch** — `IN_PROGRESS`, [draft PR #25](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25), T01 predevelopment only (0/16 DONE). P02 receipt [verified](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12#issuecomment-7161982157). Native baseline pending. Protected main continues to record verified P02 until P03 merges.
