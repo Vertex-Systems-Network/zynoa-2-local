@@ -452,9 +452,19 @@ try {
   $value=$search.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).Current.Value
   if ($value -cne 'M19-OPT-06') { throw 'ZYN-NAR-014: native keyboard input missing' }
   $proof.actual_keyboard_input_value=$value
-  # Independently require the real selected Help result's speech before
-  # navigating. The fourth stage is not a replacement for input-label proof.
-  $proof.events+= (Read-ActualNarratorPhrase 'palette_result' $search 'Wiki mapping and link checker')
+  # The edit field owns focus after typing. Move to the result with a real
+  # Tab so Narrator can announce the result independently of the edit label.
+  Send-NarratorChord ([byte[]]@($script:workingNarratorModifier,0x33))
+  Start-Sleep -Milliseconds 200
+  [System.Windows.Forms.SendKeys]::SendWait('{TAB}')
+  Start-Sleep -Milliseconds 600
+  $result=[System.Windows.Automation.AutomationElement]::FocusedElement
+  if ($null -eq $result -or -not $result.Current.HasKeyboardFocus -or $result.Current.IsOffscreen -or
+      $result.Current.ControlType -ne [System.Windows.Automation.ControlType]::ListItem -or
+      $result.Current.Name -notlike '*Wiki mapping and link checker*') {
+    throw 'ZYN-NAR-026: real keyboard focus on the Help result missing'
+  }
+  $proof.events+= (Read-ActualNarratorPhrase 'palette_result' $result 'Wiki mapping and link checker')
   $search=Find-FocusableNativeControl $uia 'Search available commands and offline Help'
   $search.SetFocus()
   [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
@@ -483,12 +493,18 @@ try {
     if (-not $app.WaitForExit(5000)) { $cleanupOk=$false }
     $app.Dispose()
   }
-  $readers=@(Get-Process -Name Narrator -ErrorAction SilentlyContinue)
-  foreach ($reader in $readers) {
-    try {
-      if (-not $reader.HasExited) { Stop-Process -Id $reader.Id -Force -ErrorAction SilentlyContinue }
-      if (-not $reader.WaitForExit(5000)) { $cleanupOk=$false }
-    } finally { $reader.Dispose() }
+  # Allow Windows accessibility to finish tearing down the session. A
+  # transient reader restart must also exit before the next journey starts.
+  for ($cleanupAttempt=0; $cleanupAttempt -lt 3; $cleanupAttempt++) {
+    $readers=@(Get-Process -Name Narrator -ErrorAction SilentlyContinue)
+    foreach ($reader in $readers) {
+      try {
+        if (-not $reader.HasExited) { Stop-Process -Id $reader.Id -Force -ErrorAction SilentlyContinue }
+        if (-not $reader.WaitForExit(5000)) { $cleanupOk=$false }
+      } finally { $reader.Dispose() }
+    }
+    Start-Sleep -Milliseconds 1500
+    if (-not (Get-Process -Name Narrator -ErrorAction SilentlyContinue)) { break }
   }
   if (Get-Process -Name Narrator -ErrorAction SilentlyContinue) { $cleanupOk=$false }
   Set-Clipboard -Value 'ZYNOA-NARRATOR-DISPOSABLE-CI-COMPLETE'

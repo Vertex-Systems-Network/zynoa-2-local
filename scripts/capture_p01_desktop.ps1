@@ -400,6 +400,12 @@ public static class ZynoaM26Foreground {
             param([string]$Asset,[string]$Name,[string]$Kind)
             $script:m26Stage=$Asset
             [void](Focus-M26Control -Name $Name)
+            if ($Kind -ne 'screen') {
+                # UIA can report focus before WebView2 paints the card outline.
+                # Traverse away and back with real keyboard input before capture.
+                Send-M26Key '{TAB}'
+                Send-M26Key '+{TAB}'
+            }
             $target=Wait-M26Name -Name $Name -Focusable -Visible
             if (-not $target.Current.HasKeyboardFocus) { throw 'ZYN-T13-002: focus absent' }
             $controlVerified=$false

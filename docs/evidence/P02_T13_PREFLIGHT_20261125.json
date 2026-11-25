@@ -59,5 +59,26 @@
     ],
     "legacy_nvda": "actual Help heading absent",
     "final_visual_review": false
+  },
+  "third_ci": {
+    "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+    "run_id": 45583693785,
+    "job_id": 139099891374,
+    "artifact_id": 15009090335,
+    "artifact_sha256": "ee24ae7fa6417d1bb55533860ee2f2b1866a9c0cc5401c9d8e5e7b96d7649e14",
+    "native_candidates": {
+      "M23": 27,
+      "M24": 26,
+      "M25": 21
+    },
+    "full_candidate_verifiers": {
+      "M23": "PASS",
+      "M24": "PASS",
+      "M25": "PASS"
+    },
+    "visual_findings": [
+      "M24-OPT-13 did not visibly outline the focused rollback control despite its passing native UIA receipt."
+    ],
+    "final_visual_review": false
   }
 }

@@ -62,6 +62,7 @@ class NarratorReceiptTests(unittest.TestCase):
         self.assertLess(cleanup.index(marker), cleanup.index(guard))
         self.assertIn("$app.WaitForExit(5000)", source)
         self.assertIn("$reader.WaitForExit(5000)", source)
+        self.assertIn("$cleanupAttempt -lt 3", source)
         self.assertIn("if (Get-Process -Name Narrator -ErrorAction SilentlyContinue) { $cleanupOk=$false }", cleanup)
         self.assertEqual(source.count("ZYN-NAR-025"), 1)
     def test_narrator_cursor_is_aligned_with_real_keyboard_focus(self):
@@ -75,7 +76,8 @@ class NarratorReceiptTests(unittest.TestCase):
     def test_real_empty_result_input_label_and_selected_result_speech_are_required(self):
         source=(Path(__file__).resolve().parents[1]/"scripts/probe_p02_t11_narrator.ps1").read_text(encoding="utf-8")
         for marker in ("SendWait('zynoa-no-match-7f6c')","No matching commands","ZYN-NAR-023","ZYN-NAR-024",
-                       "Read-ActualNarratorPhrase 'palette_result'", "SendWait('^a')"):
+                       "Read-ActualNarratorPhrase 'palette_result' $result", "SendWait('^a')",
+                       "SendWait('{TAB}')", "ZYN-NAR-026", "ControlType]::ListItem"):
             self.assertIn(marker,source)
         self.assertNotIn("SetValue(",source)
         for key,value in (("actual_no_match_keyboard_input_value","wrong"),("actual_no_match_result_verified",False)):

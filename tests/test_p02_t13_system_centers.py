@@ -34,6 +34,9 @@ class T13Contracts(unittest.TestCase):
         capture=(ROOT/"scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
         for token in ("SystemCenterModule","Capture-SystemTarget","Focus-M26Control","Wait-M26Name","Save-NativeFollowup","Assert-M26Foreground","T13-journey.capture.json","ZYN-T13-KEYBOARD-RETRY","Send-M26Key ' '"):
             self.assertIn(token,capture)
+        target_capture=capture.split("function Capture-SystemTarget",1)[1].split("foreach ($screen",1)[0]
+        self.assertLess(target_capture.index("Send-M26Key '{TAB}'"),target_capture.index("Send-M26Key '+{TAB}'"))
+        self.assertLess(target_capture.index("Send-M26Key '+{TAB}'"),target_capture.index("$target.Current.HasKeyboardFocus"))
         with tempfile.TemporaryDirectory() as d:
             with self.assertRaises(OSError):verify(Path(d),"M23","a"*40,"123")
             with self.assertRaises(ValueError):verify(Path(d),"M23","invalid","123")
