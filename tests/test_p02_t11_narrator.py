@@ -97,14 +97,14 @@ class NarratorReceiptTests(unittest.TestCase):
         import copy
         p=sample()
         p.update(target="Real Microsoft Narrator speech copied from native Windows Tauri WebView2 M26",
-                 actual_selected_tab="Known Issues",actual_tab_keyboard_focus=True,actual_previous_tab_deselected=True,
+                 m26_entry_method="NarratorPassThroughEnter",actual_selected_tab="Known Issues",actual_tab_keyboard_focus=True,actual_previous_tab_deselected=True,
                  actual_search_keyboard_focus=True,actual_contextual_help_verified=True,actual_keyboard_input_value="zzznomatch",
                  actual_no_match_keyboard_input_value="zzznomatch")
         p["events"]=[{"stage":stage,"label":label,"clipboard_sequence_before":10+i*3,
                       "clipboard_sequence_after":11+i*3,"actual_speech_clipboard_changed":True}
                      for i,(stage,label) in enumerate(M26_EXPECTED.items())]
         self.assertEqual(5,verify_m26(p,SHA,RUN,"a"*64)["spoken_stages"])
-        for key,value in (("actual_tab_keyboard_focus",False),("actual_previous_tab_deselected",False),
+        for key,value in (("m26_entry_method","fabricated"),("actual_tab_keyboard_focus",False),("actual_previous_tab_deselected",False),
                           ("actual_contextual_help_verified",False),("actual_keyboard_input_value","fake"),("diagnostic_artifact_reuse",True)):
             bad=copy.deepcopy(p);bad[key]=value
             with self.subTest(key=key),self.assertRaises(InvalidNarratorProof):verify_m26(bad,SHA,RUN,"a"*64)

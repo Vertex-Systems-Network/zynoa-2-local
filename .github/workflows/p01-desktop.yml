@@ -375,25 +375,43 @@ jobs:
           # Capture M26 before starting either live screen reader. Do not kill
           # unrelated processes; fail if this disposable runner is not isolated.
           if (Get-Process -Name Narrator,nvda -ErrorAction SilentlyContinue) { throw 'ZYN-M26-021: pre-existing screen reader in native capture session' }
-          $process = Start-Process -FilePath $exe -PassThru
-          try {
-            $deadline = (Get-Date).AddSeconds(45)
-            do {
-              Start-Sleep -Milliseconds 500
-              $process.Refresh()
-              if ($process.HasExited) { throw 'ZYN-M26-008: native process exited' }
-            } until ($process.MainWindowHandle -ne [IntPtr]::Zero -or (Get-Date) -ge $deadline)
-            if ($process.MainWindowHandle -eq [IntPtr]::Zero) { throw 'ZYN-M26-009: missing native window' }
-            $out = Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\_ci\M26'
-            & (Join-Path $env:GITHUB_WORKSPACE 'scripts\capture_p01_desktop.ps1') -TargetPid $process.Id -OutputDirectory $out -SourceSha $env:ZYNOA_HEAD_SHA -BuiltSha $builtSha -M26Only
-            python -m tools.verify_p02_m26_candidates --root $out --source-sha $builtSha --run-id $env:GITHUB_RUN_ID
-            if ($LASTEXITCODE -ne 0) { throw 'ZYN-M26-010: native candidate receipts rejected' }
-          } finally {
-            $process.Refresh()
-            if (-not $process.HasExited) { Stop-Process -Id $process.Id -Force }
+          $out = Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\_ci\M26'
+          # A real foreground interruption invalidates the entire journey.
+          # Preserve the failed attempt separately, then allow one fresh app.
+          for ($attempt=1; $attempt -le 2; $attempt++) {
+            $retry=$false
+            if (Test-Path -LiteralPath $out) { throw 'ZYN-M26-026: stale candidate directory' }
+            $process = Start-Process -FilePath $exe -PassThru
             try {
-              if (-not $process.WaitForExit(10000)) { throw 'ZYN-M26-022: disposable native capture process did not exit' }
-            } finally { $process.Dispose() }
+              $deadline = (Get-Date).AddSeconds(45)
+              do {
+                Start-Sleep -Milliseconds 500
+                $process.Refresh()
+                if ($process.HasExited) { throw 'ZYN-M26-008: native process exited' }
+              } until ($process.MainWindowHandle -ne [IntPtr]::Zero -or (Get-Date) -ge $deadline)
+              if ($process.MainWindowHandle -eq [IntPtr]::Zero) { throw 'ZYN-M26-009: missing native window' }
+              & (Join-Path $env:GITHUB_WORKSPACE 'scripts\capture_p01_desktop.ps1') -TargetPid $process.Id -OutputDirectory $out -SourceSha $env:ZYNOA_HEAD_SHA -BuiltSha $builtSha -M26Only
+              python -m tools.verify_p02_m26_candidates --root $out --source-sha $builtSha --run-id $env:GITHUB_RUN_ID
+              if ($LASTEXITCODE -ne 0) { throw 'ZYN-M26-010: native candidate receipts rejected' }
+            } catch {
+              if ($attempt -ne 1 -or $_.Exception.Message -notlike 'ZYN-M26-002:*') { throw }
+              $retry=$true
+              Write-Host 'ZYN-M26-FOREGROUND-RETRY: discard first incomplete journey, retry once on a fresh process'
+            } finally {
+              $process.Refresh()
+              if (-not $process.HasExited) { Stop-Process -Id $process.Id -Force }
+              try {
+                if (-not $process.WaitForExit(10000)) { throw 'ZYN-M26-022: disposable native capture process did not exit' }
+              } finally { $process.Dispose() }
+            }
+            if (-not $retry) { break }
+            if (Test-Path -LiteralPath $out) {
+              $diagnostics = Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\_ci\M26-failed-M26Only'
+              if (Test-Path -LiteralPath $diagnostics) { throw 'ZYN-M26-026: stale diagnostic directory' }
+              Move-Item -LiteralPath $out -Destination $diagnostics
+            }
+            Start-Sleep -Milliseconds 1500
+            if (Get-Process -Name Narrator,nvda -ErrorAction SilentlyContinue) { throw 'ZYN-M26-021: pre-existing screen reader in native capture session' }
           }
       - name: P02-T12 M26 twenty native option candidates
         id: m26_options
@@ -408,25 +426,43 @@ jobs:
           # Capture M26 before starting either live screen reader. Do not kill
           # unrelated processes; fail if this disposable runner is not isolated.
           if (Get-Process -Name Narrator,nvda -ErrorAction SilentlyContinue) { throw 'ZYN-M26-021: pre-existing screen reader in native capture session' }
-          $process = Start-Process -FilePath $exe -PassThru
-          try {
-            $deadline = (Get-Date).AddSeconds(45)
-            do {
-              Start-Sleep -Milliseconds 500
-              $process.Refresh()
-              if ($process.HasExited) { throw 'ZYN-M26-008: native process exited' }
-            } until ($process.MainWindowHandle -ne [IntPtr]::Zero -or (Get-Date) -ge $deadline)
-            if ($process.MainWindowHandle -eq [IntPtr]::Zero) { throw 'ZYN-M26-009: missing native window' }
-            $out = Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\_ci\M26\options'
-            & (Join-Path $env:GITHUB_WORKSPACE 'scripts\capture_p01_desktop.ps1') -TargetPid $process.Id -OutputDirectory $out -SourceSha $env:ZYNOA_HEAD_SHA -BuiltSha $builtSha -M26OptionsOnly
-            python -m tools.verify_p02_m26_options --root $out --source-sha $builtSha --run-id $env:GITHUB_RUN_ID --report (Join-Path $out 'M26-options.verify.json')
-            if ($LASTEXITCODE -ne 0) { throw 'ZYN-M26-010: native candidate receipts rejected' }
-          } finally {
-            $process.Refresh()
-            if (-not $process.HasExited) { Stop-Process -Id $process.Id -Force }
+          $out = Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\_ci\M26\options'
+          # A real foreground interruption invalidates the entire journey.
+          # Preserve the failed attempt separately, then allow one fresh app.
+          for ($attempt=1; $attempt -le 2; $attempt++) {
+            $retry=$false
+            if (Test-Path -LiteralPath $out) { throw 'ZYN-M26-026: stale candidate directory' }
+            $process = Start-Process -FilePath $exe -PassThru
             try {
-              if (-not $process.WaitForExit(10000)) { throw 'ZYN-M26-022: disposable native capture process did not exit' }
-            } finally { $process.Dispose() }
+              $deadline = (Get-Date).AddSeconds(45)
+              do {
+                Start-Sleep -Milliseconds 500
+                $process.Refresh()
+                if ($process.HasExited) { throw 'ZYN-M26-008: native process exited' }
+              } until ($process.MainWindowHandle -ne [IntPtr]::Zero -or (Get-Date) -ge $deadline)
+              if ($process.MainWindowHandle -eq [IntPtr]::Zero) { throw 'ZYN-M26-009: missing native window' }
+              & (Join-Path $env:GITHUB_WORKSPACE 'scripts\capture_p01_desktop.ps1') -TargetPid $process.Id -OutputDirectory $out -SourceSha $env:ZYNOA_HEAD_SHA -BuiltSha $builtSha -M26OptionsOnly
+              python -m tools.verify_p02_m26_options --root $out --source-sha $builtSha --run-id $env:GITHUB_RUN_ID --report (Join-Path $out 'M26-options.verify.json')
+              if ($LASTEXITCODE -ne 0) { throw 'ZYN-M26-010: native candidate receipts rejected' }
+            } catch {
+              if ($attempt -ne 1 -or $_.Exception.Message -notlike 'ZYN-M26-002:*') { throw }
+              $retry=$true
+              Write-Host 'ZYN-M26-FOREGROUND-RETRY: discard first incomplete journey, retry once on a fresh process'
+            } finally {
+              $process.Refresh()
+              if (-not $process.HasExited) { Stop-Process -Id $process.Id -Force }
+              try {
+                if (-not $process.WaitForExit(10000)) { throw 'ZYN-M26-022: disposable native capture process did not exit' }
+              } finally { $process.Dispose() }
+            }
+            if (-not $retry) { break }
+            if (Test-Path -LiteralPath $out) {
+              $diagnostics = Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\_ci\M26-failed-M26OptionsOnly'
+              if (Test-Path -LiteralPath $diagnostics) { throw 'ZYN-M26-026: stale diagnostic directory' }
+              Move-Item -LiteralPath $out -Destination $diagnostics
+            }
+            Start-Sleep -Milliseconds 1500
+            if (Get-Process -Name Narrator,nvda -ErrorAction SilentlyContinue) { throw 'ZYN-M26-021: pre-existing screen reader in native capture session' }
           }
       - name: P02 live NVDA speech plus real Windows keyboard journey (fail closed)
         id: p02_nvda
@@ -547,4 +583,6 @@ jobs:
             docs/screenshots/_ci/M26/options/M26-*.png
             docs/screenshots/_ci/M26/options/M26-*.capture.json
             docs/screenshots/_ci/M26/options/M26-options.verify.json
+            docs/screenshots/_ci/M26-failed-M26Only/**
+            docs/screenshots/_ci/M26-failed-M26OptionsOnly/**
           if-no-files-found: warn

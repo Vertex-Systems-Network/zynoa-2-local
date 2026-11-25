@@ -59,6 +59,7 @@ def verify_m26(proof, head, run_id, executable_sha256):
          and proof["app_pid"]!=proof["narrator_pid"], "missing real native processes")
     need(all(proof.get(k) is True for k in ("native_uia_pid_match","actual_tab_keyboard_focus","actual_previous_tab_deselected",
          "actual_search_keyboard_focus","actual_no_match_result_verified","actual_contextual_help_verified","no_user_data")), "M26 native keyboard evidence absent")
+    need(proof.get("m26_entry_method") in ("NarratorPassThroughEnter","NativeChangelogInvoke"), "actual M26 navigation method absent")
     need(proof.get("actual_selected_tab")=="Known Issues" and proof.get("actual_keyboard_input_value")=="zzznomatch"
          and proof.get("actual_no_match_keyboard_input_value")=="zzznomatch", "wrong actual native tab/query")
     need(proof.get("full_narrator_certified") is False and proof.get("product_release_approved") is False, "false release claim")

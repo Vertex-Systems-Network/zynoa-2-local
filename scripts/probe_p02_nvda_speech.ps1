@@ -299,14 +299,38 @@ public static class ZynoaNvdaReportFocus {
   }
   Write-Host ("ZYN-NVDA-PALETTE method="+$paletteMethod)
   if ($null -eq $input) { throw 'ZYN-NVDA-010: real command search missing' }
-  $input.SetFocus()
-  Start-Sleep -Milliseconds 1600
-  Assert-NvdaForeground
-  [System.Windows.Forms.SendKeys]::SendWait('M19-OPT-06')
-  Start-Sleep -Milliseconds 1000
-  $input = Find-NvdaSearch
-  if ($null -eq $input) { throw 'ZYN-NVDA-010: real command search missing after typing' }
-  $value = $input.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).Current.Value
+  $value = ''
+  for ($typingAttempt=0; $typingAttempt -lt 2; $typingAttempt++) {
+    $input=Find-NvdaSearch
+    if ($null -eq $input) { throw 'ZYN-NVDA-010: real command search missing before typing' }
+    $input.SetFocus()
+    Start-Sleep -Milliseconds 500
+    Assert-NvdaForeground
+    $input=Find-NvdaSearch
+    if ($null -eq $input -or -not $input.Current.HasKeyboardFocus) { throw 'ZYN-NVDA-011: actual palette input focus absent' }
+    # If the first real typing was intercepted, explicitly request NVDA focus
+    # mode before the one bounded retry; never set the UIA value directly.
+    if ($typingAttempt -eq 1) {
+      Write-Host 'ZYN-NVDA-TYPING-RETRY: actual value mismatch; retry focused input once'
+      [ZynoaNvdaReportFocus]::keybd_event(0x2D,0,0,[UIntPtr]::Zero)
+      Start-Sleep -Milliseconds 120
+      [ZynoaNvdaReportFocus]::keybd_event(0x20,0,0,[UIntPtr]::Zero)
+      Start-Sleep -Milliseconds 120
+      [ZynoaNvdaReportFocus]::keybd_event(0x20,0,2,[UIntPtr]::Zero)
+      [ZynoaNvdaReportFocus]::keybd_event(0x2D,0,2,[UIntPtr]::Zero)
+      Start-Sleep -Milliseconds 500
+      Assert-NvdaForeground
+      $input=Find-NvdaSearch
+      if ($null -eq $input -or -not $input.Current.HasKeyboardFocus) { throw 'ZYN-NVDA-011: actual focus lost before retry' }
+    }
+    [System.Windows.Forms.SendKeys]::SendWait('^a')
+    [System.Windows.Forms.SendKeys]::SendWait('M19-OPT-06')
+    Start-Sleep -Milliseconds 1000
+    $input=Find-NvdaSearch
+    if ($null -eq $input) { throw 'ZYN-NVDA-010: real command search missing after typing' }
+    $value=$input.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).Current.Value
+    if ($value -ceq 'M19-OPT-06') { break }
+  }
   if ($value -cne 'M19-OPT-06') { throw 'ZYN-NVDA-011: keyboard never entered native search' }
   Set-Content -LiteralPath $stageFile -Value 'help' -Encoding UTF8
   Assert-NvdaForeground

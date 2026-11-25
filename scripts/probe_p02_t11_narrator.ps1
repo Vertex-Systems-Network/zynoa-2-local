@@ -297,7 +297,28 @@ try {
     Start-Sleep -Milliseconds 250
     if (-not $nav.Current.HasKeyboardFocus) { throw 'ZYN-M26-NAR-003: native Changelog focus missing' }
     Send-M26NarratorPassThrough '{ENTER}'
-    $sourceTab=Find-FocusableNativeControl $uia "What's New"
+    $sourceTab=$null
+    try {
+      $sourceTab=Find-FocusableNativeControl $uia "What's New" 4
+      $proof['m26_entry_method']='NarratorPassThroughEnter'
+    } catch {
+      if ($_.Exception.Message -notlike 'ZYN-NAR-004:*') { throw }
+      # The original entry speech was real, but the reader can consume Enter.
+      # Invoke the actual enabled, visible native navigation button once.
+      Assert-M26NarratorForeground
+      $nav=Find-FocusableNativeControl $uia 'Changelog'
+      $invoke=$null
+      if ($nav.Current.ControlType -ne [System.Windows.Automation.ControlType]::Button -or
+          -not $nav.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern,[ref]$invoke)) {
+        throw 'ZYN-M26-NAR-011: actual Changelog navigation button invoke unavailable'
+      }
+      $invoke.Invoke()
+      Start-Sleep -Milliseconds 1000
+      Assert-M26NarratorForeground
+      $sourceTab=Find-FocusableNativeControl $uia "What's New" 12
+      $proof['m26_entry_method']='NativeChangelogInvoke'
+    }
+    Write-Host ("ZYN-M26-NAR-ENTRY method="+$proof.m26_entry_method)
     if ($sourceTab.Current.ControlType -ne [System.Windows.Automation.ControlType]::TabItem -or
         -not $sourceTab.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Current.IsSelected) {
       throw 'ZYN-M26-NAR-004: native source tab selection missing'

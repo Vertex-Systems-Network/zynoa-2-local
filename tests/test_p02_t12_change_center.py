@@ -198,6 +198,23 @@ class ChangeCenterTests(unittest.TestCase):
             self.assertIn(marker, script)
         self.assertNotIn("MainWindowTitle", script)
 
+    def test_foreground_retry_discards_incomplete_journey_and_never_retries_verifier_failure(self):
+        workflow=(ROOT/".github/workflows/p01-desktop.yml").read_text(encoding="utf-8")
+        start=workflow.index("name: P02-T12 separate M26 native keyboard")
+        end=workflow.index("name: P02 live NVDA speech",start)
+        section=workflow[start:end]
+        self.assertEqual(section.count("$attempt -le 2"),2)
+        self.assertEqual(section.count("$_.Exception.Message -notlike 'ZYN-M26-002:*'"),2)
+        self.assertEqual(section.count("Move-Item -LiteralPath $out -Destination $diagnostics"),2)
+        self.assertEqual(section.count("if ($LASTEXITCODE -ne 0) { throw 'ZYN-M26-010:"),2)
+        self.assertNotIn("continue-on-error",section)
+        narrator=(ROOT/"scripts/probe_p02_t11_narrator.ps1").read_text(encoding="utf-8")
+        branch=narrator.split("  if ($M26Only) {",1)[1].split("  $prefsNav.SetFocus()",1)[0]
+        self.assertIn("NativeChangelogInvoke",branch)
+        self.assertIn("TryGetCurrentPattern([System.Windows.Automation.InvokePattern]",branch)
+        self.assertIn("Send-M26NarratorPassThrough '{RIGHT}'",branch)
+        self.assertIn("actual_previous_tab_deselected",branch)
+
     def test_all_twenty_m26_option_explanations_are_bundled_and_documented(self):
         catalog=(UI/"help-catalog.ts").read_text(encoding="utf-8")
         help_doc=(ROOT/"docs/help/articles/M26.md").read_text(encoding="utf-8")

@@ -58,6 +58,12 @@ class NVDAProofTests(unittest.TestCase):
         self.assertIn("if ($null -eq $input) { throw 'ZYN-NVDA-010",ps)
         self.assertIn("if ($value -cne 'M19-OPT-06') { throw",ps)
         self.assertIn("events=@($events | Where-Object { $_.kind -eq 'speech' })",ps)
+    def test_palette_typing_retry_is_bounded_and_requires_actual_value(self):
+        ps=(ROOT/"scripts/probe_p02_nvda_speech.ps1").read_text(encoding="utf-8")
+        for marker in ("$typingAttempt -lt 2","HasKeyboardFocus","ZYN-NVDA-TYPING-RETRY","SendWait('^a')","SendWait('M19-OPT-06')","if ($value -cne 'M19-OPT-06') { throw"):
+            self.assertIn(marker,ps)
+        self.assertNotIn("SetValue(",ps)
+
     def test_m26_scoped_speech_requires_three_distinct_actual_stages(self):
         from tools.verify_p02_nvda_speech import verify_m26
         p=sample()
