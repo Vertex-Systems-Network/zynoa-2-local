@@ -82,6 +82,16 @@ class NVDAProofTests(unittest.TestCase):
         self.assertIn("BoundingRectangle.Contains($point)",ps)
         self.assertIn("ZYN-NVDA-TYPING-MISMATCH",ps)
 
+    def test_legacy_help_uses_actual_keyboard_destination_and_report_focus(self):
+        ps=(ROOT/"scripts/probe_p02_nvda_speech.ps1").read_text(encoding="utf-8")
+        branch=ps.split("Set-Content -LiteralPath $stageFile -Value 'help'",1)[1]
+        for marker in ("SendWait('{ENTER}')","Find-NvdaHelpHeading","Get-NvdaNativeRoot",
+                       "Wiki mapping and link checker","ControlType]::Text","HasKeyboardFocus",
+                       "ZYN-NVDA-018","ZYN-NVDA-019","keybd_event(0x2D","keybd_event(0x09",
+                       "Assert-NvdaForeground"):
+            self.assertIn(marker,branch)
+        self.assertNotIn("InvokePattern",branch)
+
     def test_m26_scoped_speech_requires_three_distinct_actual_stages(self):
         from tools.verify_p02_nvda_speech import verify_m26
         p=sample()

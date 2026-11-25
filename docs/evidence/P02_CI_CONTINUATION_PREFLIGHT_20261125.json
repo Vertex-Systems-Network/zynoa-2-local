@@ -25,7 +25,7 @@
     "Model candidate artifact and static test receipt, no automatic state/branch write",
     "Original native evidence manifest 28/28 independently verified separately"
   ],
-  "actual_results": "First live continuation #45573123008/job/139064706182 passed 4 contracts and dispatched P02-T12 UNROUTED_FAILURE without model. Windows and Governance failed a single inherited global exact-checkout-count assertion. Corrected per-native-job checkout contract and tightened unknown/mixed routing; fresh CI pending.",
+  "actual_results": "Second live automatic dispatch #45573910551/job/139071897397 selected T12 and returned UNROUTED_FAILURE for concurrent recognized native failures. Now select one independent group and retain all deferred failures; unknown still denied. Actual model inference and static validation pending.",
   "persistent_worker_deployed": false,
   "privileged_writer_deployed": false,
   "task_status_changed": false,
@@ -34,6 +34,15 @@
     "run_id": 45573123008,
     "job_id": 139064706182,
     "unit_tests_passed": 4,
+    "task": "P02-T12",
+    "action": "UNROUTED_FAILURE",
+    "model_called": false,
+    "github_writes": 0
+  },
+  "second_live_dispatch": {
+    "source_sha": "5e719886ce0a4f4de865ea7acd89c820b041412a",
+    "run_id": 45573910551,
+    "job_id": 139071897397,
     "task": "P02-T12",
     "action": "UNROUTED_FAILURE",
     "model_called": false,

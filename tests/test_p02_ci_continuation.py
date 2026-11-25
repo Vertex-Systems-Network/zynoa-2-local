@@ -48,21 +48,22 @@ class ContinuationTests(unittest.TestCase):
     def test_failure_routes_only_fixed_product_paths(self):
         action,paths=route_job("P02-T12",JOB)
         self.assertEqual(action,"DRAFT_REPAIR")
-        self.assertEqual(paths,("apps/desktop/src/ui/HelpCenter.tsx","apps/desktop/src/ui/CommandPalette.tsx"))
+        self.assertEqual(paths,("apps/desktop/src/ui/HelpCenter.tsx","apps/desktop/src/ui/CommandPalette.tsx","apps/desktop/src/ui/HelpWorkflows.tsx"))
         self.assertTrue(set(paths)<=SOURCE_FILES)
         self.assertEqual(route_job("P02-T12",dict(JOB,conclusion="success",steps=[]))[0],"REVIEW_EVIDENCE")
         self.assertEqual(route_job("P02-T12",dict(JOB,steps=[{"name":"arbitrary","conclusion":"failure"}]))[0],"UNROUTED_FAILURE")
         self.assertEqual(route_job("P02-T13",JOB)[0],"REVIEW_EVIDENCE")
 
-    def test_mixed_and_spoofed_step_names_do_not_authorize_draft(self):
+    def test_known_mixed_failures_choose_one_group_and_unknown_denied(self):
         m26={"name":"P02-T12 M26 twenty native option candidates","conclusion":"failure"}
         self.assertEqual(route_job("P02-T12",dict(JOB,steps=[m26])),
                          ("DRAFT_REPAIR",("apps/desktop/src/ui/ChangeCenter.tsx",)))
         for other in ({"name":"P02-T12 M26 unregistered step","conclusion":"failure"},
-                      {"name":"Desktop shell and IPC safety contracts","conclusion":"failure"},
-                      JOB["steps"][0]):
+                      {"name":"Desktop shell and IPC safety contracts","conclusion":"failure"}):
             self.assertEqual(route_job("P02-T12",dict(JOB,steps=[m26,other])),
                              ("UNROUTED_FAILURE",()))
+        self.assertEqual(route_job("P02-T12",dict(JOB,steps=[m26,JOB["steps"][0]])),
+                         route_job("P02-T12",JOB))
         self.assertEqual(route_job("P02-T12",dict(JOB,steps=[])),
                          ("UNROUTED_FAILURE",()))
 

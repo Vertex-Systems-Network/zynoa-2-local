@@ -347,7 +347,50 @@ public static class ZynoaNvdaReportFocus {
   Set-Content -LiteralPath $stageFile -Value 'help' -Encoding UTF8
   Assert-NvdaForeground
   [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
-  Start-Sleep -Milliseconds 2700
+  Start-Sleep -Milliseconds 700
+  # Verify the genuine destination reached by Enter, then explicitly request
+  # current focus speech just as a keyboard screen-reader user would.
+  # Never fabricate speech, navigate directly to Help or alter the selection.
+  function Find-NvdaHelpHeading {
+    $deadline=(Get-Date).AddSeconds(10)
+    $condition=[System.Windows.Automation.PropertyCondition]::new(
+      [System.Windows.Automation.AutomationElement]::NameProperty,'Wiki mapping and link checker')
+    do {
+      Assert-NvdaForeground
+      $root=Get-NvdaNativeRoot
+      $items=$root.FindAll([System.Windows.Automation.TreeScope]::Descendants,$condition)
+      for ($i=0;$i -lt $items.Count;$i++) {
+        try {
+          $item=$items.Item($i)
+          if ($item.Current.IsKeyboardFocusable -and $item.Current.IsEnabled -and
+              -not $item.Current.IsOffscreen -and
+              ($item.Current.ControlType -eq [System.Windows.Automation.ControlType]::Text)) {
+            return $item
+          }
+        } catch [System.Windows.Automation.ElementNotAvailableException] {}
+      }
+      Start-Sleep -Milliseconds 250
+    } until ((Get-Date) -ge $deadline)
+    throw 'ZYN-NVDA-018: actual selected Help heading absent after keyboard Enter'
+  }
+  $heading=Find-NvdaHelpHeading
+  if (-not $heading.Current.HasKeyboardFocus) {
+    $heading.SetFocus()
+    Start-Sleep -Milliseconds 350
+    $heading=Find-NvdaHelpHeading
+  }
+  if (-not $heading.Current.HasKeyboardFocus) { throw 'ZYN-NVDA-019: actual Help heading focus absent' }
+  Assert-NvdaForeground
+  [ZynoaNvdaReportFocus]::keybd_event(0x2D,0,0,[UIntPtr]::Zero)
+  Start-Sleep -Milliseconds 120
+  [ZynoaNvdaReportFocus]::keybd_event(0x09,0,0,[UIntPtr]::Zero)
+  Start-Sleep -Milliseconds 120
+  [ZynoaNvdaReportFocus]::keybd_event(0x09,0,2,[UIntPtr]::Zero)
+  Start-Sleep -Milliseconds 120
+  [ZynoaNvdaReportFocus]::keybd_event(0x2D,0,2,[UIntPtr]::Zero)
+  Start-Sleep -Milliseconds 2200
+  Assert-NvdaForeground
+  if (-not (Find-NvdaHelpHeading).Current.HasKeyboardFocus) { throw 'ZYN-NVDA-019: Help focus lost after NVDA report' }
   $app.Refresh(); $nvda.Refresh()
   if ($app.HasExited -or $nvda.HasExited) { throw 'ZYN-NVDA-012: app or NVDA died during journey' }
   $events = @((Get-Content -LiteralPath $proofFile -Encoding UTF8) | ForEach-Object { $_ | ConvertFrom-Json })
