@@ -18,14 +18,14 @@
     "name": "Final shared UI and help foundation",
     "modules": "M02 M19  M23(UI) M24(UI) M25(UI) M26(UI)",
     "acceptance": "Shared shell/Help and visual gate; M23–M25 Backup/Data Location/Update Center UI; integrated M26 changelog state rendering and contextual Help; actual native evidence and protected merge",
-    "state": "IN_PROGRESS"
+    "state": "MERGED_VERIFIED"
   },
   {
     "id": "P03",
     "name": "Complete Chat module",
     "modules": "M03  M23(chat-data)",
     "acceptance": "Real local model inference, attachments, history, errors and streaming; durable history, managed attachments, backup/restore E2E gates; chat module changes linked to canonical changelog and Help",
-    "state": "NOT_STARTED"
+    "state": "IN_PROGRESS"
   },
   {
     "id": "P04",

@@ -13,7 +13,7 @@
   },
   {
     "module": "M03",
-    "state": "NOT_STARTED",
+    "state": "IN_PROGRESS",
     "phase_gate_evidence": null,
     "completed_commit_sha": null
   },
