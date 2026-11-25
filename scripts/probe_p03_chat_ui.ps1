@@ -264,8 +264,15 @@ function Select-Combo([string]$Name,[string]$Key,[string]$Expected) {
    Focus-ByPhysicalClick $control
    if ([ChatProbeWindow]::GetForegroundWindow() -ne $script:hwnd) {throw 'ZYN-MODEL-PROBE-002: foreground lost'}
    $actualKey=$Key
-   if ($attempt -eq 2 -and $Name -ceq 'Model' -and $Key -ceq '{HOME}') {$actualKey='q'}
-   [System.Windows.Forms.SendKeys]::SendWait($actualKey)
+   # The model selector keeps a disabled placeholder at index zero on some
+   # WebView2 builds. HOME alone therefore never reaches the first installed
+   # model; move one bounded step past the placeholder before committing.
+   if ($attempt -eq 2 -and $Name -ceq 'Model' -and $Key -ceq '{HOME}') {
+     [System.Windows.Forms.SendKeys]::SendWait('{HOME}')
+     [System.Windows.Forms.SendKeys]::SendWait('{DOWN}')
+   } else {
+     [System.Windows.Forms.SendKeys]::SendWait($actualKey)
+   }
    [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
    for ($i=0;$i -lt 40;$i++) {
      if (Test-Combo $Name $Expected) {
