@@ -9,6 +9,7 @@ mod vault;
 mod locations; // native-only; not available to WebView
 mod events; // M26 native-only immutable event ledger
 mod artifact_contracts; // P03 bounded attachment/export/tool contracts
+mod backup_contracts; // P03 encrypted-backup, restore and performance contracts
 
 use tauri::Manager;
 

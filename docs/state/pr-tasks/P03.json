@@ -71,17 +71,17 @@
     {
       "id": "P03-T12",
       "title": "Encrypted portable backup and staged independent restore",
-      "status": "TODO"
+      "status": "IN_PROGRESS"
     },
     {
       "id": "P03-T13",
       "title": "Crash, disk failure, restart and uninstall/reinstall persistence",
-      "status": "TODO"
+      "status": "IN_PROGRESS"
     },
     {
       "id": "P03-T14",
       "title": "Security, accessibility, performance and prior-phase regressions",
-      "status": "TODO"
+      "status": "IN_PROGRESS"
     },
     {
       "id": "P03-T15",
