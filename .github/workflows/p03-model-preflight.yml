@@ -1,0 +1,61 @@
+name: P03 Local Model Preflight
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/state/PHASE.json'
+      - 'docs/evidence/P03_T01_PREFLIGHT.md'
+      - '.github/workflows/p03-model-preflight.yml'
+      - 'scripts/probe_p03_model.py'
+permissions:
+  contents: read
+concurrency:
+  group: p03-model-preflight-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  loopback-probe:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'phase/03-chat'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      OLLAMA_HOST: 127.0.0.1:11434
+      OLLAMA_NO_CLOUD: '1'
+      OLLAMA_MODELS: ${{ runner.temp }}/p03-models
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with: { python-version: '3.12' }
+      - name: Download and verify pinned official CPU runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          curl --fail --location --retry 2 --max-time 600 --output "$RUNNER_TEMP/ollama.tar.zst" https://github.com/ollama/ollama/releases/download/v0.40.18/ollama-linux-amd64.tar.zst
+          echo "b82649006cb5b54ed1237fa2d1a26a7f939a4fd03150033759acbff7ff315adf  $RUNNER_TEMP/ollama.tar.zst" | sha256sum --check
+          mkdir -p "$RUNNER_TEMP/ollama"
+          tar --zstd -xf "$RUNNER_TEMP/ollama.tar.zst" -C "$RUNNER_TEMP/ollama"
+          test -x "$RUNNER_TEMP/ollama/bin/ollama"
+      - name: Real local runtime and synthetic model smoke
+        shell: bash
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/ollama/bin/ollama" serve > "$RUNNER_TEMP/ollama-preflight.log" 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl --fail --silent --noproxy '*' --max-time 2 http://127.0.0.1:11434/api/version >/dev/null; then break; fi
+            sleep 2
+          done
+          curl --fail --silent --noproxy '*' --max-time 2 http://127.0.0.1:11434/api/version >/dev/null
+          "$RUNNER_TEMP/ollama/bin/ollama" pull qwen2.5:0.5b
+          python scripts/probe_p03_model.py --source-sha "$EXACT_HEAD" --out "$RUNNER_TEMP/p03-model-preflight.json"
+      - uses: actions/upload-artifact@v6
+        with:
+          name: p03-model-preflight-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-model-preflight.json
+          if-no-files-found: error

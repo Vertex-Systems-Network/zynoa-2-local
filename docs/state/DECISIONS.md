@@ -188,3 +188,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P02 | Use PR write scope rather than general issue write for main-only receipt and allowlisted HTTP status diagnostics | #22 confirmed POST-stage denial; https://docs.github.com/en/rest/issues/comments#create-an-issue-comment documents PR write; test actual publication before transition.
 
 2026-11-25 | P03 | Activate phase only after independent P02 bot receipt; use separate read-only exact-head Windows baseline workflow | Preserve P02 evidence and gates, avoid changing P01/P02 workflow scope. Real native baseline pending before feature code.
+
+2026-11-25 | P03 | Fix inherited SQLite connection lifetime as a minimal preflight regression repair | #26, full Windows suite failed with 31 leaked-handle cleanup errors. Explicit contextlib.closing preserves transactions and all tests; no P00 behavior expansion. Use pinned actual local Ollama probe and existing Rust SQLite vault; see P03 preflight ADR. T02 code waits for baseline.

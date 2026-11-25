@@ -1,0 +1,42 @@
+{
+  "change_id": "CHG-P03-M03-PREFLIGHT-REGRESSION-20261125",
+  "module_id": "M03",
+  "kind": "maintenance",
+  "title": "Repair Windows preflight connection cleanup and add local runtime probe",
+  "summary": "Close inherited SQLite handles after commit or rollback. Retain full suite; add exact-head model preflight, research and tests-first migration design.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/26"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
+  "affected_option_ids": [],
+  "docs_paths": [
+    "docs/evidence/P03_T01_PREFLIGHT.md",
+    "docs/adr/0030-p03-chat-data-and-local-inference.md",
+    "docs/state/HANDOFF.md"
+  ],
+  "help_paths": [],
+  "wiki_paths": [],
+  "test_evidence": [
+    "tests/test_dev_job_queue.py",
+    "tests/test_dev_task_graph.py",
+    ".github/workflows/p03-native-baseline.yml",
+    ".github/workflows/p03-model-preflight.yml",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45611349181"
+  ],
+  "commit_sha": "99a30c5d5279f796c3aad437aaf2ca0d7b55b7c6",
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No user schema or data edits; regression-only resource lifecycle fix. Model smoke uses synthetic data.",
+  "created_at": "2026-11-25",
+  "updated_at": "2026-11-25",
+  "version_bump": "none",
+  "docs_impact": false,
+  "data_migration": false
+}
