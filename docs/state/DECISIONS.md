@@ -194,3 +194,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P03 | Move model cache location into runtime shell environment | Initial workflow failed before job creation; runner.temp is not available in job-level env. No tests or verification gates changed.
 
 2026-11-25 | P03 | Accept T01 scoped baseline and proceed to T02 | Native and local-model artifact readback and exact-head CI verified; inherited warnings recorded. T02 additive v2 migration and real Rust tests first.
+
+2026-11-25 | P03 | Implement additive native v2 normalized chat tables and pre-migration verified SQLite backup under reserved writer lock | Preserve v1 opaque records, no inferred history conversion. Typed postcommit receipts, journal atomicity, parent FK and bounded ordinal paging; no UI or portable encryption in T02. Native tests/boot proof pending.

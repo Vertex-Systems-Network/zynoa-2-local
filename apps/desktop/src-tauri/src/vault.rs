@@ -1,13 +1,114 @@
-//! M23 P01 native-only SQLite vault foundation, not a WebView command.
+//! M23 native SQLite vault, P01 foundation and P03 additive chat schema; not a WebView command.
 //! All operations are within the trusted app-local data path, never the binary.
 //! User content is never logged, sent to telemetry or silently replaced.
 use rusqlite::{params, Connection, ErrorCode, OpenFlags, OptionalExtension, TransactionBehavior, MAIN_DB};
 use std::fs::{self, OpenOptions};
 use std::path::{Path, PathBuf};
-use std::time::Duration;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-const SCHEMA_VERSION: i64 = 1;
+const SCHEMA_VERSION: i64 = 2;
+const LEGACY_VERSION: i64 = 1;
 const MAX_CONTENT_BYTES: usize = 262_144;
+const MAX_TITLE_BYTES: usize = 512;
+const MAX_PAGE: u32 = 200;
+
+// Retain the exact original P01 table, including its opaque conversation
+// records. Do not guess how legacy content maps to normalized messages.
+const LEGACY_SCHEMA: &str = "CREATE TABLE records(
+                   id TEXT PRIMARY KEY NOT NULL,
+                   class TEXT NOT NULL CHECK(class IN ('conversation','project','preference')),
+                   payload TEXT NOT NULL,
+                   revision INTEGER NOT NULL CHECK(revision >= 1),
+                   created_at INTEGER NOT NULL
+                 )";
+
+const CHAT_SCHEMA: &str = "
+CREATE TABLE conversations(
+    id TEXT PRIMARY KEY NOT NULL CHECK(length(id) BETWEEN 8 AND 64 AND id NOT GLOB '*[^A-Za-z0-9_-]*'),
+    title TEXT NOT NULL CHECK(length(CAST(title AS BLOB)) BETWEEN 1 AND 512 AND instr(title,char(0))=0),
+    revision INTEGER NOT NULL CHECK(typeof(revision)='integer' AND revision>=1),
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+);
+CREATE TABLE messages(
+    id TEXT PRIMARY KEY NOT NULL CHECK(length(id) BETWEEN 8 AND 64 AND id NOT GLOB '*[^A-Za-z0-9_-]*'),
+    conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE RESTRICT,
+    parent_id TEXT,
+    ordinal INTEGER NOT NULL CHECK(typeof(ordinal)='integer' AND ordinal>=1),
+    role TEXT NOT NULL CHECK(role IN ('user','assistant','system')),
+    content TEXT NOT NULL CHECK(length(CAST(content AS BLOB)) BETWEEN 1 AND 262144 AND instr(content,char(0))=0),
+    status TEXT NOT NULL CHECK(status IN ('complete','cancelled','failed')),
+    revision INTEGER NOT NULL CHECK(typeof(revision)='integer' AND revision>=1),
+    created_at INTEGER NOT NULL,
+    CHECK(parent_id IS NULL OR parent_id<>id),
+    UNIQUE(conversation_id,id),
+    UNIQUE(conversation_id,ordinal),
+    FOREIGN KEY(conversation_id,parent_id) REFERENCES messages(conversation_id,id) ON DELETE RESTRICT
+);
+CREATE TABLE schema_migrations(
+    version INTEGER PRIMARY KEY CHECK(version=2),
+    from_version INTEGER NOT NULL CHECK(from_version IN (0,1)),
+    application_version TEXT NOT NULL,
+    backup_id TEXT,
+    result TEXT NOT NULL CHECK(result='applied'),
+    applied_at INTEGER NOT NULL,
+    CHECK((from_version=0 AND backup_id IS NULL) OR (from_version=1 AND backup_id IS NOT NULL))
+);
+CREATE TABLE chat_change_journal(
+    seq INTEGER PRIMARY KEY,
+    entity_type TEXT NOT NULL CHECK(entity_type IN ('conversation','message')),
+    entity_id TEXT NOT NULL,
+    revision INTEGER NOT NULL CHECK(typeof(revision)='integer' AND revision>=1),
+    operation TEXT NOT NULL CHECK(operation IN ('insert','message_added')),
+    persisted_at INTEGER NOT NULL,
+    UNIQUE(entity_type,entity_id,revision)
+);
+CREATE INDEX chat_journal_entity ON chat_change_journal(entity_type,entity_id,seq);
+";
+
+#[derive(Clone, Copy)]
+pub(crate) enum ChatRole { User, Assistant, System }
+impl ChatRole {
+    fn name(self) -> &'static str {
+        match self { Self::User => "user", Self::Assistant => "assistant", Self::System => "system" }
+    }
+}
+
+#[derive(Clone, Copy)]
+pub(crate) enum ChatStatus { Complete, Cancelled, Failed }
+impl ChatStatus {
+    fn name(self) -> &'static str {
+        match self { Self::Complete => "complete", Self::Cancelled => "cancelled", Self::Failed => "failed" }
+    }
+}
+
+// Deliberately no Debug implementation for structures holding private text.
+pub(crate) struct ChatMessageInput<'a> {
+    pub(crate) id: &'a str,
+    pub(crate) conversation_id: &'a str,
+    pub(crate) parent_id: Option<&'a str>,
+    pub(crate) role: ChatRole,
+    pub(crate) content: &'a str,
+    pub(crate) status: ChatStatus,
+}
+
+pub(crate) struct StoredChatMessage {
+    pub(crate) id: String,
+    pub(crate) parent_id: Option<String>,
+    pub(crate) ordinal: i64,
+    pub(crate) role: String,
+    pub(crate) content: String,
+    pub(crate) status: String,
+    pub(crate) revision: i64,
+    pub(crate) created_at: i64,
+}
+
+pub(crate) struct ChatWriteReceipt {
+    pub(crate) id: String,
+    pub(crate) revision: i64,
+    pub(crate) conversation_revision: i64,
+    pub(crate) ordinal: Option<i64>,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum VaultFault {
@@ -81,6 +182,93 @@ fn integrity_check(db: &Connection) -> Result<(), VaultFault> {
     Ok(())
 }
 
+fn valid_text(value: &str, max: usize) -> bool {
+    !value.trim().is_empty() && value.len() <= max && !value.contains('\0')
+}
+
+fn version(db: &Connection) -> Result<i64, VaultFault> {
+    db.query_row("PRAGMA user_version", [], |r| r.get(0)).map_err(|_| VaultFault::Corrupt)
+}
+
+fn normalize_sql(sql: &str) -> String {
+    sql.chars().filter(|c| !c.is_ascii_whitespace() && *c != ';').collect::<String>().to_ascii_lowercase()
+}
+
+fn verify_legacy_table(db: &Connection) -> Result<(), VaultFault> {
+    let sql: String = db.query_row(
+        "SELECT sql FROM sqlite_schema WHERE type='table' AND name='records'", [], |r| r.get(0)
+    ).map_err(|_| VaultFault::Corrupt)?;
+    if normalize_sql(&sql) != normalize_sql(LEGACY_SCHEMA) { return Err(VaultFault::Corrupt); }
+    Ok(())
+}
+
+fn validate_schema(db: &Connection) -> Result<i64, VaultFault> {
+    let v = version(db)?;
+    if v != LEGACY_VERSION && v != SCHEMA_VERSION { return Err(VaultFault::UnsupportedSchema); }
+    integrity_check(db)?;
+    verify_legacy_table(db)?;
+    if v == LEGACY_VERSION {
+        let count: i64 = db.query_row(
+            "SELECT count(*) FROM sqlite_schema WHERE name NOT LIKE 'sqlite_%'", [], |r| r.get(0)
+        ).map_err(|_| VaultFault::Corrupt)?;
+        if count != 1 { return Err(VaultFault::Corrupt); }
+    } else {
+        for table in ["conversations", "messages", "schema_migrations", "chat_change_journal"] {
+            let found: i64 = db.query_row(
+                "SELECT count(*) FROM sqlite_schema WHERE type='table' AND name=?1", [table], |r| r.get(0)
+            ).map_err(|_| VaultFault::Corrupt)?;
+            if found != 1 { return Err(VaultFault::Corrupt); }
+        }
+        let migrated: i64 = db.query_row(
+            "SELECT count(*) FROM schema_migrations WHERE version=2 AND result='applied' AND
+             ((from_version=0 AND backup_id IS NULL) OR (from_version=1 AND backup_id IS NOT NULL))",
+            [], |r| r.get(0)
+        ).map_err(|_| VaultFault::Corrupt)?;
+        if migrated != 1 { return Err(VaultFault::Corrupt); }
+        let mut check = db.prepare("PRAGMA foreign_key_check").map_err(|_| VaultFault::Corrupt)?;
+        let mut rows = check.query([]).map_err(|_| VaultFault::Corrupt)?;
+        if rows.next().map_err(|_| VaultFault::Corrupt)?.is_some() { return Err(VaultFault::Corrupt); }
+    }
+    Ok(v)
+}
+
+fn apply_v2(db: &Connection, from: i64, backup_id: Option<&str>) -> Result<(), VaultFault> {
+    db.execute_batch(CHAT_SCHEMA).map_err(map_sql)?;
+    db.execute(
+        "INSERT INTO schema_migrations(version,from_version,application_version,backup_id,result,applied_at)
+         VALUES(2,?1,?2,?3,'applied',unixepoch())",
+        params![from, env!("CARGO_PKG_VERSION"), backup_id],
+    ).map_err(map_sql)?;
+    db.execute_batch("PRAGMA user_version=2;").map_err(map_sql)?;
+    Ok(())
+}
+
+fn snapshot_connection_new(app_root: &Path, source: &Connection, snapshot_id: &str)
+    -> Result<PathBuf, VaultFault>
+{
+    if !safe_id(snapshot_id) { return Err(VaultFault::InvalidRecord); }
+    let expected_version = version(source)?;
+    let backup_root = checked_child(app_root, "backups")?;
+    let directory = checked_child(&backup_root, "snapshots")?;
+    let path = directory.join(format!("{snapshot_id}.sqlite"));
+    if reject_nonregular_file(&path)? { return Err(VaultFault::Conflict); }
+    for suffix in ["-wal", "-shm", "-journal"] {
+        if reject_nonregular_file(&directory.join(format!("{snapshot_id}.sqlite{suffix}")))? {
+            return Err(VaultFault::Conflict);
+        }
+    }
+    let file = OpenOptions::new().create_new(true).write(true).open(&path)
+        .map_err(|_| VaultFault::Conflict)?;
+    drop(file);
+    source.backup(MAIN_DB, &path, None::<fn(rusqlite::backup::Progress)>).map_err(map_sql)?;
+    let verify = Connection::open_with_flags(&path, OpenFlags::SQLITE_OPEN_READ_ONLY).map_err(map_sql)?;
+    if validate_schema(&verify)? != expected_version { return Err(VaultFault::Corrupt); }
+    drop(verify);
+    OpenOptions::new().write(true).open(&path).and_then(|file| file.sync_all())
+        .map_err(|_| VaultFault::StorageUnavailable)?;
+    Ok(path)
+}
+
 impl NativeVault {
     pub(crate) fn open(app_root: &Path) -> Result<Self, VaultFault> {
         if !app_root.is_absolute() || app_root.file_name() != Some(std::ffi::OsStr::new("com.zynoa.desktop")) {
@@ -96,30 +284,41 @@ impl NativeVault {
             reject_nonregular_file(&data.join(format!("state.sqlite{suffix}")))?;
         }
         let flags = OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_CREATE;
-        let conn = Connection::open_with_flags(&file, flags).map_err(map_sql)?;
+        let mut conn = Connection::open_with_flags(&file, flags).map_err(map_sql)?;
         conn.busy_timeout(Duration::from_secs(2)).map_err(map_sql)?;
-        if existed {
-            let v: i64 = conn.query_row("PRAGMA user_version", [], |row| row.get(0))
-                .map_err(|_| VaultFault::Corrupt)?;
-            if v != SCHEMA_VERSION { return Err(VaultFault::UnsupportedSchema); }
-            integrity_check(&conn)?;
-        }
+        if existed { validate_schema(&conn)?; }
         conn.execute_batch("PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA foreign_keys=ON;")
             .map_err(map_sql)?;
-        if !existed {
-            conn.execute_batch(
-                "BEGIN IMMEDIATE;
-                 CREATE TABLE records(
-                   id TEXT PRIMARY KEY NOT NULL,
-                   class TEXT NOT NULL CHECK(class IN ('conversation','project','preference')),
-                   payload TEXT NOT NULL,
-                   revision INTEGER NOT NULL CHECK(revision >= 1),
-                   created_at INTEGER NOT NULL
-                 );
-                 PRAGMA user_version=1;
-                 COMMIT;"
-            ).map_err(map_sql)?;
+        // Serialize migration against other writers; inspect again inside the
+        // lock so a concurrent opener cannot run the migration twice.
+        let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate).map_err(map_sql)?;
+        match version(&tx)? {
+            0 if !existed => {
+                tx.execute_batch(LEGACY_SCHEMA).map_err(map_sql)?;
+                apply_v2(&tx, 0, None)?;
+            }
+            LEGACY_VERSION => {
+                validate_schema(&tx)?;
+                let stamp = SystemTime::now().duration_since(UNIX_EPOCH)
+                    .map_err(|_| VaultFault::StorageUnavailable)?.as_nanos();
+                let backup_id = format!("pre_v2_{}_{stamp}", std::process::id());
+                // The reserved writer lock holds the v1 committed state still.
+                // A separate read-only connection snapshots that state, not the
+                // transaction being migrated; never raw-copy a live WAL file.
+                let source = Connection::open_with_flags(&file, OpenFlags::SQLITE_OPEN_READ_ONLY)
+                    .map_err(map_sql)?;
+                source.busy_timeout(Duration::from_secs(2)).map_err(map_sql)?;
+                if validate_schema(&source)? != LEGACY_VERSION { return Err(VaultFault::Conflict); }
+                snapshot_connection_new(app_root, &source, &backup_id)?;
+                drop(source);
+                apply_v2(&tx, LEGACY_VERSION, Some(&backup_id))?;
+            }
+            SCHEMA_VERSION => { validate_schema(&tx)?; }
+            _ => return Err(VaultFault::UnsupportedSchema),
         }
+        // Check constraints and version before committing the atomic DDL.
+        if validate_schema(&tx)? != SCHEMA_VERSION { return Err(VaultFault::Corrupt); }
+        tx.commit().map_err(map_sql)?;
         Ok(Self { app_root: app_root.to_path_buf(), conn })
     }
 
@@ -144,24 +343,83 @@ impl NativeVault {
             .optional().map_err(map_sql)
     }
 
+    /// Create a new conversation, including its journal event, atomically.
+    pub(crate) fn create_conversation(&mut self, id: &str, title: &str)
+        -> Result<ChatWriteReceipt, VaultFault>
+    {
+        if !safe_id(id) || !valid_text(title, MAX_TITLE_BYTES) { return Err(VaultFault::InvalidRecord); }
+        let tx = self.conn.transaction_with_behavior(TransactionBehavior::Immediate).map_err(map_sql)?;
+        tx.execute(
+            "INSERT INTO conversations(id,title,revision,created_at,updated_at) VALUES(?1,?2,1,unixepoch(),unixepoch())",
+            params![id,title]
+        ).map_err(map_sql)?;
+        tx.execute(
+            "INSERT INTO chat_change_journal(entity_type,entity_id,revision,operation,persisted_at)
+             VALUES('conversation',?1,1,'insert',unixepoch())", [id]
+        ).map_err(map_sql)?;
+        tx.commit().map_err(map_sql)?;
+        Ok(ChatWriteReceipt { id:id.to_owned(), revision:1, conversation_revision:1, ordinal:None })
+    }
+
+    /// Persist a complete or explicitly terminal partial message. The return
+    /// value acknowledges committed content, NOT successful model generation.
+    pub(crate) fn append_chat_message(&mut self, input: ChatMessageInput<'_>)
+        -> Result<ChatWriteReceipt, VaultFault>
+    {
+        if !safe_id(input.id) || !safe_id(input.conversation_id)
+            || input.parent_id.is_some_and(|p| !safe_id(p) || p == input.id)
+            || !valid_text(input.content, MAX_CONTENT_BYTES)
+        { return Err(VaultFault::InvalidRecord); }
+        let tx = self.conn.transaction_with_behavior(TransactionBehavior::Immediate).map_err(map_sql)?;
+        let ordinal: i64 = tx.query_row(
+            "SELECT COALESCE(MAX(ordinal),0)+1 FROM messages WHERE conversation_id=?1",
+            [input.conversation_id], |r| r.get(0)
+        ).map_err(map_sql)?;
+        tx.execute(
+            "INSERT INTO messages(id,conversation_id,parent_id,ordinal,role,content,status,revision,created_at)
+             VALUES(?1,?2,?3,?4,?5,?6,?7,1,unixepoch())",
+            params![input.id,input.conversation_id,input.parent_id,ordinal,input.role.name(),input.content,input.status.name()]
+        ).map_err(map_sql)?;
+        if tx.execute(
+            "UPDATE conversations SET updated_at=unixepoch(),revision=revision+1 WHERE id=?1",
+            [input.conversation_id]
+        ).map_err(map_sql)? != 1 { return Err(VaultFault::Conflict); }
+        let conversation_revision: i64 = tx.query_row(
+            "SELECT revision FROM conversations WHERE id=?1",[input.conversation_id], |r| r.get(0)
+        ).map_err(map_sql)?;
+        tx.execute(
+            "INSERT INTO chat_change_journal(entity_type,entity_id,revision,operation,persisted_at)
+             VALUES('message',?1,1,'insert',unixepoch()),('conversation',?2,?3,'message_added',unixepoch())",
+            params![input.id,input.conversation_id,conversation_revision]
+        ).map_err(map_sql)?;
+        tx.commit().map_err(map_sql)?;
+        Ok(ChatWriteReceipt { id:input.id.to_owned(),revision:1,conversation_revision,ordinal:Some(ordinal) })
+    }
+
+    /// Bounded stable ordinal pagination, scoped to a single conversation.
+    pub(crate) fn list_chat_messages(&self, conversation_id: &str, after: i64, limit: u32)
+        -> Result<Vec<StoredChatMessage>, VaultFault>
+    {
+        if !safe_id(conversation_id) || after < 0 || !(1..=MAX_PAGE).contains(&limit) {
+            return Err(VaultFault::InvalidRecord);
+        }
+        let mut statement = self.conn.prepare(
+            "SELECT id,parent_id,ordinal,role,content,status,revision,created_at FROM messages
+             WHERE conversation_id=?1 AND ordinal>?2 ORDER BY ordinal LIMIT ?3"
+        ).map_err(map_sql)?;
+        let rows = statement.query_map(params![conversation_id,after,limit], |r| Ok(StoredChatMessage {
+            id:r.get(0)?,parent_id:r.get(1)?,ordinal:r.get(2)?,role:r.get(3)?,
+            content:r.get(4)?,status:r.get(5)?,revision:r.get(6)?,created_at:r.get(7)?,
+        })).map_err(map_sql)?;
+        let mut result = Vec::new();
+        for row in rows { result.push(row.map_err(map_sql)?); }
+        Ok(result)
+    }
+
     /// SQLite Online Backup API; never raw-copy a live WAL database or overwrite
     /// an existing backup. Snapshot stays private and unencrypted until M23 export.
     pub(crate) fn snapshot_new(&self, snapshot_id: &str) -> Result<PathBuf, VaultFault> {
-        if !safe_id(snapshot_id) { return Err(VaultFault::InvalidRecord); }
-        let backup_root = checked_child(&self.app_root, "backups")?;
-        let directory = checked_child(&backup_root, "snapshots")?;
-        let path = directory.join(format!("{snapshot_id}.sqlite"));
-        if reject_nonregular_file(&path)? { return Err(VaultFault::Conflict); }
-        // Reserve exact destination atomically; no in-place replacement.
-        let file = OpenOptions::new().create_new(true).write(true).open(&path)
-            .map_err(|_| VaultFault::Conflict)?;
-        drop(file);
-        self.conn.backup(MAIN_DB, &path, None::<fn(rusqlite::backup::Progress)>)
-            .map_err(map_sql)?;
-        let verify = Connection::open_with_flags(&path, OpenFlags::SQLITE_OPEN_READ_ONLY)
-            .map_err(map_sql)?;
-        integrity_check(&verify)?;
-        Ok(path)
+        snapshot_connection_new(&self.app_root, &self.conn, snapshot_id)
     }
 
     /// Restore drill into a NEW disposable path only; never alter the active DB.
@@ -172,6 +430,9 @@ impl NativeVault {
             || reject_nonregular_file(destination)?
         { return Err(VaultFault::InvalidLocation); }
         checked_directory(destination.parent().ok_or(VaultFault::InvalidLocation)?)?;
+        let source = Connection::open_with_flags(snapshot, OpenFlags::SQLITE_OPEN_READ_ONLY).map_err(map_sql)?;
+        let source_version = validate_schema(&source)?;
+        drop(source);
         // Reserve a NEW preview inode; an existing file is NEVER overwritten.
         let reserved = OpenOptions::new().write(true).create_new(true)
             .open(destination).map_err(|_| VaultFault::Conflict)?;
@@ -181,10 +442,7 @@ impl NativeVault {
         ).map_err(map_sql)?;
         restored.restore(MAIN_DB, snapshot, None::<fn(rusqlite::backup::Progress)>)
             .map_err(map_sql)?;
-        integrity_check(&restored)?;
-        let v: i64 = restored.query_row("PRAGMA user_version", [], |r| r.get(0))
-            .map_err(|_| VaultFault::Corrupt)?;
-        if v != SCHEMA_VERSION { return Err(VaultFault::UnsupportedSchema); }
+        if validate_schema(&restored)? != source_version { return Err(VaultFault::Corrupt); }
         Ok(())
     }
 }
@@ -192,7 +450,6 @@ impl NativeVault {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::time::{SystemTime, UNIX_EPOCH};
     static NEXT_FIXTURE_ID: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
     struct Fixture(PathBuf);
     impl Fixture {
@@ -302,4 +559,213 @@ mod tests {
                    Err(VaultFault::InvalidRecord));
         assert_eq!(v.read("valid_record_1").unwrap(), None);
     }
+
+    fn legacy_fixture(app: &Path) -> PathBuf {
+        let data = app.join("data");
+        fs::create_dir(&data).unwrap();
+        let file = data.join("state.sqlite");
+        let db = Connection::open(&file).unwrap();
+        db.execute_batch("PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL;").unwrap();
+        db.execute_batch(LEGACY_SCHEMA).unwrap();
+        db.execute_batch("PRAGMA user_version=1;").unwrap();
+        db.execute("INSERT INTO records VALUES('legacy_chat_001','conversation','legacy opaque content',3,1234)", []).unwrap();
+        drop(db);
+        file
+    }
+
+    fn sample_message<'a>(id: &'a str, conversation_id: &'a str, parent_id: Option<&'a str>) -> ChatMessageInput<'a> {
+        ChatMessageInput { id, conversation_id, parent_id, role:ChatRole::User,
+            content:"synthetic message",status:ChatStatus::Complete }
+    }
+
+    fn count(db: &Connection, sql: &str) -> i64 { db.query_row(sql, [], |r| r.get(0)).unwrap() }
+
+    #[test]
+    fn p03_fresh_schema_wal_full_fk_and_migration_history() {
+        let f = Fixture::new();
+        let v = NativeVault::open(&f.app()).unwrap();
+        assert_eq!(version(&v.conn).unwrap(), 2);
+        assert_eq!(count(&v.conn,"PRAGMA synchronous"),2);
+        assert_eq!(count(&v.conn,"PRAGMA foreign_keys"),1);
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM schema_migrations WHERE version=2 AND from_version=0 AND backup_id IS NULL"),1);
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM messages"),0);
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM chat_change_journal"),0);
+        let mode:String = v.conn.query_row("PRAGMA journal_mode",[],|r|r.get(0)).unwrap();
+        assert_eq!(mode.to_lowercase(),"wal");
+    }
+
+    #[test]
+    fn p03_v1_migration_keeps_legacy_bytes_and_verified_backup() {
+        let f=Fixture::new();
+        let app=f.app();
+        legacy_fixture(&app);
+        let v=NativeVault::open(&app).unwrap();
+        assert_eq!(version(&v.conn).unwrap(),2);
+        assert_eq!(v.read("legacy_chat_001").unwrap().as_deref(),Some("legacy opaque content"));
+        assert_eq!(count(&v.conn,"SELECT revision FROM records WHERE id='legacy_chat_001'"),3);
+        assert_eq!(count(&v.conn,"SELECT created_at FROM records WHERE id='legacy_chat_001'"),1234);
+        let backup_id:String=v.conn.query_row("SELECT backup_id FROM schema_migrations WHERE from_version=1",[],|r|r.get(0)).unwrap();
+        let path=app.join("backups").join("snapshots").join(format!("{backup_id}.sqlite"));
+        let original=Connection::open_with_flags(&path,OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+        assert_eq!(validate_schema(&original).unwrap(),1);
+        assert_eq!(count(&original,"SELECT count(*) FROM records WHERE payload='legacy opaque content' AND revision=3"),1);
+        drop(original);
+        drop(v);
+        let again=NativeVault::open(&app).unwrap();
+        assert_eq!(count(&again.conn,"SELECT count(*) FROM schema_migrations"),1);
+        assert_eq!(fs::read_dir(app.join("backups").join("snapshots")).unwrap().filter_map(Result::ok)
+            .filter(|e| e.path().extension().and_then(|x|x.to_str())==Some("sqlite")).count(),1);
+    }
+
+    #[test]
+    fn p03_unavailable_backup_preserves_v1_without_migration() {
+        let f=Fixture::new();
+        let app=f.app();
+        let file=legacy_fixture(&app);
+        fs::write(app.join("backups"),b"do not overwrite").unwrap();
+        assert!(NativeVault::open(&app).is_err());
+        let original=Connection::open_with_flags(&file,OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+        assert_eq!(validate_schema(&original).unwrap(),1);
+        assert_eq!(count(&original,"SELECT count(*) FROM records WHERE payload='legacy opaque content'"),1);
+        assert_eq!(fs::read(app.join("backups")).unwrap(),b"do not overwrite");
+    }
+
+    #[test]
+    fn p03_failed_ddl_transaction_rolls_back_schema_and_version() {
+        let f=Fixture::new();
+        let app=f.app();
+        let file=legacy_fixture(&app);
+        let mut db=Connection::open(&file).unwrap();
+        db.execute_batch("CREATE TABLE messages(occupied TEXT);").unwrap();
+        {
+            let tx=db.transaction_with_behavior(TransactionBehavior::Immediate).unwrap();
+            assert!(apply_v2(&tx,1,Some("fixture_backup")).is_err());
+        }
+        assert_eq!(version(&db).unwrap(),1);
+        assert_eq!(count(&db,"SELECT count(*) FROM sqlite_schema WHERE name='conversations'"),0);
+        assert_eq!(count(&db,"SELECT count(*) FROM records WHERE payload='legacy opaque content'"),1);
+        assert_eq!(count(&db,"SELECT count(*) FROM sqlite_schema WHERE name='messages'"),1);
+    }
+
+    #[test]
+    fn p03_future_or_malformed_schema_is_not_reinitialized() {
+        let f=Fixture::new();
+        let app=f.app();
+        let file=legacy_fixture(&app);
+        let db=Connection::open(&file).unwrap();
+        db.execute_batch("PRAGMA user_version=99;").unwrap();
+        drop(db);
+        assert!(matches!(NativeVault::open(&app),Err(VaultFault::UnsupportedSchema)));
+        let db=Connection::open(&file).unwrap();
+        assert_eq!(version(&db).unwrap(),99);
+        assert_eq!(count(&db,"SELECT count(*) FROM records"),1);
+        db.execute_batch("PRAGMA user_version=1; CREATE TABLE unexpected(id TEXT);").unwrap();
+        drop(db);
+        assert!(matches!(NativeVault::open(&app),Err(VaultFault::Corrupt)));
+        let db=Connection::open(&file).unwrap();
+        assert_eq!(version(&db).unwrap(),1);
+        assert_eq!(count(&db,"SELECT count(*) FROM records"),1);
+    }
+
+    #[test]
+    fn p03_message_ack_reopen_order_and_scoped_history() {
+        let f=Fixture::new();
+        let app=f.app();
+        let mut v=NativeVault::open(&app).unwrap();
+        let receipt=v.create_conversation("thread_alpha","Synthetic title").unwrap();
+        assert_eq!((receipt.id.as_str(),receipt.revision,receipt.conversation_revision,receipt.ordinal),("thread_alpha",1,1,None));
+        v.create_conversation("thread_other","Other thread").unwrap();
+        let a=v.append_chat_message(sample_message("message_0001","thread_alpha",None)).unwrap();
+        let mut next=sample_message("message_0002","thread_alpha",Some("message_0001"));
+        next.role=ChatRole::Assistant;
+        next.status=ChatStatus::Cancelled;
+        next.content="saved partial response";
+        let b=v.append_chat_message(next).unwrap();
+        assert_eq!((a.ordinal,a.conversation_revision,b.ordinal,b.conversation_revision),(Some(1),2,Some(2),3));
+        v.append_chat_message(sample_message("message_other","thread_other",None)).unwrap();
+        drop(v);
+        let again=NativeVault::open(&app).unwrap();
+        let first=again.list_chat_messages("thread_alpha",0,1).unwrap();
+        assert_eq!(first.len(),1);
+        assert_eq!(first[0].id,"message_0001");
+        assert_eq!(first[0].role,"user");
+        assert_eq!(first[0].ordinal,1);
+        assert_eq!(first[0].revision,1);
+        assert!(first[0].created_at>0);
+        let second=again.list_chat_messages("thread_alpha",first[0].ordinal,1).unwrap();
+        assert_eq!(second[0].content,"saved partial response");
+        assert_eq!(second[0].status,"cancelled");
+        assert_eq!(second[0].parent_id.as_deref(),Some("message_0001"));
+        assert_eq!(again.list_chat_messages("thread_alpha",2,2).unwrap().len(),0);
+        assert_eq!(count(&again.conn,"SELECT count(*) FROM chat_change_journal"),8);
+        assert!(again.list_chat_messages("thread_alpha",0,201).is_err());
+    }
+
+    #[test]
+    fn p03_rejects_duplicate_invalid_and_cross_thread_without_partial_journal() {
+        let f=Fixture::new();
+        let mut v=NativeVault::open(&f.app()).unwrap();
+        v.create_conversation("thread_alpha","One").unwrap();
+        v.create_conversation("thread_other","Two").unwrap();
+        v.append_chat_message(sample_message("message_0001","thread_alpha",None)).unwrap();
+        assert!(matches!(v.create_conversation("thread_alpha","overwrite"),Err(VaultFault::Conflict)));
+        assert!(matches!(v.append_chat_message(sample_message("message_0001","thread_alpha",None)),Err(VaultFault::Conflict)));
+        assert!(matches!(v.append_chat_message(sample_message("message_0002","thread_other",Some("message_0001"))),Err(VaultFault::Conflict)));
+        assert!(matches!(v.append_chat_message(sample_message("message_0003","missing_thread",None)),Err(VaultFault::Conflict)));
+        let mut invalid=sample_message("message_0004","thread_alpha",None);
+        invalid.content=" ";
+        assert!(matches!(v.append_chat_message(invalid),Err(VaultFault::InvalidRecord)));
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM messages"),1);
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM chat_change_journal"),4);
+        assert_eq!(count(&v.conn,"SELECT revision FROM conversations WHERE id='thread_alpha'"),2);
+    }
+
+    #[test]
+    fn p03_injected_journal_failure_rolls_back_message_and_revision() {
+        let f=Fixture::new();
+        let app=f.app();
+        let mut v=NativeVault::open(&app).unwrap();
+        v.create_conversation("thread_alpha","Synthetic").unwrap();
+        v.conn.execute_batch("CREATE TEMP TRIGGER fail_journal BEFORE INSERT ON chat_change_journal
+            WHEN NEW.entity_type='message' BEGIN SELECT RAISE(ABORT,'fixture journal failure'); END;").unwrap();
+        assert!(v.append_chat_message(sample_message("message_0001","thread_alpha",None)).is_err());
+        drop(v);
+        let mut again=NativeVault::open(&app).unwrap();
+        assert_eq!(count(&again.conn,"SELECT count(*) FROM messages"),0);
+        assert_eq!(count(&again.conn,"SELECT count(*) FROM chat_change_journal"),1);
+        assert_eq!(count(&again.conn,"SELECT revision FROM conversations"),1);
+        let mut msg=sample_message("message_0001","thread_alpha",None);
+        msg.role=ChatRole::System;
+        msg.status=ChatStatus::Failed;
+        assert_eq!(again.append_chat_message(msg).unwrap().ordinal,Some(1));
+    }
+
+    #[test]
+    fn p03_online_snapshot_restore_staged_v2_and_legacy_without_overwrite() {
+        let f=Fixture::new();
+        let app=f.app();
+        legacy_fixture(&app);
+        let mut v=NativeVault::open(&app).unwrap();
+        let backup_id:String=v.conn.query_row("SELECT backup_id FROM schema_migrations",[],|r|r.get(0)).unwrap();
+        let legacy=app.join("backups").join("snapshots").join(format!("{backup_id}.sqlite"));
+        let legacy_preview=f.0.join("legacy-preview.sqlite");
+        NativeVault::restore_to_new_test_profile(&legacy,&legacy_preview).unwrap();
+        let old=Connection::open_with_flags(&legacy_preview,OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+        assert_eq!(validate_schema(&old).unwrap(),1);
+        drop(old);
+        v.create_conversation("thread_alpha","Synthetic").unwrap();
+        v.append_chat_message(sample_message("message_0001","thread_alpha",None)).unwrap();
+        let snapshot=v.snapshot_new("p03_snapshot_01").unwrap();
+        v.append_chat_message(sample_message("message_0002","thread_alpha",Some("message_0001"))).unwrap();
+        let preview=f.0.join("v2-preview.sqlite");
+        NativeVault::restore_to_new_test_profile(&snapshot,&preview).unwrap();
+        let restored=Connection::open_with_flags(&preview,OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+        assert_eq!(validate_schema(&restored).unwrap(),2);
+        assert_eq!(count(&restored,"SELECT count(*) FROM messages"),1);
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM messages"),2);
+        assert_eq!(count(&restored,"SELECT count(*) FROM records"),1);
+        drop(restored);
+        assert_eq!(NativeVault::restore_to_new_test_profile(&snapshot,&preview),Err(VaultFault::InvalidLocation));
+    }
+
 }

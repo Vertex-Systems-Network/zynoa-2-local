@@ -58,6 +58,14 @@ jobs:
       - name: Native IPC validation tests (no user data)
         working-directory: apps/desktop/src-tauri
         run: cargo test --lib --release
+      - name: P03 T02 actual Rust SQLite migration and atomic write tests
+        working-directory: apps/desktop/src-tauri
+        shell: pwsh
+        run: |
+          cargo test --lib --release vault::tests::p03_ -- --test-threads=1 | Tee-Object -FilePath (Join-Path $env:RUNNER_TEMP 'p03-vault-native-tests.txt')
+          if ($LASTEXITCODE -ne 0) { throw 'P03 native chat vault tests failed' }
+          $report = Get-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'p03-vault-native-tests.txt') -Raw
+          if ($report -notmatch '9 passed; 0 failed; 0 ignored') { throw 'P03 required nine native tests missing or incomplete' }
       - name: Native Windows desktop build (no release or signature)
         id: native_build
         working-directory: apps/desktop
@@ -110,6 +118,7 @@ jobs:
           $file = Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop\data\state.sqlite'
           if (-not (Test-Path -LiteralPath $file)) { throw 'ZYN-DAT-101: native app vault missing' }
           $env:ZYNOA_CI_VAULT = $file
+          $env:ZYNOA_SOURCE_SHA = (git rev-parse HEAD).Trim()
           @'
           import os
           import sqlite3
@@ -119,10 +128,22 @@ jobs:
           assert "src-tauri" not in str(path).lower()
           uri = f"file:{path.as_posix()}?mode=ro"
           with sqlite3.connect(uri, uri=True) as db:
-              assert db.execute("PRAGMA user_version").fetchone()[0] == 1
+              assert db.execute("PRAGMA user_version").fetchone()[0] == 2
               assert db.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
               assert db.execute("PRAGMA journal_mode").fetchone()[0].lower() == "wal"
               assert db.execute("SELECT count(*) FROM records").fetchone()[0] == 0
+              assert db.execute("PRAGMA foreign_key_check").fetchall() == []
+              assert db.execute("SELECT count(*) FROM schema_migrations WHERE version=2 AND from_version=0 AND backup_id IS NULL AND result='applied'").fetchone()[0] == 1
+              for table in ("conversations", "messages", "chat_change_journal"):
+                  assert db.execute("SELECT count(*) FROM " + table).fetchone()[0] == 0
+          import json, hashlib
+          test_log = Path(os.environ["RUNNER_TEMP"]) / "p03-vault-native-tests.txt"
+          report = {"source_commit_sha": os.environ["ZYNOA_SOURCE_SHA"], "vault_schema_version": 2,
+                    "integrity_check": "ok", "foreign_key_check": "ok", "journal_mode": "wal",
+                    "fresh_migration_record": True, "native_chat_tests": 9, "no_user_data": True,
+                    "test_log_sha256": hashlib.sha256(test_log.read_bytes()).hexdigest()}
+          (Path(os.environ["RUNNER_TEMP"]) / "p03-vault-schema-proof.json").write_text(json.dumps(report), encoding="utf-8")
+          print(json.dumps(report, sort_keys=True))
           print("Native app vault schema/integrity verified; no user records created")
           '@ | python -
       - name: Verify local storage ownership registry after real native boot
@@ -174,5 +195,8 @@ jobs:
       - uses: actions/upload-artifact@v6
         with:
           name: p03-native-baseline-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/p03-native-baseline.json
+          path: |
+            ${{ runner.temp }}/p03-native-baseline.json
+            ${{ runner.temp }}/p03-vault-native-tests.txt
+            ${{ runner.temp }}/p03-vault-schema-proof.json
           if-no-files-found: error
