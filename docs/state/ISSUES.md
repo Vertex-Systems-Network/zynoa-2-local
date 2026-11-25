@@ -9,4 +9,4 @@
 | I-005 | BLOCKER | P02 | RESOLVED | M23–M25 shared UI omission ([#17](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/17)) | Scoped Windows [T13 step](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45587126067/job/139111584590#step:33:1), 74 reviewed PNGs and hosted Wiki verified |
 | I-006 | IMPORTANT | P02 | OPEN | Warning baseline and CI runtime maintenance ([#18](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/18)) | Verify source fixes and track remaining baseline; no blanket suppression |
 
-| I-007 | IMPORTANT | P02 | OPEN | Native NVDA palette search unavailable ([#19](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/19)) | Verify bounded UIA/foreground repair on exact-head Windows CI; preserve real speech gate |
+| I-007 | IMPORTANT | P02 | RESOLVED | Native NVDA palette search unavailable ([#19](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/19)) | Bounded UIA/foreground repair verified in both approved-head live NVDA checks. M26-specific failures remain tracked in T11. |

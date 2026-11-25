@@ -253,6 +253,9 @@ class ChangeCenterTests(unittest.TestCase):
         self.assertEqual(len(EXPECTED),20)
         self.assertIn("option focus lost before capture",script)
         self.assertIn("$stable.Current.HasKeyboardFocus",script)
+        self.assertIn("ZYN-M26-OPT-RESET-RETRY", script)
+        self.assertIn("$queryAfter=$reset.GetCurrentPattern", script)
+        self.assertIn("query_after_reset=$queryAfter", script)
         self.assertIn("-M26OptionsOnly",(ROOT/".github/workflows/p01-desktop.yml").read_text(encoding="utf-8"))
         for i in range(1,21):
             self.assertIn(f"Capture-M26Option -Number {i} -Label ",script)

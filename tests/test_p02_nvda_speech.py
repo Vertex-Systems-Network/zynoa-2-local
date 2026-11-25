@@ -68,6 +68,10 @@ class NVDAProofTests(unittest.TestCase):
 
     def test_m26_no_match_speech_is_requested_on_real_reset_control(self):
         ps=(ROOT/"scripts/probe_p02_nvda_speech.ps1").read_text(encoding="utf-8")
+        entry=ps.split("[void](Focus-M26NvdaControl -Name 'Changelog')",1)[1].split("Set-Content -LiteralPath $stageFile -Value 'm26_tab'",1)[0]
+        self.assertIn("ZYN-M26-NVDA-003:*", entry)
+        self.assertIn("$nav.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]", entry)
+        self.assertIn("SelectionItemPattern", entry)
         branch=ps.split("Set-Content -LiteralPath $stageFile -Value 'm26_empty'",1)[1].split("$app.Refresh();$nvda.Refresh()",1)[0]
         self.assertIn("Focus-M26NvdaControl -Name 'No matching notices. Reset filters to view all.'",branch)
         self.assertIn("Request-M26NvdaFocusSpeech",branch)

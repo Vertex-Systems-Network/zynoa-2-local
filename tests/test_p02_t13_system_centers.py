@@ -54,6 +54,8 @@ class T13Contracts(unittest.TestCase):
         target_capture=capture.split("function Capture-SystemTarget",1)[1].split("foreach ($screen",1)[0]
         self.assertLess(target_capture.index("Send-M26Key '{TAB}'"),target_capture.index("Send-M26Key '+{TAB}'"))
         self.assertLess(target_capture.index("Send-M26Key '+{TAB}'"),target_capture.index("$target.Current.HasKeyboardFocus"))
+        self.assertIn("ZYN-T13-CENTER-RETRY", target_capture)
+        self.assertEqual(target_capture.count("Wait-M26Name -Name $firstNavName -Focusable -Visible"), 2)
         with tempfile.TemporaryDirectory() as d:
             with self.assertRaises(OSError):verify(Path(d),"M23","a"*40,"123")
             with self.assertRaises(ValueError):verify(Path(d),"M23","invalid","123")

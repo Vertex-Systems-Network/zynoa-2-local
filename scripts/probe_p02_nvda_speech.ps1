@@ -181,6 +181,19 @@ public static class ZynoaNvdaReportFocus {
     [void](Focus-M26NvdaControl -Name 'Changelog')
     [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
     Start-Sleep -Milliseconds 700
+    try {
+      [void](Find-M26NvdaControl -Name "What's New" -Focusable -TabItem)
+    } catch {
+      if ($_.Exception.Message -notlike 'ZYN-M26-NVDA-003:*') { throw }
+      # NVDA may consume Enter in browse mode. Invoke the visible app button
+      # once, then still require the real selected source tab and keyboard journey.
+      $nav=Focus-M26NvdaControl -Name 'Changelog'
+      $invoke=$null
+      if ($nav.Current.ControlType -ne [System.Windows.Automation.ControlType]::Button -or
+          -not $nav.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern,[ref]$invoke)) { throw }
+      $invoke.Invoke()
+      Write-Host 'ZYN-M26-NVDA-ENTRY: used native Changelog button Invoke'
+    }
     $sourceTab=Focus-M26NvdaControl -Name "What's New" -TabItem
     if (-not $sourceTab.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Current.IsSelected) {
       throw 'ZYN-M26-NVDA-005: source tab not selected'

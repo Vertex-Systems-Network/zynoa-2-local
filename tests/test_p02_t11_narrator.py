@@ -62,6 +62,7 @@ class NarratorReceiptTests(unittest.TestCase):
         self.assertLess(cleanup.index(marker), cleanup.index(guard))
         self.assertIn("$app.WaitForExit(5000)", source)
         self.assertIn("$reader.WaitForExit(5000)", source)
+        self.assertLess(source.index("@($script:workingNarratorModifier,0x1B)"), source.index("$cleanupAttempt -lt 3"))
         self.assertIn("$cleanupAttempt -lt 3", source)
         self.assertIn("if (Get-Process -Name Narrator -ErrorAction SilentlyContinue) { $cleanupOk=$false }", cleanup)
         self.assertEqual(source.count("ZYN-NAR-025"), 1)

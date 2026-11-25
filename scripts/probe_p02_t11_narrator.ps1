@@ -487,6 +487,14 @@ try {
   # Do not let a still-exiting screen reader or app contaminate the next
   # independent native journey. Only the disposable CI session is touched.
   $cleanupOk=$true
+  if ($null -ne $narrator) {
+    $narrator.Refresh()
+    if (-not $narrator.HasExited) {
+      # Let Narrator clear its session state before falling back to a forced exit.
+      Send-NarratorChord ([byte[]]@($script:workingNarratorModifier,0x1B))
+      if ($narrator.WaitForExit(4000)) { Write-Host 'ZYN-NAR-CLEANUP: Narrator exited via its keyboard command' }
+    }
+  }
   if ($null -ne $app) {
     $app.Refresh()
     if (-not $app.HasExited) { Stop-Process -Id $app.Id -Force }

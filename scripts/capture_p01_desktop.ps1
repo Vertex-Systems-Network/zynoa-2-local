@@ -427,6 +427,17 @@ public static class ZynoaM26Foreground {
         }
         [void](Focus-M26Control -Name $center.title)
         Send-M26Key '{ENTER}'
+        $firstScreen=$center.screens[0]
+        $firstNavName='Open '+$firstScreen.id+' '+$firstScreen.title
+        try {
+            [void](Wait-M26Name -Name $firstNavName -Focusable -Visible)
+        } catch {
+            if ($_.Exception.Message -notlike 'ZYN-M26-004:*') { throw }
+            Write-Host ('ZYN-T13-CENTER-RETRY '+$SystemCenterModule)
+            [void](Focus-M26Control -Name $center.title)
+            Send-M26Key ' '
+            [void](Wait-M26Name -Name $firstNavName -Focusable -Visible)
+        }
         foreach ($screen in $center.screens) {
             $script:m26Stage=$screen.id
             $navName='Open '+$screen.id+' '+$screen.title
@@ -636,9 +647,26 @@ public static class ZynoaM26Foreground {
 
         [void](Focus-M26Control -Name 'Reset filters')
         Send-M26Key -Keys '{ENTER}'
-        $reset=Wait-M26Name -Name 'Search bundled notices' -Focusable
-        $queryAfter=$reset.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).Current.Value
-        if ($queryAfter -cne '') { throw 'ZYN-M26-OPT-006: actual option search reset failed' }
+        $queryReset=$false
+        $queryAfter=$null
+        for ($attempt=0; $attempt -lt 2 -and -not $queryReset; $attempt++) {
+            if ($attempt -eq 1) {
+                Write-Host 'ZYN-M26-OPT-RESET-RETRY: retry the focused native reset button with Space'
+                [void](Focus-M26Control -Name 'Reset filters')
+                Send-M26Key -Keys ' '
+            }
+            $resetDeadline=(Get-Date).AddSeconds(3)
+            do {
+                Assert-M26Foreground
+                $reset=Wait-M26Name -Name 'Search bundled notices' -Focusable
+                try {
+                    $queryAfter=$reset.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).Current.Value
+                    $queryReset=$queryAfter -ceq ''
+                } catch [System.Windows.Automation.ElementNotAvailableException] {}
+                if (-not $queryReset) { Start-Sleep -Milliseconds 200 }
+            } until ($queryReset -or (Get-Date) -ge $resetDeadline)
+        }
+        if (-not $queryReset) { throw 'ZYN-M26-OPT-006: actual option search reset failed' }
         [void](Focus-M26Control -Name 'Backup and restore not available' -Fragment)
         Send-M26Key -Keys '{ENTER}'
         [void](Wait-M26Name -Name 'Not a released fix or live issue status.' -Reveal)
