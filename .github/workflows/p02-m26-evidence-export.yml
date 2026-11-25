@@ -1,0 +1,67 @@
+name: P02 M26 original reviewed PNG transfer
+on:
+  push:
+    branches: ["phase/02-shared-ui"]
+    paths:
+      - ".github/workflows/p02-m26-evidence-export.yml"
+permissions:
+  contents: read
+  actions: read
+jobs:
+  transfer:
+    if: github.repository == 'Vertex-Systems-Network/zynoa-2-local' && github.ref == 'refs/heads/phase/02-shared-ui'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    strategy:
+      fail-fast: false
+      matrix:
+        batch: [0, 1, 2, 3, 4, 5, 6]
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: p01-desktop-windows-build-evidence
+          run-id: 45561594369
+          repository: Vertex-Systems-Network/zynoa-2-local
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/m26-native-readonly
+      - name: Transfer only original reviewed disposable fixture PNGs
+        env:
+          BATCH: ${{ matrix.batch }}
+        shell: bash
+        run: |
+          python - <<'PY'
+          import base64, hashlib, json, os, pathlib, struct
+          root=pathlib.Path(os.environ["RUNNER_TEMP"])/"m26-native-readonly"/"docs/screenshots/_ci/M26"
+          sha="a45ab6572bd0cb563a112e84946b04cfbe096d70"
+          run="45561594369"
+          screens=json.loads((root/"M26-journey.capture.json").read_text(encoding="utf-8-sig"))
+          opts=json.loads((root/"options/M26-options.capture.json").read_text(encoding="utf-8-sig"))
+          for proof in (screens,opts):
+              assert proof["source_commit_sha"]==proof["built_commit_sha"]==sha
+              assert proof["github_run_id"]==run and proof["no_user_data"] is True
+              assert proof["independent_visual_review"] is False
+          assert screens["status"]=="M26_NATIVE_CANDIDATES_ONLY"
+          assert opts["status"]=="M26_P02_OPTION_CANDIDATES_ONLY"
+          assert len(screens["observations"])==10 and len(opts["observations"])==20
+          entries=[(f"M26-S{i:02d}",root/f"M26-CAND-S{i:02d}.png") for i in range(1,9)]
+          entries += [(f"M26-OPT-{i:02d}",root/"options"/f"M26-P02-OPT-{i:02d}.png") for i in range(1,21) if i!=13]
+          assert len(entries)==27
+          batch=int(os.environ["BATCH"])
+          assert 0<=batch<=6
+          for asset,p in entries[batch*4:batch*4+4]:
+              b=p.read_bytes()
+              m=json.loads(p.with_suffix(".capture.json").read_text(encoding="utf-8-sig"))
+              assert m["source_commit_sha"]==m["built_commit_sha"]==sha
+              assert m["screenshot_id"]==p.stem and m["privacy"]=="Disposable CI fixture with no user content or secrets"
+              assert m["capture_verified"] is False and m["window_fully_visible"] is True
+              assert b.startswith(b"\x89PNG\r\n\x1a\n") and 0<len(b)<150000
+              assert struct.unpack(">II",b[16:24])==(m["window_width"],m["window_height"])==(998,701)
+              digest=hashlib.sha256(b).hexdigest()
+              assert digest==m["sha256"]
+              blob=hashlib.sha1(b"blob "+str(len(b)).encode()+b"\0"+b).hexdigest()
+              enc=base64.b64encode(b).decode("ascii")
+              print("M26_TRANSFER_BEGIN "+asset+" "+digest+" "+blob+" "+str(len(b)),flush=True)
+              for i in range(0,len(enc),2400):
+                  print("M26_TRANSFER_CHUNK "+asset+" "+str(i//2400)+" "+enc[i:i+2400],flush=True)
+              print("M26_TRANSFER_END "+asset+" "+str((len(enc)+2399)//2400),flush=True)
+          PY

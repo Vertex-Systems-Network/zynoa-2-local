@@ -158,3 +158,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P02 | Synchronize T04 source assertions with deliberate palette result navigation | Same inherited assertion blocked Windows and Governance before native execution; preserve modal isolation, keyboard movement, default Enter and focus return requirements.
 
 2026-11-25 | P02 | Record all 30 native candidates, reject OPT-13 visible focus gap, request genuine empty reset speech | Native screen/option gates passed but independent review finds focus ring missing and live NVDA empty speech absent; do not treat machine receipt as final visual or speech approval.
+
+2026-11-25 | P02 | Preserve independently reviewed original PNGs from successful capture run rather than restart entire evidence set | 27 scoped targets reviewed, OPT-13 excluded; read-only pinned transport and original blob verification required; exact-head gate remains mandatory.
