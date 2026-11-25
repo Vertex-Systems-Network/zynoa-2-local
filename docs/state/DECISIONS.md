@@ -180,3 +180,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P02 | Capture T13 option focus after real Tab and Shift+Tab; target the actual Help result in Narrator | The Windows run passed all 74 candidate contracts, but M24-OPT-13 lacked a visible outline and the Narrator receipt captured the edit label for the result. Preserve the original focus, speech and source identity checks.
 
 2026-11-25 | P02 | Preserve 74 reviewed Windows frames from two runs with identical desktop source and exact per-asset provenance | The earlier M24 rollback option image shows visible keyboard focus. Keep the latest candidate finding and the separate full-CI gate.
+
+2026-11-25 | P02 | Record completion in a postmerge closeout | PR #12 merged at `115b6c79fece26b5e4ec58ef8ad2364d7a77d244` and matched the protected remote `main` readback after all phase checks passed.
