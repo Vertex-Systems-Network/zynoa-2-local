@@ -52,11 +52,26 @@ class NativeScreenshotCaptureContracts(unittest.TestCase):
                        "Verify desktop executable cold boot"):
             self.assertIn(marker, self.workflow)
         self.assertIn("Native Windows desktop build (no release or signature)", self.workflow)
-        self.assertEqual(2, self.workflow.count("ref: ${{ github.event.pull_request.head.sha }}"))
+        # Check each native prerequisite independently; an additional read-only
+        # continuation job must not invalidate the native-source guarantee.
+        jobs = self.workflow.split("\n  desktop-windows:\n", 1)
+        self.assertEqual(len(jobs), 2)
+        changes = jobs[0].split("\n  changes:\n", 1)[1]
+        native = jobs[1].split("\n  p02-ci-continuation:\n", 1)[0]
+        exact_ref = "ref: ${{ github.event.pull_request.head.sha }}"
+        for job in (changes, native):
+            self.assertEqual(job.count(exact_ref), 1)
+            self.assertIn("persist-credentials: false", job)
+        self.assertIn("runs-on: windows-latest", native)
+        self.assertIn("capture_p01_desktop.ps1", native)
+        self.assertIn("Verify desktop executable cold boot", native)
         self.assertIn("scripts/capture_p01_desktop\\.ps1", self.workflow)
         self.assertIn('PR_ACTION: ${{ github.event.action }}', self.workflow)
-        self.assertIn('changed="$(git diff --name-only HEAD^ HEAD)"', self.workflow)
+        # A docs-only last commit must never mask source changes earlier in a PR.
+        # Always compare the complete PR delta to the pinned base SHA.
+        self.assertNotIn('changed="$(git diff --name-only HEAD^ HEAD)"', self.workflow)
         self.assertIn('changed="$(git diff --name-only FETCH_HEAD HEAD)"', self.workflow)
+        self.assertIn('test -n "$changed"', self.workflow)
         self.assertIn("ZYN-SCREEN-014", self.workflow)
         self.assertIn("[System.Management.Automation.Language.Parser]::ParseFile", self.workflow)
         self.assertIn("ZYN-SCREEN-PARSE", self.workflow)

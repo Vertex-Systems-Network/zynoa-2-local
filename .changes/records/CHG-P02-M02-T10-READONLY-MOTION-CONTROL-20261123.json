@@ -1,0 +1,43 @@
+{
+  "change_id": "CHG-P02-M02-T10-READONLY-MOTION-CONTROL-20261123",
+  "module_id": "M02",
+  "kind": "enhancement",
+  "title": "Distinct keyboard-focusable read-only reduced-motion preference",
+  "summary": "Fix exact-source Windows duplicate screenshot of theme/motion by exposing real Windows motion status in a separate keyboard focusable region. Real native Tab/Shift+Tab journey; no fake OS toggle or saved setting. Strict frame uniqueness remains in force.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12",
+  "source_issue_urls": [],
+  "affected_option_ids": [
+    "M02-OPT-08"
+  ],
+  "docs_paths": [
+    "docs/modules/M02.md",
+    "docs/evidence/P02_T10_REVIEW_PACK.md",
+    "docs/state/HANDOFF.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M02.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M02.md"
+  ],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45249340277",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45252195376"
+  ],
+  "commit_sha": "f2835a2a497ee0ad0f5a032f7bcd1069e9fd6ac9",
+  "release": null,
+  "verification": {
+    "tests_passed": true,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No data migration; OS accessibility remains authoritative; read-only status.",
+  "docs_impact": true,
+  "data_migration": false,
+  "created_at": "2026-11-23T19:41:30.268Z",
+  "updated_at": "2026-11-23T19:58:14.833Z",
+  "version_bump": "none"
+}

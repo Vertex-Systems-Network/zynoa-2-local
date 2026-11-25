@@ -4,21 +4,21 @@
     "name": "Governance, product research and AI controller",
     "modules": "M22 M26(governance)",
     "acceptance": "Constitution, PR policy, verified source bank, local controller contract and test harness; change-event policy and release-note evidence contract",
-    "state": "IN_PROGRESS"
+    "state": "MERGED_VERIFIED"
   },
   {
     "id": "P01",
     "name": "Desktop foundation and secure services",
     "modules": "M01 M16 M17 M18  M23(core) M24(registry) M26(event-store)",
     "acceptance": "Bootable client, IPC and storage, native security, diagnostic spine; transactional user data vault, externalized managed data and location registry; durable privacy-scoped append-only audit events",
-    "state": "NOT_STARTED"
+    "state": "MERGED_VERIFIED"
   },
   {
     "id": "P02",
     "name": "Final shared UI and help foundation",
     "modules": "M02 M19  M23(UI) M24(UI) M25(UI) M26(UI)",
-    "acceptance": "Polished shell/design system, all shared UI states, help framework and visual gate; user-facing Changelog UI fully specified and design-system compliant",
-    "state": "NOT_STARTED"
+    "acceptance": "Shared shell/Help and visual gate; M23–M25 Backup/Data Location/Update Center UI; integrated M26 changelog state rendering and contextual Help; actual native evidence and protected merge",
+    "state": "IN_PROGRESS"
   },
   {
     "id": "P03",

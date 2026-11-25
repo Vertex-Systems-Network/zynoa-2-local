@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-11-23T10:15:51.057Z",
+  "reviewer": "GPT-6 independent visual inspection of exact-source real Windows Tauri PNGs",
+  "scope": "P02-T02.12 additional keyboard-guide and explicit Light/Dark native evidence; not whole T02 module",
+  "review_status": "ACCEPTED_SCOPED_NATIVE_KEYBOARD_AND_THEMES_ONLY",
+  "reviewed_source_commit_sha": "e22d51d52d47ea08eba3594579f54104c78e392a",
+  "windows_run_id": 45153183376,
+  "windows_artifact_id": 14806898723,
+  "source_build_sha_match": true,
+  "native_machine_verifier_status": "MACHINE_METADATA_HASH_VALIDATED_ONLY",
+  "machine_independent_visual_review": false,
+  "screenshots": [
+    {
+      "id": "M02-S07",
+      "width": 998,
+      "height": 701,
+      "sha256": "b20324f6e2420332ba16f6b35262eafad59455072d24a9e063353f24dde5cab3",
+      "observations": "Real Windows Tauri Workbench Keyboard guide tab selected and gold outlined keyboard-focused panel visible; shortcut labels readable; no editor persistence claim."
+    },
+    {
+      "id": "P02-T02-12-LIGHT",
+      "width": 898,
+      "height": 653,
+      "sha256": "fc499ddb7ff0c7eb46c7caef8270b5e0245faf39c8605d1a983d447de3c8e57f",
+      "observations": "Native resized Preferences displays explicit Appearance=Light with warm light surfaces, high contrast navigation and separate Comfortable density selector; no account/disk persistence."
+    },
+    {
+      "id": "P02-T02-12-DARK",
+      "width": 898,
+      "height": 653,
+      "sha256": "68478f8bdbe2f150585178391bc500236be48cd6dfca1506cea91e054d68540a",
+      "observations": "Native resized Preferences displays explicit Appearance=Dark with charcoal surfaces/gold text; distinct from Light image, nav density remains Comfortable."
+    }
+  ],
+  "receipt_status": "candidate_pending_visual_review",
+  "receipt_verified": false,
+  "final_manifest_approved": false,
+  "verified_screenshot_manifest_entries": 0,
+  "remaining_blockers": [
+    "15 M02 final PNG/option manifest entries still PENDING",
+    "M02-OPT-03 Compact properties panel not implemented",
+    "M02-OPT-04 Shortcut reassignment not implemented",
+    "Full per-state and screen-reader/pointer E2E, performance and help/wikis release acceptance not complete"
+  ],
+  "no_inferred_approval": "Independently inspected only listed states. Source CI candidate flags are immutable false. Does not satisfy all M02 release screenshots or mark P02-T02 as DONE."
+}

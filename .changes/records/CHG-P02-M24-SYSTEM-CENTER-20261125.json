@@ -1,0 +1,64 @@
+{
+  "change_id": "CHG-P02-M24-SYSTEM-CENTER-20261125",
+  "module_id": "M24",
+  "kind": "feature",
+  "title": "Data Locations shared UI foundation",
+  "summary": "Actual navigable P02 system UI with explicit unavailable operations, session drafts, keyboard focus, bundled Help and native evidence harness. Full service remains deferred to P05. Windows run 45583693785 produced 26 checksum-verified M24 candidates. Independent inspection found a missing visible ring on M24-OPT-13. The capture now uses Tab and Shift+Tab and still requires exact native focus before accepting the frame. Original Windows captures are reviewed and linked in the illustrated Help guide. Scoped native Windows candidate verification and the published illustrated Wiki preview passed.",
+  "status": "implementing",
+  "audience": "user",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/17"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12",
+  "docs_paths": [
+    "docs/modules/M24.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M24.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M24.md"
+  ],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45583693785",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45583693785/artifacts/15009090335",
+    "docs/screenshots/M24/T13-native-visual.review.json",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45587126067",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45587126067/artifacts/15009867688",
+    "docs/evidence/P02_T13_WIKI_PREVIEW_PUBLISHED_20261125.json"
+  ],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No persistent preference or native data mutation; full backend remains gated.",
+  "created_at": "2026-11-25T08:32:00Z",
+  "updated_at": "2026-11-25T08:32:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [
+    "M24-OPT-01",
+    "M24-OPT-02",
+    "M24-OPT-03",
+    "M24-OPT-04",
+    "M24-OPT-05",
+    "M24-OPT-06",
+    "M24-OPT-07",
+    "M24-OPT-08",
+    "M24-OPT-09",
+    "M24-OPT-10",
+    "M24-OPT-11",
+    "M24-OPT-12",
+    "M24-OPT-13",
+    "M24-OPT-14",
+    "M24-OPT-15",
+    "M24-OPT-16",
+    "M24-OPT-17",
+    "M24-OPT-18"
+  ],
+  "docs_impact": true,
+  "data_migration": false
+}

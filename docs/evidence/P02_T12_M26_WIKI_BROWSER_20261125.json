@@ -1,0 +1,30 @@
+{
+  "app_external_browser_route_verified": false,
+  "full_module_release_approved": false,
+  "github_run_id": "45545847699",
+  "no_user_data": true,
+  "observed_public_wiki_head": "c2ed812481f5d29bb94661c54208be9567dff216",
+  "page": {
+    "module": "M26",
+    "pinned_source_paths": [
+      "docs/evidence/P02_T12_CHANGE_CENTER_PREFLIGHT.md",
+      "docs/help/articles/M26.md",
+      "docs/modules/M26.md",
+      "docs/operations/CHANGE_INTELLIGENCE_CHANGELOG.md",
+      "docs/wiki/pages/M26.md"
+    ],
+    "public_chrome_dom_sha256": "d79f903941cd3239b6ee2ccc3ccc569344215c63d97742b0649d18ea6fd9ddab",
+    "published_markdown_sha256": "e943dee37804a47ba7d24d5efb440d2a923c4cc002262f3fe979b5d6c6fae997",
+    "rendered_option_ids": 20,
+    "rendered_preview_scope": true,
+    "url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/wiki/M26"
+  },
+  "phase": "P02",
+  "protected_merge_verified": false,
+  "public_read_only": true,
+  "rendered_options": 20,
+  "schema_version": 1,
+  "source_commit_sha": "f60a431f09d46dc63cd0f5fad995733998e9d3e7",
+  "status": "M26_PUBLIC_WIKI_CHROME_DOM_AND_PINNED_LINKS_PASS",
+  "task": "P02-T12"
+}

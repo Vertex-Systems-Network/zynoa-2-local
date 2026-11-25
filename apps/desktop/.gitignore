@@ -3,3 +3,6 @@ dist/
 src-tauri/target/
 src-tauri/gen/
 *.log
+
+# P02 pure-TypeScript UI logic compilation output
+.ui-tests/

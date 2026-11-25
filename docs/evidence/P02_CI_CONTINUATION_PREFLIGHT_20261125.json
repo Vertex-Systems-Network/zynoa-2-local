@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "phase": "P02",
+  "module": "M22",
+  "scope": "Owner-directed active-phase development infrastructure pilot; no product module implementation",
+  "issue": 3,
+  "source_head": "92c6fcd2895d90619d73a7ceadbf332dc7deaa4a",
+  "base_sha": "f24c72eff1c4fec03a6687575ea19e9593b57a2c",
+  "source_research": [
+    "docs/operations/AUTONOMOUS_LOOP.md",
+    "docs/agent/AI_STRICT_PROTOCOL.md",
+    "tools/dev_model_planner.py",
+    "tools/github_gateway.py",
+    ".github/workflows/p00-runner-worker.yml"
+  ],
+  "alternatives": [
+    "Persistent dedicated host: owner has no host; excluded by existing runner-only policy",
+    "PR workflow with write credentials: forbidden by independent trusted writer policy",
+    "Read-only existing CI dependency plus local model draft and static check: chosen bounded first increment"
+  ],
+  "acceptance": [
+    "Exact authenticated PR branch/run attempt/job identity; stale denied",
+    "T12 before T13 before T11; lease and blocked first task deny",
+    "Fixed product source only, exact unique anchor, no commands or code execution",
+    "Model candidate artifact and static test receipt, no automatic state/branch write",
+    "Original native evidence manifest 28/28 independently verified separately"
+  ],
+  "actual_results": "Second live automatic dispatch #45573910551/job/139071897397 selected T12 and returned UNROUTED_FAILURE for concurrent recognized native failures. Now select one independent group and retain all deferred failures; unknown still denied. Actual model inference and static validation pending.",
+  "persistent_worker_deployed": false,
+  "privileged_writer_deployed": false,
+  "task_status_changed": false,
+  "first_live_dispatch": {
+    "source_sha": "ee3735e610a640061d99dabe2afb6463e55ccf29",
+    "run_id": 45573123008,
+    "job_id": 139064706182,
+    "unit_tests_passed": 4,
+    "task": "P02-T12",
+    "action": "UNROUTED_FAILURE",
+    "model_called": false,
+    "github_writes": 0
+  },
+  "second_live_dispatch": {
+    "source_sha": "5e719886ce0a4f4de865ea7acd89c820b041412a",
+    "run_id": 45573910551,
+    "job_id": 139071897397,
+    "task": "P02-T12",
+    "action": "UNROUTED_FAILURE",
+    "model_called": false,
+    "github_writes": 0
+  }
+}

@@ -82,3 +82,101 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 
 2026-11-22 | P01 | Finalized T11 after owner-requested protected PR #10 merge with exact GitHub SHA readback; retain truthful phase-specific issue blockers | GitHub squash SHA c5fca7106942e96be2c6d07ff9938a61e7854780; main governance and Windows passed, open #3 remains P00 blocking, future #2 remains P08I blocking, P01 #7 historical CI regressions now nonblocking after verified repairs; T11 11/11 closeout needs its own protected PR before P02.
 2026-11-22 | P01 | Skip trusted-main receipt publishing on IN_PROGRESS phase snapshots, while retaining strict MERGED_VERIFIED verification | first post-primary-merge receipt #45065695769 failed closed as P01 remained IN_PROGRESS, a false-negative workflow result rather than evidence of a successful event publication; closeout adds explicit status gate and test.
+
+2026-11-22 | P02 | Build session-scoped semantic React/CSS tokens and keyboard-accessible command/navigation plus offline Help search with pinned native source and no dependency additions | M02/M19 need real working UI, but native persistence/wiki publishing are not yet authorized services; choose typed allowlisted local behavior over decorative/remote controls. VS Code/Figma/Penpot/WAI references in ADR-0026. CI/screenshot proof pending.
+
+2026-11-23 | P02 | Keep P02-T02 at IN_PROGRESS until all 15 final M02 screenshots, implemented option contracts and complete native visual/performance evidence pass; add fail-closed acceptance guard and explicit Light/Dark/Keyboard-guide candidate capture | Prior CI-green source slices and nine real Tauri screenshots prove only scoped foundations, while M02-OPT-03/04 and final manifest remain incomplete; preventing false closure is safer than marking DONE without release-quality proof.
+
+2026-11-23 | P02 | Add Reviewdog as a same-repo-only PR comment/annotation layer with read-only UI scanning before token injection; implement M02-OPT-03 as session-only compact properties layout preview | The Marketplace setup action alone does not provide code review; source lint cannot replace native CI, and preview UI must not imply an operational saved project inspector.
+
+2026-11-23 | P02 | Implement M02-OPT-04 as in-app session-only Ctrl+1..6 shortcut remapping via swap-on-collision, with F1/Ctrl+Shift+P reserved; keep P03 locked | Uses a reversible, typed allowlist without native global hooks or persistent preferences. Existing source CI and real Windows Tauri visual evidence verify changed navigation labels, while phase protocol forbids P03 implementation before P02 verified merge.
+
+2026-11-23 | P02 | Complete official P02-T04 functional command-palette/shortcut/focus work on exact-source Windows CI and independent nine-image native review while keeping M02/M19 final screenshot-manifest under P02-T10 | Five source-SHA workflows passed, no-match/Escape/Enter and shortcut-swap views were inspected; full released module screenshots and screen-reader certification remain separate evidence gates, so P02 phase cannot advance.
+
+2026-11-23 | P02 | T03 adaptive desktop sidebar uses a 78px rail automatically at <=1000px with an explicit session-only expand/collapse button and Alt+N; keep named split preview regions | Compared permanent 222px sidebar (insufficient main content at 900px native width) with overlay drawer (harder keyboard/focus management). A persistent accessible icon rail preserves navigation and content without new storage or native permission. Require real Windows narrow viewport screenshot review and full CI before DONE.
+
+2026-11-23 | P02 | Replace preview-only M19 Help with versioned offline search and guided recovery, FAQ/glossary, local Wiki mapping and sanitized reports; do not publish or auto-upload | A bundled typed catalog and finite-step wizard give real user value without introducing network, storage or unsafe GitHub ticket actions. Hosted Wiki publication and screenshot tours remain explicit later gates.
+
+2026-11-23 | P02 | Unify local M02 view commands with M19 articles and option references behind one bounded keyboard palette; route only allowlisted local targets | Delivers an end-to-end discoverability workflow across current-phase modules without new dependency, storage, network, native privilege or P03 scope. Preserve real Windows/native/screenshot gates and release worker lease at handoff.
+
+2026-11-23 | P02 | Implement 16-option actual Windows Tauri Help-reference matrix with exact SHA/identity validation and an honest T10 29-image readiness gate | Native UI screenshots, unlike browser mocks, supply reviewable evidence without extra app dependencies; the Help references do not replace actual option-control screenshots or screen-reader/performance acceptance.
+
+2026-11-23 | P02 | Add Microsoft UIAutomationClient read-only inspection of actual Windows Tauri WebView2 HWND, with required accessible labels, modal keyboard focus and Escape evidence, separate from screen-reader approval | Alternatives: DOM-only/source inspection cannot prove OS accessibility tree, screenshot pixels cannot prove accessible labels; Windows built-in UIAutomation needs no runtime dependency or network and fail-closes on missing real tree. Revert only this bounded CI proof if incompatible; P02 stays active.
+
+2026-11-23 | P02 | Replace brittle Windows WebView2 UIA focus-name assertion with real typed-input ValuePattern, result filtering and Enter/Escape modal journey; retain fail-closed source-SHA and privacy checks | ARIA active-descendant can transfer accessibility focus to a list item even when DOM focus remains on a named combobox; real keyboard typing plus exact local result and Help navigation are stronger functional evidence without weakening accessibility checks.
+
+2026-11-23 | P02 | Focus/scroll the semantic selected-option heading after M19 command-palette Help deep navigation; let the destination own focus instead of the generic scroll pane | Real Windows UIA proved the option filter and Enter close the modal but its detail was outside the visible viewport. Double requestAnimationFrame settles palette focus recovery; no fake browser captures or relaxed native acceptance tests.
+
+2026-11-23 | P02 | Capture 15 missing M02/M19 actual UI/control candidates in real Windows Tauri, keep 16 option Help-reference candidates separate, and assemble a 29-target offline review bundle | Real option Help documentation is not proof that a corresponding UI control was captured. Source-SHA, native window, keyboard UI Automation, per-frame hash and visual review are independent gates; retaining 29 final statuses PENDING is mandatory until assets are committed and independently approved.
+
+2026-11-23 | P02 | Start P02-T11 protected-merge/issue/security closeout audit but do not promote PR #12 or P03 until all T02/T05/T06/T08/T10 acceptance evidence is actually final | Main SHA and protected ruleset verified; no current P02-scoped open issues, but required signed reviewer and final docs/screenshot/reader/performance/Wiki gates still missing. A green Windows candidate CI alone is not full phase completion.
+
+2026-11-23 | P02 | Expose a focusable, read-only Windows reduced-motion status separate from theme selector and capture its real keyboard focus on Windows | Actual 69-frame native artifact showed theme and reduced motion PNGs identical, a failed control evidence gate; retain strict uniqueness and no fake toggle/persistence.
+
+2026-11-23 | P02 | Export 29 actual source-hashed Tauri screenshot candidates under exact final-path names only inside a review-only ZIP; never auto-commit or mark manifest VERIFIED | GitHub connector supports text commits but not binary source artifact writeback; staged images must retain reviewer/OS/contrast/screen-reader acceptance before protected merge. CI verifies native receipts and rejects Help substitutions, duplicates and false approval.
+
+2026-11-24 | P02 | Publish only missing source-SHA-pinned M02/M19 preview pages to initialized GitHub Wiki through one-shot guarded GitHub Actions and independently clone/read back every byte; remove privileged workflow after success | Actual Wiki HEAD, two page SHA256 values and unchanged Home.md are evidenced by successful run #45284338605. No module release or protected PR merge is inferred.
+
+2026-11-24 | P02 | Distinguish three sequential native Windows *visible HWND* launch samples from actually interactive native IPC readiness; require named `Typed native handshake connected` in the same-PID WebView2 UIAutomation tree before computing the new readiness metric | Passing #45286192929 produced valid OS-visible HWND 250/133/139 ms but cannot establish UX responsiveness, and previous cold local metadata outlier was 42.6 seconds. The stronger source and negative tests are committed, exact-head Windows sample still requires independent CI proof. No artificial P95 or budget approval.
+
+2026-11-24 | P02 | Close only P02-T02 design-token/accessibility-primitive/native-visual *task*, not entire M02 module or T10/T11 | Original 15/15 M02 screenshots passed per-byte SHA256 and Git blob/geometry + independent per-image visual review; 8 option docs/source and focus/contrast/reduced-motion/responsive primitives pass the exact-source T02 Windows acceptance step and same-head governance. Historical scoped nine-frame pending flag cannot override later final screenshot acceptance. Current branch full native job outcome is separately checked, not implied. All-state NVDA/Narrator, budget and main merge remain P02-T10/T11. Board set T02 DONE with stricter fail-closed regression retained, lease null.
+
+2026-11-24 | P02 | Add read-only public hosted Wiki Chrome DOM verification, published-page SHA readback and immutable linked source-file validation; reconcile current canonical guide status | Prior remote Git byte proof does not verify rendered content; use an isolated GitHub-hosted runner, no auth, no Wiki publishing or app network grant, keep exact-head merge and release gates separate.
+
+2026-11-24 | P02 | Add actual installed Microsoft Narrator three-stage speech clipboard probe and read-only cold metadata timing decomposition | Fail closed on unsupported host or absent speech; keep unchanged performance limits and preserve no-user-data policy; do not infer full release/merge certification.
+
+2026-11-24 | P02 | Reconcile existing cross-phase requirements: T12 M26 UI and T13 M23–M25 UI; retain T11 final merge gate | Original PHASE_SPECS and PHASES.json require these; source inventory and board omit them. Issues #16/#17 remain blockers. No new product scope or silent deferral.
+
+2026-11-24 | P02 | Separate pure source/visual regression tests from strict current-phase premerge predicates; repair two mechanical warning sources and move in-scope evidence actions to Node24 | Avoid circular failure after protected closeout; strict live CLI and negative tests retained. New CI required. Existing dead-code contracts remain tracked, not suppressed. P03 must have own exact-head native CI/security baseline at preflight.
+
+2026-11-24 | P02 | T12 reuse shared design tokens and four integrated Change Center tabs, reserve existing six remappable shortcuts, bundle only actual known capability limitations | Alternative full native event/feed query would broaden read-only IPC and need separate P03/P11 service/security proof. No release/status claims; real capture and remaining scope required before issue #16 closure.
+
+2026-11-24 | P02 | Add three navigable M26 service-boundary panels and disabled controls with explicit reasons | Reuse existing WAI-ARIA tab pattern and theme tokens; no synthetic release/event data, persistence, network, privileges or dependencies; native capture and spoken evidence remain required.
+
+2026-11-24 | P02 | Repair native Help mode activation and submit one complete module-select keyboard gesture | Exact-head Windows failed native activation and foreground; keep strict foreground, actual UIA state and image checks, no runtime or privilege changes.
+
+2026-11-24 | P02 | Align inherited glossary static contract with actual keyboard-driven activation | Prior CI stopped before native build on obsolete substring and InvokePattern assertion; retain stronger PID/focus/foreground/panel/visibility gates. No runtime or verifier changes.
+
+2026-11-24 | P02 | Verify disposable Narrator process exit and bound M26 foreground recovery to intentional focus boundaries | Actual M26 foreground interruption after search-empty; preserve strict input/capture validation, no synthetic data or privileges.
+
+2026-11-24 | P02 | Reconcile Narrator script-tail contract with strict process cleanup guard | Both CI jobs stopped before native acceptance on obsolete ending assertion; verify unique fail-closed guard and exit checks, retain all runtime evidence.
+
+2026-11-24 | P02 | Isolate M26 capture before live screen readers and diagnose foreground loss by allowlisted owner/stage | Repeated exact-head loss after search-empty despite successful recovery earlier; cause unconfirmed, no skipped acceptance gates.
+
+2026-11-25 | P02 | Add M26-specific actual NVDA speech gate after successful isolated candidate journey | All seven workflows passed; ten source-bound native frames reviewed; existing general speech evidence does not establish M26. Require actual tab/search/no-match speech and exact binary/run; lower option and Wiki evidence remain pending.
+
+2026-11-25 | P02 | Add dedicated 20-option native evidence, M26-specific Narrator and scoped new Wiki preview | Previously verified ten native frames insufficient for below-fold and option acceptance; keep disabled services nonoperational and separate write-once Wiki publication from read-only browser verification. Existing gates unchanged.
+
+2026-11-25 | P02 | Accept actual hosted M26 Wiki preview and remove temporary writer | Independent public Git clone and Chrome readback passed for all twenty option IDs and exact pinned source; keep only read-only PR verification and original receipts. No release or native approval inferred.
+
+2026-11-25 | P02 | Retry only a foreground-invalidated native journey on a fresh process; repair actual reader navigation/input | Original M26 NVDA three-stage proof passed; observed WebView2 foreground loss, baseline palette value mismatch and Narrator entry failure; keep every actual state, speech and provenance requirement.
+
+2026-11-25 | P02 | Improve real M26 keyboard workflow and responsive UI before further acceptance | Empty-state reset, notice detail focus/return, disabled reason Tab navigation and actual transport guidance solve user-facing gaps; preserve strict source/runtime evidence and phase order.
+
+2026-11-25 | P02 | Preserve actual input accessibility focus and decouple native option verification from screen failure | Both M26 live screen-reader gates passed; option journey previously skipped, legacy default active descendant can report result rather than edit, strict aggregate CI remains fail closed.
+
+2026-11-25 | P02 | Synchronize T04 source assertions with deliberate palette result navigation | Same inherited assertion blocked Windows and Governance before native execution; preserve modal isolation, keyboard movement, default Enter and focus return requirements.
+
+2026-11-25 | P02 | Record all 30 native candidates, reject OPT-13 visible focus gap, request genuine empty reset speech | Native screen/option gates passed but independent review finds focus ring missing and live NVDA empty speech absent; do not treat machine receipt as final visual or speech approval.
+
+2026-11-25 | P02 | Preserve independently reviewed original PNGs from successful capture run rather than restart entire evidence set | 27 scoped targets reviewed, OPT-13 excluded; read-only pinned transport and original blob verification required; exact-head gate remains mandatory.
+
+2026-11-25 | P02 | Commit 27 verified native M26 images to canonical paths | Original a45ab65 run receipts, independent pixel review and seven read-only transfer batches match; leave OPT-13 pending and retain final exact-head acceptance.
+
+2026-11-25 | P02 | Accept corrected OPT-13 visual candidate from exact-source fully passing scoped M26 run | Actual visible focus, disabled control and explanation confirmed on original 998x701 PNG; one-shot original transfer before manifest finalization; legacy Help speech remains separate blocker.
+
+2026-11-25 | P02 | Owner-directed automation pilot on existing GitHub-hosted Windows CI dependency, no paid host or secrets | Read-only model candidate and static check are permitted, PR code cannot receive protected writer authority; no persistent worker claim, keep phase order and #3 open. Also publish final independently reviewed OPT-13 original.
+
+2026-11-25 | P02 | Scope screenshot checkout contract to native prerequisites; deny mixed/unknown model failure routing | First real continuation job passed 4 contracts and selected T12 automatically; unrelated global checkout count failed native/governance; retain exact checkout and no credentials in each native job, no product test relaxation.
+
+2026-11-25 | P02 | Process one known failure group per continuation, preserve deferred failures; verify real legacy Help heading and request current focus speech | Prior native mixed failures prevented inference; no unknown-step permissions, no bypass of speech verifier or native focus. Trusted publisher absent on protected main; no automatic write yet.
+
+2026-11-25 | P02 | Consolidated T13 UI implementation on active PR after owner explicitly prioritized phase completion | Existing P02 scope includes three system centers; preserve six shortcuts, use session-only drafts and actual disabled service controls; native 74-candidate verifier; no premature task DONE or backend mutation.
+
+2026-11-25 | P02 | Preserve Help category correctness under expanded T13 catalog, improve screen search and keyboard return | First TypeScript and six companion gates passed; fixed inherited exact-count assumption without weakening membership checks; no native or release acceptance claim.
+
+2026-11-25 | P02 | Close scoped T12 only after all dedicated exact-source native/speech gates, 28 final images and Wiki proof | Overall Windows still failed T13 and legacy M19; retain T11/T13 merge blockers. Retry M23 real keyboard button once and pass actual Enter through NVDA; verifier unchanged.
+
+2026-11-25 | P02 | Capture T13 option focus after real Tab and Shift+Tab; target the actual Help result in Narrator | The Windows run passed all 74 candidate contracts, but M24-OPT-13 lacked a visible outline and the Narrator receipt captured the edit label for the result. Preserve the original focus, speech and source identity checks.
+
+2026-11-25 | P02 | Preserve 74 reviewed Windows frames from two runs with identical desktop source and exact per-asset provenance | The earlier M24 rollback option image shows visible keyboard focus. Keep the latest candidate finding and the separate full-CI gate.

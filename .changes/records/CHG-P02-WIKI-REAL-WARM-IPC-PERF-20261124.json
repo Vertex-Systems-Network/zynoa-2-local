@@ -1,0 +1,65 @@
+{
+  "change_id": "CHG-P02-WIKI-REAL-WARM-IPC-PERF-20261124",
+  "module_id": "M19",
+  "kind": "enhancement",
+  "title": "Real hosted P02 Wiki preview and native three-run visible-window and IPC readiness timing",
+  "summary": "Safely published M02/M19 preview pages only to existing GitHub Wiki after a verified preflight, hash-bound remote git readback and zero modification to Home; removed one-shot credential-enabled CI workflow. Added three real Tauri Windows native warm-process first-window evidence with source/executable hash and fail-closed tests. First run 45286192929 passed with window first visible 250/133/139 ms; these are not native IPC or approved performance. Follow-up native performance script requires explicit native UIA 'Typed native handshake connected' before readiness timing and rejects fabricated timing/provenance. Full screen-reader, cold-start performance budgets, final module, release and protected merge remain pending. Added independently failing-closed live NVDA 2026.3.1 speech capture with official SHA256-pinned portable NVDA and three real native keyboard journeys. The new CI step must succeed on exact head before any NVDA approval; Narrator remains separate, no synthetic speech or silent waiver. The initial real native NVDA attempt #45298990995 loaded the verified NVDA plugin and actual keyboard entered M19-OPT-06 but failed on only two long speech sequences with 280-character truncation. Repaired with per-term bounded excerpt extraction, stage-bound NVDA receipts, focus and latency stabilization; exact-head repeat required. Added an enforceable source-bound Windows-hosted P02 preview cold-metadata/capture/warm-IPC budget from historical measured runs, explicitly preserving the 42582ms outlier and withholding user-machine product startup SLA. Fail-closed negative tests and CI step, no fake accessibility/merge approval. Real run #45300647452 passed the new source-bound Windows preview budget but failed live NVDA only on Preferences spoken announcement. Native capture independently shows actual palette/help speech. Added real NVDA+Tab keyboard report-focus on actual named UIA focusable selector; not test weakening, requires exact-head repetition. Completed scoped P02-T10 source-bound Windows preview after run #45301683751 and added consolidated fail-closed CI acceptance that independently verifies all 29 original PNG hashes + reviews, 16 Help/Wiki references, real NVDA/UIA and three-run measured CI performance; keeps Narrator/full-product SLA/owner merge explicitly unapproved. New full exact-head Windows run #45303604148 exposed true warm IPC timing failures (1357/7052/4976ms) against unchanged 3s-per-launch/2s-median bounds. Reopened T10; optimized UIA readiness from repeated full descendant enumerations to exact native property lookup with existing fail-closed fallback, and stabilized confirmed process teardown. No SLA/budget thresholds weakened; repeat required. Latest exact-head Windows #45305110513 SUCCESS after optimized real UIAutomation lookup/teardown without relaxing P02 native performance bounds; scoped consolidated T10 acceptance verifies 29 original image reviews, 16 Help/Wiki options, actual NVDA + UIA and preview budget. Official T10 DONE, T11 IN_PROGRESS, full Narrator/product SLA/merge not claimed.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12",
+  "affected_option_ids": [
+    "M02-OPT-02",
+    "M19-OPT-06"
+  ],
+  "docs_paths": [
+    "docs/evidence/P02_T10_WIKI_PREVIEW_PUBLISHED_20261124.md",
+    "docs/evidence/P02_T10_PERFORMANCE_OBSERVATIONS_20261124.md",
+    "docs/evidence/P02_T11_CLOSEOUT_PREFLIGHT.md",
+    "docs/state/HANDOFF.md",
+    "docs/state/DECISIONS.md",
+    "docs/evidence/P02_T10_NVDA_LIVE_GATE.md",
+    "docs/quality/P02_T10_PERFORMANCE_BUDGET.json",
+    "docs/evidence/P02_T10_SCOPED_DONE_20261124.md",
+    "docs/state/pr-tasks/P02.json"
+  ],
+  "help_paths": [
+    "docs/help/articles/M02.md",
+    "docs/help/articles/M19.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M02.md",
+    "docs/wiki/pages/M19.md"
+  ],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45284338605",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45286192929",
+    "tests/test_p02_native_performance.py",
+    "scripts/probe_p02_native_performance.ps1",
+    "tests/test_p02_nvda_speech.py",
+    "tools/verify_p02_nvda_speech.py",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45298990995",
+    "tests/test_p02_t10_performance_budget.py",
+    "tools/verify_p02_t10_performance_budget.py",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45300647452",
+    "tests/test_p02_t10_acceptance.py",
+    "tools/verify_p02_t10_acceptance.py",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45301683751",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45303604148",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45305110513"
+  ],
+  "commit_sha": "fffb5101473908ebc393841d98a4daa6cbbebe15",
+  "release": null,
+  "verification": {
+    "tests_passed": true,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "GitHub Wiki two new preview pages, unchanged original Home. CI warm Tauri sample process instances disposable, no user data or native vault deletion. No install/update.",
+  "created_at": "2026-11-24",
+  "updated_at": "2026-11-24",
+  "version_bump": "none",
+  "docs_impact": true,
+  "data_migration": false
+}

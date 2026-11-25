@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "phase": "P02",
+  "source_build_sha": "da648baae21477cae44041ee0cbe99f8fc75f347",
+  "windows_run_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45186464263",
+  "artifact_id": 14824706339,
+  "artifact_source": "p01-desktop-windows-build-evidence",
+  "reviewed_at": "2026-11-23T13:52:00Z",
+  "reviewer": "GPT-6: inspected original real Windows Tauri PNGs and rehashed against source SHA-bound immutable JSON receipts",
+  "machine_report": "MACHINE_METADATA_HASH_VALIDATED_ONLY",
+  "machine_capture_verified": false,
+  "independent_visual_review": true,
+  "full_screen_reader_assistive_technology_testing": false,
+  "final_manifest_complete": false,
+  "module": "M02",
+  "scope": "Scoped T05/T06 UI plus light/dark screenshot evidence; NOT final M02 module acceptance",
+  "visual_conclusion": "PASS_FOR_REVIEWED_STATES_ONLY",
+  "screens": [
+    {
+      "id": "P02-T05-PREFERENCES-LIVE",
+      "sha256": "fd5f2c1c16a771fbbc072cc9c695462fe89faddb6fa31e658f588b4ad200243f",
+      "width": 998,
+      "height": 701,
+      "review": "Appearance defaults and OS-linked theme/density/reduced-motion labels visible; reset disabled at system/comfortable defaults; vertically scrolled capture"
+    },
+    {
+      "id": "P02-T06-GALLERY-READY",
+      "sha256": "32d88fec8d06fe2d8595e1a6d08e3000564fbbcc57c90c3ff0a0db1ee75807c1",
+      "width": 998,
+      "height": 701,
+      "review": "Five state controls visible, Ready pressed with green border and illustrative instructions; additional content requires scrolling"
+    },
+    {
+      "id": "P02-T06-GALLERY-OFFLINE",
+      "sha256": "bd25251a82a7fc9968ebece869e976477b51919c30c3eaf5b68ccb0e339edbba",
+      "width": 998,
+      "height": 701,
+      "review": "Offline pressed and amber left border, clear no-network-probe statement and recovery guidance; not an actual connection health check"
+    },
+    {
+      "id": "P02-T02-12-LIGHT",
+      "sha256": "f1559ee9b22496e97dced2f485cef5cc646ecfa0144468ad858396282565ef2d",
+      "width": 898,
+      "height": 653,
+      "review": "Actual light appearance in narrowed native Tauri window, readable settings and visible focused density selector"
+    },
+    {
+      "id": "P02-T02-12-DARK",
+      "sha256": "88bb83755412323c36a02c32ecdd984b39ebe90f6b7dbeb809bfa4ebf71d79b8",
+      "width": 898,
+      "height": 653,
+      "review": "Actual charcoal dark appearance in narrowed native Tauri window, readable settings and visible focused density selector"
+    }
+  ],
+  "not_proved": [
+    "OS preference transitions on a live Windows setting change",
+    "Screen reader user path, keyboard-only full-page traversal and hover states",
+    "All 15 required finalized M02 screenshots",
+    "Long-run performance, persisted native settings or real project inspector"
+  ]
+}

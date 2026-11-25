@@ -1,0 +1,60 @@
+{
+  "change_id": "CHG-P02-M19-OFFLINE-HELP-20261123",
+  "module_id": "M19",
+  "kind": "feature",
+  "title": "Bundled offline Help Center and local article search",
+  "summary": "Source implementation of M19 curated bundled help index, deterministic local search, FAQ/glossary and accessible article reader; no server, wiki write or telemetry. Native visuals pending. Reader selection now follows filtered results; zero-hit search shows an explicit empty reader; related/contextual navigation restores visible selection. M02 Wiki source anchor corrected. P02-T08 offline contextual reader, FAQ, glossary and wizard implementation passed a separate scoped Windows-native functional review and was accepted as T08 DONE, without final module screenshots, screenshot-hotspot tours, published Wiki or P02 protected merge. 2026-11-24 per-image visual and source-integrity review accepted 13/14 real committed M19 native PNGs; final M19-OPT-01 remains PENDING while its improved genuine CI candidate awaits GitHub original binary replacement. No module, screen-reader, Wiki, release or merge claim. 2026-11-24 all 14 M19 native screenshot PNGs individually hash/visual verified after correcting M19-OPT-01 by original Windows CI binary Git blob; 29/29 P02 real screenshot entries now image-scope VERIFIED, with NVDA/Narrator/performance/hosted Wiki/owner protected merge still blocked. 2026-11-24 documentation parity repair after true GitHub native CI detected a historical screenshot PENDING test expectation: M02/M19 current Help/Wiki/option tables now distinguish 29 image-VERIFIED original PNGs from not-yet-approved accessibility, performance, hosted Wiki, final module and protected merge.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12",
+  "docs_paths": [
+    "docs/adr/0026-p02-shared-ui-help-predev.md",
+    "docs/evidence/P02_T02_FIRST_REAL_UI_SLICE.md",
+    "docs/modules/M19.md",
+    "docs/state/HANDOFF.md",
+    "docs/evidence/P02_T08_SCOPED_ACCEPTANCE_20261124.md",
+    "docs/state/pr-tasks/P02.json",
+    "docs/screenshots/M19/T10-final-13-native-visual.review.json",
+    "docs/screenshots/MANIFEST.json",
+    "docs/evidence/P02_T11_CLOSEOUT_PREFLIGHT.md",
+    "docs/screenshots/M19/T10-final-14-native-visual.review.json",
+    "docs/evidence/P02_T10_FINAL_29_NATIVE_SCREENSHOTS_20261124.json",
+    "docs/help/articles/M02.md",
+    "docs/wiki/pages/M02.md",
+    "docs/wiki/pages/M19.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M19.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M19.md"
+  ],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45262533924",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45262533548",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45274014314",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45279976526"
+  ],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": true,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No native user-storage schema change or migrated data. UI session state only; offline help bundled from curated static source.",
+  "created_at": "2026-11-22T20:49:36.088Z",
+  "updated_at": "2026-11-24",
+  "version_bump": "none",
+  "affected_option_ids": [
+    "M19-OPT-01",
+    "M19-OPT-02",
+    "M19-OPT-04",
+    "M19-OPT-05",
+    "M19-OPT-08"
+  ],
+  "docs_impact": true,
+  "data_migration": false
+}

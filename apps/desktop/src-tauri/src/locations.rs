@@ -223,7 +223,7 @@ mod tests {
     #[test]
     fn unsupported_root_paths_and_traversal_are_denied() {
         let f = Fixture::new();
-        let app = f.app();
+        f.app();
         assert!(matches!(NativeLocationRegistry::open(&f.0, &f.0.join("wrong.app")),
                          Err(LocationFault::InvalidRoot)));
         assert!(!safe_relative("../outside"));

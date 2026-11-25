@@ -1,0 +1,14 @@
+{
+  "existing_pages_untouched": true,
+  "fresh_unauthenticated_git_clone_readback": true,
+  "full_module_release_approved": false,
+  "github_run_id": "45545847699",
+  "page": "M26.md",
+  "published_preview_not_final_release": true,
+  "repository": "Vertex-Systems-Network/zynoa-2-local",
+  "schema_version": 1,
+  "sha256": "e943dee37804a47ba7d24d5efb440d2a923c4cc002262f3fe979b5d6c6fae997",
+  "source_sha": "f60a431f09d46dc63cd0f5fad995733998e9d3e7",
+  "wiki_head_after": "c2ed812481f5d29bb94661c54208be9567dff216",
+  "wiki_head_before": "13b5a194a26320166b1f8dd5301a0d06c4098f93"
+}

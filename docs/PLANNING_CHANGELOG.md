@@ -1,5 +1,10 @@
 # Engineering Specification Changelog (not product releases)
 
+## 2026-11-24 — P02 operational plan reconciliation
+
+- Aligned roadmap with existing v3.1/v3.2 cross-cutting UI obligations and P08I order. Added omitted T12/T13, linked issues #16/#17, corrected current status/predev references, preserved phase sequence and final merge authority. [Audit](evidence/P02_PLAN_ALIGNMENT_AUDIT_20261124.md).
+- Historical scope receipts remain scoped. No module completed or product release published by planning correction.
+
 ## [3.2.1] - 2026-11-18
 ### Added
 - [DESIGN-IO](operations/DESIGN_INTEROPERABILITY.md): planned tool-neutral editable import/export with format adapters, fidelity reports, security tests and help/screenshots for Figma, Penpot, OpenPencil-A, OpenPencil-B and additional supported formats.

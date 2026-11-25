@@ -1,0 +1,38 @@
+{
+  "change_id": "CHG-P02-M22-CI-CONTINUATION-20261125",
+  "module_id": "M22",
+  "kind": "feature",
+  "title": "Bounded active-phase CI continuation pilot",
+  "summary": "Automatically observes completed exact-source Windows CI, selects current P02 task and drafts a bounded local-model product edit with optional static TypeScript check in read-only Actions. First automatic CI dispatch verified, selected T12 and refused unrelated failure. Fixed inherited checkout count contract and exact failure routing; live model invocation still pending. Known mixed CI failures now select one explicit repair group, preserving deferred failures; actual inference pending.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/3"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12",
+  "docs_paths": [
+    "docs/operations/AUTONOMOUS_LOOP.md",
+    "docs/evidence/P02_CI_CONTINUATION_PREFLIGHT_20261125.json"
+  ],
+  "help_paths": [],
+  "wiki_paths": [],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45573123008",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45573910551"
+  ],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "Developer-only candidate artifact; no product release, no persistent deployment, no privileged writer.",
+  "created_at": "2026-11-25T08:05:00Z",
+  "updated_at": "2026-11-25T08:23:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [],
+  "docs_impact": true,
+  "data_migration": false
+}

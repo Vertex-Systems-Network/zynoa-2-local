@@ -1,8 +1,8 @@
 # AI Workspace 3.2 — Consolidated Master Plan
 
-**Current spec revision:** 3.2.0 • 2026-11-18. **Status:** Documentation/agent-governance kit only; no actual desktop app/release/PR has been built by this artifact.
+**Current operational specification:** v3.2 including P08I and dated addenda. **Current implementation truth:** [phase state](state/PHASE.json), [status](state/STATUS.md), [handoff](state/HANDOFF.md) and authenticated GitHub evidence. Historical 2026-11-18 status statements below are snapshots. Native desktop preview and phase PRs exist; no signed release or continuous autonomous developer is inferred.
 
-Current inventory: **26 module dossiers, 151 UI screens, 244 option specifications, 395 pending real-application screenshot obligations**. Older v3.0/v3.1 inventory counts inside the historical preserved text are superseded by these figures.
+Original 2026-11-18 inventory: **26 module dossiers, 151 UI screens, 244 option specifications, 395 then-pending real-application screenshot obligations**. Current counts/status must come from the live screen/option catalogs, screenshot manifest and source-bound evidence.
 
 This file consolidates the retained full v3.1 master plan and the new M26 extension. Read the referenced detailed dossier and operation files for executable contracts.
 
@@ -24,18 +24,19 @@ This file consolidates the retained full v3.1 master plan and the new M26 extens
 
 | Phase | Name | Modules | Exit criterion |
 |---|---|---|---|
-| P00 | Governance, product research and AI controller | M22 | Constitution, PR policy, verified source bank, local controller contract and test harness |
-| P01 | Desktop foundation and secure services | M01 M16 M17 M18 | Bootable client, IPC and storage, native security, diagnostic spine |
-| P02 | Final shared UI and help foundation | M02 M19 | Polished shell/design system, all shared UI states, help framework and visual gate |
-| P03 | Complete Chat module | M03 | Real local model inference, attachments, history, errors and streaming |
+| P00 | Governance, product research and AI controller | M22; M26 governance | Constitution, PR policy, verified source bank, local controller contract and change-event policy |
+| P01 | Desktop foundation and secure services | M01 M16 M17 M18; M23 core, M24 registry, M26 event store | Bootable client, IPC, native security, diagnostic spine, transactional vault, location registry and durable events |
+| P02 | Final shared UI and help foundation | M02 M19; M23/M24/M25/M26 UI foundations | Shared shell, Help, Backup Center, Data Location, Update Center and integrated changelog UI; real state, accessibility, visual and documentation gates |
+| P03 | Complete Chat module | M03; M23 chat-data | Real local inference/streaming, managed attachments, durable history, export, encrypted backup and verified recovery |
 | P04 | Complete Coding module | M04 | Repository edit/test/verify workflow and scoped git operations |
-| P05 | Intelligent model, hardware and download suite | M05 M06 | Benchmarked routing and verified resumable model management |
+| P05 | Intelligent model, hardware and download suite | M05 M06; M24 completion | Benchmarked routing, verified resumable downloads and safe runtime-specific relocation |
 | P06 | Search + Research + Browser | M07 M08 M09 | Web research with citations, guarded browsing and verifiable evidence |
 | P07 | Advanced knowledge and memory | M10 | Indexing, retrieval, context management, revalidation and recovery |
 | P08 | Figma-like Design Studio and assets | M11 M12 | Editable node tree, real canvas, components, tokens, exports and QA |
+| P08I | Cross-tool design interoperability (after verified P08) | M11 M12 adapter extension | Proven editable import/export, capability matrices, security and round-trip evidence |
 | P09 | Media generation | M13 | Optional model worker, task scheduling, safe provenance and output gallery |
 | P10 | Advanced autonomy and tool ecosystem | M14 M15 | Recoverable agents and policy-scoped MCP integrations |
-| P11 | Production release and performance lab | M20 M21 | Signed delivery, regression budgets, observability and support readiness |
+| P11 | Production release and performance lab | M20 M21; M25 completion, M26 release publisher | Signed delivery, actual updater/recovery, released-only changelog, regression budgets, observability and support readiness |
 | P12 | Future expansion (separate scoped phases) | — | Native macOS/Linux maturity, collaboration, plugin SDK and innovation bank |
 
 ## 1. Contract, status, interpretation of “50× bigger”
@@ -366,3 +367,7 @@ The existing default-branch-only Developer Incident Publisher is hardened to req
 ## Addendum 3.2.14 — trusted static fixture remote PR write/readback probe (2026-11-20)
 
 A separate operator-only `tools/github_static_fixture_publisher.py` demonstrates fixed, inert new-file GitHub Git Data API publication to the active **DRAFT** P00 branch: exact PR HEAD and no-existing-file checks, fixed Git blob/tree/one-parent commit, `force:false` fast-forward ref update and independently checked immutable-commit file contents. The source is a baked-in trusted literal, NEVER model generated, and no user checkout/other files or protected main can be targeted by its API. Mock CI and optional separately authenticated manual GitHub connector write/readback validate only remote plumbing, not a live hosted worker identity, independently attested model sandbox or general application edit/test/repair PR path. [ADR-0024](adr/0024-static-only-remote-branch-write-probe.md) · [Runbook](operations/P00_TRUSTED_STATIC_GIT_PROBE.md). P00-T21 remains blocked pending real credentials/host/verified model-provenance; do not merge draft PR or start P01.
+
+## 2026-11-24 — Current-scope and phase-transition audit (no roadmap change)
+
+The [P02 audit](evidence/P02_PLAN_ALIGNMENT_AUDIT_20261124.md) reconciles the original roadmap with v3.1/v3.2 cross-cutting requirements. P02-T12 (M26 UI) and P02-T13 (M23–M25 UI) are existing obligations omitted from the earlier task manifest, not new product scope. Both must pass before T11 protected merge. Phase order, explicit exact-head merge authority, data safety and release gates stay intact. P00/P01 historical merges do not prove full M22 autonomy; Issue #3 remains open. P03 preflight must establish its own exact-head Windows CI and preserve prior regression evidence without applying P02-only premerge-state predicates blindly to later authorized code. See [warning ledger](quality/P02_WARNING_LEDGER_20261124.md).

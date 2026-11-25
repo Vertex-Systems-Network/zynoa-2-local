@@ -1,0 +1,62 @@
+{
+  "change_id": "CHG-P02-M23-SYSTEM-CENTER-20261125",
+  "module_id": "M23",
+  "kind": "feature",
+  "title": "Backup Center shared UI foundation",
+  "summary": "Actual navigable P02 system UI with explicit unavailable operations, session drafts, keyboard focus, bundled Help and native evidence harness. Full service remains deferred to P03. Original Windows captures are reviewed and linked in the illustrated Help guide. Scoped native Windows candidate verification and the published illustrated Wiki preview passed.",
+  "status": "implementing",
+  "audience": "user",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/17"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12",
+  "docs_paths": [
+    "docs/modules/M23.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M23.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M23.md"
+  ],
+  "test_evidence": [
+    "docs/screenshots/M23/T13-native-visual.review.json",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45587126067",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45587126067/artifacts/15009867688",
+    "docs/evidence/P02_T13_WIKI_PREVIEW_PUBLISHED_20261125.json"
+  ],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No persistent preference or native data mutation; full backend remains gated.",
+  "created_at": "2026-11-25T08:32:00Z",
+  "updated_at": "2026-11-25T08:32:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [
+    "M23-OPT-01",
+    "M23-OPT-02",
+    "M23-OPT-03",
+    "M23-OPT-04",
+    "M23-OPT-05",
+    "M23-OPT-06",
+    "M23-OPT-07",
+    "M23-OPT-08",
+    "M23-OPT-09",
+    "M23-OPT-10",
+    "M23-OPT-11",
+    "M23-OPT-12",
+    "M23-OPT-13",
+    "M23-OPT-14",
+    "M23-OPT-15",
+    "M23-OPT-16",
+    "M23-OPT-17",
+    "M23-OPT-18"
+  ],
+  "docs_impact": true,
+  "data_migration": false
+}

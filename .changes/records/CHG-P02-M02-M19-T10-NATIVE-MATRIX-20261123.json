@@ -1,0 +1,62 @@
+{
+  "change_id": "CHG-P02-M02-M19-T10-NATIVE-MATRIX-20261123",
+  "module_id": "M19",
+  "kind": "feature",
+  "title": "Exact-ID native option Help matrix and honest P02-T10 screenshot/performance gate",
+  "summary": "Source implementation of 16 real Windows Tauri option-reference keyboard journeys and fail-closed validation extending existing 38 native candidates to 54. Adds no-false-approval readiness auditing for 29 final screenshots and single-run startup/capture duration reports; final visual/a11y/release gates remain pending. Exact-source Windows build #45202826399 passed and 16 original Windows PNG hashes plus scoped visual state were independently reviewed; 29 final screenshot assets remain PENDING.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12",
+  "docs_paths": [
+    "docs/evidence/P02_T10_NATIVE_OPTION_MATRIX.md",
+    "docs/modules/M02.md",
+    "docs/modules/M19.md",
+    "docs/state/HANDOFF.md",
+    "docs/state/pr-tasks/P02.json",
+    "docs/screenshots/M19/P02-T10-option-matrix-independent-review.json"
+  ],
+  "help_paths": [
+    "docs/help/articles/M02.md",
+    "docs/help/articles/M19.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M02.md",
+    "docs/wiki/pages/M19.md"
+  ],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45202826399"
+  ],
+  "commit_sha": "155227566aca19053a705048998ecd85f389ab82",
+  "release": null,
+  "verification": {
+    "tests_passed": true,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No native storage schema change; no app data migration.",
+  "created_at": "2026-11-23T15:19:32.546Z",
+  "updated_at": "2026-11-23T15:24:11.694Z",
+  "version_bump": "none",
+  "affected_option_ids": [
+    "M02-OPT-01",
+    "M02-OPT-02",
+    "M02-OPT-03",
+    "M02-OPT-04",
+    "M02-OPT-05",
+    "M02-OPT-06",
+    "M02-OPT-07",
+    "M02-OPT-08",
+    "M19-OPT-01",
+    "M19-OPT-02",
+    "M19-OPT-03",
+    "M19-OPT-04",
+    "M19-OPT-05",
+    "M19-OPT-06",
+    "M19-OPT-07",
+    "M19-OPT-08"
+  ],
+  "docs_impact": true,
+  "data_migration": false
+}

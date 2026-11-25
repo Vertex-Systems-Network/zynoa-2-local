@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "phase": "P02",
+  "source_build_sha": "da648baae21477cae44041ee0cbe99f8fc75f347",
+  "windows_run_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45186464263",
+  "artifact_id": 14824706339,
+  "artifact_source": "p01-desktop-windows-build-evidence",
+  "reviewed_at": "2026-11-23T13:52:00Z",
+  "reviewer": "GPT-6: inspected original real Windows Tauri PNGs and rehashed against source SHA-bound immutable JSON receipts",
+  "machine_report": "MACHINE_METADATA_HASH_VALIDATED_ONLY",
+  "machine_capture_verified": false,
+  "independent_visual_review": true,
+  "full_screen_reader_assistive_technology_testing": false,
+  "final_manifest_complete": false,
+  "module": "M19",
+  "scope": "Six native Help screen candidates; NOT final option PNGs or hosted Wiki publication",
+  "visual_conclusion": "PASS_FOR_REVIEWED_STATES_ONLY",
+  "screens": [
+    {
+      "id": "M19-S01",
+      "sha256": "058ae87fbdec9c411e48f19ccd531540b2ba28078f0582aee756d1f25546eb96",
+      "width": 998,
+      "height": 701,
+      "review": "Help landing with bundled 12-article catalog, five workflow buttons and offline indicator visible"
+    },
+    {
+      "id": "M19-S02",
+      "sha256": "fdb41c3e4e4bab499544e251480a550be3e3d7d6b55bd242a2fefd4446734b0f",
+      "width": 998,
+      "height": 701,
+      "review": "Native search input contains theme, local result list shows two matches and selected article reader begins below"
+    },
+    {
+      "id": "M19-S03",
+      "sha256": "272d75657553a362cebdc9549476efb1775f00abe3800f1394214d63cc56b4f6",
+      "width": 998,
+      "height": 701,
+      "review": "Article reader for Themes and interface density appears under scrolled article-list section"
+    },
+    {
+      "id": "M19-S04",
+      "sha256": "b77955246416b815c0b29b0bf62c4b6573d1072338293a076242fff508ce429a",
+      "width": 998,
+      "height": 701,
+      "review": "Guided tour displays Step 1 of 5 and next/restart controls with contextual local guide"
+    },
+    {
+      "id": "M19-S05",
+      "sha256": "c40181f04771e9518e351104e2e964fe9bb2309109f7c1a40de624dcd395d197",
+      "width": 998,
+      "height": 701,
+      "review": "Troubleshooting wizard shows issue selector, Step 1 of 3, safe instructions, fixed/next controls"
+    },
+    {
+      "id": "M19-S06",
+      "sha256": "e13328637847640d906524d4da347848f917f86961300d165639a516d85d7afe",
+      "width": 998,
+      "height": 701,
+      "review": "Wiki source mapping explicitly disclaims remote publication and displays local Help route checker"
+    }
+  ],
+  "not_proved": [
+    "All eight individual M19 option PNGs",
+    "Screen reader and keyboard workflow E2E for all search/tour/wizard controls",
+    "Hosted Wiki synchronization or remote ticket publication",
+    "Full-page scroll, performance and long term localization"
+  ]
+}

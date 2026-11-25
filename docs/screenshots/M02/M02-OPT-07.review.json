@@ -1,0 +1,15 @@
+{
+  "screenshot_id": "M02-OPT-07",
+  "review_status": "ACCEPTED_NATIVE_FOCUS_SLICE_ONLY",
+  "verified_for": "Keyboard Tab navigation focuses the active Workbench tabpanel and shows a visible gold theme-aware outer ring in the actual Windows Tauri application. Not acceptance of all P02/M02 visual states.",
+  "reviewer": "GPT-6 independent native image inspection",
+  "reviewed_at": "2026-11-23T08:48:35.127Z",
+  "source_commit_sha": "5382719148e22aac8c2245a6efedbdcd95b46ef4",
+  "source_run_id": 45140383789,
+  "source_artifact_id": 14801194918,
+  "png_sha256": "7264e280cc391c4ed92b4b66bf8e9126990f341edd45d927af35a174288c63e1",
+  "source_capture_status": "candidate_pending_visual_review",
+  "screenshot_committed_to_manifest_path": false,
+  "source_build_sha_match": true,
+  "caveats": "CI artifact is independently viewed and hash-matched, but the required final PNG is not yet committed to docs/screenshots/M02/M02-OPT-07.png. Manifest remains PENDING and P02-T10 not complete; no release/merge claim."
+}

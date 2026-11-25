@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "title": "P02-T02.10 scoped Windows native visual foundation review",
+  "review_status": "ACCEPTED_SCOPED_NATIVE_FOUNDATIONS_ONLY",
+  "reviewer": "GPT-6 independent inspection of downloaded GitHub Windows artifact PNGs",
+  "reviewed_at": "2026-11-23T09:49:04.525Z",
+  "exact_source_commit_sha": "4cfa2af0bd61f0b7a393f9ffdce9834f55db635c",
+  "source_build_sha_match": true,
+  "native_run_id": 45149201009,
+  "native_artifact_id": 14805158632,
+  "machine_report_status": "MACHINE_METADATA_HASH_VALIDATED_ONLY",
+  "machine_report_independent_visual_review": false,
+  "all_png_sha256_and_geometry_match": true,
+  "screenshots": [
+    {
+      "screenshot_id": "M02-OPT-07",
+      "width": 998,
+      "height": 701,
+      "sha256": "9cf09791cc7b31b9add0bc15f0b367cd34f7bb7809bb4827fe8075ac019ec90a",
+      "scoped_visual_review": "PASS_FOR_LISTED_OBSERVATION_ONLY",
+      "observations": "Visible gold keyboard focus ring on active Workbench tabpanel; context above is scrolled."
+    },
+    {
+      "screenshot_id": "M02-S03",
+      "width": 998,
+      "height": 701,
+      "sha256": "333b588a8827ee8751a5f2632a6a2da13fd4c6d77243fff8b8d76d262168b481",
+      "scoped_visual_review": "PASS_FOR_LISTED_OBSERVATION_ONLY",
+      "observations": "Workbench header, focusable tab row, local runtime card and disabled canvas action visible."
+    },
+    {
+      "screenshot_id": "M02-S04",
+      "width": 998,
+      "height": 701,
+      "sha256": "9a4113fecf22aab893a5bc96d74429d6bac0c78fd2ab0a0b74ba8ded91511216",
+      "scoped_visual_review": "PASS_FOR_LISTED_OBSERVATION_ONLY",
+      "observations": "Keyboard command palette modal over Preferences, visible query/allowlisted results; no empty-query state tested."
+    },
+    {
+      "screenshot_id": "M02-S05",
+      "width": 998,
+      "height": 701,
+      "sha256": "cc1c2bd2d8ce2f96659eaf213b15bb7f07b857e5ee8e17a08be598485e094fb9",
+      "scoped_visual_review": "PASS_FOR_LISTED_OBSERVATION_ONLY",
+      "observations": "Gallery hero/metrics and upper design cards visible; lower controls fall below fold here."
+    },
+    {
+      "screenshot_id": "M02-S06",
+      "width": 998,
+      "height": 701,
+      "sha256": "f3ec52525b2c25bccfce52378b054bcc5b6aa281787954028bd020049b6b4149",
+      "scoped_visual_review": "PASS_FOR_LISTED_OBSERVATION_ONLY",
+      "observations": "Preferences shows system appearance and Comfortable density with SESSION ONLY label; dark preset untested visually."
+    },
+    {
+      "screenshot_id": "P02-T02-06",
+      "width": 998,
+      "height": 701,
+      "sha256": "013fd332efc8ceb79bb27e02487b4f3e9f4409b838bb191db6657ee3656ff996",
+      "scoped_visual_review": "PASS_FOR_LISTED_OBSERVATION_ONLY",
+      "observations": "Selected Primary button has checkmark/outline, disabled and Secondary buttons visible; polite feedback and sample field visible."
+    },
+    {
+      "screenshot_id": "P02-T02-07",
+      "width": 898,
+      "height": 653,
+      "sha256": "8dc30d79b47f4fc05aacf954b3734b8ace127c5884957649ab84dbfa90820752",
+      "scoped_visual_review": "PASS_FOR_LISTED_OBSERVATION_ONLY",
+      "observations": "Native resized Tauri window presents single-column gallery, wrapped metrics, no observed horizontal clipping."
+    },
+    {
+      "screenshot_id": "P02-T02-07-continued",
+      "width": 898,
+      "height": 653,
+      "sha256": "1b05843e21eec3429e4b1fc4da56013f1c0a35b109863f42e1d5e2a103a9717f",
+      "scoped_visual_review": "PASS_FOR_LISTED_OBSERVATION_ONLY",
+      "observations": "PageDown in 898px native frame exposes full gallery controls, sample input and status cards without visible horizontal clipping."
+    },
+    {
+      "screenshot_id": "M19-S01",
+      "width": 998,
+      "height": 701,
+      "sha256": "579704a9c173bc868c2a8c75463520f28184983efe99a7d8c79ba024df42d9fe",
+      "scoped_visual_review": "PASS_FOR_LISTED_OBSERVATION_ONLY",
+      "observations": "Bundled local Help landing/catalog displays; included as a cross-module foundation smoke only."
+    }
+  ],
+  "status_boundary": {
+    "final_manifest_screenshots_committed": false,
+    "all_M02_M19_screenshot_gates_complete": false,
+    "dark_theme_native_screenshot_reviewed": false,
+    "screen_reader_e2e_reviewed": false,
+    "typed_sample_preservation_e2e_recorded": false,
+    "pointer_hover_e2e_recorded": false,
+    "final_module_or_phase_approved": false
+  },
+  "limitations": "Only the visible native Windows states listed were independently inspected. M02-S05 requires scrolled supplemental image for lower controls. Review neither changes immutable capture_verified=false receipts nor marks 15 M02 + 14 M19 required screenshot manifest entries complete. No claim of dark theme, every state/option, voice reader or release.",
+  "related_evidence": "docs/evidence/P02_T02_FIRST_REAL_UI_SLICE.md"
+}

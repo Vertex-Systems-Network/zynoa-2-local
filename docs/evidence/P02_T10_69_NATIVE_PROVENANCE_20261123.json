@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "phase": "P02",
+  "source_commit_sha": "f2835a2a497ee0ad0f5a032f7bcd1069e9fd6ac9",
+  "status": "SOURCE_SHA_BOUND_NATIVE_MACHINE_PASS_NOT_FINAL",
+  "windows_run": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45252195376",
+  "artifact_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45252195376/artifacts/14857775294",
+  "artifact_id": 14857775294,
+  "artifact_zip_sha256": "31f1aa048f4ff93b7da290626150e2cabd2014cff04ef34e4b65d8a06f1f4dd0",
+  "source": "Original GitHub Windows Actions actual Tauri executable, captured with native HWND DWM",
+  "native_png_receipt_pairs": 69,
+  "native_sha256_matches": 69,
+  "native_unique_ids": 69,
+  "direct_control_candidates": 15,
+  "direct_control_unique_png_hashes": 15,
+  "final_manifest_expected": 29,
+  "final_manifest_mapped_to_actual_screen_candidates": 29,
+  "final_manifest_verified": 0,
+  "help_only_option_references": 16,
+  "review_index_sha256": "feba86b3d2907b2d4a7cea9db94ca880fda275a60bf8155785d2511960f7243a",
+  "native_uia": {
+    "status": "SCOPED_NATIVE_UIA_PASS",
+    "checks_passed": 9,
+    "checks_total": 9,
+    "full_screen_reader_verified": false
+  },
+  "performance": {
+    "startup_metadata_ready_ms": 7168,
+    "native_screenshot_suite_ms": 92672,
+    "sample_count": 1,
+    "approved_budget": false
+  },
+  "checked_samples": [
+    {
+      "asset_id": "M02-OPT-02",
+      "sha256": "07d1fdaa781ad50f4a1ae8fe14b0ad2106c426725a4eafac7b1e0429e22ea859",
+      "note": "actual theme selector"
+    },
+    {
+      "asset_id": "M02-OPT-08",
+      "sha256": "572f58b98eda8b6bcf43bba56c5feecc9830a791a5dcb5ba8613c488b64c7925",
+      "note": "distinct labelled read-only Windows reduced-motion status, focus ring visible"
+    }
+  ],
+  "provisional_visual_inspection": true,
+  "independent_complete_visual_review": false,
+  "final_manifest_assets_committed": false,
+  "screen_reader_approved": false,
+  "hosted_wiki_published_verified": false,
+  "pr_merged": false,
+  "release_published": false
+}

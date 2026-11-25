@@ -53,17 +53,23 @@ class DesktopShellContractTests(unittest.TestCase):
         self.assertIn('role="status"', frontend)
         self.assertIn('surface.scrollTop = 0;', frontend)
         self.assertIn('surface.focus({ preventScroll: true });', frontend)
-        # Ctrl+Home and other non-numeric keys must never index views[NaN].
-        guard = "if (!/^[1-4]$/.test(event.key)) return;"
+        # P02 remapping replaces fixed numeric index arithmetic with an allowlisted
+        # lookup, preserving P01's safety guarantee for non-numeric shortcut keys.
+        mapping = (APP / "src/ui/shortcut-map.ts").read_text(encoding="utf-8")
+        guard = "const target = viewForShortcut(event.key, shortcuts);"
         self.assertIn(guard, frontend)
-        self.assertLess(frontend.index(guard), frontend.index("const target = Number(event.key) - 1;"))
+        self.assertIn("if (!target) return;", frontend)
+        self.assertLess(frontend.index(guard), frontend.index("setView(target);"))
+        self.assertIn("return isShortcutKey(key) ? current[key] : null;", mapping)
+        self.assertIn('shortcutKeys = ["1", "2", "3", "4", "5", "6"]', mapping)
+        self.assertIn("if (!event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return;", frontend)
 
     def test_windows_build_gated_read_only_and_no_release(self):
         wf = (ROOT / ".github/workflows/p01-desktop.yml").read_text(encoding="utf-8")
         for expected in (
             "concurrency:", "cancel-in-progress: true", "desktop: ",
             "windows-latest", "npm ci", "npm run build",
-            "tauri -- build --no-bundle", "actions/upload-artifact@v4",
+            "tauri -- build --no-bundle", "actions/upload-artifact@v6",
             "phase/01-foundation",
         ):
             self.assertIn(expected, wf)

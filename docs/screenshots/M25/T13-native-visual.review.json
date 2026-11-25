@@ -1,0 +1,230 @@
+{
+  "schema_version": 1,
+  "phase": "P02",
+  "task": "P02-T13",
+  "module": "M25",
+  "review_scope": "Original native PNGs only",
+  "target_count": 21,
+  "original_archives": [
+    {
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "sha256": "ee24ae7fa6417d1bb55533860ee2f2b1866a9c0cc5401c9d8e5e7b96d7649e14"
+    }
+  ],
+  "review_method": "Matched each original PNG to its native receipt and checked its visible title, control or status, focus outline and disposable fixture content.",
+  "source_note": "All images are from the same latest source run.",
+  "full_module_release_approved": false,
+  "captures": [
+    {
+      "asset_id": "M25-S01",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "94685dea5324211a4e7de42b4947f9579b8892e7390161c8ee4dd907aa5f477b",
+      "git_blob_sha": "232080b715492a03fbf9666bd47661cef9b66c55",
+      "visible_focus": true,
+      "caption": "M25-S01 — Update Center with the focused Update Center Overview heading and no verified release feed state."
+    },
+    {
+      "asset_id": "M25-S02",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "1dc0d79c04d3d47a828e77e5b6557f75d4fc3a0d69c6aff4b26e1f9c1736e7cf",
+      "git_blob_sha": "afa5fba127c45a9f6af79dbd05fd27a18da84ed0",
+      "visible_focus": true,
+      "caption": "M25-S02 — Update Center with the focused New Update Notification heading and no signed update notification state."
+    },
+    {
+      "asset_id": "M25-S03",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "74e46e0edbee789d1d4c73e447689d6eae08fa8a344c27038e04bdcc33ad5d2d",
+      "git_blob_sha": "6851a20342b7124a8acd485954cab79d60f9fd6a",
+      "visible_focus": true,
+      "caption": "M25-S03 — Update Center with the focused Update Release Notes heading and no verified release notes state."
+    },
+    {
+      "asset_id": "M25-S04",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "0f78877d901f9d8a9b323eb1cf7ca79cbc56d450a1b2d30fe01dae80de1876c9",
+      "git_blob_sha": "db5da7e854c9534bb22bb7a69c7739cc96f8fb47",
+      "visible_focus": true,
+      "caption": "M25-S04 — Update Center with the focused Download & Installation Progress heading and no update job running state."
+    },
+    {
+      "asset_id": "M25-S05",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "77e730c9fca533d63c2e3ab3984342e4737658e2db9f42e5aff5435eb5fe535c",
+      "git_blob_sha": "ff315ac07761c169fa799a5048ef740e559e3cf2",
+      "visible_focus": true,
+      "caption": "M25-S05 — Update Center with the focused Update History & Recovery heading and no verified update history state."
+    },
+    {
+      "asset_id": "M25-S06",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "13d1d62d3e7a1111e06ccb61472d3a86aa89f377f81a7dcbb9450b3d408cdd6a",
+      "git_blob_sha": "5ad09b3cbd7b5d7a0a42fffa43c7d4a7a094a95b",
+      "visible_focus": true,
+      "caption": "M25-S06 — Update Center with the focused Update Preferences heading and draft update preferences state."
+    },
+    {
+      "asset_id": "M25-S07",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "f3403398f6a62a405e4238e69f1a6484a63a91dab5d839c71f87f439c8758fd1",
+      "git_blob_sha": "f896527d6fce75f7e36006bdbd6a9a134cbc9030",
+      "visible_focus": true,
+      "caption": "M25-S07 — Update Center with the focused Update Failure Troubleshooting heading and keep current build and data state."
+    },
+    {
+      "asset_id": "M25-OPT-01",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "f75c9a059d042982366875efaa57115c5e6dc204795917a234c91f9267e5d02d",
+      "git_blob_sha": "033b62fac8b49844eda1dc37ad9c096f2bd273f0",
+      "visible_focus": true,
+      "caption": "M25-OPT-01 — Update Center with the focused Check updates at startup card and its session draft control."
+    },
+    {
+      "asset_id": "M25-OPT-02",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "5a1ab141f4f13313b84075967519c184ff2299e3414ec07eb5f68544526e7554",
+      "git_blob_sha": "a960305b42a75f8d5ec0d5ee0b590f01af5f2fcc",
+      "visible_focus": true,
+      "caption": "M25-OPT-02 — Update Center with the focused Periodic update checks card and its session draft control."
+    },
+    {
+      "asset_id": "M25-OPT-03",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "0393606348eeb14811e129cffdf245383e8d63049da0fa8ff9ce973a1419accd",
+      "git_blob_sha": "02f9e3d65bd6ab4ba5068320a56e9054b21def48",
+      "visible_focus": true,
+      "caption": "M25-OPT-03 — Update Center with the focused Release channel Stable/Beta/Nightly card and its session draft control."
+    },
+    {
+      "asset_id": "M25-OPT-04",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "fa19ada2c6948ef163cd39732cea5eede379b49fdef7b2287e59ab7e532212ed",
+      "git_blob_sha": "97e47f898d4e1d552bec329e4de28856a45b24ac",
+      "visible_focus": true,
+      "caption": "M25-OPT-04 — Update Center with the focused Show desktop update notifications card and its session draft control."
+    },
+    {
+      "asset_id": "M25-OPT-05",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "4d9d802a9a88838dd878f72b1f1f7ec3defb1241b81d8ec1f64d5373e101d817",
+      "git_blob_sha": "c7c828ec3838871cd28f0d4fac8493009c8ae9fb",
+      "visible_focus": true,
+      "caption": "M25-OPT-05 — Update Center with the focused Check now card, an unavailable action, and its explanation."
+    },
+    {
+      "asset_id": "M25-OPT-06",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "bd0cd51f49f0a5ede24664a8689db2b957f1b8da4a8ddb3ea6f289931fa5ac6e",
+      "git_blob_sha": "b0e1db6432567b6f807784d126c3f6f3bfec9fbb",
+      "visible_focus": true,
+      "caption": "M25-OPT-06 — Update Center with the focused View release notes card, an unavailable action, and its explanation."
+    },
+    {
+      "asset_id": "M25-OPT-07",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "350cd8d8c08019023a69cb9387238811b9a8bf5f7a27aa7588c26381fc24c720",
+      "git_blob_sha": "12de60bfa06b38457949fa26b5588b5e51553146",
+      "visible_focus": true,
+      "caption": "M25-OPT-07 — Update Center with the focused Download update now card, an unavailable action, and its explanation."
+    },
+    {
+      "asset_id": "M25-OPT-08",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "8ccc3f69ac2bdb1d8151a5aac929f746836b8dc61092693014e4001ed74b4b76",
+      "git_blob_sha": "db312e797075f70c65309d9a77b34e042f52bb14",
+      "visible_focus": true,
+      "caption": "M25-OPT-08 — Update Center with the focused Enable optional auto-download card and its session draft control."
+    },
+    {
+      "asset_id": "M25-OPT-09",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "2cb715eb16dd9a2ccb033fae9a7a3bcb4fab8ae5daa3b7f2db6100252654c898",
+      "git_blob_sha": "01c07350fd5399f5d8228285955137cd4a8e563b",
+      "visible_focus": true,
+      "caption": "M25-OPT-09 — Update Center with the focused Defer or remind later card, an unavailable action, and its explanation."
+    },
+    {
+      "asset_id": "M25-OPT-10",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "655f1e6c6ef65c1c7f9afd4ea570e8afcc2be7ebd323bff5f8d0c0444e5d50b2",
+      "git_blob_sha": "c10874a18e8759131735b27c0889f733c8612d94",
+      "visible_focus": true,
+      "caption": "M25-OPT-10 — Update Center with the focused Set metered/bandwidth policy card and its session draft control."
+    },
+    {
+      "asset_id": "M25-OPT-11",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "4362b9b13481e829dc26ec0a944a134935e82d2d8da622fd01c7c0a01def22d6",
+      "git_blob_sha": "e4f1c183fac7f61950bde80d35c78f3ea4476a07",
+      "visible_focus": true,
+      "caption": "M25-OPT-11 — Update Center with the focused Install update and restart card, an unavailable action, and its explanation."
+    },
+    {
+      "asset_id": "M25-OPT-12",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "619c61d490c3b6cd726a9ddc6f494b1b1a7529329e9f64775e868bf7824b8c12",
+      "git_blob_sha": "cadcc0546af68d7cb963a960a552b633b84b1664",
+      "visible_focus": true,
+      "caption": "M25-OPT-12 — Update Center with the focused View signature verification card, an unavailable action, and its explanation."
+    },
+    {
+      "asset_id": "M25-OPT-13",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "787155e368ca0064a2b97800f52511efbddfce64e8a7b39b5cbaf1a9f92da2a8",
+      "git_blob_sha": "b0e7deb2091125e8be52cb011108ecef2046a2cd",
+      "visible_focus": true,
+      "caption": "M25-OPT-13 — Update Center with the focused View update history card, an unavailable action, and its explanation."
+    },
+    {
+      "asset_id": "M25-OPT-14",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "4477d523ba4adee970fa484c66313dbfcb76cd5f374f0fcf1a16d016e949b8cf",
+      "git_blob_sha": "8c1bbe468e2a394c9e2b6b47452a1fbef163f187",
+      "visible_focus": true,
+      "caption": "M25-OPT-14 — Update Center with the focused Restore compatible previous build card, an unavailable action, and its explanation."
+    }
+  ]
+}

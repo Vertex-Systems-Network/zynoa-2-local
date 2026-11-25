@@ -29,7 +29,7 @@ Remote URL pattern (not a real link until configured): `https://github.com/<owne
 
 ## v3.1 Wiki additions
 
-[M23 User Data Vault](pages/M23.md) · [M24 Storage Locations](pages/M24.md) · [M25 Update Center](pages/M25.md). These are **local Wiki source drafts**; no remote wiki pages have been published. Version-specific diagrams/screenshots must be synced when relevant modules are actually implemented.
+[M23 User Data Vault](pages/M23.md) · [M24 Storage Locations](pages/M24.md) · [M25 Update Center](pages/M25.md). The [Backup Center](https://github.com/Vertex-Systems-Network/zynoa-2-local/wiki/M23), [Data Locations](https://github.com/Vertex-Systems-Network/zynoa-2-local/wiki/M24), and [Update Center](https://github.com/Vertex-Systems-Network/zynoa-2-local/wiki/M25) P02 previews are published with source-pinned Help links. [Publication evidence](../evidence/P02_T13_WIKI_PREVIEW_PUBLISHED_20261125.json).
 
 ## v3.2 changelog Wiki
 

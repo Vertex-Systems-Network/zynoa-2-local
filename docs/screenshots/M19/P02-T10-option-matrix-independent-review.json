@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "phase": "P02",
+  "task": "P02-T10",
+  "module_scope": [
+    "M02",
+    "M19"
+  ],
+  "source_commit_sha": "155227566aca19053a705048998ecd85f389ab82",
+  "native_run_id": 45202826399,
+  "native_run_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45202826399",
+  "artifact_id": 14833152368,
+  "artifact_name": "p01-desktop-windows-build-evidence",
+  "reviewer": "GPT-6 independent inspection of 16 original real Windows Tauri PNGs and SHA-256 check against each exact capture receipt",
+  "reviewed_candidates": 16,
+  "review_status": "PASS_SCOPED_OPTION_HELP_REFERENCES_ONLY",
+  "captures": [
+    {
+      "id": "M02-T10-REF-OPT-01",
+      "option_id": "M02-OPT-01",
+      "sha256": "a7b54e607d40bd4b230d50b371d8979bfebeb5c5214896af3c1443d9114eeebc",
+      "width": 998,
+      "height": 701,
+      "exact_source_build_sha_match": true,
+      "original_png_receipt_sha256_match": true,
+      "visible_review": "Matching selected option ID and title with default, instructions, limits, recovery, no obvious horizontal clipping in 998x701 screenshot"
+    },
+    {
+      "id": "M02-T10-REF-OPT-02",
+      "option_id": "M02-OPT-02",
+      "sha256": "cb624bdbba44eba46dab924322f05ce9016dd4d892d6f7986f0696ee9ab87994",
+      "width": 998,
+      "height": 701,
+      "exact_source_build_sha_match": true,
+      "original_png_receipt_sha256_match": true,
+      "visible_review": "Matching selected option ID and title with default, instructions, limits, recovery, no obvious horizontal clipping in 998x701 screenshot"
+    },
+    {
+      "id": "M02-T10-REF-OPT-03",
+      "option_id": "M02-OPT-03",
+      "sha256": "b4d78b71cba0312850426382856f07d91195e2d9f5c94da39f3dd4375ef0bc9b",
+      "width": 998,
+      "height": 701,
+      "exact_source_build_sha_match": true,
+      "original_png_receipt_sha256_match": true,
+      "visible_review": "Matching selected option ID and title with default, instructions, limits, recovery, no obvious horizontal clipping in 998x701 screenshot"
+    },
+    {
+      "id": "M02-T10-REF-OPT-04",
+      "option_id": "M02-OPT-04",
+      "sha256": "ad16381a79af3644cffe6ef8ff20816e9cf5e8c78d3ed9eafc199a5ac1608929",
+      "width": 998,
+      "height": 701,
+      "exact_source_build_sha_match": true,
+      "original_png_receipt_sha256_match": true,
+      "visible_review": "Matching selected option ID and title with default, instructions, limits, recovery, no obvious horizontal clipping in 998x701 screenshot"
+    },
+    {
+      "id": "M02-T10-REF-OPT-05",
+      "option_id": "M02-OPT-05",
+      "sha256": "9aa9ab8d75b6acfd423d57a0635097aad623e9b39b6318a847ccdecaaaf403ae",
+      "width": 998,
+      "height": 701,
+      "exact_source_build_sha_match": true,
+      "original_png_receipt_sha256_match": true,
+      "visible_review": "Matching selected option ID and title with default, instructions, limits, recovery, no obvious horizontal clipping in 998x701 screenshot"
+    },
+    {
+      "id": "M02-T10-REF-OPT-06",
+      "option_id": "M02-OPT-06",
+      "sha256": "4da84ae1dc3efd2f0219e03bc7efb7309d2f89c09b66861fc1866d9520992b8c",
+      "width": 998,
+      "height": 701,
+      "exact_source_build_sha_match": true,
+      "original_png_receipt_sha256_match": true,
+      "visible_review": "Matching selected option ID and title with default, instructions, limits, recovery, no obvious horizontal clipping in 998x701 screenshot"
+    },
+    {
+      "id": "M02-T10-REF-OPT-07",
+      "option_id": "M02-OPT-07",
+      "sha256": "ff1cdb29ed1c66b1708f5b1b1d8af4c320c8ef4f789890814b69345d6bd7f4e7",
+      "width": 998,
+      "height": 701,
+      "exact_source_build_sha_match": true,
+      "original_png_receipt_sha256_match": true,
+      "visible_review": "Matching selected option ID and title with default, instructions, limits, recovery, no obvious horizontal clipping in 998x701 screenshot"
+    },
+    {
+      "id": "M02-T10-REF-OPT-08",
+      "option_id": "M02-OPT-08",
+      "sha256": "40a00472d4dd6dab9738065a45893dd180466a983903c9505626e97f2f00cbfe",
+      "width": 998,
+      "height": 701,
+      "exact_source_build_sha_match": true,
+      "original_png_receipt_sha256_match": true,
+      "visible_review": "Matching selected option ID and title with default, instructions, limits, recovery, no obvious horizontal clipping in 998x701 screenshot"
+    },
+    {
+      "id": "M19-T10-REF-OPT-01",
+      "option_id": "M19-OPT-01",
+      "sha256": "4f43ac048a78213803e5d68a063ec4e4a9dd638259cf556dc38f13d910e33f82",
+      "width": 998,
+      "height": 701,
+      "exact_source_build_sha_match": true,
+      "original_png_receipt_sha256_match": true,
+      "visible_review": "Matching selected option ID and title with default, instructions, limits, recovery, no obvious horizontal clipping in 998x701 screenshot"
+    },
+    {
+      "id": "M19-T10-REF-OPT-02",
+      "option_id": "M19-OPT-02",
+      "sha256": "a65be46879b346cf88b1ab26b355f3ee986d39d6d098f29bf83a43b4aaef8d1e",
+      "width": 998,
+      "height": 701,
+      "exact_source_build_sha_match": true,
+      "original_png_receipt_sha256_match": true,
+      "visible_review": "Matching selected option ID and title with default, instructions, limits, recovery, no obvious horizontal clipping in 998x701 screenshot"
+    },
+    {
+      "id": "M19-T10-REF-OPT-03",
+      "option_id": "M19-OPT-03",
+      "sha256": "a366b0cb300b3e6813a00c3c4672977c20a42c993462e2bb1d5c1faf57d2abd1",
+      "width": 998,
+      "height": 701,
+      "exact_source_build_sha_match": true,
+      "original_png_receipt_sha256_match": true,
+      "visible_review": "Matching selected option ID and title with default, instructions, limits, recovery, no obvious horizontal clipping in 998x701 screenshot"
+    },
+    {
+      "id": "M19-T10-REF-OPT-04",
+      "option_id": "M19-OPT-04",
+      "sha256": "b1dc1bc57003e1e83ad9b3698929e768ca15a512a7bc6278c9bc49b233391d17",
+      "width": 998,
+      "height": 701,
+      "exact_source_build_sha_match": true,
+      "original_png_receipt_sha256_match": true,
+      "visible_review": "Matching selected option ID and title with default, instructions, limits, recovery, no obvious horizontal clipping in 998x701 screenshot"
+    },
+    {
+      "id": "M19-T10-REF-OPT-05",
+      "option_id": "M19-OPT-05",
+      "sha256": "ae4afe60268572d1c3f53e5f1db278f879c074928762b918be296811018ea78c",
+      "width": 998,
+      "height": 701,
+      "exact_source_build_sha_match": true,
+      "original_png_receipt_sha256_match": true,
+      "visible_review": "Matching selected option ID and title with default, instructions, limits, recovery, no obvious horizontal clipping in 998x701 screenshot"
+    },
+    {
+      "id": "M19-T10-REF-OPT-06",
+      "option_id": "M19-OPT-06",
+      "sha256": "5b886740972141c99a4e777ae093df1a1ac853b08b52dc35db6c5140449a7c02",
+      "width": 998,
+      "height": 701,
+      "exact_source_build_sha_match": true,
+      "original_png_receipt_sha256_match": true,
+      "visible_review": "Matching selected option ID and title with default, instructions, limits, recovery, no obvious horizontal clipping in 998x701 screenshot"
+    },
+    {
+      "id": "M19-T10-REF-OPT-07",
+      "option_id": "M19-OPT-07",
+      "sha256": "5455d0fbd079f6ba423a845503263e17ccb39a5a20adf6d18c5d7d9eba790622",
+      "width": 998,
+      "height": 701,
+      "exact_source_build_sha_match": true,
+      "original_png_receipt_sha256_match": true,
+      "visible_review": "Matching selected option ID and title with default, instructions, limits, recovery, no obvious horizontal clipping in 998x701 screenshot"
+    },
+    {
+      "id": "M19-T10-REF-OPT-08",
+      "option_id": "M19-OPT-08",
+      "sha256": "3ae1f7596a5e85321de149ed1533e3f49a31c9881d0ec1e232595b734f599a99",
+      "width": 998,
+      "height": 701,
+      "exact_source_build_sha_match": true,
+      "original_png_receipt_sha256_match": true,
+      "visible_review": "Matching selected option ID and title with default, instructions, limits, recovery, no obvious horizontal clipping in 998x701 screenshot"
+    }
+  ],
+  "visual_observations": "All 16 selected Help option references are visible and distinct in native screenshots, with corresponding M02/M19 option IDs. The UI is a Help reference view, not the underlying settings control.",
+  "machine_proof_status": "MACHINE_METADATA_HASH_VALIDATED_ONLY",
+  "original_capture_status": "candidate_pending_visual_review",
+  "final_manifest_29_verified": false,
+  "independent_screen_reader_verified": false,
+  "performance_budget_verified": false,
+  "limitations": [
+    "Screenshots review help reference details, not actual settings/control states",
+    "Real 29 mandatory final screen/control PNG assets remain PENDING",
+    "No exhaustive user input, hover, OS reduced-motion, keyboard focus, full assistive technology or hosted Wiki publication certified"
+  ],
+  "merge_verified": false,
+  "release_verified": false
+}

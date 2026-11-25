@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "phase": "P02",
+  "task": "P02-T12",
+  "scope": "M26 shared UI only, NOT whole-phase or product release",
+  "source_commit_sha": "142b21b75dab9cef5c9c58fb3feedb360ca017b4",
+  "windows_run_id": 45580646849,
+  "windows_job_id": 139089655426,
+  "original_artifact_id": 15006229214,
+  "original_artifact_sha256": "3bfc3092fb7ca75ead284cf36c5f07ac3a48ca38cfb679154b075494b0263f5f",
+  "native_binary_sha256": "7ab081b752a5c3fbf2272e2a92431bd159f704dd09dc6ea7a7de8c714baad642",
+  "scoped_native_gates": {
+    "base_native_journey": "PASS",
+    "native_option_candidates": 20,
+    "nvda_spoken_stages": 3,
+    "narrator_spoken_stages": 5,
+    "performance": "PASS",
+    "contracts": "PASS"
+  },
+  "companion_workflows_passed": 6,
+  "canonical_original_images_verified": 28,
+  "visual_review": "docs/screenshots/M26/T12-final-28-native-visual.review.json",
+  "wiki_preview_publication": "docs/evidence/P02_T12_M26_WIKI_PREVIEW_PUBLISHED_20261125.json",
+  "wiki_browser_run_id": 45580646814,
+  "overall_windows_workflow": "FAILURE: unrelated T13 missing last M23 screen/control and legacy NVDA Help heading",
+  "full_phase_acceptance": false,
+  "product_release_approved": false,
+  "p11_service_enabled": false,
+  "decision": "Close scoped T12 only: all dedicated gates, original final images, Help/Wiki evidence satisfied. Keep T11 and T13 open; protected merge requires fresh full exact-head CI."
+}

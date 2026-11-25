@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "phase": "P02",
+  "branch": "phase/02-shared-ui",
+  "pr_number": 12,
+  "update_policy": "evidence-gated",
+  "source_of_truth": "docs/state/pr-tasks/P02.json",
+  "tasks": [
+    {
+      "id": "P02-T01",
+      "title": "Pre-dev: remote baseline, UX alternatives, M02/M19 ADR, threat and tests-first acceptance",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45068687082"
+    },
+    {
+      "id": "P02-T02",
+      "title": "M02 design tokens, accessible UI primitives and visual foundations",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45290663518"
+    },
+    {
+      "id": "P02-T03",
+      "title": "M02 adaptive navigation, workspace shell and structured pane layout",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45171909447"
+    },
+    {
+      "id": "P02-T04",
+      "title": "M02 command palette, shortcuts, keyboard navigation and focus recovery",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45165103677"
+    },
+    {
+      "id": "P02-T05",
+      "title": "M02 theme/light-dark-system, density, user preference boundaries",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45256580719"
+    },
+    {
+      "id": "P02-T06",
+      "title": "M02 component gallery, split panes, empty/loading/error/offline states",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45256580719"
+    },
+    {
+      "id": "P02-T07",
+      "title": "M19 bundled offline article catalog and versioned search contract",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45186464263"
+    },
+    {
+      "id": "P02-T08",
+      "title": "M19 contextual help reader, FAQ, glossary and troubleshooting",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45262533924"
+    },
+    {
+      "id": "P02-T09",
+      "title": "M19 Wiki source mapping, broken-link handling and offline assurance",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45186464263"
+    },
+    {
+      "id": "P02-T10",
+      "title": "Real Windows visual/screenshots, a11y, full Help/Wiki option references and performance",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45305110513"
+    },
+    {
+      "id": "P02-T11",
+      "title": "P02 final CI, security/privacy review, issue gates and policy-compliant verified merge",
+      "status": "IN_PROGRESS",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12"
+    },
+    {
+      "id": "P02-T12",
+      "title": "M26 integrated changelog, known issues, version history and module changes UI foundation with native evidence",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45580646849"
+    },
+    {
+      "id": "P02-T13",
+      "title": "M23/M24/M25 Backup, Data Location and Update Center shared UI foundation with accessibility and native evidence",
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45587126067"
+    }
+  ]
+}

@@ -32,7 +32,7 @@
 
 ## P02 — Final shared UI and help foundation
 
-**Modules:** M02 M19. **Exit:** Polished shell/design system, all shared UI states, help framework and visual gate.
+**Modules:** M02 M19 plus existing M23/M24/M25/M26 shared UI slices below. **Exit:** Polished shell, all shared UI states, Help, actual Backup Center / Data Location / Update Center design-system surfaces and integrated What's New / Known Issues / Version History / Module Changes state rendering; native accessibility, screenshots and Help/Wiki. Real backup/restore, relocation, signed updates and release publication stay in their assigned phases. Green M02/M19-only CI is not complete P02 acceptance.
 
 **Pre-dev:** baseline, competitor research, alternatives, data/UX contract, threat review, tests-first.
 
@@ -49,7 +49,7 @@
 
 **Bootstrap dependency:** build real but minimal Ollama runtime adapter here; advanced model routing and accelerated download management land in P05.
 
-**Modules:** M03. **Exit:** Real local model inference, attachments, history, errors and streaming.
+**Modules:** M03 + M23 chat-data slice. **Exit:** Real local model inference, attachments, durable history, errors, streaming, export and independently verified encrypted backup/restore; DATA-01..03 apply. Before implementation verify P02 protected merge/checkpoint and establish P03 exact-head Windows build/runtime tests, preserving previous regression evidence.
 
 **Pre-dev:** baseline, competitor research, alternatives, data/UX contract, threat review, tests-first.
 
