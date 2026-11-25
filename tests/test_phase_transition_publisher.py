@@ -8,7 +8,7 @@ from tools.github_gateway import GitHubGateway
 from tools.phase_controller import EventJournal
 from tools.phase_transition_publisher import (
     API, REPO, TransitionPublishDenied, _MARKER, _receipt_body,
-    publish_verified_transition,
+    publish_verified_transition, _safe_diagnostic,
 )
 
 MERGE = "a" * 40
@@ -228,6 +228,36 @@ class PhaseTransitionPublisherTests(unittest.TestCase):
         self.assertEqual(0, self.reader.post_count)
         self.assertEqual(0, self.journal.count())
 
+    def test_denials_have_fixed_safe_codes_without_remote_writes(self):
+        for key, code in (("workflow_provenance_verified", "TR-WORKFLOW-PROVENANCE"),
+                          ("workflow_source_verified", "TR-WORKFLOW-SOURCE"),
+                          ("checks_passed", "TR-CHECKS"),
+                          ("blocker_policy_complete", "TR-ISSUE-SCOPE"),
+                          ("rules_policy_verified", "TR-RULES")):
+            original = self.reader.observation[key]
+            self.reader.observation[key] = False
+            with self.subTest(key=key), self.assertRaises(TransitionPublishDenied) as caught:
+                self.publish()
+            self.assertEqual(code, _safe_diagnostic(caught.exception))
+            self.reader.observation[key] = original
+        self.assertEqual(0, self.reader.post_count)
+        self.assertEqual(0, self.journal.count())
+        self.assertEqual("TR-PREFLIGHT", _safe_diagnostic(
+            TransitionPublishDenied("private value", code="secret-token")))
+        self.assertEqual("TR-PREFLIGHT", _safe_diagnostic(ValueError("secret-token")))
+
+    def test_post_and_readback_failures_have_distinct_safe_codes(self):
+        def reject(*args):
+            raise TransitionPublishDenied("private HTTP body")
+        with self.assertRaises(TransitionPublishDenied) as caught:
+            self.publish(transport=reject)
+        self.assertEqual("TR-COMMENT-POST", _safe_diagnostic(caught.exception))
+        self.reader.bad_readback = True
+        with self.assertRaises(TransitionPublishDenied) as caught:
+            self.publish()
+        self.assertEqual("TR-COMMENT-READBACK", _safe_diagnostic(caught.exception))
+        self.assertEqual(1, self.reader.post_count)
+
     def test_stale_workflow_main_or_diverged_ancestry_denied(self):
         with self.assertRaises(TransitionPublishDenied):
             self.publish(workflow_sha="f" * 40)
@@ -282,6 +312,8 @@ class PhaseTransitionPublisherTests(unittest.TestCase):
         workflow = (Path(__file__).parents[1]
                     / ".github/workflows/verified-phase-transition.yml").read_text()
         self.assertIn("workflow_dispatch:", workflow)
+        self.assertIn("- tools/phase_transition_publisher.py", workflow)
+        self.assertIn("- tools/github_gateway.py", workflow)
         self.assertIn("branches: [main]", workflow)
         self.assertIn("github.ref == 'refs/heads/main'", workflow)
         self.assertIn("issues: write", workflow)

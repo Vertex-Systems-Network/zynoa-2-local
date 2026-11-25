@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths:
       - docs/state/PHASE.json
+      - tools/phase_transition_publisher.py
+      - tools/github_gateway.py
+      - tools/phase_controller.py
+      - .github/workflows/verified-phase-transition.yml
   workflow_dispatch:
 
 permissions: {}

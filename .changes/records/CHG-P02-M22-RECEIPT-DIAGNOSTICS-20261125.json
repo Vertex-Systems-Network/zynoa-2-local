@@ -1,0 +1,38 @@
+{
+  "change_id": "CHG-P02-M22-RECEIPT-DIAGNOSTICS-20261125",
+  "module_id": "M22",
+  "kind": "maintenance",
+  "title": "Postmerge receipt denial diagnostics",
+  "summary": "Report only allowlisted stage codes on failed transition publication and trigger the trusted-main workflow on receipt source changes. Preserve all existing proof and write boundaries. Runtime cause and receipt pending.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/22"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/23",
+  "affected_option_ids": [],
+  "docs_paths": [
+    "docs/state/HANDOFF.md",
+    "docs/state/DECISIONS.md"
+  ],
+  "help_paths": [],
+  "wiki_paths": [],
+  "test_evidence": [
+    "tests/test_phase_transition_publisher.py",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45603171384"
+  ],
+  "commit_sha": "65a8896f06952c8aa4fd55dead2f7a71348b98f1",
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No user data changes; revert maintenance source commit to roll back.",
+  "created_at": "2026-11-25",
+  "updated_at": "2026-11-25",
+  "version_bump": "none",
+  "docs_impact": false,
+  "data_migration": false
+}
