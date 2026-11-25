@@ -25,11 +25,16 @@ class ModelGatewayContractTests(unittest.TestCase):
             self.assertIn(op,self.gateway)
     def test_turn_does_not_hold_vault_lock_during_http_stream(self):
         context=self.gateway.index("let (settings, context) =")
-        post=self.gateway.index("let reply = self",context)
+        post=self.gateway.index("flag.interrupt(self.inventory())",context)
         persist=self.gateway.index("let receipt =",post)
         self.assertIn("(settings, context)",self.gateway[context:post])
         self.assertNotIn("storage.lock()",self.gateway[post:persist])
         self.assertIn("storage.lock()",self.gateway[persist:])
+        self.assertIn("let cancelled = flag.seal()",self.gateway[post:persist])
+        self.assertIn("flag.interrupt(reply.chunk())",self.gateway[post:persist])
+        self.assertIn("flag.interrupt(reply)",self.gateway[post:persist])
+        self.assertNotIn("reqwest::blocking::Client",self.gateway)
+        self.assertLess(self.gateway.index("active.insert",context),post)
     def test_settings_context_stream_and_retry_are_real_controls(self):
         for text in ("Local model and context settings","Inspect context","Send","Stop","Retry turn"):
             self.assertIn(text,self.ui)

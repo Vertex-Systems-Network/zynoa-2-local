@@ -4,11 +4,7 @@ use crate::vault::{ChatMessageInput, ChatRole, ChatStatus, NativeVault};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::collections::HashMap;
-use std::io::BufRead;
-use std::sync::{
-    atomic::{AtomicBool, Ordering},
-    Arc, Mutex,
-};
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tauri::ipc::Channel;
 
@@ -72,11 +68,70 @@ fn fault(code: &'static str) -> ModelError {
     }
 }
 
+#[derive(Default)]
+struct TurnCancellation {
+    state: Mutex<TurnCancellationState>,
+}
+#[derive(Default)]
+struct TurnCancellationState {
+    cancelled: bool,
+    sealed: bool,
+    waker: Option<std::task::Waker>,
+}
+impl TurnCancellation {
+    fn request(&self) -> bool {
+        let wake = {
+            let mut state = self.state.lock().unwrap_or_else(|e| e.into_inner());
+            if state.sealed { return false; }
+            state.cancelled = true;
+            state.waker.take()
+        };
+        if let Some(waker) = wake { waker.wake(); }
+        true
+    }
+    // Serialize publication with Stop acknowledgement: no delta is emitted after Stop is accepted.
+    fn publish<T>(&self, action: impl FnOnce() -> T) -> Option<T> {
+        let state = self.state.lock().unwrap_or_else(|e| e.into_inner());
+        if state.cancelled || state.sealed { return None; }
+        Some(action())
+    }
+    fn is_cancelled(&self) -> bool {
+        self.state.lock().unwrap_or_else(|e| e.into_inner()).cancelled
+    }
+    // Terminal classification and Stop acceptance share a single linearization point.
+    fn seal(&self) -> bool {
+        let mut state = self.state.lock().unwrap_or_else(|e| e.into_inner());
+        state.sealed = true;
+        state.waker = None;
+        state.cancelled
+    }
+    async fn interrupt<T>(&self, future: impl std::future::Future<Output = T>) -> Option<T> {
+        use std::task::Poll;
+        let mut future = std::pin::pin!(future);
+        std::future::poll_fn(|cx| {
+            {
+                let mut state = self.state.lock().unwrap_or_else(|e| e.into_inner());
+                if state.cancelled || state.sealed { return Poll::Ready(None); }
+                state.waker = Some(cx.waker().clone());
+            }
+            match std::future::Future::poll(future.as_mut(), cx) {
+                Poll::Pending => Poll::Pending,
+                Poll::Ready(value) => {
+                    let mut state = self.state.lock().unwrap_or_else(|e| e.into_inner());
+                    state.waker = None;
+                    if state.cancelled || state.sealed { Poll::Ready(None) }
+                    else { Poll::Ready(Some(value)) }
+                }
+            }
+        }).await
+    }
+}
+
 #[derive(Clone)]
 pub struct LocalModelGateway {
-    client: reqwest::blocking::Client,
+    client: reqwest::Client,
     base: String,
-    active: Arc<Mutex<HashMap<String, (String, Arc<AtomicBool>)>>>,
+    active: Arc<Mutex<HashMap<String, (String, Arc<TurnCancellation>)>>>,
 }
 
 #[derive(Deserialize)]
@@ -143,7 +198,7 @@ impl LocalModelGateway {
         {
             return Err(std::io::Error::other("ZYN-MODEL-BASE"));
         }
-        let client = reqwest::blocking::Client::builder()
+        let client = reqwest::Client::builder()
             .no_proxy()
             .redirect(reqwest::redirect::Policy::none())
             .connect_timeout(Duration::from_secs(2))
@@ -162,48 +217,51 @@ impl LocalModelGateway {
         Self::with_base(base).unwrap()
     }
 
-    fn get_json(&self, path: &str) -> Result<Value, ModelError> {
-        let reply = self
-            .client
-            .get(format!("{}{}", self.base, path))
-            .send()
+    fn append_json_bytes(bytes: &mut Vec<u8>, chunk: &[u8]) -> Result<(), ModelError> {
+        const MAX_JSON_BYTES: usize = 1_000_000;
+        if chunk.len() > MAX_JSON_BYTES.saturating_sub(bytes.len()) {
+            return Err(fault("ZYN-MODEL-RESPONSE"));
+        }
+        bytes.extend_from_slice(chunk);
+        Ok(())
+    }
+    async fn get_json(&self, path: &str) -> Result<Value, ModelError> {
+        let mut reply = self.client.get(format!("{}{}", self.base, path))
+            .timeout(Duration::from_secs(5)).send().await
             .map_err(|_| fault("ZYN-MODEL-OFFLINE"))?;
         if !reply.status().is_success() {
             return Err(fault("ZYN-MODEL-OFFLINE"));
         }
-        Self::read_bounded_json(reply)
-    }
-
-    fn read_bounded_json(reader: impl std::io::Read) -> Result<Value, ModelError> {
-        const MAX_JSON_BYTES: usize = 1_000_000;
-        let mut limited = std::io::Read::take(reader, MAX_JSON_BYTES as u64 + 1);
         let mut bytes = Vec::new();
-        std::io::Read::read_to_end(&mut limited, &mut bytes)
-            .map_err(|_| fault("ZYN-MODEL-RESPONSE"))?;
-        if bytes.len() > MAX_JSON_BYTES {
-            return Err(fault("ZYN-MODEL-RESPONSE"));
+        while let Some(chunk) = reply.chunk().await.map_err(|_| fault("ZYN-MODEL-RESPONSE"))? {
+            Self::append_json_bytes(&mut bytes, &chunk)?;
         }
         serde_json::from_slice(&bytes).map_err(|_| fault("ZYN-MODEL-RESPONSE"))
     }
 
-    fn read_bounded_event(reader: &mut impl BufRead) -> std::io::Result<Vec<u8>> {
-        let mut limited = std::io::Read::take(reader, MAX_EVENT_BYTES as u64 + 1);
-        let mut line = Vec::new();
-        let size = limited.read_until(b'\n', &mut line)?;
-        if size == 0 || size > MAX_EVENT_BYTES || line.last() != Some(&b'\n') {
-            return Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "ZYN-MODEL-RESPONSE"));
+    // Consume at most one newline-terminated event from a network chunk.
+    // The caller advances by the returned count and retains no unbounded copy.
+    fn push_event_bytes(
+        pending: &mut Vec<u8>,
+        chunk: &[u8],
+    ) -> Result<(usize, Option<Vec<u8>>), ModelError> {
+        let end = chunk.iter().position(|&b| b == b'\n');
+        let used = end.map_or(chunk.len(), |i| i + 1);
+        if used > MAX_EVENT_BYTES.saturating_sub(pending.len()) {
+            return Err(fault("ZYN-MODEL-RESPONSE"));
         }
-        Ok(line)
+        pending.extend_from_slice(&chunk[..used]);
+        Ok((used, end.map(|_| std::mem::take(pending))))
     }
-    fn inventory(&self) -> Result<(String, Vec<Value>), ModelError> {
+    async fn inventory(&self) -> Result<(String, Vec<Value>), ModelError> {
         let version = self
-            .get_json("/api/version")?
+            .get_json("/api/version").await?
             .get("version")
             .and_then(Value::as_str)
             .filter(|x| !x.is_empty() && x.len() <= 64 && x.bytes().all(|b| b.is_ascii_graphic()))
             .ok_or_else(|| fault("ZYN-MODEL-RESPONSE"))?
             .to_owned();
-        let raw = self.get_json("/api/tags")?;
+        let raw = self.get_json("/api/tags").await?;
         let rows = raw
             .get("models")
             .and_then(Value::as_array)
@@ -233,11 +291,17 @@ impl LocalModelGateway {
             .any(|m| m.get("name").and_then(Value::as_str) == Some(name))
     }
 
-    fn generate(
+    fn cancel_turn(&self, conversation_id: &str, turn_id: &str) -> Result<bool, ModelError> {
+        if !token(conversation_id) || !token(turn_id) { return Err(fault("ZYN-MODEL-INPUT")); }
+        let active = self.active.lock().map_err(|_| fault("ZYN-MODEL-BUSY"))?;
+        Ok(active.get(conversation_id).is_some_and(|(id, flag)| id == turn_id && flag.request()))
+    }
+
+    async fn generate(
         &self,
         storage: &Arc<Mutex<NativeVault>>,
         q: GeneratePayload,
-        on_event: &Channel<ModelEvent>,
+        on_event: &(impl Fn(ModelEvent) -> Result<(), ModelError> + Sync),
     ) -> Result<Value, ModelError> {
         if !token(&q.turn_id)
             || !token(&q.conversation_id)
@@ -267,11 +331,7 @@ impl LocalModelGateway {
             }
             (settings, context)
         };
-        let (_, models) = self.inventory()?;
-        if !Self::has_model(&models, &settings.model) {
-            return Err(fault("ZYN-MODEL-MISSING"));
-        }
-        let flag = Arc::new(AtomicBool::new(false));
+        let flag = Arc::new(TurnCancellation::default());
         {
             let mut active = self.active.lock().map_err(|_| fault("ZYN-MODEL-BUSY"))?;
             if active.contains_key(&q.conversation_id) {
@@ -280,7 +340,7 @@ impl LocalModelGateway {
             active.insert(q.conversation_id.clone(), (q.turn_id.clone(), flag.clone()));
         }
         struct Guard<'a> {
-            map: &'a Mutex<HashMap<String, (String, Arc<AtomicBool>)>>,
+            map: &'a Mutex<HashMap<String, (String, Arc<TurnCancellation>)>>,
             conversation: String,
         }
         impl Drop for Guard<'_> {
@@ -305,87 +365,76 @@ impl LocalModelGateway {
         );
         let body = json!({"model":settings.model,"messages":messages,"stream":true,
             "options":{"num_ctx":settings.context_limit,"num_predict":output_budget(settings.context_limit)}});
-        let reply = self
-            .client
-            .post(format!("{}/api/chat", self.base))
-            .json(&body)
-            .send()
-            .map_err(|_| fault("ZYN-MODEL-OFFLINE"))?;
-        if !reply.status().is_success() {
-            return Err(fault("ZYN-MODEL-RUNTIME"));
-        }
-        let content_type = reply
-            .headers()
-            .get(reqwest::header::CONTENT_TYPE)
-            .and_then(|x| x.to_str().ok())
-            .unwrap_or("");
-        if !content_type.starts_with("application/x-ndjson") {
-            return Err(fault("ZYN-MODEL-RESPONSE"));
-        }
-        let mut reader = std::io::BufReader::new(reply);
         let mut output = String::new();
         let mut sequence = 0u32;
-        let mut complete = false;
-        let mut stream_failed = false;
-        let mut eval_count = 0u64;
-        for _ in 0..MAX_EVENTS {
-            if flag.load(Ordering::Acquire) {
-                break;
+        let result: Result<u64, ModelError> = async {
+            let (_, models) = flag.interrupt(self.inventory()).await
+                .ok_or_else(|| fault("ZYN-MODEL-CANCELLED"))??;
+            if !Self::has_model(&models, &settings.model) {
+                return Err(fault("ZYN-MODEL-MISSING"));
             }
-            let line = match Self::read_bounded_event(&mut reader) {
-                Ok(line) => line,
-                Err(_) => {
-                    stream_failed = true;
-                    break;
-                }
-            };
-            let event: Value = match serde_json::from_slice(&line) {
-                Ok(v) => v,
-                Err(_) => {
-                    stream_failed = true;
-                    break;
-                }
-            };
-            if event.get("error").is_some() {
-                stream_failed = true;
-                break;
+            let reply = self.client.post(format!("{}/api/chat", self.base)).json(&body).send();
+            let mut reply = flag.interrupt(reply).await
+                .ok_or_else(|| fault("ZYN-MODEL-CANCELLED"))?
+                .map_err(|_| fault("ZYN-MODEL-OFFLINE"))?;
+            if !reply.status().is_success() {
+                return Err(fault("ZYN-MODEL-RUNTIME"));
             }
-            let delta = event
-                .get("message")
-                .and_then(|m| m.get("content"))
-                .and_then(Value::as_str)
-                .unwrap_or("");
-            if !delta.is_empty() {
-                if output.len().saturating_add(delta.len()) > MAX_OUTPUT_BYTES {
-                    stream_failed = true;
-                    break;
-                }
-                output.push_str(delta);
-                sequence += 1;
-                if on_event
-                    .send(ModelEvent {
-                        schema_version: 1,
-                        turn_id: q.turn_id.clone(),
-                        sequence,
-                        kind: "delta",
-                        content: delta.to_owned(),
-                    })
-                    .is_err()
-                {
-                    stream_failed = true;
-                    break;
+            let content_type = reply.headers().get(reqwest::header::CONTENT_TYPE)
+                .and_then(|x| x.to_str().ok()).unwrap_or("");
+            if !content_type.split(';').next().is_some_and(|s| s.trim().eq_ignore_ascii_case("application/x-ndjson")) {
+                return Err(fault("ZYN-MODEL-RESPONSE"));
+            }
+            let mut pending = Vec::new();
+            let mut events = 0usize;
+            loop {
+                let chunk = flag.interrupt(reply.chunk()).await
+                    .ok_or_else(|| fault("ZYN-MODEL-CANCELLED"))?
+                    .map_err(|_| fault("ZYN-MODEL-RESPONSE"))?
+                    .ok_or_else(|| fault("ZYN-MODEL-RESPONSE"))?;
+                let mut rest = chunk.as_ref();
+                while !rest.is_empty() {
+                    if flag.is_cancelled() {
+                        return Err(fault("ZYN-MODEL-CANCELLED"));
+                    }
+                    let (used, line) = Self::push_event_bytes(&mut pending, rest)?;
+                    rest = &rest[used..];
+                    if let Some(line) = line {
+                        events += 1;
+                        if events > MAX_EVENTS { return Err(fault("ZYN-MODEL-RESPONSE")); }
+                        let event: Value = serde_json::from_slice(&line)
+                            .map_err(|_| fault("ZYN-MODEL-RESPONSE"))?;
+                        if !event.is_object() || event.get("error").is_some() {
+                            return Err(fault("ZYN-MODEL-RESPONSE"));
+                        }
+                        let delta = event.get("message").and_then(|m| m.get("content"))
+                            .and_then(Value::as_str).unwrap_or("");
+                        if !delta.is_empty() {
+                            if output.len().saturating_add(delta.len()) > MAX_OUTPUT_BYTES {
+                                return Err(fault("ZYN-MODEL-RESPONSE"));
+                            }
+                            flag.publish(|| {
+                                output.push_str(delta);
+                                sequence += 1;
+                                on_event(ModelEvent {
+                                    schema_version: 1, turn_id: q.turn_id.clone(),
+                                    sequence, kind: "delta", content: delta.to_owned(),
+                                })
+                            }).ok_or_else(|| fault("ZYN-MODEL-CANCELLED"))??;
+                        }
+                        if event.get("done") == Some(&Value::Bool(true)) {
+                            return Ok(event.get("eval_count").and_then(Value::as_u64).unwrap_or(0));
+                        }
+                    }
                 }
             }
-            if event.get("done") == Some(&Value::Bool(true)) {
-                complete = true;
-                eval_count = event.get("eval_count").and_then(Value::as_u64).unwrap_or(0);
-                break;
-            }
-        }
-        let cancelled = flag.load(Ordering::Acquire);
+        }.await;
+        // The response future has been dropped; Stop cannot change the sealed outcome.
+        let cancelled = flag.seal();
+        let eval_count = result.as_ref().copied().unwrap_or(0);
         let status = if cancelled {
             "cancelled"
-        } else if complete && !stream_failed && !output.trim().is_empty() {
+        } else if result.is_ok() && !output.trim().is_empty() {
             "complete"
         } else {
             "failed"
@@ -414,15 +463,13 @@ impl LocalModelGateway {
                 json!({"id":saved.id,"revision":saved.revision,"conversationRevision":saved.conversation_revision,"ordinal":saved.ordinal}),
             )
         };
-        on_event
-            .send(ModelEvent {
-                schema_version: 1,
-                turn_id: q.turn_id.clone(),
-                sequence: sequence + 1,
-                kind: "terminal",
-                content: String::new(),
-            })
-            .map_err(|_| fault("ZYN-MODEL-CHANNEL"))?;
+        on_event(ModelEvent {
+            schema_version: 1, turn_id: q.turn_id.clone(), sequence: sequence + 1,
+            kind: "terminal", content: String::new(),
+        })?;
+        if !cancelled && receipt.is_none() {
+            if let Err(error) = result { return Err(error); }
+        }
         Ok(
             json!({"turnId":q.turn_id,"status":status,"receipt":receipt,"evalCount":eval_count,
             "context":{"estimatedTokens":context.estimated_tokens,"limit":context.limit,"omittedMessages":context.omitted_messages}}),
@@ -450,7 +497,7 @@ fn authorize(label: &str, request: &ModelRequest) -> Result<(), ModelError> {
     Ok(())
 }
 
-fn execute(
+async fn execute(
     gateway: &LocalModelGateway,
     storage: &Arc<Mutex<NativeVault>>,
     request: ModelRequest,
@@ -458,7 +505,7 @@ fn execute(
 ) -> Result<ModelReply, ModelError> {
     let data = match request.command_id.as_str() {
         "inference.health" => {
-            let (version, models) = gateway.inventory()?;
+            let (version, models) = gateway.inventory().await?;
             json!({"version":version,"models":models})
         }
         "inference.settings.get" => {
@@ -472,7 +519,7 @@ fn execute(
         }
         "inference.settings.set" => {
             let q: SettingsPayload = parse(request.payload)?;
-            let (_, models) = gateway.inventory()?;
+            let (_, models) = gateway.inventory().await?;
             if !LocalModelGateway::has_model(&models, &q.model) {
                 return Err(fault("ZYN-MODEL-MISSING"));
             }
@@ -499,19 +546,11 @@ fn execute(
             json!({"estimatedTokens":context.estimated_tokens,"limit":context.limit,"includedMessages":context.messages.len()+(if q.draft.is_empty(){0}else{1}),"omittedMessages":context.omitted_messages})
         }
         "inference.turn.generate" => {
-            gateway.generate(storage, parse(request.payload)?, on_event)?
+            gateway.generate(storage, parse(request.payload)?, &|event| on_event.send(event).map_err(|_| fault("ZYN-MODEL-CHANNEL"))).await?
         }
         "inference.turn.cancel" => {
             let q: CancelPayload = parse(request.payload)?;
-            let active = gateway.active.lock().map_err(|_| fault("ZYN-MODEL-BUSY"))?;
-            let stopped = active.get(&q.conversation_id).is_some_and(|(id, flag)| {
-                if id == &q.turn_id {
-                    flag.store(true, Ordering::Release);
-                    true
-                } else {
-                    false
-                }
-            });
+            let stopped = gateway.cancel_turn(&q.conversation_id, &q.turn_id)?;
             json!({"turnId":q.turn_id,"stopped":stopped})
         }
         _ => return Err(fault("ZYN-MODEL-DENIED")),
@@ -537,9 +576,7 @@ pub async fn model_request(
     }
     let gateway = gateway.inner().clone();
     let storage = storage.inner().clone();
-    tauri::async_runtime::spawn_blocking(move || execute(&gateway, &storage, request, &on_event))
-        .await
-        .map_err(|_| fault("ZYN-MODEL-RUNTIME"))?
+    execute(&gateway, &storage, request, &on_event).await
 }
 
 #[cfg(test)]
@@ -567,33 +604,140 @@ mod tests {
             r#"{"models":[{"name":"qwen2.5:0.5b","digest":"abc","size":42}]}"#,
         ]);
         let gateway = LocalModelGateway::fixture(&base);
-        let (version, models) = gateway.inventory().unwrap();
+        let (version, models) = tauri::async_runtime::block_on(gateway.inventory()).unwrap();
         server.join().unwrap();
         assert_eq!(version, "0.40.18");
         assert_eq!(models.len(), 1);
         assert_eq!(models[0]["name"], "qwen2.5:0.5b");
     }
     #[test]
-    fn bounded_json_reader_rejects_oversize_without_draining_input() {
+    fn bounded_json_chunks_reject_oversize_without_growing_buffer() {
+        let mut bytes = Vec::new();
         let exact = format!("\"{}\"", "x".repeat(999_998));
-        assert!(LocalModelGateway::read_bounded_json(exact.as_bytes()).is_ok());
-        let mut oversized = std::io::Cursor::new(vec![b'x'; 2_000_000]);
-        assert!(LocalModelGateway::read_bounded_json(&mut oversized).is_err());
-        assert_eq!(oversized.position(), 1_000_001);
+        LocalModelGateway::append_json_bytes(&mut bytes, exact.as_bytes()).unwrap();
+        assert!(serde_json::from_slice::<Value>(&bytes).is_ok());
+        assert!(LocalModelGateway::append_json_bytes(&mut bytes, b"x").is_err());
+        assert_eq!(bytes.len(), 1_000_000);
     }
     #[test]
-    fn bounded_ndjson_reader_rejects_oversized_and_unterminated_events() {
-        let mut exact = std::io::Cursor::new([vec![b'x'; MAX_EVENT_BYTES - 1], vec![b'\n']].concat());
-        assert_eq!(LocalModelGateway::read_bounded_event(&mut exact).unwrap().len(), MAX_EVENT_BYTES);
-        let mut oversized = std::io::Cursor::new(vec![b'x'; MAX_EVENT_BYTES * 2]);
-        assert!(LocalModelGateway::read_bounded_event(&mut oversized).is_err());
-        assert_eq!(oversized.position(), MAX_EVENT_BYTES as u64 + 1);
-        let mut truncated = std::io::Cursor::new(b"{}".as_slice());
-        assert!(LocalModelGateway::read_bounded_event(&mut truncated).is_err());
-        let mut two = std::io::Cursor::new(b"{}\n{}\n".as_slice());
-        assert_eq!(LocalModelGateway::read_bounded_event(&mut two).unwrap(), b"{}\n");
-        assert_eq!(LocalModelGateway::read_bounded_event(&mut two).unwrap(), b"{}\n");
+    fn async_event_framing_preserves_chunk_boundaries() {
+        let mut pending = Vec::new();
+        let (used, line) = LocalModelGateway::push_event_bytes(&mut pending, b"{").unwrap();
+        assert_eq!(used, 1);
+        assert!(line.is_none());
+        let (used, line) = LocalModelGateway::push_event_bytes(&mut pending, b"}\n{}\n").unwrap();
+        assert_eq!(used, 2);
+        assert_eq!(line.unwrap(), b"{}\n");
+        let (used, line) = LocalModelGateway::push_event_bytes(&mut pending, b"{}\n").unwrap();
+        assert_eq!(used, 3);
+        assert_eq!(line.unwrap(), b"{}\n");
+        assert!(pending.is_empty());
+        let exact = vec![b'x'; MAX_EVENT_BYTES - 1];
+        assert!(LocalModelGateway::push_event_bytes(&mut pending, &exact).unwrap().1.is_none());
+        assert!(LocalModelGateway::push_event_bytes(&mut pending, b"\n").unwrap().1.is_some());
+        assert!(LocalModelGateway::push_event_bytes(&mut pending, &exact).unwrap().1.is_none());
+        assert!(LocalModelGateway::push_event_bytes(&mut pending, b"x\n").is_err());
+        assert_eq!(pending.len(), MAX_EVENT_BYTES - 1);
     }
+    #[test]
+    fn cancellation_latches_and_seals_terminal_outcome() {
+        let flag = TurnCancellation::default();
+        assert!(flag.request());
+        assert!(flag.request());
+        assert_eq!(tauri::async_runtime::block_on(flag.interrupt(std::future::ready(42))), None);
+        assert_eq!(flag.publish(|| 1), None);
+        assert!(flag.seal());
+        assert!(!flag.request());
+        let completed = TurnCancellation::default();
+        assert_eq!(tauri::async_runtime::block_on(completed.interrupt(std::future::ready(42))), Some(42));
+        assert!(!completed.seal());
+        assert!(!completed.request());
+    }
+
+    #[test]
+    fn stalled_turn_stops_and_persists_partial_response() {
+        use std::sync::mpsc;
+        use std::time::{Instant, SystemTime, UNIX_EPOCH};
+        let path = std::env::temp_dir().join(format!("zynoa-cancel-{}-{}", std::process::id(),
+            SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos())).join("com.zynoa.desktop");
+        std::fs::create_dir_all(&path).unwrap();
+        struct Cleanup(std::path::PathBuf);
+        impl Drop for Cleanup { fn drop(&mut self) { let _ = std::fs::remove_dir_all(&self.0); } }
+        let _cleanup = Cleanup(path.parent().unwrap().to_owned());
+        let mut vault = NativeVault::open(&path).unwrap();
+        vault.create_conversation("thread_alpha", "Alpha").unwrap();
+        vault.append_chat_message(ChatMessageInput { id: "message_user_001", conversation_id: "thread_alpha",
+            parent_id: None, role: ChatRole::User, content: "Hello", status: ChatStatus::Complete }).unwrap();
+        vault.set_inference_settings("thread_alpha", "qwen2.5:0.5b", 2048).unwrap();
+        let storage = Arc::new(Mutex::new(vault));
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let gateway = LocalModelGateway::fixture(&format!("http://{}", listener.local_addr().unwrap()));
+        let (release_tx, release_rx) = mpsc::channel::<()>();
+        let server = std::thread::spawn(move || {
+            for body in [r#"{"version":"0.40.18"}"#, r#"{"models":[{"name":"qwen2.5:0.5b","digest":"abc","size":42}]}"#] {
+                let (mut stream, _) = listener.accept().unwrap();
+                stream.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+                let mut request = [0u8; 4096]; let _ = stream.read(&mut request).unwrap();
+                write!(stream, "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}", body.len(), body).unwrap();
+            }
+            let (mut stream, _) = listener.accept().unwrap();
+            stream.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+            // Read the request headers AND body before writing a response, so socket
+            // shutdown cannot reset a response with unread request data.
+            let mut reader = std::io::BufReader::new(&mut stream);
+            let mut length = 0usize;
+            loop {
+                let mut line = String::new();
+                if std::io::BufRead::read_line(&mut reader, &mut line).unwrap() == 0 { panic!("request ended"); }
+                if line == "\r\n" { break; }
+                if let Some((key, value)) = line.split_once(':') {
+                    if key.eq_ignore_ascii_case("content-length") { length = value.trim().parse().unwrap(); }
+                }
+            }
+            let mut body = vec![0; length]; reader.read_exact(&mut body).unwrap();
+            drop(reader);
+            let frame = "{\"message\":{\"content\":\"partial\"},\"done\":false}\n";
+            write!(stream, "HTTP/1.1 200 OK\r\nContent-Type: application/x-ndjson\r\nTransfer-Encoding: chunked\r\n\r\n{:X}\r\n{}\r\n", frame.len(), frame).unwrap();
+            stream.flush().unwrap();
+            let _ = release_rx.recv_timeout(Duration::from_secs(5));
+        });
+        let (delta_tx, delta_rx) = mpsc::channel::<()>();
+        let stop_gateway = gateway.clone();
+        let stopper = std::thread::spawn(move || {
+            delta_rx.recv_timeout(Duration::from_secs(4)).unwrap();
+            assert!(!stop_gateway.cancel_turn("thread_alpha", "wrong_turn_01").unwrap());
+            let start = Instant::now();
+            assert!(stop_gateway.cancel_turn("thread_alpha", "turn_alpha_001").unwrap());
+            start
+        });
+        let events = Mutex::new(Vec::<ModelEvent>::new());
+        let result = tauri::async_runtime::block_on(gateway.generate(&storage, GeneratePayload {
+            conversation_id: "thread_alpha".into(), turn_id: "turn_alpha_001".into(),
+            parent_id: "message_user_001".into(), assistant_message_id: "message_asst_001".into(),
+        }, &|event| {
+            if event.kind == "delta" { let _ = delta_tx.send(()); }
+            events.lock().unwrap().push(event);
+            Ok(())
+        }));
+        let stopped_at = stopper.join().unwrap();
+        let elapsed = stopped_at.elapsed();
+        let _ = release_tx.send(()); server.join().unwrap();
+        let result = result.unwrap();
+        assert!(elapsed < Duration::from_secs(2), "Stop stalled for {elapsed:?}");
+        assert_eq!(result["status"], "cancelled");
+        assert_eq!(result["receipt"]["id"], "message_asst_001");
+        assert!(gateway.active.lock().unwrap().is_empty());
+        assert!(!gateway.cancel_turn("thread_alpha", "turn_alpha_001").unwrap());
+        let events = events.into_inner().unwrap();
+        assert_eq!(events.len(), 2);
+        assert_eq!(events[0].kind, "delta"); assert_eq!(events[0].sequence, 1);
+        assert_eq!(events[1].kind, "terminal"); assert_eq!(events[1].sequence, 2);
+        drop(storage);
+        let reopened = NativeVault::open(&path).unwrap();
+        let saved = reopened.get_chat_message("thread_alpha", "message_asst_001").unwrap().unwrap();
+        assert_eq!(saved.status, "cancelled"); assert_eq!(saved.content, "partial");
+    }
+
     #[test]
     fn client_constructor_rejects_remote_credentials_and_paths() {
         for base in [

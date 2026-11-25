@@ -3,7 +3,7 @@
   "module_id": "M03",
   "kind": "feature",
   "title": "Per-thread model and context controls",
-  "summary": "Repair candidate shares model identifier validation and draft-aware context budgeting; bounds runtime reads and aligns Stop acknowledgement. Native acceptance pending.",
+  "summary": "Native cancellation candidate uses interruptible async loopback transport, bounded framing and sealed terminal persistence; prior Windows baseline passed, new exact-head native proof pending.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [],
@@ -16,7 +16,8 @@
   "docs_paths": [
     "docs/evidence/P03_T04_T07_PREFLIGHT.md",
     "docs/evidence/P03_T04_T07_CI_REPAIR_20261125.md",
-    "docs/modules/M03.md"
+    "docs/modules/M03.md",
+    "docs/evidence/P03_T05_INTERRUPTIBLE_TRANSPORT_20261125.md"
   ],
   "help_paths": [
     "docs/help/articles/M03.md"
