@@ -582,3 +582,7 @@ main:focus{outline:none}
 @media(max-width:760px) {
   .shell .change-center .change-filters, .shell .change-center .help-option-layout { grid-template-columns:minmax(0,1fr); }
 }
+
+/* Focus the explanation, never enable its unavailable action. */
+.shell .change-center .change-unavailable-action:focus { outline:2px solid var(--outline); outline-offset:3px; }
+.shell .help-article-body h3[tabindex="-1"]:focus { outline:2px solid var(--outline); outline-offset:3px; }

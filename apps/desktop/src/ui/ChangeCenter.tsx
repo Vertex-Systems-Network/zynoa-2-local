@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useId, useLayoutEffect, useRef, useState } from "react";
 import { changeAvailability, filterChangeNotices, noticeModules, changeServicePanels, isChangeServiceSection, type ChangeTransport, type NoticeFilter } from "./change-center";
 
 const sections = [
@@ -13,9 +13,10 @@ const sections = [
 type Section = (typeof sections)[number]["key"];
 
 function UnavailableAction({label,reason}:{label:string;reason:string}) {
-  return <div className="change-unavailable-action">
-    <button type="button" disabled>{label}</button>
-    <p>{reason}</p>
+  const reasonId=useId();
+  return <div className="change-unavailable-action" role="group" aria-label={label+" unavailable"} tabIndex={-1}>
+    <button type="button" disabled aria-describedby={reasonId}>{label}</button>
+    <p id={reasonId}>{reason}</p>
   </div>;
 }
 

@@ -41,7 +41,9 @@ class ChangeCenterTests(unittest.TestCase):
         for marker in ("Audit access is not enabled", "Notification settings unavailable",
                        "No verified migration notes", "Export change history", "View rollback guidance"):
             self.assertIn(marker,core)
-        self.assertIn('<button type="button" disabled>{label}</button>',view)
+        self.assertIn('<button type="button" disabled aria-describedby={reasonId}>{label}</button>',view)
+        self.assertIn('role="group" aria-label={label+" unavailable"} tabIndex={-1}',view)
+        self.assertIn('<p id={reasonId}>{reason}</p>',view)
         self.assertIn("onClick={onHelp}",view)
         self.assertNotIn('aria-disabled="false"', view)
 
@@ -195,6 +197,17 @@ class ChangeCenterTests(unittest.TestCase):
                        "notice_focus", "notice_enter", "notice_detail"):
             self.assertIn(marker, script)
         self.assertNotIn("MainWindowTitle", script)
+
+    def test_all_twenty_m26_option_explanations_are_bundled_and_documented(self):
+        catalog=(UI/"help-catalog.ts").read_text(encoding="utf-8")
+        help_doc=(ROOT/"docs/help/articles/M26.md").read_text(encoding="utf-8")
+        wiki=(ROOT/"docs/wiki/pages/M26.md").read_text(encoding="utf-8")
+        for i in range(1,21):
+            oid=f"M26-OPT-{i:02d}"
+            self.assertIn(oid,catalog)
+            self.assertIn("### "+oid+" — ",help_doc)
+            self.assertIn(oid,wiki)
+        self.assertIn("pending final-module approval",help_doc)
 
 if __name__ == "__main__":
     unittest.main()

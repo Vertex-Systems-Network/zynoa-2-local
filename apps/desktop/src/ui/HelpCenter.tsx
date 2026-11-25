@@ -114,7 +114,7 @@ export function HelpCenter({ contextArticle, destination }: Props) {
         <div className="help-article-body">
           {selected.sections.map(section =>
             <section key={section.heading}>
-              <h3>{section.heading}</h3>
+              <h3 tabIndex={selected.id === "change-history" ? -1 : undefined}>{section.heading}</h3>
               {section.paragraphs.map(paragraph => <p key={paragraph}>{paragraph}</p>)}
             </section>
           )}
