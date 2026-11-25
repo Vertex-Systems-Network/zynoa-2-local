@@ -170,3 +170,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P02 | Scope screenshot checkout contract to native prerequisites; deny mixed/unknown model failure routing | First real continuation job passed 4 contracts and selected T12 automatically; unrelated global checkout count failed native/governance; retain exact checkout and no credentials in each native job, no product test relaxation.
 
 2026-11-25 | P02 | Process one known failure group per continuation, preserve deferred failures; verify real legacy Help heading and request current focus speech | Prior native mixed failures prevented inference; no unknown-step permissions, no bypass of speech verifier or native focus. Trusted publisher absent on protected main; no automatic write yet.
+
+2026-11-25 | P02 | Consolidated T13 UI implementation on active PR after owner explicitly prioritized phase completion | Existing P02 scope includes three system centers; preserve six shortcuts, use session-only drafts and actual disabled service controls; native 74-candidate verifier; no premature task DONE or backend mutation.

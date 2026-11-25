@@ -5,7 +5,8 @@ param(
     [Parameter(Mandatory = $true)][string]$SourceSha,
     [Parameter(Mandatory = $true)][string]$BuiltSha,
     [switch]$M26Only,
-    [switch]$M26OptionsOnly
+    [switch]$M26OptionsOnly,
+    [ValidateSet('M23','M24','M25')][string]$SystemCenterModule
 )
 $ErrorActionPreference = 'Stop'
 if ($SourceSha -notmatch '^[0-9a-f]{40}$') { throw 'ZYN-SCREEN-001: invalid source commit' }
@@ -241,7 +242,7 @@ function Save-NativeFollowup {
 }
 
 # Separate M26 journey: reuse real DWM capture, never expand the 69-frame T10 budget.
-if ($M26Only -or $M26OptionsOnly) {
+if ($M26Only -or $M26OptionsOnly -or $SystemCenterModule) {
     Add-Type -AssemblyName UIAutomationClient
     Add-Type -AssemblyName UIAutomationTypes
     if (-not $env:GITHUB_RUN_ID) { throw 'ZYN-M26-001: CI run identity missing' }
@@ -388,6 +389,51 @@ public static class ZynoaM26Foreground {
             }
         }
         throw ('ZYN-M26-018: native keyboard focus not confirmed: '+$Name)
+    }
+    if ($SystemCenterModule) {
+        $catalog=Get-Content -LiteralPath (Join-Path $env:GITHUB_WORKSPACE 'docs/evidence/P02_T13_UI_INVENTORY.json') -Raw | ConvertFrom-Json
+        $center=@($catalog.centers | Where-Object { $_.module -ceq $SystemCenterModule })
+        if ($center.Count -ne 1) { throw 'ZYN-T13-001: center inventory missing' }
+        $center=$center[0]
+        $observed=[System.Collections.Generic.List[object]]::new()
+        function Capture-SystemTarget {
+            param([string]$Asset,[string]$Name,[string]$Kind)
+            $script:m26Stage=$Asset
+            [void](Focus-M26Control -Name $Name)
+            $target=Wait-M26Name -Name $Name -Focusable -Visible
+            if (-not $target.Current.HasKeyboardFocus) { throw 'ZYN-T13-002: focus absent' }
+            $controlVerified=$false
+            if ($Kind -eq 'blocked') {
+                $control=Wait-M26Name -Name ($Asset+' action unavailable') -Disabled -Visible
+                if ($control.Current.IsEnabled -or $control.Current.ControlType -ne [System.Windows.Automation.ControlType]::Button) { throw 'ZYN-T13-013: disabled action missing' }
+                $controlVerified=$true
+            } elseif ($Kind -in @('toggle','select')) {
+                $control=Wait-M26Name -Name ($Asset+' draft preference') -Focusable -Visible
+                $type=if ($Kind -eq 'toggle') {[System.Windows.Automation.ControlType]::CheckBox} else {[System.Windows.Automation.ControlType]::ComboBox}
+                if (-not $control.Current.IsEnabled -or $control.Current.ControlType -ne $type) { throw 'ZYN-T13-014: draft control missing' }
+                $controlVerified=$true
+            }
+            Assert-M26Foreground
+            Save-NativeFollowup -ScreenshotId $Asset -Shortcut '' -ScreenTitle $Name -Description ('Actual Windows P02 system center '+$Asset+'; '+$Kind+'; no user data or privileged action')
+            Assert-M26Foreground
+            if (-not (Wait-M26Name -Name $Name -Focusable -Visible).Current.HasKeyboardFocus) { throw 'ZYN-T13-003: focus lost during frame' }
+            $observed.Add([ordered]@{asset_id=$Asset;actual_name=$Name;kind=$Kind;focus_verified=$true;foreground_verified=$true;control_verified=$controlVerified})
+        }
+        [void](Focus-M26Control -Name $center.title)
+        Send-M26Key '{ENTER}'
+        foreach ($screen in $center.screens) {
+            $script:m26Stage=$screen.id
+            [void](Focus-M26Control -Name ('Open '+$screen.id+' '+$screen.title))
+            Send-M26Key '{ENTER}'
+            Capture-SystemTarget -Asset $screen.id -Name ($screen.id+' '+$screen.title) -Kind 'screen'
+            foreach ($id in $screen.options) {
+                $option=@($center.options | Where-Object { $_.id -ceq $id })
+                if ($option.Count -ne 1) { throw 'ZYN-T13-004: missing option' }
+                Capture-SystemTarget -Asset $id -Name ($id+' '+$option[0].title) -Kind $option[0].kind
+            }
+        }
+        [ordered]@{schema_version=1;module=$SystemCenterModule;source_commit_sha=$SourceSha;built_commit_sha=$BuiltSha;github_run_id=[string]$env:GITHUB_RUN_ID;native_pid=$TargetPid;no_user_data=$true;observations=@($observed.ToArray())} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'T13-journey.capture.json') -Encoding UTF8
+        return
     }
     $observations = [System.Collections.Generic.List[object]]::new()
     function Capture-M26 {

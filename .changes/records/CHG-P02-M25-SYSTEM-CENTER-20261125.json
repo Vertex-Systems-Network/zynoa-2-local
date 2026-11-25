@@ -1,0 +1,53 @@
+{
+  "change_id": "CHG-P02-M25-SYSTEM-CENTER-20261125",
+  "module_id": "M25",
+  "kind": "feature",
+  "title": "Update Center shared UI foundation",
+  "summary": "Actual navigable P02 system UI with explicit unavailable operations, session drafts, keyboard focus, bundled Help and native evidence harness. Full service remains deferred to P11.",
+  "status": "implementing",
+  "audience": "user",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/17"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12",
+  "docs_paths": [
+    "docs/modules/M25.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M25.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M25.md"
+  ],
+  "test_evidence": [],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No persistent preference or native data mutation; full backend remains gated.",
+  "created_at": "2026-11-25T08:32:00Z",
+  "updated_at": "2026-11-25T08:32:00Z",
+  "version_bump": "none",
+  "affected_option_ids": [
+    "M25-OPT-01",
+    "M25-OPT-02",
+    "M25-OPT-03",
+    "M25-OPT-04",
+    "M25-OPT-05",
+    "M25-OPT-06",
+    "M25-OPT-07",
+    "M25-OPT-08",
+    "M25-OPT-09",
+    "M25-OPT-10",
+    "M25-OPT-11",
+    "M25-OPT-12",
+    "M25-OPT-13",
+    "M25-OPT-14"
+  ],
+  "docs_impact": true,
+  "data_migration": false
+}
