@@ -2,6 +2,7 @@
 //! All operations are within the trusted app-local data path, never the binary.
 //! User content is never logged, sent to telemetry or silently replaced.
 use rusqlite::{params, Connection, ErrorCode, OpenFlags, OptionalExtension, TransactionBehavior, MAIN_DB};
+use serde::{Deserialize, Serialize};
 use std::fs::{self, OpenOptions};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -11,6 +12,7 @@ const LEGACY_VERSION: i64 = 1;
 const MAX_CONTENT_BYTES: usize = 262_144;
 const MAX_TITLE_BYTES: usize = 512;
 const MAX_PAGE: u32 = 200;
+const MAX_CONTEXT_MESSAGES: usize = 512;
 
 // Retain the exact original P01 table, including its opaque conversation
 // records. Do not guess how legacy content maps to normalized messages.
@@ -119,6 +121,21 @@ pub(crate) struct ChatWriteReceipt {
     pub(crate) ordinal: Option<i64>,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct InferenceSettings {
+    pub(crate) model: String,
+    pub(crate) context_limit: u32,
+    pub(crate) revision: i64,
+}
+
+pub(crate) struct ModelContext {
+    pub(crate) messages: Vec<StoredChatMessage>,
+    pub(crate) estimated_tokens: u32,
+    pub(crate) limit: u32,
+    pub(crate) omitted_messages: u32,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum VaultFault {
     InvalidLocation, InvalidRecord, Conflict, Corrupt, UnsupportedSchema, StorageUnavailable,
@@ -193,6 +210,15 @@ fn integrity_check(db: &Connection) -> Result<(), VaultFault> {
 
 fn valid_text(value: &str, max: usize) -> bool {
     !value.trim().is_empty() && value.len() <= max && !value.contains('\0')
+}
+
+fn valid_model(value: &str) -> bool {
+    !value.is_empty() && value.len() <= 128 && value.bytes().all(|b|
+        b.is_ascii_alphanumeric() || matches!(b, b'.'|b'_'|b':'|b'/'|b'-'))
+}
+
+fn valid_context_limit(value: u32) -> bool {
+    matches!(value, 512|1024|2048|4096|8192|16384|32768)
 }
 
 fn version(db: &Connection) -> Result<i64, VaultFault> {
@@ -461,6 +487,76 @@ impl NativeVault {
         let mut result = Vec::new();
         for row in rows { result.push(row.map_err(map_sql)?); }
         Ok(result)
+    }
+
+    /// Durable per-conversation inference choice stored in the existing
+    /// versioned preference substrate. No runtime URL or credential is stored.
+    pub(crate) fn set_inference_settings(&mut self, conversation_id: &str, model: &str,
+        context_limit: u32) -> Result<InferenceSettings, VaultFault>
+    {
+        if !safe_id(conversation_id) || !valid_model(model) || !valid_context_limit(context_limit) {
+            return Err(VaultFault::InvalidRecord);
+        }
+        let tx=self.conn.transaction_with_behavior(TransactionBehavior::Immediate).map_err(map_sql)?;
+        let exists:i64=tx.query_row("SELECT count(*) FROM conversations WHERE id=?1",[conversation_id],|r|r.get(0)).map_err(map_sql)?;
+        if exists!=1 {return Err(VaultFault::Conflict);}
+        let current:Option<(String,i64)>=tx.query_row("SELECT class,revision FROM records WHERE id=?1",[conversation_id],|r|Ok((r.get(0)?,r.get(1)?))).optional().map_err(map_sql)?;
+        let revision=match &current {None=>1,Some((class,n)) if class=="preference"=>*n+1,_=>return Err(VaultFault::Conflict)};
+        let settings=InferenceSettings {model:model.to_owned(),context_limit,revision};
+        let payload=serde_json::to_string(&settings).map_err(|_|VaultFault::InvalidRecord)?;
+        if current.is_none() {
+            tx.execute("INSERT INTO records(id,class,payload,revision,created_at) VALUES(?1,'preference',?2,1,unixepoch())",
+                params![conversation_id,payload]).map_err(map_sql)?;
+        } else {
+            if tx.execute("UPDATE records SET payload=?2,revision=?3 WHERE id=?1 AND class='preference'",
+                params![conversation_id,payload,revision]).map_err(map_sql)?!=1 {return Err(VaultFault::Conflict);}
+        }
+        tx.commit().map_err(map_sql)?;
+        Ok(settings)
+    }
+
+    pub(crate) fn get_inference_settings(&self, conversation_id: &str)
+        -> Result<Option<InferenceSettings>, VaultFault>
+    {
+        if !safe_id(conversation_id) {return Err(VaultFault::InvalidRecord);}
+        let row:Option<(String,String,i64)>=self.conn.query_row(
+            "SELECT class,payload,revision FROM records WHERE id=?1",[conversation_id],
+            |r|Ok((r.get(0)?,r.get(1)?,r.get(2)?))).optional().map_err(map_sql)?;
+        let Some((class,payload,revision))=row else{return Ok(None)};
+        if class!="preference" {return Err(VaultFault::Conflict);}
+        let settings:InferenceSettings=serde_json::from_str(&payload).map_err(|_|VaultFault::Corrupt)?;
+        if settings.revision!=revision || !valid_model(&settings.model) || !valid_context_limit(settings.context_limit) {
+            return Err(VaultFault::Corrupt);
+        }
+        Ok(Some(settings))
+    }
+
+    /// Assemble newest complete messages within a conservative token budget,
+    /// then restore chronological order. Failed/cancelled output is excluded.
+    pub(crate) fn model_context(&self, conversation_id:&str, context_limit:u32, reserve:u32)
+        -> Result<ModelContext,VaultFault>
+    {
+        if !safe_id(conversation_id)||!valid_context_limit(context_limit)||reserve>=context_limit {
+            return Err(VaultFault::InvalidRecord);
+        }
+        if self.get_conversation(conversation_id)?.is_none(){return Err(VaultFault::Conflict);}
+        let total:u32=self.conn.query_row("SELECT count(*) FROM messages WHERE conversation_id=?1 AND status='complete'",
+            [conversation_id],|r|r.get(0)).map_err(map_sql)?;
+        let mut stmt=self.conn.prepare("SELECT id,parent_id,ordinal,role,content,status,revision,created_at FROM messages
+            WHERE conversation_id=?1 AND status='complete' ORDER BY ordinal DESC LIMIT ?2").map_err(map_sql)?;
+        let rows=stmt.query_map(params![conversation_id,MAX_CONTEXT_MESSAGES as u32],|r|Ok(StoredChatMessage{
+            id:r.get(0)?,parent_id:r.get(1)?,ordinal:r.get(2)?,role:r.get(3)?,content:r.get(4)?,
+            status:r.get(5)?,revision:r.get(6)?,created_at:r.get(7)?,})).map_err(map_sql)?;
+        let available=context_limit-reserve;let mut used=0u32;let mut selected=Vec::new();
+        for row in rows {let row=row.map_err(map_sql)?;
+            let estimate=((row.content.as_bytes().len() as u32).saturating_add(3)/4).saturating_add(8);
+            if estimate>available && selected.is_empty(){return Err(VaultFault::InvalidRecord);}
+            if used.saturating_add(estimate)>available {break;}
+            used+=estimate;selected.push(row);
+        }
+        selected.reverse();
+        Ok(ModelContext{omitted_messages:total.saturating_sub(selected.len() as u32),messages:selected,
+            estimated_tokens:used.saturating_add(reserve),limit:context_limit})
     }
 
     /// SQLite Online Backup API; never raw-copy a live WAL database or overwrite
@@ -863,6 +959,43 @@ mod tests {
         assert!(after.get_chat_message("thread_alpha","missing_message").unwrap().is_none());
         assert!(after.get_chat_message("thread_alpha","../invalid").is_err());
         assert!(after.get_chat_message("../invalid","message_0001").is_err());
+    }
+
+    #[test]
+    fn inference_settings_are_versioned_scoped_and_restart_safe() {
+        let f=Fixture::new();let app=f.app();let mut v=NativeVault::open(&app).unwrap();
+        v.create_conversation("thread_alpha","Alpha").unwrap();
+        v.create_conversation("thread_bravo","Bravo").unwrap();
+        let first=v.set_inference_settings("thread_alpha","qwen2.5:0.5b",1024).unwrap();
+        assert_eq!((first.model.as_str(),first.context_limit,first.revision),("qwen2.5:0.5b",1024,1));
+        assert!(v.get_inference_settings("thread_bravo").unwrap().is_none());
+        let second=v.set_inference_settings("thread_alpha","qwen2.5:1.5b",2048).unwrap();
+        assert_eq!(second.revision,2);
+        assert!(v.set_inference_settings("thread_alpha","http://remote",2048).is_err());
+        assert!(v.set_inference_settings("thread_alpha","qwen2.5:1.5b",777).is_err());
+        drop(v);let after=NativeVault::open(&app).unwrap();
+        assert_eq!(after.get_inference_settings("thread_alpha").unwrap().unwrap(),second);
+    }
+
+    #[test]
+    fn model_context_is_chronological_bounded_and_excludes_terminal_failures() {
+        let f=Fixture::new();let mut v=NativeVault::open(&f.app()).unwrap();
+        v.create_conversation("thread_alpha","Alpha").unwrap();
+        v.create_conversation("thread_bravo","Bravo").unwrap();
+        v.append_chat_message(sample_message("message_user_001","thread_alpha",None)).unwrap();
+        let mut failed=sample_message("message_failed_01","thread_alpha",Some("message_user_001"));
+        failed.role=ChatRole::Assistant;failed.status=ChatStatus::Failed;failed.content="do not replay";
+        v.append_chat_message(failed).unwrap();
+        v.append_chat_message(sample_message("message_other_01","thread_bravo",None)).unwrap();
+        let context=v.model_context("thread_alpha",512,64).unwrap();
+        assert_eq!(context.messages.len(),1);assert_eq!(context.messages[0].id,"message_user_001");
+        assert_eq!(context.messages[0].role,"user");assert!(context.estimated_tokens<=context.limit);
+        assert_eq!(context.omitted_messages,0);
+        assert!(context.messages.iter().all(|m|m.content!="do not replay"&&m.id!="message_other_01"));
+        let huge="x".repeat(262_144);let input=ChatMessageInput{id:"message_huge_0001",conversation_id:"thread_alpha",
+            parent_id:None,role:ChatRole::User,content:&huge,status:ChatStatus::Complete};
+        v.append_chat_message(input).unwrap();
+        assert!(matches!(v.model_context("thread_alpha",512,64),Err(VaultFault::InvalidRecord)));
     }
 
 }

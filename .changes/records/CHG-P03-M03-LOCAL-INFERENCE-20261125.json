@@ -17,7 +17,7 @@
   "release": null,
   "verification": {"tests_passed": false, "merge_verified": false, "release_published": false},
   "breaking_change": false,
-  "migration_notes": "Additive inference settings only; preserve all conversation and message records.",
+  "migration_notes": "Versioned inference preferences only; preserve all conversation and message records.",
   "created_at": "2026-11-25", "updated_at": "2026-11-25", "version_bump": "none",
   "docs_impact": true, "data_migration": true
 }

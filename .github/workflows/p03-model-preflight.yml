@@ -7,6 +7,12 @@ on:
       - 'docs/evidence/P03_T01_PREFLIGHT.md'
       - '.github/workflows/p03-model-preflight.yml'
       - 'scripts/probe_p03_model.py'
+      - 'apps/desktop/src-tauri/src/model_gateway.rs'
+      - 'apps/desktop/src-tauri/src/vault.rs'
+      - 'apps/desktop/src/model-transport.ts'
+      - 'apps/desktop/src/ui/model-contract.ts'
+      - 'apps/desktop/src/ui/ChatView.tsx'
+      - 'tests/test_p03_model_gateway_contract.py'
 permissions:
   contents: read
 concurrency:
@@ -53,6 +59,7 @@ jobs:
           done
           curl --fail --silent --noproxy '*' --max-time 2 http://127.0.0.1:11434/api/version >/dev/null
           "$RUNNER_TEMP/ollama/bin/ollama" pull qwen2.5:0.5b
+          python -m unittest tests.test_p03_model_gateway_contract -v
           python scripts/probe_p03_model.py --source-sha "$EXACT_HEAD" --out "$RUNNER_TEMP/p03-model-preflight.json"
       - uses: actions/upload-artifact@v6
         with:

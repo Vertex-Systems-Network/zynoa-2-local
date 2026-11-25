@@ -26,7 +26,8 @@ class NativeEventLedgerContracts(unittest.TestCase):
         self.assertNotIn("reqwest",self.events)
         self.assertNotIn("payload TEXT",self.events)
         self.assertNotIn("ReleasePublished",self.events)
-        self.assertIn("generate_handler![ipc::workspace_handshake, chat_ipc::chat_request]",self.lib)
+        self.assertIn("generate_handler![ipc::workspace_handshake, chat_ipc::chat_request,",self.lib)
+        self.assertIn("model_gateway::model_request]",self.lib)
 
     def test_concurrent_first_open_serializes_schema_without_disabling_wal(self):
         self.assertIn("static OPEN_INIT_LOCK: Mutex<()>", self.events)

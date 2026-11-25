@@ -1,6 +1,7 @@
 //! Native transport for P01. No arbitrary filesystem or network IPC commands.
 mod ipc;
 mod chat_ipc;
+mod model_gateway;
 mod security;
 mod secrets;
 mod diagnostics;
@@ -30,14 +31,17 @@ pub fn run() {
             // Only the bounded M03 chat domain adapter may use it; no raw vault command.
             let storage = vault::NativeVault::open(&app_local)
                 .map_err(|_| std::io::Error::other("ZYN-DAT-001"))?;
-            app.manage(std::sync::Mutex::new(storage));
+            app.manage(std::sync::Arc::new(std::sync::Mutex::new(storage)));
+            app.manage(model_gateway::LocalModelGateway::new()
+                .map_err(|_| std::io::Error::other("ZYN-MODEL-001"))?);
             // M26 event ledger is native-only, never a WebView invoke command.
             let ledger = events::NativeEventLedger::open(&app_local)
                 .map_err(|_| std::io::Error::other("ZYN-CHG-001"))?;
             app.manage(std::sync::Mutex::new(ledger));
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![ipc::workspace_handshake, chat_ipc::chat_request])
+        .invoke_handler(tauri::generate_handler![ipc::workspace_handshake, chat_ipc::chat_request,
+            model_gateway::model_request])
         .run(tauri::generate_context!())
         .expect("ZYN-BOOT-002: unable to initialize native shell");
 }

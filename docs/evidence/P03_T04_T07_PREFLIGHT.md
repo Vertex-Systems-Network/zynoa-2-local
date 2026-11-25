@@ -8,7 +8,7 @@ Date: 2026-11-25. Phase P03, branch `phase/03-chat`, draft PR #25. T01–T03 are
 - Add a native model gateway separate from the conversation storage command. Health reads `/api/version` and `/api/tags`; generation posts `/api/chat` with streaming enabled. Only models returned by the installed-model inventory may be selected.
 - Preserve the native vault as sole durable chat authority. Commit user input before generation. Persist assistant output only after a terminal complete/cancelled/failed outcome; return a typed post-commit receipt. Never hold the vault lock while waiting on Ollama.
 - Stream typed text deltas to the current native window with exact turn/correlation IDs. One active turn per conversation. Stop is idempotent and cooperative. Retry creates a new attempt ID and never overwrites prior output.
-- Add an additive v3 inference-settings migration. Per-conversation model and context limit are durable, versioned, bounded and transactionally journaled. Existing v1/v2 records remain unchanged; schema upgrade is snapshot-first and non-destructive.
+- Store per-conversation model and context limit in the existing versioned native preference substrate. Values are durable, bounded and transactionally revisioned without changing the already accepted v2 chat schema. Existing conversation/message and opaque legacy records remain unchanged.
 - Context assembly is native and deterministic: explicit system boundary, bounded newest complete conversation messages, UTF-8 byte and conservative token estimate budgets, no silent cross-thread data, cancelled/failed assistant content excluded by default. The UI shows estimated used/limit values before send.
 
 ## Alternatives and sources
@@ -18,7 +18,7 @@ Native Ollama API is selected over its OpenAI-compatible facade because native t
 ## Tests-first acceptance
 
 1. Native gateway tests use a loopback fixture only: reject non-loopback/redirect/proxy-style authority, bounded headers/body/NDJSON, malformed events, missing installed model, timeout, disconnect and runtime error. No external connection in unit tests.
-2. Vault tests prove v2→v3 snapshot-first migration, settings replay/conflict, per-thread isolation, restart persistence and journal atomicity. Existing T02/T03 tests remain green.
+2. Vault tests prove preference revision/conflict handling, per-thread isolation, restart persistence and transaction rollback. Existing v1→v2 migration and all T02/T03 tests remain green.
 3. Turn tests prove ordered deltas, one terminal event, cancellation idempotency, retry with a new ID, no lock held during transport, exact committed assistant receipt and no success acknowledgement after persistence failure.
 4. Context tests cover empty/history, stable chronological assembly, exact conversation isolation, UTF-8 and token bounds, oversized latest user input rejection, and exclusion of failed/cancelled assistant records.
 5. Frontend tests cover installed-model-only selection, per-thread persistence, health/error/offline states, Send/Stop/Retry focus, stale event rejection, context disclosure and strict native reply/event validation.

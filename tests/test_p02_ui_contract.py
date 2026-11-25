@@ -43,7 +43,7 @@ class P02UIContractTests(unittest.TestCase):
         chat = json.loads((APP/"src-tauri/capabilities/main-chat.json").read_text(encoding="utf-8"))
         self.assertEqual(set(chat), {"identifier","description","local","windows","permissions"})
         self.assertEqual(["main"],chat["windows"])
-        self.assertEqual(["allow-chat-request"],chat["permissions"])
+        self.assertEqual(["allow-chat-request","allow-model-request"],chat["permissions"])
         self.assertIs(chat["local"],True)
         self.assertNotIn("remote",chat)
         self.assertEqual(["allow-workspace-handshake"], cap["permissions"])

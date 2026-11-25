@@ -45,7 +45,7 @@ def audit_source_contract(config, capability, ipc, frontend, workflow, *, chat_c
     if chat_capability is not None:
         require(isinstance(chat_capability,dict) and chat_capability.get("identifier")=="main-chat"
                 and chat_capability.get("windows")==["main"] and chat_capability.get("local") is True
-                and chat_capability.get("permissions")==["allow-chat-request"]
+                and chat_capability.get("permissions")==["allow-chat-request","allow-model-request"]
                 and "remote" not in chat_capability
                 and set(chat_capability)=={"identifier","description","windows","local","permissions"},
                 "unexpected P03 chat grant")

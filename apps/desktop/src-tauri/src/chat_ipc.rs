@@ -143,7 +143,7 @@ fn execute(vault:&mut NativeVault, request:ChatRequest) -> Result<ChatReply,Chat
 
 // Async Tauri dispatch runs off the GUI thread; no await with a vault lock held.
 #[tauri::command]
-pub async fn chat_request(window:tauri::Window, storage:tauri::State<'_,std::sync::Mutex<NativeVault>>,
+pub async fn chat_request(window:tauri::Window, storage:tauri::State<'_,std::sync::Arc<std::sync::Mutex<NativeVault>>>,
     diagnostics:tauri::State<'_,crate::diagnostics::NativeDiagnostics>,request:ChatRequest)
     -> Result<ChatReply,ChatError>
 {
