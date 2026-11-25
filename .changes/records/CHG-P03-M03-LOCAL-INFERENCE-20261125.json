@@ -1,0 +1,23 @@
+{
+  "change_id": "CHG-P03-M03-LOCAL-INFERENCE-20261125",
+  "module_id": "M03",
+  "kind": "feature",
+  "title": "Fixed-loopback local model inference",
+  "summary": "Add native Ollama health, installed-model inventory and bounded local inference. Implementation and exact-head CI pending.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
+  "affected_option_ids": ["M03-OPT-01", "M03-OPT-02"],
+  "docs_paths": ["docs/adr/0030-p03-chat-data-and-local-inference.md", "docs/evidence/P03_T04_T07_PREFLIGHT.md"],
+  "help_paths": [],
+  "wiki_paths": [],
+  "test_evidence": [],
+  "commit_sha": "5b0eb2db07a9b5672c154827fe484f410409ce31",
+  "release": null,
+  "verification": {"tests_passed": false, "merge_verified": false, "release_published": false},
+  "breaking_change": false,
+  "migration_notes": "Additive inference settings only; preserve all conversation and message records.",
+  "created_at": "2026-11-25", "updated_at": "2026-11-25", "version_bump": "none",
+  "docs_impact": true, "data_migration": true
+}
