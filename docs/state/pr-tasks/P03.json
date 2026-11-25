@@ -27,26 +27,26 @@
     {
       "id": "P03-T04",
       "title": "Minimal real loopback Ollama inference adapter and runtime health",
-      "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45667552634"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45669287881"
     },
     {
       "id": "P03-T05",
       "title": "Streaming lifecycle, cancellation, retry and durable acknowledgements",
       "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45667552634"
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45669287881"
     },
     {
       "id": "P03-T06",
       "title": "Per-thread model choice and model switcher",
       "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45667552634"
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45669287881"
     },
     {
       "id": "P03-T07",
       "title": "Context budget inspection and bounded context assembly",
       "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45667552634"
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45669287881"
     },
     {
       "id": "P03-T08",

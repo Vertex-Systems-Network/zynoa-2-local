@@ -303,6 +303,17 @@ impl LocalModelGateway {
         q: GeneratePayload,
         on_event: &(impl Fn(ModelEvent) -> Result<(), ModelError> + Sync),
     ) -> Result<Value, ModelError> {
+        self.generate_measured(storage, q, on_event).await.map(|(reply, _)| reply)
+    }
+
+    // Runtime-reported prompt usage stays native-only; the public reply schema
+    // does not change. Integration tests can compare it with the estimate.
+    async fn generate_measured(
+        &self,
+        storage: &Arc<Mutex<NativeVault>>,
+        q: GeneratePayload,
+        on_event: &(impl Fn(ModelEvent) -> Result<(), ModelError> + Sync),
+    ) -> Result<(Value, Option<u64>), ModelError> {
         if !token(&q.turn_id)
             || !token(&q.conversation_id)
             || !token(&q.assistant_message_id)
@@ -367,7 +378,7 @@ impl LocalModelGateway {
             "options":{"num_ctx":settings.context_limit,"num_predict":output_budget(settings.context_limit)}});
         let mut output = String::new();
         let mut sequence = 0u32;
-        let result: Result<u64, ModelError> = async {
+        let result: Result<(u64, Option<u64>), ModelError> = async {
             let (_, models) = flag.interrupt(self.inventory()).await
                 .ok_or_else(|| fault("ZYN-MODEL-CANCELLED"))??;
             if !Self::has_model(&models, &settings.model) {
@@ -423,7 +434,10 @@ impl LocalModelGateway {
                             }).ok_or_else(|| fault("ZYN-MODEL-CANCELLED"))??;
                         }
                         if event.get("done") == Some(&Value::Bool(true)) {
-                            return Ok(event.get("eval_count").and_then(Value::as_u64).unwrap_or(0));
+                            return Ok((
+                                event.get("eval_count").and_then(Value::as_u64).unwrap_or(0),
+                                event.get("prompt_eval_count").and_then(Value::as_u64),
+                            ));
                         }
                     }
                 }
@@ -431,7 +445,7 @@ impl LocalModelGateway {
         }.await;
         // The response future has been dropped; Stop cannot change the sealed outcome.
         let cancelled = flag.seal();
-        let eval_count = result.as_ref().copied().unwrap_or(0);
+        let (eval_count, prompt_eval_count) = result.as_ref().copied().unwrap_or((0, None));
         let status = if cancelled {
             "cancelled"
         } else if result.is_ok() && !output.trim().is_empty() {
@@ -470,10 +484,11 @@ impl LocalModelGateway {
         if !cancelled && receipt.is_none() {
             if let Err(error) = result { return Err(error); }
         }
-        Ok(
+        Ok((
             json!({"turnId":q.turn_id,"status":status,"receipt":receipt,"evalCount":eval_count,
             "context":{"estimatedTokens":context.estimated_tokens,"limit":context.limit,"omittedMessages":context.omitted_messages}}),
-        )
+            prompt_eval_count,
+        ))
     }
 }
 
@@ -935,7 +950,7 @@ mod tests {
         assert_eq!(matches.len(), 1);
         let digest = matches[0]["digest"].as_str().unwrap();
         assert_eq!(digest.len(), 64);
-        assert!(digest.starts_with("a8b0c5157701") && digest.bytes().all(|b| b.is_ascii_hexdigit()));
+        assert_eq!(digest, "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67");
         assert!(LocalModelGateway::has_model(&models, model));
         let mut vault = NativeVault::open(&path).unwrap();
         vault.create_conversation("thread_alpha", "Synthetic model acceptance").unwrap();
@@ -948,15 +963,17 @@ mod tests {
             id: "message_user_001", conversation_id: "thread_alpha", parent_id: None,
             role: ChatRole::User, content: prompt, status: ChatStatus::Complete,
         }).unwrap();
+        let multilingual = "Reply with a short greeting. اردو 中文 Türkçe العربية 🙂";
+        let multilingual_preview = vault.model_context_with_draft("thread_bravo", 2048, context_reserve(2048), multilingual).unwrap();
         vault.append_chat_message(ChatMessageInput {
             id: "message_other_01", conversation_id: "thread_bravo", parent_id: None,
-            role: ChatRole::User, content: "Unrelated synthetic thread", status: ChatStatus::Complete,
+            role: ChatRole::User, content: multilingual, status: ChatStatus::Complete,
         }).unwrap();
         let storage = Arc::new(Mutex::new(vault));
         let events = Mutex::new(Vec::<ModelEvent>::new());
         let first_delta = Mutex::new(None::<u64>);
         let started = Instant::now();
-        let result = tauri::async_runtime::block_on(gateway.generate(&storage, GeneratePayload {
+        let (result, prompt_eval_count) = tauri::async_runtime::block_on(gateway.generate_measured(&storage, GeneratePayload {
             conversation_id: "thread_alpha".into(), turn_id: "turn_alpha_001".into(),
             parent_id: "message_user_001".into(), assistant_message_id: "message_asst_001".into(),
         }, &|event| {
@@ -975,6 +992,10 @@ mod tests {
         assert_eq!(result["context"]["estimatedTokens"].as_u64(), Some(preview.estimated_tokens as u64));
         assert_eq!(result["context"]["omittedMessages"].as_u64(), Some(preview.omitted_messages as u64));
         assert_eq!(result["context"]["limit"], 1024);
+        let reported_prompt = prompt_eval_count.expect("real runtime prompt_eval_count required");
+        assert!(reported_prompt > 0);
+        assert!(reported_prompt + u64::from(output_budget(1024)) <= u64::from(preview.estimated_tokens));
+        assert!(result["evalCount"].as_u64().unwrap() <= u64::from(output_budget(1024)));
         assert!(gateway.active.lock().unwrap().is_empty());
         let events = events.into_inner().unwrap();
         assert!(events.len() >= 2);
@@ -985,12 +1006,26 @@ mod tests {
         let streamed: String = events.iter().filter(|event| event.kind == "delta")
             .map(|event| event.content.as_str()).collect();
         assert!(!streamed.trim().is_empty());
+        let (multilingual_result, multilingual_count) = tauri::async_runtime::block_on(gateway.generate_measured(&storage, GeneratePayload {
+            conversation_id: "thread_bravo".into(), turn_id: "turn_bravo_001".into(),
+            parent_id: "message_other_01".into(), assistant_message_id: "message_asst_002".into(),
+        }, &|_| Ok(()))).unwrap();
+        assert_eq!(multilingual_result["status"], "complete");
+        assert_eq!(multilingual_result["context"]["estimatedTokens"].as_u64(), Some(multilingual_preview.estimated_tokens as u64));
+        assert_eq!(multilingual_result["context"]["limit"], 2048);
+        let multilingual_count = multilingual_count.expect("real multilingual prompt_eval_count required");
+        assert!(multilingual_count > 0);
+        assert!(multilingual_count + u64::from(output_budget(2048)) <= u64::from(multilingual_preview.estimated_tokens));
+        assert!(multilingual_result["evalCount"].as_u64().unwrap() <= u64::from(output_budget(2048)));
         drop(storage);
         let reopened = NativeVault::open(&path).unwrap();
         let saved = reopened.get_chat_message("thread_alpha", "message_asst_001").unwrap().unwrap();
         assert_eq!(saved.content, streamed);
         assert_eq!(saved.status, "complete");
         assert!(reopened.get_chat_message("thread_bravo", "message_asst_001").unwrap().is_none());
+        let second_saved = reopened.get_chat_message("thread_bravo", "message_asst_002").unwrap().unwrap();
+        assert_eq!(second_saved.status, "complete");
+        assert!(!second_saved.content.trim().is_empty());
         let alpha = reopened.get_inference_settings("thread_alpha").unwrap().unwrap();
         let bravo = reopened.get_inference_settings("thread_bravo").unwrap().unwrap();
         assert_eq!(alpha.model, model); assert_eq!(alpha.context_limit, 1024);
@@ -1003,6 +1038,15 @@ mod tests {
             "eval_count":result["evalCount"], "context_preview_matches":true,
             "context_limit":1024, "estimated_tokens":preview.estimated_tokens,
             "terminal_count":1, "durable_receipt_and_restart":true, "thread_settings_isolated":true,
+            "token_calibration": [
+                {"case":"short_english","context_limit":1024,"estimated_total":preview.estimated_tokens,
+                 "runtime_reported_prompt":reported_prompt,"reserved_output":output_budget(1024),
+                 "generated_tokens":result["evalCount"]},
+                {"case":"mixed_utf8","context_limit":2048,"estimated_total":multilingual_preview.estimated_tokens,
+                 "runtime_reported_prompt":multilingual_count,"reserved_output":output_budget(2048),
+                 "generated_tokens":multilingual_result["evalCount"]}
+            ],
+            "token_counts_scope":"runtime-reported counts; cache and template dependent, not a universal tokenizer bound",
             "done":true
         });
         let mut file = std::fs::OpenOptions::new().write(true).create_new(true).open(proof_path).unwrap();
