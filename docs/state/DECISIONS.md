@@ -218,3 +218,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P03 | Apply reviewed F01/F02/F04/F05 repair candidate plus F03 acknowledgement/status consistency; preserve active task status | Failed exact-head native assertion, bounded standard I/O, shared conservative draft-aware context and strict validation; interruptible transport and exact-head acceptance remain pending.
 
 2026-11-25 | P03 | Interruptible async loopback transport using pinned reqwest and a latched wakeable cancellation state | Prior Windows baseline passed; preserve byte limits and terminal persistence, no new dependency/schema/capability. Candidate tests require fresh exact-head native CI and real model UI proof.
+
+2026-11-25 | P03 | Expand cancellation acceptance without depending on installed runtime | Prior exact-head Windows baseline 45660752755 passed 57 native and 9 focused vault tests. Add bounded deterministic loopback stall/retry and terminal race fixtures; preserve real Ollama and native UI acceptance gates.

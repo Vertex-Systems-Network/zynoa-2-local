@@ -3,7 +3,7 @@
   "module_id": "M03",
   "kind": "feature",
   "title": "Per-thread model and context controls",
-  "summary": "Native cancellation candidate uses interruptible async loopback transport, bounded framing and sealed terminal persistence; prior Windows baseline passed, new exact-head native proof pending.",
+  "summary": "Async loopback cancellation and bounded framing passed prior exact-head Windows baseline; extended cancellation-stage, retry and terminal race fixtures await fresh native CI.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [],

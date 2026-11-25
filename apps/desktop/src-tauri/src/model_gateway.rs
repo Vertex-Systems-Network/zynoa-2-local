@@ -738,6 +738,176 @@ mod tests {
         assert_eq!(saved.status, "cancelled"); assert_eq!(saved.content, "partial");
     }
 
+    // A loopback fixture that deliberately stalls one HTTP stage without
+    // relying on an installed model. Then accept an explicit retry.
+    #[test]
+    fn cancel_inventory_headers_and_incomplete_frame_then_retry() {
+        use std::sync::mpsc;
+        use std::time::{Instant, SystemTime, UNIX_EPOCH};
+        fn accept(listener: &TcpListener) -> std::net::TcpStream {
+            let start = Instant::now();
+            loop {
+                match listener.accept() {
+                    Ok((stream, _)) => {
+                        stream.set_nonblocking(false).unwrap();
+                        stream.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+                        stream.set_write_timeout(Some(Duration::from_secs(3))).unwrap();
+                        return stream;
+                    }
+                    Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                        assert!(start.elapsed() < Duration::from_secs(8), "fixture accept timed out");
+                        std::thread::sleep(Duration::from_millis(5));
+                    }
+                    Err(e) => panic!("fixture accept: {e}"),
+                }
+            }
+        }
+        fn read_request(stream: &mut std::net::TcpStream) -> String {
+            use std::io::BufRead;
+            let mut reader = std::io::BufReader::new(stream);
+            let mut first = String::new();
+            assert!(reader.read_line(&mut first).unwrap() > 0);
+            let mut length = 0usize;
+            loop {
+                let mut line = String::new();
+                assert!(reader.read_line(&mut line).unwrap() > 0);
+                if line == "\r\n" { break; }
+                if let Some((key, value)) = line.split_once(':') {
+                    if key.eq_ignore_ascii_case("content-length") { length = value.trim().parse().unwrap(); }
+                }
+            }
+            let mut bytes = vec![0; length]; reader.read_exact(&mut bytes).unwrap();
+            first
+        }
+        fn json_response(stream: &mut std::net::TcpStream, body: &str) {
+            write!(stream, "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}", body.len(), body).unwrap();
+        }
+        const VERSION: &str = r#"{"version":"0.40.18"}"#;
+        const MODELS: &str = r#"{"models":[{"name":"qwen2.5:0.5b","digest":"abc","size":42}]}"#;
+        for stage in ["inventory", "headers", "frame"] {
+            let root = std::env::temp_dir().join(format!("zynoa-cancel-stage-{}-{}-{stage}", std::process::id(),
+                SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos()));
+            let path = root.join("com.zynoa.desktop");
+            std::fs::create_dir_all(&path).unwrap();
+            struct Cleanup(std::path::PathBuf);
+            impl Drop for Cleanup { fn drop(&mut self) { let _ = std::fs::remove_dir_all(&self.0); } }
+            let _cleanup = Cleanup(root);
+            let mut vault = NativeVault::open(&path).unwrap();
+            vault.create_conversation("thread_alpha", "Alpha").unwrap();
+            vault.append_chat_message(ChatMessageInput { id: "message_user_001", conversation_id: "thread_alpha",
+                parent_id: None, role: ChatRole::User, content: "Hello", status: ChatStatus::Complete }).unwrap();
+            vault.set_inference_settings("thread_alpha", "qwen2.5:0.5b", 2048).unwrap();
+            let storage = Arc::new(Mutex::new(vault));
+            let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+            listener.set_nonblocking(true).unwrap();
+            let gateway = LocalModelGateway::fixture(&format!("http://{}", listener.local_addr().unwrap()));
+            let (stalled_tx, stalled_rx) = mpsc::channel::<()>();
+            let (release_tx, release_rx) = mpsc::channel::<()>();
+            let server = std::thread::spawn(move || {
+                let mut version = accept(&listener);
+                assert!(read_request(&mut version).starts_with("GET /api/version "));
+                if stage == "inventory" {
+                    stalled_tx.send(()).unwrap();
+                    let _ = release_rx.recv_timeout(Duration::from_secs(5));
+                    drop(version);
+                } else {
+                    json_response(&mut version, VERSION); drop(version);
+                    let mut models = accept(&listener);
+                    assert!(read_request(&mut models).starts_with("GET /api/tags "));
+                    json_response(&mut models, MODELS); drop(models);
+                    let mut chat = accept(&listener);
+                    assert!(read_request(&mut chat).starts_with("POST /api/chat "));
+                    if stage == "frame" {
+                        let incomplete = "{\"message\":{\"content\":\"uncommitted";
+                        write!(chat, "HTTP/1.1 200 OK\r\nContent-Type: application/x-ndjson\r\nTransfer-Encoding: chunked\r\n\r\n{:X}\r\n{}\r\n", incomplete.len(), incomplete).unwrap();
+                        chat.flush().unwrap();
+                    }
+                    stalled_tx.send(()).unwrap();
+                    let _ = release_rx.recv_timeout(Duration::from_secs(5));
+                    drop(chat);
+                }
+                let mut version = accept(&listener);
+                assert!(read_request(&mut version).starts_with("GET /api/version "));
+                json_response(&mut version, VERSION); drop(version);
+                let mut models = accept(&listener);
+                assert!(read_request(&mut models).starts_with("GET /api/tags "));
+                json_response(&mut models, MODELS); drop(models);
+                let mut chat = accept(&listener);
+                assert!(read_request(&mut chat).starts_with("POST /api/chat "));
+                let body = "{\"message\":{\"content\":\"retry complete\"},\"done\":true,\"eval_count\":2}\n";
+                write!(chat, "HTTP/1.1 200 OK\r\nContent-Type: application/x-ndjson\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}", body.len(), body).unwrap();
+            });
+            let stopper_gateway = gateway.clone();
+            let stopper = std::thread::spawn(move || {
+                stalled_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+                // Give the client a chance to enter its pending read.
+                std::thread::sleep(Duration::from_millis(50));
+                assert!(!stopper_gateway.cancel_turn("thread_alpha", "wrong_turn_01").unwrap());
+                let start = Instant::now();
+                assert!(stopper_gateway.cancel_turn("thread_alpha", "turn_alpha_001").unwrap());
+                start
+            });
+            let events = Mutex::new(Vec::<ModelEvent>::new());
+            let first = tauri::async_runtime::block_on(gateway.generate(&storage, GeneratePayload {
+                conversation_id: "thread_alpha".into(), turn_id: "turn_alpha_001".into(),
+                parent_id: "message_user_001".into(), assistant_message_id: "message_asst_001".into(),
+            }, &|event| { events.lock().unwrap().push(event); Ok(()) }));
+            let elapsed = stopper.join().unwrap().elapsed();
+            let _ = release_tx.send(());
+            let first = first.unwrap();
+            assert!(elapsed < Duration::from_secs(2), "Stop stalled at {stage}: {elapsed:?}");
+            assert_eq!(first["status"], "cancelled", "{stage}");
+            assert!(first["receipt"].is_null());
+            assert!(gateway.active.lock().unwrap().is_empty());
+            assert!(!gateway.cancel_turn("thread_alpha", "turn_alpha_001").unwrap());
+            {
+                let mut recorded = events.lock().unwrap();
+                assert_eq!(recorded.len(), 1);
+                assert_eq!(recorded[0].kind, "terminal");
+                assert_eq!(recorded[0].sequence, 1);
+                recorded.clear();
+            }
+            let retry = tauri::async_runtime::block_on(gateway.generate(&storage, GeneratePayload {
+                conversation_id: "thread_alpha".into(), turn_id: "turn_alpha_002".into(),
+                parent_id: "message_user_001".into(), assistant_message_id: "message_asst_002".into(),
+            }, &|event| { events.lock().unwrap().push(event); Ok(()) })).unwrap();
+            server.join().unwrap();
+            assert_eq!(retry["status"], "complete", "{stage}");
+            assert_eq!(retry["receipt"]["id"], "message_asst_002");
+            assert_eq!(retry["evalCount"], 2);
+            assert!(gateway.active.lock().unwrap().is_empty());
+            let recorded = events.into_inner().unwrap();
+            assert_eq!(recorded.len(), 2);
+            assert_eq!(recorded[0].turn_id, "turn_alpha_002");
+            assert_eq!(recorded[0].kind, "delta");
+            assert_eq!(recorded[1].kind, "terminal");
+            drop(storage);
+            let reopened = NativeVault::open(&path).unwrap();
+            assert!(reopened.get_chat_message("thread_alpha", "message_asst_001").unwrap().is_none());
+            let saved = reopened.get_chat_message("thread_alpha", "message_asst_002").unwrap().unwrap();
+            assert_eq!(saved.status, "complete");
+            assert_eq!(saved.content, "retry complete");
+        }
+    }
+
+    #[test]
+    fn accepted_stop_and_terminal_seal_agree_under_race() {
+        for _ in 0..32 {
+            let state = Arc::new(TurnCancellation::default());
+            let barrier = Arc::new(std::sync::Barrier::new(2));
+            let other = state.clone();
+            let start = barrier.clone();
+            let worker = std::thread::spawn(move || {
+                start.wait();
+                other.request()
+            });
+            barrier.wait();
+            let cancelled = state.seal();
+            assert_eq!(worker.join().unwrap(), cancelled);
+            assert!(!state.request());
+        }
+    }
+
     #[test]
     fn client_constructor_rejects_remote_credentials_and_paths() {
         for base in [

@@ -1,5 +1,7 @@
 # Handoff (canonical starter)
 
+- **P03 T05 cancellation coverage candidate (2026-11-25):** [Windows baseline](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45660752755) at exact source 7a8b712 passed 57/57 native and 9/9 focused vault tests, including stalled-stream partial receipt and restart readback. Added fixture cancellation during inventory, headers and incomplete frame; explicit retry and Stop/seal race tests. New exact-head CI and real Ollama/UI proof pending. 3/16 DONE; lease cleared; no merge/release.
+
 - **P03 T05 interruptible transport candidate (2026-11-25):** prior exact-head 3db0973 [Windows baseline](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45655294313) passed. New candidate async fixed-loopback transport, latched cancellation, bounded frames and stalled-body/restart fixture; [scope and remaining acceptance](../evidence/P03_T05_INTERRUPTIBLE_TRANSPORT_20261125.md). New exact-head tests pending; T04–T07 IN_PROGRESS, lease cleared, no merge/release.
 
 - **P03 T04–T07 CI repair candidate (2026-11-25):** F01/F02/F04/F05 source and regression changes plus partial F03 acknowledgement/status repair; [evidence and remaining gates](../evidence/P03_T04_T07_CI_REPAIR_20261125.md). Failed exact-head baseline 45645555852, 51/52 native tests; fresh Windows/governance CI pending. Interruptible transport, real model tokenizer calibration, native captures and hosted Wiki remain pending. 3/16 DONE; lease cleared; no merge/release.
