@@ -154,3 +154,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P02 | Improve real M26 keyboard workflow and responsive UI before further acceptance | Empty-state reset, notice detail focus/return, disabled reason Tab navigation and actual transport guidance solve user-facing gaps; preserve strict source/runtime evidence and phase order.
 
 2026-11-25 | P02 | Preserve actual input accessibility focus and decouple native option verification from screen failure | Both M26 live screen-reader gates passed; option journey previously skipped, legacy default active descendant can report result rather than edit, strict aggregate CI remains fail closed.
+
+2026-11-25 | P02 | Synchronize T04 source assertions with deliberate palette result navigation | Same inherited assertion blocked Windows and Governance before native execution; preserve modal isolation, keyboard movement, default Enter and focus return requirements.

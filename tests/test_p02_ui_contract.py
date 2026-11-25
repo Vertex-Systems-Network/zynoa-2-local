@@ -411,7 +411,9 @@ class P02UIContractTests(unittest.TestCase):
             'if (event.key === "ArrowDown" || event.key === "ArrowUp")',
             'event.key === "Enter" && matches.length',
             'navigationRef.current = true',
-            'aria-activedescendant={matches.length',
+            'aria-activedescendant={resultNavigation && matches.length',
+            'const [resultNavigation, setResultNavigation] = useState(false);',
+            'setResultNavigation(matches.length > 0);',
         ):
             self.assertIn(snippet, palette, snippet)
         self.assertIn('inert={paletteOpen}', app)
@@ -419,7 +421,16 @@ class P02UIContractTests(unittest.TestCase):
         self.assertIn('returnFocusTarget={paletteOpenerRef.current}', app)
         self.assertIn('maxLength={100}', palette)
         self.assertIn('No matching commands', palette)
-        self.assertIn('onChange={event => { setQuery(event.target.value); setSelected(0); }}', palette)
+        self.assertIn('onChange={event => { setQuery(event.target.value); setSelected(0); setResultNavigation(false); }}', palette)
+        self.assertIn('execute(matches[Math.min(selected, matches.length - 1)])', palette)
+        self.assertIn('matches.length ? (current + direction + matches.length) % matches.length : 0', palette)
+        self.assertIn('onMouseEnter={() => { setSelected(index); setResultNavigation(false); }}', palette)
+        arrow = palette.split('if (event.key === "ArrowDown" || event.key === "ArrowUp")', 1)[1].split('if (event.key === "Enter"', 1)[0]
+        self.assertIn('setResultNavigation(matches.length > 0);', arrow)
+        self.assertIn('inputRef.current?.focus();', arrow)
+        self.assertNotIn('aria-activedescendant={matches.length', palette)
+        close = palette.split('if (!open) {', 1)[1].split('}, [open]);', 1)[0]
+        self.assertIn('setResultNavigation(false);', close)
         ids = ('M02-S04', 'P02-T04-NO-MATCH', 'P02-T04-ESCAPE',
                'M19-S01', 'P02-T04-ENTER-NAV')
         for a, b in zip(ids, ids[1:]):

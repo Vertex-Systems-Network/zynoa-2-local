@@ -1,5 +1,7 @@
 # Handoff (canonical starter)
 
+- **P02-T12 inherited T04 contract synchronization:** d6bd844 Windows #45561113697 and Governance #45561113748 failed obsolete unconditional active-descendant assertion; five companions passed. Updated keyboard contract for deliberate result navigation, focus and reset; no runtime gate changed. Fresh CI needed. T12 IN_PROGRESS, T13 TODO; lease released.
+
 - **P02-T12 both scoped live screen readers pass (2026-11-25):** original #45559091052 artifact 14997054311 confirms M26 NVDA 3 and Narrator 5 spoken stages at 8a40e20. Base foreground focus race and legacy palette failure remain; command palette actual edit focus improved; bounded native focus acquisition and independent option gate added. Fresh CI, 20-option original evidence, visual/manifest acceptance pending. T12 IN_PROGRESS, T13 TODO; lease released.
 
 - **P02-T12 product usability refinement (2026-11-25):** Windows #45553269673 M26 NVDA passed again; Narrator entry succeeded, no-match target missing, base native foreground and legacy NVDA focus still failed. Added actual no-match reset, keyboard detail/return focus, accessible disabled explanations, truthful runtime guidance and content-width responsive UI. New source tests; fresh native/visual acceptance required. T12 IN_PROGRESS, T13 TODO, lease released.
