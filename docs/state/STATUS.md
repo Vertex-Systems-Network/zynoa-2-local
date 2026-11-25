@@ -1,5 +1,7 @@
 # Status — 2026-11-25
 
+**P03-T01/T02 DONE, T03 IN_PROGRESS** — closeout all six workflows green at `040ef383`; [T03 preflight](../evidence/P03_T03_PREFLIGHT.md) committed. 2/16 complete, 1 active, 13 pending. Product IPC/UI implementation and native interaction verification pending.
+
 **P03-T01 and T02 DONE** — 2/16 (12% floor), native exact-source Windows migration, rollback and staged restoration accepted; [T02 evidence](../evidence/P03_T02_CHAT_VAULT.md). Governance 753 pass, Rust 41/41, focused migration 9/9, original proof ZIP independently verified. Native warnings 44 versus 36 baseline; T03/T14 resolution pending. Next T03; no merge or release.
 
 **P03-T01 DONE; T02 IN_PROGRESS** — exact-head Windows and local model baseline verified, original proof ZIPs hash-checked, [preflight evidence](../evidence/P03_T01_PREFLIGHT.md). 1/16 tasks completed. Inherited build warnings tracked; no P03 release or merge.
