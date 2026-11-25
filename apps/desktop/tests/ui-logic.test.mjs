@@ -62,7 +62,10 @@ test("offline help search and category filter work without network", () => {
   assert.equal(searchHelp("  ").length, helpArticles.length);
   assert.ok(searchHelp("theme").some(x => x.id === "appearance"));
   assert.equal(searchHelp("totally-unmatched-phrase").length, 0);
-  assert.deepEqual(searchHelp("", "Privacy").map(x => x.category), ["Privacy", "Privacy"]);
+  const privacy = searchHelp("", "Privacy");
+  assert.deepEqual(privacy.map(x=>x.id).sort(), helpArticles.filter(x=>x.category==="Privacy").map(x=>x.id).sort());
+  assert.ok(privacy.every(x=>x.category==="Privacy"));
+  for(const id of ["backup-center","data-locations","update-center"]) assert.ok(privacy.some(x=>x.id===id));
   assert.equal(searchHelp("M02-OPT-02")[0].id, "appearance");
   assert.equal(searchHelp("windows native").some(x => x.id === "native-troubleshooting"), true);
   assert.ok(searchHelp("HELP").every(x => x.id && x.title));
@@ -375,7 +378,7 @@ test("M26 service boundaries are explicit and never imply authorization", () => 
   assert.equal(resolveNoticeSelection(filterChangeNotices("zzznomatch","All"),all[0].id),undefined);
 });
 
-import {systemCenters,getSystemCenter,centerAvailability,initialCenterDraft,updateCenterDraft} from "../.ui-tests/system-centers.js";
+import {systemCenters,getSystemCenter,centerAvailability,initialCenterDraft,updateCenterDraft,filterCenterScreens} from "../.ui-tests/system-centers.js";
 test("P02 T13 exact system centers, draft and transport boundaries",()=>{
   assert.equal(systemCenters.flatMap(x=>x.screens).length,24);
   assert.equal(systemCenters.flatMap(x=>x.options).length,50);
@@ -394,4 +397,15 @@ test("P02 T13 exact system centers, draft and transport boundaries",()=>{
     assert.deepEqual(updateCenterDraft(center,initial,"__proto__",true),initial);
   }
   assert.deepEqual(["pending","connected","unavailable","preview"].map(x=>centerAvailability(x).state),["loading","active","error","offline"]);
+});
+
+test("T13 system center search finds exact controls and retains local scope",()=>{
+  for(const center of systemCenters){
+    assert.equal(filterCenterScreens(center,"  ").length,center.screens.length);
+    assert.equal(filterCenterScreens(center,"__missing__").length,0);
+    for(const option of center.options){const result=filterCenterScreens(center,option.id.toLowerCase());assert.equal(result.length,1);assert.ok(result[0].options.includes(option.id));}
+  }
+  assert.ok(filterCenterScreens(getSystemCenter("backup"),"encrypt passphrase").some(s=>s.id==="M23-S04"));
+  assert.ok(filterCenterScreens(getSystemCenter("locations"),"Ollama path").some(s=>s.id==="M24-S02"));
+  assert.ok(filterCenterScreens(getSystemCenter("updates"),"release channel").some(s=>s.id==="M25-S06"));
 });

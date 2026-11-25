@@ -654,3 +654,12 @@ export function updateCenterDraft(center:CenterDefinition,current:Readonly<Recor
      (option.kind==="select"&&(typeof value!=="string"||!option.choices?.includes(value))))return {...current};
   return {...current,[id]:value};
 }
+
+/** Local all-word search across canonical screen and option labels, bounded like the command palette. */
+export function filterCenterScreens(center:CenterDefinition,query:string):readonly CenterScreen[]{
+  const words=query.trim().slice(0,100).toLowerCase().split(/\s+/).filter(Boolean);
+  return center.screens.filter(screen=>{
+    const haystack=[screen.id,screen.title,screen.description,screen.status,...center.options.filter(o=>screen.options.includes(o.id)).flatMap(o=>[o.id,o.title,o.reason])].join(" ").toLowerCase();
+    return words.every(word=>haystack.includes(word));
+  });
+}

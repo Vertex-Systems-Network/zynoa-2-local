@@ -26,5 +26,14 @@
     "Real 74-image Windows candidate capture and independent review",
     "Exact-head CI and hosted Wiki"
   ],
-  "results": "Source implemented; native verification pending."
+  "results": "b7728a3 first exact-head run: TypeScript and six companion workflows passed, frontend UI tests failed one old Privacy catalog cardinality expectation. Updated exact category membership plus explicit new guide checks, option-aware search and focus recovery. Fresh native run required.",
+  "first_ci": {
+    "source_sha": "b7728a349b9549625ac53007e5ec180cc33c86e9",
+    "run_id": 45578253329,
+    "job_id": 139081591144,
+    "typescript": "pass",
+    "frontend": "one inherited catalog assertion failed",
+    "native": "not run",
+    "companion_workflows_passed": 6
+  }
 }

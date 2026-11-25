@@ -23,7 +23,7 @@ class T13Contracts(unittest.TestCase):
                 self.assertTrue(option["reason"])
     def test_actual_ui_and_no_mutation(self):
         view=(ROOT/"apps/desktop/src/ui/SystemCenter.tsx").read_text(encoding="utf-8")
-        for token in ('aria-current=','aria-describedby=','tabIndex={0}','tabIndex={-1}','disabled aria-label=','updateCenterDraft','Reset session drafts','centerAvailability','onDiagnostics','No simulated history'):
+        for token in ('aria-current=','aria-describedby=','tabIndex={0}','tabIndex={-1}','disabled aria-label=','updateCenterDraft','Reset session drafts','centerAvailability','onDiagnostics','No simulated history','filterCenterScreens','returnToScreen','clearSearch'):
             self.assertIn(token,view)
         for token in ("invoke(","fetch(","localStorage","sessionStorage","window.open","dangerouslySetInnerHTML"):
             self.assertNotIn(token,view)
