@@ -1,0 +1,35 @@
+{
+  "change_id": "CHG-P03-M03-NATIVE-BASELINE-20261125",
+  "module_id": "M03",
+  "kind": "maintenance",
+  "title": "P03 exact-head Windows native baseline",
+  "summary": "Add phase-scoped read-only native build and runtime baseline preserving previous phase regressions. Evidence pending CI.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
+  "affected_option_ids": [],
+  "docs_paths": [
+    "docs/evidence/P03_T01_PREFLIGHT.md",
+    "docs/state/HANDOFF.md"
+  ],
+  "help_paths": [],
+  "wiki_paths": [],
+  "test_evidence": [
+    ".github/workflows/p03-native-baseline.yml"
+  ],
+  "commit_sha": "6185962abab5686f723fc35f49140dabf2a93f6a",
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No user data or product code change; revert baseline workflow to roll back.",
+  "created_at": "2026-11-25",
+  "updated_at": "2026-11-25",
+  "version_bump": "none",
+  "docs_impact": false,
+  "data_migration": false
+}

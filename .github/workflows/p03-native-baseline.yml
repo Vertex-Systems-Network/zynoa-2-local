@@ -1,0 +1,178 @@
+name: P03 Native Chat Baseline
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/desktop/**'
+      - 'docs/state/PHASE.json'
+      - 'docs/evidence/P03_T01_PREFLIGHT.md'
+      - 'tests/test_p03_*.py'
+      - 'scripts/*p03*'
+      - 'tools/*p03*'
+      - '.github/workflows/p03-native-baseline.yml'
+permissions:
+  contents: read
+concurrency:
+  group: p03-native-baseline-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  baseline-windows:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'phase/03-chat'
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with: { python-version: '3.12' }
+      - uses: actions/setup-node@v6
+        with: { node-version: '22', package-manager-cache: false }
+      - name: Verify exact source and phase identity
+        shell: pwsh
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha }}
+          PRIMARY_PR: ${{ github.event.pull_request.number }}
+        run: |
+          if ((git rev-parse HEAD).Trim() -cne $env:EXACT_HEAD) { throw 'P03 source mismatch' }
+          $s = Get-Content docs/state/PHASE.json -Raw | ConvertFrom-Json
+          if ($s.phase -cne 'P03' -or $s.phase_status -cne 'IN_PROGRESS' -or $s.active_branch -cne 'phase/03-chat' -or $s.primary_pr -ne [int]$env:PRIMARY_PR) { throw 'P03 phase binding mismatch' }
+      - name: Existing native and shared UI regression suite
+        run: python -m unittest discover -s tests -v
+      - name: Resolve pinned dependency inventory
+        working-directory: apps/desktop
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Install verified lockfile dependencies
+        working-directory: apps/desktop
+        run: npm ci --no-audit --no-fund
+      - name: Frontend TypeScript check
+        working-directory: apps/desktop
+        run: npm run check
+      - name: Frontend UI algorithm tests
+        working-directory: apps/desktop
+        run: npm run test:ui
+      - name: Frontend offline production bundle
+        working-directory: apps/desktop
+        run: npm run build
+      - name: Native IPC validation tests (no user data)
+        working-directory: apps/desktop/src-tauri
+        run: cargo test --lib --release
+      - name: Native Windows desktop build (no release or signature)
+        id: native_build
+        working-directory: apps/desktop
+        run: npm run tauri -- build --no-bundle
+      - name: Real native startup and exact-source timing
+        shell: pwsh
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
+          if (!(Test-Path -LiteralPath $exe)) { throw 'P03 native binary missing' }
+          $root = Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop'
+          if (Test-Path -LiteralPath $root) { throw 'P03 requires a fresh disposable runner profile' }
+          $clock = [System.Diagnostics.Stopwatch]::StartNew()
+          $process = Start-Process -FilePath $exe -PassThru
+          try {
+            $deadline = (Get-Date).AddSeconds(45)
+            do {
+              Start-Sleep -Milliseconds 500
+              $process.Refresh()
+              if ($process.HasExited) { throw 'P03 native process exited before readiness' }
+              $ready = ($process.MainWindowHandle -ne 0) -and (Test-Path -LiteralPath (Join-Path $root 'diagnostics\events-v1.jsonl')) -and (Test-Path -LiteralPath (Join-Path $root 'data\state.sqlite')) -and (Test-Path -LiteralPath (Join-Path $root 'storage-locations-v1.json'))
+            } until ($ready -or (Get-Date) -ge $deadline)
+            if (!$ready) { throw 'P03 native window and metadata startup not verified' }
+            $proof = [ordered]@{schema_version=1; source_commit_sha=$env:EXACT_HEAD; executable_sha256=(Get-FileHash -Algorithm SHA256 -LiteralPath $exe).Hash.ToLowerInvariant(); startup_window_and_metadata_ms=[int64]$clock.ElapsedMilliseconds; no_user_data=$true; scope='native baseline only'}
+            $proof | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'p03-native-baseline.json') -Encoding utf8
+          } finally {
+            $process.Refresh()
+            if (!$process.HasExited) { Stop-Process -Id $process.Id -Force }
+          }
+      - name: Verify native boot wrote only allowlisted diagnostic metadata
+        shell: pwsh
+        run: |
+          $path = Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop\diagnostics\events-v1.jsonl'
+          if (-not (Test-Path -LiteralPath $path)) { throw 'ZYN-DIAG-101: missing real startup record' }
+          $lines = @(Get-Content -LiteralPath $path -Encoding utf8)
+          if ($lines.Count -lt 1) { throw 'ZYN-DIAG-102: empty spool' }
+          $records = @($lines | ForEach-Object { $_ | ConvertFrom-Json })
+          if (-not @($records | Where-Object { $_.module -eq 'M01' -and $_.code -eq 'BootReady' }).Count) { throw 'ZYN-DIAG-103: missing boot event' }
+          foreach ($record in $records) {
+            if ($record.schema_version -ne 1 -or $record.fingerprint.Length -gt 120) { throw 'ZYN-DIAG-104: invalid schema' }
+            $keys = @($record.PSObject.Properties.Name)
+            $allowed = @('schema_version', 'module', 'severity', 'code', 'fingerprint', 'trace_id', 'first_seen_ms', 'last_seen_ms', 'occurrence_count')
+            foreach ($key in $keys) { if ($key -notin $allowed) { throw 'ZYN-DIAG-105: unsafe extra field' } }
+          }
+          Write-Output 'Native startup diagnostic record validated without exposing raw private data'
+      - name: Verify real native vault outside executable after cold boot
+        shell: pwsh
+        run: |
+          $file = Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop\data\state.sqlite'
+          if (-not (Test-Path -LiteralPath $file)) { throw 'ZYN-DAT-101: native app vault missing' }
+          $env:ZYNOA_CI_VAULT = $file
+          @'
+          import os
+          import sqlite3
+          from pathlib import Path
+          path = Path(os.environ["ZYNOA_CI_VAULT"])
+          assert path.is_file() and path.name == "state.sqlite"
+          assert "src-tauri" not in str(path).lower()
+          uri = f"file:{path.as_posix()}?mode=ro"
+          with sqlite3.connect(uri, uri=True) as db:
+              assert db.execute("PRAGMA user_version").fetchone()[0] == 1
+              assert db.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+              assert db.execute("PRAGMA journal_mode").fetchone()[0].lower() == "wal"
+              assert db.execute("SELECT count(*) FROM records").fetchone()[0] == 0
+          print("Native app vault schema/integrity verified; no user records created")
+          '@ | python -
+      - name: Verify local storage ownership registry after real native boot
+        shell: pwsh
+        run: |
+          $file = Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop\storage-locations-v1.json'
+          if (-not (Test-Path -LiteralPath $file)) { throw 'ZYN-STO-101: registry missing' }
+          $env:ZYNOA_CI_REGISTRY = $file
+          @'
+          import os, json
+          from pathlib import Path
+          path = Path(os.environ["ZYNOA_CI_REGISTRY"])
+          registry = json.loads(path.read_text(encoding="utf-8"))
+          assert registry["schema_version"] == 1
+          assert registry["app_id"] == "com.zynoa.desktop"
+          keys = {item["kind"]:item for item in registry["locations"]}
+          for kind in ("user_vault","diagnostics","backups","cache","download_staging","managed_models"):
+              assert keys[kind]["owner"] == "app_managed"
+              relative = keys[kind]["relative"]
+              assert relative and not Path(relative).is_absolute()
+              assert ".." not in Path(relative).parts
+              assert keys[kind]["move_allowed"] is False
+          assert keys["external_runtime"]["owner"] == "external_read_only"
+          assert keys["external_runtime"]["relative"] is None
+          assert keys["external_runtime"]["move_allowed"] is False
+          print("Native registry safe ownership and no-move defaults verified")
+          '@ | python -
+      - name: Verify native append-only event DB after real startup
+        shell: pwsh
+        run: |
+          $file = Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop\data\change-events-v1.sqlite'
+          if (-not (Test-Path -LiteralPath $file)) { throw 'ZYN-CHG-101: native audit database absent' }
+          $env:ZYNOA_CI_EVENTS = $file
+          @'
+          import os, sqlite3
+          from pathlib import Path
+          p = Path(os.environ["ZYNOA_CI_EVENTS"])
+          assert p.is_file() and "src-tauri" not in str(p).lower()
+          uri = f"file:{p.as_posix()}?mode=ro"
+          with sqlite3.connect(uri, uri=True) as c:
+              assert c.execute("PRAGMA user_version").fetchone()[0] == 1
+              assert c.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+              assert c.execute("PRAGMA journal_mode").fetchone()[0].lower() == "wal"
+              assert c.execute("SELECT count(*) FROM audit_events").fetchone()[0] == 0
+              triggers = {t[0] for t in c.execute("SELECT name FROM sqlite_master WHERE type='trigger'")}
+              assert {"audit_events_no_update", "audit_events_no_delete"} <= triggers
+          print("Private native event ledger verified: WAL, schema, append-only triggers, zero fabricated events")
+          '@ | python -
+      - uses: actions/upload-artifact@v6
+        with:
+          name: p03-native-baseline-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-native-baseline.json
+          if-no-files-found: error

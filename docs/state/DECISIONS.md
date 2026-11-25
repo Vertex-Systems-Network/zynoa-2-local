@@ -186,3 +186,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P02 | Add fixed receipt denial codes and trusted-main path trigger for postmerge repair | Issue #22: do not guess root cause or relax any required proof; no P03 until actual receipt; maintenance snapshot unchanged.
 
 2026-11-25 | P02 | Use PR write scope rather than general issue write for main-only receipt and allowlisted HTTP status diagnostics | #22 confirmed POST-stage denial; https://docs.github.com/en/rest/issues/comments#create-an-issue-comment documents PR write; test actual publication before transition.
+
+2026-11-25 | P03 | Activate phase only after independent P02 bot receipt; use separate read-only exact-head Windows baseline workflow | Preserve P02 evidence and gates, avoid changing P01/P02 workflow scope. Real native baseline pending before feature code.

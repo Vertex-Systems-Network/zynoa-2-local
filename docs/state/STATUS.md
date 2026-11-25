@@ -1,5 +1,7 @@
 # Status — 2026-11-25
 
+**Current P03 status on phase branch** — `IN_PROGRESS`, [draft PR #25](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25), T01 predevelopment only (0/16 DONE). P02 receipt [verified](https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/12#issuecomment-7161982157). Native baseline pending. Protected main continues to record verified P02 until P03 merges.
+
 **Current P02 status (2026-11-25)** — `MERGED_VERIFIED`. All 13 phase tasks are complete. The approved source `502bef4` passed all seven workflows, and primary PR #12 merged to protected `main` at `115b6c7`. [Merge evidence](../evidence/P02_T11_MERGE_VERIFIED_20261125.md).
 
 ## Earlier phase updates
