@@ -10,7 +10,14 @@ test("model health accepts bounded installed inventory and rejects extra authori
 test("settings and context require exact bounded fields",()=>{
  const settings=decodeModelReply(root("inference.settings.set","correlation-00001",{settings:{model:"qwen2.5:0.5b",contextLimit:2048,revision:2}}),"inference.settings.set","correlation-00001",{conversationId:"thread-alpha-0001",model:"qwen2.5:0.5b",contextLimit:2048});
  assert.equal(settings.settings.revision,2);
+ assert.throws(()=>decodeModelReply(root("inference.settings.get","correlation-00001",{settings:{model:"qwen2.5:0.5b",contextLimit:"2048",revision:2}}),"inference.settings.get","correlation-00001",{conversationId:"thread-alpha-0001"}));
  assert.throws(()=>decodeModelReply(root("inference.settings.set","correlation-00001",{settings:{model:"https://remote",contextLimit:777,revision:2}}),"inference.settings.set","correlation-00001",{conversationId:"thread-alpha-0001",model:"https://remote",contextLimit:777}));
+ for(const model of ["http://remote","https://remote","a//b","../qwen","qwen/","/qwen","qwen\n"]){
+   assert.throws(()=>decodeModelReply(root("inference.settings.get","correlation-00001",{settings:{model,contextLimit:2048,revision:2}}),"inference.settings.get","correlation-00001",{conversationId:"thread-alpha-0001"}));
+   assert.throws(()=>decodeModelReply(root("inference.health","correlation-00001",{version:"x",models:[{name:model,digest:"abc",size:10}]}),"inference.health","correlation-00001",{}));
+ }
+ const namespaced=decodeModelReply(root("inference.health","correlation-00001",{version:"x",models:[{name:"library/qwen2.5:0.5b",digest:"abc",size:10}]}),"inference.health","correlation-00001",{});
+ assert.equal(namespaced.models[0].name,"library/qwen2.5:0.5b");
  const inspected=decodeModelReply(root("inference.context.inspect","correlation-00001",{estimatedTokens:300,limit:1024,includedMessages:3,omittedMessages:1}),"inference.context.inspect","correlation-00001",{conversationId:"thread-alpha-0001",draft:"next"});
  assert.equal(inspected.omittedMessages,1);
 });

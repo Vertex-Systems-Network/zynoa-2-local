@@ -17,7 +17,17 @@ const MAX_MODELS: usize = 128;
 const MAX_EVENT_BYTES: usize = 65_536;
 const MAX_EVENTS: usize = 4096;
 const MAX_OUTPUT_BYTES: usize = 262_144;
-const CONTEXT_RESERVE: u32 = 128;
+const SYSTEM_PROMPT: &str = "You are a local assistant. Answer directly and do not claim unavailable tools.";
+
+fn output_budget(context_limit: u32) -> u32 {
+    std::cmp::min(2048, std::cmp::max(64, context_limit / 4))
+}
+
+fn context_reserve(context_limit: u32) -> u32 {
+    output_budget(context_limit)
+        .saturating_add(NativeVault::estimate_message_tokens(SYSTEM_PROMPT))
+        .saturating_add(32)
+}
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -109,11 +119,7 @@ fn token(value: &str) -> bool {
             .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
 }
 fn model_name(value: &str) -> bool {
-    !value.is_empty()
-        && value.len() <= 128
-        && value
-            .bytes()
-            .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'.' | b'_' | b':' | b'/' | b'-'))
+    crate::vault::valid_model(value)
 }
 fn parse<T: serde::de::DeserializeOwned>(value: Value) -> Result<T, ModelError> {
     serde_json::from_value(value).map_err(|_| fault("ZYN-MODEL-INPUT"))
@@ -165,11 +171,29 @@ impl LocalModelGateway {
         if !reply.status().is_success() {
             return Err(fault("ZYN-MODEL-OFFLINE"));
         }
-        let bytes = reply.bytes().map_err(|_| fault("ZYN-MODEL-RESPONSE"))?;
-        if bytes.len() > 1_000_000 {
+        Self::read_bounded_json(reply)
+    }
+
+    fn read_bounded_json(reader: impl std::io::Read) -> Result<Value, ModelError> {
+        const MAX_JSON_BYTES: usize = 1_000_000;
+        let mut limited = std::io::Read::take(reader, MAX_JSON_BYTES as u64 + 1);
+        let mut bytes = Vec::new();
+        std::io::Read::read_to_end(&mut limited, &mut bytes)
+            .map_err(|_| fault("ZYN-MODEL-RESPONSE"))?;
+        if bytes.len() > MAX_JSON_BYTES {
             return Err(fault("ZYN-MODEL-RESPONSE"));
         }
         serde_json::from_slice(&bytes).map_err(|_| fault("ZYN-MODEL-RESPONSE"))
+    }
+
+    fn read_bounded_event(reader: &mut impl BufRead) -> std::io::Result<Vec<u8>> {
+        let mut limited = std::io::Read::take(reader, MAX_EVENT_BYTES as u64 + 1);
+        let mut line = Vec::new();
+        let size = limited.read_until(b'\n', &mut line)?;
+        if size == 0 || size > MAX_EVENT_BYTES || line.last() != Some(&b'\n') {
+            return Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "ZYN-MODEL-RESPONSE"));
+        }
+        Ok(line)
     }
     fn inventory(&self) -> Result<(String, Vec<Value>), ModelError> {
         let version = self
@@ -236,7 +260,7 @@ impl LocalModelGateway {
                 .map_err(|_| fault("ZYN-MODEL-STORAGE"))?
                 .ok_or_else(|| fault("ZYN-MODEL-SETTINGS"))?;
             let context = vault
-                .model_context(&q.conversation_id, settings.context_limit, CONTEXT_RESERVE)
+                .model_context(&q.conversation_id, settings.context_limit, context_reserve(settings.context_limit))
                 .map_err(|_| fault("ZYN-MODEL-CONTEXT"))?;
             if context.messages.last().map(|m| m.id.as_str()) != Some(q.parent_id.as_str()) {
                 return Err(fault("ZYN-MODEL-INPUT"));
@@ -271,7 +295,7 @@ impl LocalModelGateway {
             conversation: q.conversation_id.clone(),
         };
         let mut messages = vec![
-            json!({"role":"system","content":"You are a local assistant. Answer directly and do not claim unavailable tools."}),
+            json!({"role":"system","content":SYSTEM_PROMPT}),
         ];
         messages.extend(
             context
@@ -280,7 +304,7 @@ impl LocalModelGateway {
                 .map(|m| json!({"role":&m.role,"content":&m.content})),
         );
         let body = json!({"model":settings.model,"messages":messages,"stream":true,
-            "options":{"num_ctx":settings.context_limit,"num_predict":std::cmp::min(2048,std::cmp::max(64,settings.context_limit/4))}});
+            "options":{"num_ctx":settings.context_limit,"num_predict":output_budget(settings.context_limit)}});
         let reply = self
             .client
             .post(format!("{}/api/chat", self.base))
@@ -308,22 +332,13 @@ impl LocalModelGateway {
             if flag.load(Ordering::Acquire) {
                 break;
             }
-            let mut line = Vec::new();
-            let size = match reader.read_until(b'\n', &mut line) {
-                Ok(n) => n,
+            let line = match Self::read_bounded_event(&mut reader) {
+                Ok(line) => line,
                 Err(_) => {
                     stream_failed = true;
                     break;
                 }
             };
-            if size == 0 {
-                stream_failed = true;
-                break;
-            }
-            if size > MAX_EVENT_BYTES {
-                stream_failed = true;
-                break;
-            }
             let event: Value = match serde_json::from_slice(&line) {
                 Ok(v) => v,
                 Err(_) => {
@@ -388,7 +403,7 @@ impl LocalModelGateway {
                     content: &output,
                     status: if cancelled {
                         ChatStatus::Cancelled
-                    } else if complete {
+                    } else if status == "complete" {
                         ChatStatus::Complete
                     } else {
                         ChatStatus::Failed
@@ -479,15 +494,9 @@ fn execute(
                 .map_err(|_| fault("ZYN-MODEL-STORAGE"))?
                 .ok_or_else(|| fault("ZYN-MODEL-SETTINGS"))?;
             let context = vault
-                .model_context(&q.conversation_id, settings.context_limit, CONTEXT_RESERVE)
+                .model_context_with_draft(&q.conversation_id, settings.context_limit, context_reserve(settings.context_limit), &q.draft)
                 .map_err(|_| fault("ZYN-MODEL-CONTEXT"))?;
-            let draft_tokens = ((q.draft.as_bytes().len() as u32).saturating_add(3) / 4)
-                .saturating_add(if q.draft.is_empty() { 0 } else { 8 });
-            let estimated = context.estimated_tokens.saturating_add(draft_tokens);
-            if estimated > context.limit {
-                return Err(fault("ZYN-MODEL-CONTEXT"));
-            }
-            json!({"estimatedTokens":estimated,"limit":context.limit,"includedMessages":context.messages.len()+(if q.draft.is_empty(){0}else{1}),"omittedMessages":context.omitted_messages})
+            json!({"estimatedTokens":context.estimated_tokens,"limit":context.limit,"includedMessages":context.messages.len()+(if q.draft.is_empty(){0}else{1}),"omittedMessages":context.omitted_messages})
         }
         "inference.turn.generate" => {
             gateway.generate(storage, parse(request.payload)?, on_event)?
@@ -563,6 +572,27 @@ mod tests {
         assert_eq!(version, "0.40.18");
         assert_eq!(models.len(), 1);
         assert_eq!(models[0]["name"], "qwen2.5:0.5b");
+    }
+    #[test]
+    fn bounded_json_reader_rejects_oversize_without_draining_input() {
+        let exact = format!("\"{}\"", "x".repeat(999_998));
+        assert!(LocalModelGateway::read_bounded_json(exact.as_bytes()).is_ok());
+        let mut oversized = std::io::Cursor::new(vec![b'x'; 2_000_000]);
+        assert!(LocalModelGateway::read_bounded_json(&mut oversized).is_err());
+        assert_eq!(oversized.position(), 1_000_001);
+    }
+    #[test]
+    fn bounded_ndjson_reader_rejects_oversized_and_unterminated_events() {
+        let mut exact = std::io::Cursor::new([vec![b'x'; MAX_EVENT_BYTES - 1], vec![b'\n']].concat());
+        assert_eq!(LocalModelGateway::read_bounded_event(&mut exact).unwrap().len(), MAX_EVENT_BYTES);
+        let mut oversized = std::io::Cursor::new(vec![b'x'; MAX_EVENT_BYTES * 2]);
+        assert!(LocalModelGateway::read_bounded_event(&mut oversized).is_err());
+        assert_eq!(oversized.position(), MAX_EVENT_BYTES as u64 + 1);
+        let mut truncated = std::io::Cursor::new(b"{}".as_slice());
+        assert!(LocalModelGateway::read_bounded_event(&mut truncated).is_err());
+        let mut two = std::io::Cursor::new(b"{}\n{}\n".as_slice());
+        assert_eq!(LocalModelGateway::read_bounded_event(&mut two).unwrap(), b"{}\n");
+        assert_eq!(LocalModelGateway::read_bounded_event(&mut two).unwrap(), b"{}\n");
     }
     #[test]
     fn client_constructor_rejects_remote_credentials_and_paths() {

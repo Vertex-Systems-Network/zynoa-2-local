@@ -212,9 +212,10 @@ fn valid_text(value: &str, max: usize) -> bool {
     !value.trim().is_empty() && value.len() <= max && !value.contains('\0')
 }
 
-fn valid_model(value: &str) -> bool {
+pub(crate) fn valid_model(value: &str) -> bool {
     !value.is_empty() && value.len() <= 128 && value.bytes().all(|b|
         b.is_ascii_alphanumeric() || matches!(b, b'.'|b'_'|b':'|b'/'|b'-'))
+        && value.split('/').all(|part| !part.is_empty() && part != "." && part != "..")
 }
 
 fn valid_context_limit(value: u32) -> bool {
@@ -536,21 +537,36 @@ impl NativeVault {
     pub(crate) fn model_context(&self, conversation_id:&str, context_limit:u32, reserve:u32)
         -> Result<ModelContext,VaultFault>
     {
+        self.model_context_with_draft(conversation_id, context_limit, reserve, "")
+    }
+
+    pub(crate) fn estimate_message_tokens(content: &str) -> u32 {
+        (content.len().min(u32::MAX as usize) as u32).saturating_add(16)
+    }
+
+    pub(crate) fn model_context_with_draft(&self, conversation_id:&str, context_limit:u32, reserve:u32, draft:&str)
+        -> Result<ModelContext,VaultFault>
+    {
         if !safe_id(conversation_id)||!valid_context_limit(context_limit)||reserve>=context_limit {
             return Err(VaultFault::InvalidRecord);
         }
         if self.get_conversation(conversation_id)?.is_none(){return Err(VaultFault::Conflict);}
+        if draft.len()>MAX_CONTENT_BYTES || draft.contains('\0') {return Err(VaultFault::InvalidRecord);}
+        let available=context_limit-reserve;
+        let mut used=if draft.is_empty(){0}else{Self::estimate_message_tokens(draft)};
+        if used>available{return Err(VaultFault::InvalidRecord);}
+        let history_limit=MAX_CONTEXT_MESSAGES as u32-u32::from(!draft.is_empty());
         let total:u32=self.conn.query_row("SELECT count(*) FROM messages WHERE conversation_id=?1 AND status='complete'",
             [conversation_id],|r|r.get(0)).map_err(map_sql)?;
         let mut stmt=self.conn.prepare("SELECT id,parent_id,ordinal,role,content,status,revision,created_at FROM messages
             WHERE conversation_id=?1 AND status='complete' ORDER BY ordinal DESC LIMIT ?2").map_err(map_sql)?;
-        let rows=stmt.query_map(params![conversation_id,MAX_CONTEXT_MESSAGES as u32],|r|Ok(StoredChatMessage{
+        let rows=stmt.query_map(params![conversation_id,history_limit],|r|Ok(StoredChatMessage{
             id:r.get(0)?,parent_id:r.get(1)?,ordinal:r.get(2)?,role:r.get(3)?,content:r.get(4)?,
             status:r.get(5)?,revision:r.get(6)?,created_at:r.get(7)?,})).map_err(map_sql)?;
-        let available=context_limit-reserve;let mut used=0u32;let mut selected=Vec::new();
+        let mut selected=Vec::new();
         for row in rows {let row=row.map_err(map_sql)?;
-            let estimate=((row.content.as_bytes().len() as u32).saturating_add(3)/4).saturating_add(8);
-            if estimate>available && selected.is_empty(){return Err(VaultFault::InvalidRecord);}
+            let estimate=Self::estimate_message_tokens(&row.content);
+            if estimate>available && selected.is_empty() && draft.is_empty(){return Err(VaultFault::InvalidRecord);}
             if used.saturating_add(estimate)>available {break;}
             used+=estimate;selected.push(row);
         }
@@ -977,6 +993,29 @@ mod tests {
         assert_eq!(after.get_inference_settings("thread_alpha").unwrap().unwrap(),second);
     }
 
+    #[test]
+    fn context_preview_matches_persisted_draft() {
+        let f=Fixture::new();let mut v=NativeVault::open(&f.app()).unwrap();
+        v.create_conversation("thread_alpha","Alpha").unwrap();
+        let old="x".repeat(240);
+        let mut earlier=sample_message("message_user_001","thread_alpha",None);
+        earlier.content=&old;
+        v.append_chat_message(earlier).unwrap();
+        let draft="中文🙂".repeat(12);
+        let preview=v.model_context_with_draft("thread_alpha",512,256,&draft).unwrap();
+        assert_eq!(preview.omitted_messages,1);
+        assert!(preview.messages.is_empty());
+        assert_eq!(preview.estimated_tokens,256+NativeVault::estimate_message_tokens(&draft));
+        let mut newest=sample_message("message_user_002","thread_alpha",None);
+        newest.content=&draft;
+        v.append_chat_message(newest).unwrap();
+        let actual=v.model_context("thread_alpha",512,256).unwrap();
+        assert_eq!(actual.messages.len(),1);
+        assert_eq!(actual.messages[0].id,"message_user_002");
+        assert_eq!(actual.omitted_messages,preview.omitted_messages);
+        assert_eq!(actual.estimated_tokens,preview.estimated_tokens);
+        assert!(v.model_context_with_draft("thread_alpha",512,256,&"a".repeat(257)).is_err());
+    }
     #[test]
     fn model_context_is_chronological_bounded_and_excludes_terminal_failures() {
         let f=Fixture::new();let mut v=NativeVault::open(&f.app()).unwrap();
