@@ -80,5 +80,17 @@
       "M24-OPT-13 did not visibly outline the focused rollback control despite its passing native UIA receipt."
     ],
     "final_visual_review": false
+  },
+  "visual_review": {
+    "status": "VERIFIED_NATIVE_PNG_IMAGES_ONLY",
+    "reviewed": 74,
+    "capture_runs": [
+      45583693785,
+      45580646849
+    ],
+    "earlier_run_asset": "M24-OPT-13",
+    "identical_desktop_tree": "0ebf052024a7486fa622e882413a7188b0695767",
+    "manifest": "docs/screenshots/MANIFEST.json",
+    "wiki_publication": "PENDING"
   }
 }

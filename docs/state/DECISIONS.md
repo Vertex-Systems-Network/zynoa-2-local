@@ -178,3 +178,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P02 | Close scoped T12 only after all dedicated exact-source native/speech gates, 28 final images and Wiki proof | Overall Windows still failed T13 and legacy M19; retain T11/T13 merge blockers. Retry M23 real keyboard button once and pass actual Enter through NVDA; verifier unchanged.
 
 2026-11-25 | P02 | Capture T13 option focus after real Tab and Shift+Tab; target the actual Help result in Narrator | The Windows run passed all 74 candidate contracts, but M24-OPT-13 lacked a visible outline and the Narrator receipt captured the edit label for the result. Preserve the original focus, speech and source identity checks.
+
+2026-11-25 | P02 | Preserve 74 reviewed Windows frames from two runs with identical desktop source and exact per-asset provenance | The earlier M24 rollback option image shows visible keyboard focus. Keep the latest candidate finding and the separate full-CI gate.

@@ -1,0 +1,285 @@
+{
+  "schema_version": 1,
+  "phase": "P02",
+  "task": "P02-T13",
+  "module": "M24",
+  "review_scope": "Original native PNGs only",
+  "target_count": 26,
+  "original_archives": [
+    {
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "sha256": "ee24ae7fa6417d1bb55533860ee2f2b1866a9c0cc5401c9d8e5e7b96d7649e14"
+    },
+    {
+      "run_id": 45580646849,
+      "artifact_id": 15006229214,
+      "sha256": "3bfc3092fb7ca75ead284cf36c5f07ac3a48ca38cfb679154b075494b0263f5f"
+    }
+  ],
+  "review_method": "Matched each original PNG to its native receipt and checked its visible title, control or status, focus outline and disposable fixture content.",
+  "source_note": "The desktop tree is identical between the two native runs. M24-OPT-13 uses the earlier image with a visible focus outline.",
+  "full_module_release_approved": false,
+  "captures": [
+    {
+      "asset_id": "M24-S01",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "7d22d9072ea64e60b77506c359072994fabc03020470823a2ddff5b1f3ee341e",
+      "git_blob_sha": "ca6e3e6f67dd58bd0007cef079360cf5395fbd68",
+      "visible_focus": true,
+      "caption": "M24-S01 — Data Locations with the focused Storage Overview heading and storage classes, not measured usage state."
+    },
+    {
+      "asset_id": "M24-S02",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "9645fc6bcd3f63f3d17257f7651d5dcd5ec004ec4890d4ef8e52e017cea8a62e",
+      "git_blob_sha": "1824c045be2033500f30de10b7af28a74076afb6",
+      "visible_focus": true,
+      "caption": "M24-S02 — Data Locations with the focused Custom Download Locations heading and no writable location adapter state."
+    },
+    {
+      "asset_id": "M24-S03",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "525a4c9c734ea4a6f2076f3eb82e2ab0c1e0014bc4c99da0e3006dd1c35361e6",
+      "git_blob_sha": "2f3dbb96bfc7e9cd79e9bdab3016ea059c082938",
+      "visible_focus": true,
+      "caption": "M24-S03 — Data Locations with the focused Model Storage Manager heading and no verified model inventory state."
+    },
+    {
+      "asset_id": "M24-S04",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "a0eeb384955e72d6378b192c2a165470a6d23c5be28fbb0069af1f15d698ac53",
+      "git_blob_sha": "07d710093ffb8fffb1d089979bb19d15588cbcd1",
+      "visible_focus": true,
+      "caption": "M24-S04 — Data Locations with the focused Installed Runtime Locations heading and no verified runtime inventory state."
+    },
+    {
+      "asset_id": "M24-S05",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "432a15a7e92fb4969ef868895baa635166978217c0b761d135c400d187600dfa",
+      "git_blob_sha": "e69e510249046142cc6822cc08780fcb1853ff85",
+      "visible_focus": true,
+      "caption": "M24-S05 — Data Locations with the focused Relocation Wizard heading and draft relocation strategy state."
+    },
+    {
+      "asset_id": "M24-S06",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "37520e22f38919bc6d11fd9e558efa7713ff4ae17eb6c2a619f564884290c865",
+      "git_blob_sha": "27a78027628ae7a8243fe08948ba67410919ae00",
+      "visible_focus": true,
+      "caption": "M24-S06 — Data Locations with the focused Relocation Progress & Recovery heading and no relocation running state."
+    },
+    {
+      "asset_id": "M24-S07",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "5d5f71fabdc28266897a752e518cfc2c493a30db7d3663ef388d4a09a99a94fd",
+      "git_blob_sha": "a457518499ca54f2343a80b0dd298a3d87771951",
+      "visible_focus": true,
+      "caption": "M24-S07 — Data Locations with the focused Cleanup & Quotas heading and no cleanup authorization state."
+    },
+    {
+      "asset_id": "M24-S08",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "59221cb6af982155f13e4be50861dd1848338c0392770168bdf6e5ab9e6f9a98",
+      "git_blob_sha": "103d4f62f3e30c03403f7b5792dfede8fc20c0cc",
+      "visible_focus": true,
+      "caption": "M24-S08 — Data Locations with the focused Storage Diagnostics heading and no live paths exposed state."
+    },
+    {
+      "asset_id": "M24-OPT-01",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "96fac80666aa56b1d2554d4f3c5e417843969c009ff53fa06ff45c520a53e8ab",
+      "git_blob_sha": "c0a37b58f4547b1e3f7ed9d2ddf409730d96cb9a",
+      "visible_focus": true,
+      "caption": "M24-OPT-01 — Data Locations with the focused Browse current locations card, an unavailable action, and its explanation."
+    },
+    {
+      "asset_id": "M24-OPT-02",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "8bcbe71cb54a16d618904dc4f15a39013c050a4242b4b932e3ddb43bc7f90e8f",
+      "git_blob_sha": "7b462a39150c760342a27c50c8e5d74b7b36e20a",
+      "visible_focus": true,
+      "caption": "M24-OPT-02 — Data Locations with the focused Set Ollama model path card, an unavailable action, and its explanation."
+    },
+    {
+      "asset_id": "M24-OPT-03",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "28522f99d8ae3d1f7e52e050f66d9a528d212333810696b24d32d9290310c0d2",
+      "git_blob_sha": "89114b4182524c3da83208fc4c7be7d265d594aa",
+      "visible_focus": true,
+      "caption": "M24-OPT-03 — Data Locations with the focused Set Hugging Face cache path card, an unavailable action, and its explanation."
+    },
+    {
+      "asset_id": "M24-OPT-04",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "b6f32f2570cb053b17a0ffaf239399a8590a556cae8548d0c61875ef634b33ea",
+      "git_blob_sha": "d88f6ac7fd7a98641ffdec60ff270ecd14117d23",
+      "visible_focus": true,
+      "caption": "M24-OPT-04 — Data Locations with the focused Set llama.cpp GGUF path card, an unavailable action, and its explanation."
+    },
+    {
+      "asset_id": "M24-OPT-05",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "20e609ce9fa54f7a37134397b278cc9039097598a9ab0d716838aab0349eb671",
+      "git_blob_sha": "b690022358a624bc7f776e81d8b3f8945f1cd123",
+      "visible_focus": true,
+      "caption": "M24-OPT-05 — Data Locations with the focused Set ComfyUI models path card, an unavailable action, and its explanation."
+    },
+    {
+      "asset_id": "M24-OPT-06",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "cc00b2ef16f70a179f696a9ef481c70899b2ee3ee131ae21e7b8e57823a26877",
+      "git_blob_sha": "ff2bd4ae1ab498d8f7b2c10e02065762988185db",
+      "visible_focus": true,
+      "caption": "M24-OPT-06 — Data Locations with the focused Set optional module install root card, an unavailable action, and its explanation."
+    },
+    {
+      "asset_id": "M24-OPT-07",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "8bf9c411fde3d410e6bb5d5fe12988aea05fdab154b7939e8734bd5681ffec66",
+      "git_blob_sha": "252a43d723c4e20690767cd932a9047bfae11b4e",
+      "visible_focus": true,
+      "caption": "M24-OPT-07 — Data Locations with the focused Set user data location (advanced) card, an unavailable action, and its explanation."
+    },
+    {
+      "asset_id": "M24-OPT-08",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "9d7d57a9a388424adc2df782da4f015742b8aa926b32086d7c88ab081d999094",
+      "git_blob_sha": "6c115bbc801d02d1e9e1efd5d0df80763f236884",
+      "visible_focus": true,
+      "caption": "M24-OPT-08 — Data Locations with the focused Set backup destination card, an unavailable action, and its explanation."
+    },
+    {
+      "asset_id": "M24-OPT-09",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "66d559cc51ec2615e33db752305a4d2e367a04de18c6a7ebb809ee398d5c3751",
+      "git_blob_sha": "530c7575d4617d6367a75b60c44db4e58c5c8d22",
+      "visible_focus": true,
+      "caption": "M24-OPT-09 — Data Locations with the focused Set download staging location card, an unavailable action, and its explanation."
+    },
+    {
+      "asset_id": "M24-OPT-10",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "c34ebd593d58d6a2e171bf2740b6434746acf09087811dacbf7b58be413ac15f",
+      "git_blob_sha": "64e3ab81981554b451597b85f0ef717153019535",
+      "visible_focus": true,
+      "caption": "M24-OPT-10 — Data Locations with the focused Choose move vs new-downloads-only card and its session draft control."
+    },
+    {
+      "asset_id": "M24-OPT-11",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "bae413abd1223f883412f4e82acec0ada2a707c7770b1d4824473b72f121086a",
+      "git_blob_sha": "6ec13df5f2cf6c9754b647c374c1bc98d398c147",
+      "visible_focus": true,
+      "caption": "M24-OPT-11 — Data Locations with the focused Pause and resume relocation card, an unavailable action, and its explanation."
+    },
+    {
+      "asset_id": "M24-OPT-12",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "c563bc98efa16c2229254db1b5c59fbc81efb30e9ce574bdc6354896f0796195",
+      "git_blob_sha": "77d470b3e491c801d291bdf8cc3784854d11d3b2",
+      "visible_focus": true,
+      "caption": "M24-OPT-12 — Data Locations with the focused Verify moved files by checksum card, an unavailable action, and its explanation."
+    },
+    {
+      "asset_id": "M24-OPT-13",
+      "run_id": 45580646849,
+      "artifact_id": 15006229214,
+      "source_sha": "142b21b75dab9cef5c9c58fb3feedb360ca017b4",
+      "sha256": "5964567b9aec0010cf0234f654b7c32309530dce23890cb8d73755be7409754e",
+      "git_blob_sha": "3c0695142020c42280c7e1eb4348975363824337",
+      "visible_focus": true,
+      "caption": "M24-OPT-13 — Data Locations with the focused Rollback failed relocation card, an unavailable action, and its explanation."
+    },
+    {
+      "asset_id": "M24-OPT-14",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "97cb00fa0ce602023b4306dbf9a21c7b091152a65d0e91e16b284ffc9b644e6e",
+      "git_blob_sha": "ea8bcba83ff70f1a35620b2f37557a78ad70a0a7",
+      "visible_focus": true,
+      "caption": "M24-OPT-14 — Data Locations with the focused Storage free-space warning card, an unavailable action, and its explanation."
+    },
+    {
+      "asset_id": "M24-OPT-15",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "961847eb98b0759c98b6674618cc55026ecaba59f13d34812511b25c1444f27b",
+      "git_blob_sha": "6e4a7eeee96054643dead709d3f2c069aa53324e",
+      "visible_focus": true,
+      "caption": "M24-OPT-15 — Data Locations with the focused Set per-category storage quotas card and its session draft control."
+    },
+    {
+      "asset_id": "M24-OPT-16",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "89fffb070f41dbf282e2a3a5f0f3d1eb6cde98ce3a54280c035168dd236b05f4",
+      "git_blob_sha": "6444a972cbadde0da1ee443566029f8300179934",
+      "visible_focus": true,
+      "caption": "M24-OPT-16 — Data Locations with the focused Cleanup unused models safely card, an unavailable action, and its explanation."
+    },
+    {
+      "asset_id": "M24-OPT-17",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "57bf9f4fa072fac110ce66c402b56ec507bd9af76859de08709ebb8e8e9d93b1",
+      "git_blob_sha": "38f97846046f8cd009e7cb367832275e9dc05437",
+      "visible_focus": true,
+      "caption": "M24-OPT-17 — Data Locations with the focused Open data and model folders card, an unavailable action, and its explanation."
+    },
+    {
+      "asset_id": "M24-OPT-18",
+      "run_id": 45583693785,
+      "artifact_id": 15009090335,
+      "source_sha": "1d895cb1b355379f4e6907ba01d689454fc866bb",
+      "sha256": "6bfc8c5282fbce64c4b59b13ebefebafcfad4325860e7bac43f41206be62195f",
+      "git_blob_sha": "ebab60708b2afbc3315ca61e8d0eeb8842d7e55a",
+      "visible_focus": true,
+      "caption": "M24-OPT-18 — Data Locations with the focused Detect external/shared runtime ownership card, an unavailable action, and its explanation."
+    }
+  ]
+}

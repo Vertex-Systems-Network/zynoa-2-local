@@ -30,6 +30,23 @@ class T13Contracts(unittest.TestCase):
         app=(ROOT/"apps/desktop/src/App.tsx").read_text(encoding="utf-8")
         self.assertIn("<SystemCenter key={view}",app)
         self.assertIn('backup: "backup-center", locations: "data-locations", updates: "update-center"',app)
+    def test_wiki_links_to_each_illustrated_help_heading(self):
+        for center in json.loads(INVENTORY.read_text(encoding="utf-8"))["centers"]:
+            module = center["module"]
+            help_text = (ROOT / "docs/help/articles" / f"{module}.md").read_text(encoding="utf-8")
+            wiki_text = (ROOT / "docs/wiki/pages" / f"{module}.md").read_text(encoding="utf-8")
+            expected = {
+                re.sub(r"[^a-z0-9 _-]", "", heading.lower()).replace(" ", "-")
+                for heading in re.findall(rf"^### ({module}-(?:S|OPT-).+)$", help_text, re.M)
+            }
+            linked = re.findall(rf"articles/{module}\.md#([a-z0-9_-]+)", wiki_text)
+            self.assertEqual(len(linked), len(center["screens"]) + len(center["options"]))
+            self.assertEqual(set(linked), expected)
+            for target in center["screens"] + center["options"]:
+                asset = target["id"]
+                self.assertIn(f"](../../screenshots/{module}/{asset}.png)", help_text)
+                self.assertTrue((ROOT / "docs/screenshots" / module / f"{asset}.png").is_file())
+
     def test_native_capture_and_fail_closed(self):
         capture=(ROOT/"scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
         for token in ("SystemCenterModule","Capture-SystemTarget","Focus-M26Control","Wait-M26Name","Save-NativeFollowup","Assert-M26Foreground","T13-journey.capture.json","ZYN-T13-KEYBOARD-RETRY","Send-M26Key ' '"):

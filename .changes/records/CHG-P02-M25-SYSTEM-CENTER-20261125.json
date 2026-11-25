@@ -3,7 +3,7 @@
   "module_id": "M25",
   "kind": "feature",
   "title": "Update Center shared UI foundation",
-  "summary": "Actual navigable P02 system UI with explicit unavailable operations, session drafts, keyboard focus, bundled Help and native evidence harness. Full service remains deferred to P11.",
+  "summary": "Actual navigable P02 system UI with explicit unavailable operations, session drafts, keyboard focus, bundled Help and native evidence harness. Full service remains deferred to P11. Original Windows captures are reviewed and linked in the illustrated Help guide.",
   "status": "implementing",
   "audience": "user",
   "source_issue_urls": [
@@ -19,7 +19,9 @@
   "wiki_paths": [
     "docs/wiki/pages/M25.md"
   ],
-  "test_evidence": [],
+  "test_evidence": [
+    "docs/screenshots/M25/T13-native-visual.review.json"
+  ],
   "commit_sha": null,
   "release": null,
   "verification": {
