@@ -28,6 +28,25 @@ _MARKER = "<!-- zynoa-phase-transition:v1:"
 class TransitionPublishDenied(RuntimeError):
     """Sanitized refusal without raw HTTP bodies or credentials."""
 
+    def __init__(self, message: str, *, code: str = "TR-PREFLIGHT"):
+        super().__init__(message)
+        self.code = code
+
+
+# Only these fixed values may be included in public CI logs.
+_DIAGNOSTIC_CODES = frozenset({
+    "TR-PREFLIGHT", "TR-OBSERVE", "TR-ANCESTRY", "TR-CHECKS",
+    "TR-WORKFLOW-PROVENANCE", "TR-WORKFLOW-SOURCE", "TR-ISSUE-SCOPE",
+    "TR-BLOCKERS", "TR-RULES", "TR-JOURNAL", "TR-COMMENT-LOOKUP",
+    "TR-REMOTE-RECHECK", "TR-COMMENT-POST", "TR-COMMENT-READBACK",
+})
+
+
+def _safe_diagnostic(error: BaseException) -> str:
+    code = error.code if isinstance(error, TransitionPublishDenied) else None
+    return code if isinstance(code, str) and code in _DIAGNOSTIC_CODES else "TR-PREFLIGHT"
+
+
 
 class _NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
@@ -175,8 +194,10 @@ def publish_verified_transition(
     if target is None:
         raise TransitionPublishDenied("no next phase")
 
+    stage = "TR-OBSERVE"
     try:
         observed = reader.observe(state)
+        stage = "TR-ANCESTRY"
         if (observed.get("authenticated_remote") is not True
                 or observed.get("phase") != source
                 or observed.get("pr_number") != state["primary_pr"]
@@ -184,6 +205,26 @@ def publish_verified_transition(
                 or not _main_ancestry(reader, observed, workflow_sha)):
             raise TransitionPublishDenied("authenticated merge ancestry not verified")
         observed = dict(observed, main_matches_merge=True)
+        # Preserve the journal as the final authority. These checks only label
+        # pre-existing denial predicates with fixed public diagnostic codes.
+        for key, code in (
+            ("workflow_provenance_verified", "TR-WORKFLOW-PROVENANCE"),
+            ("workflow_source_verified", "TR-WORKFLOW-SOURCE"),
+            ("checks_passed", "TR-CHECKS"),
+            ("blocker_policy_complete", "TR-ISSUE-SCOPE"),
+            ("branch_protected", "TR-RULES"),
+            ("rules_policy_verified", "TR-RULES"),
+        ):
+            if observed.get(key) is not True:
+                stage = code
+                raise TransitionPublishDenied("required verification failed")
+        if (type(observed.get("open_critical_blockers")) is not int
+                or observed["open_critical_blockers"] != 0
+                or observed.get("blocker_issue_numbers") != []
+                or observed.get("unclassified_issue_numbers") != []):
+            stage = "TR-BLOCKERS"
+            raise TransitionPublishDenied("issue verification failed")
+        stage = "TR-JOURNAL"
         local = journal.record_verified_transition(state, target, observed)
         pr = state["primary_pr"]
         if type(pr) is not int:
@@ -192,8 +233,10 @@ def publish_verified_transition(
         marker = _MARKER + source + ":" + target + ":" + sha + " -->"
         body = _receipt_body(source, target, local["event_id"], pr, sha,
                              observed["issue_inventory_fingerprint"])
+        stage = "TR-COMMENT-LOOKUP"
         prior = _find_existing(reader, pr, marker, body)
         if prior is None:
+            stage = "TR-REMOTE-RECHECK"
             remote_pr = reader.pull_request(pr)
             remote_main = reader.branch("main")
             if (remote_pr.get("merged") is not True
@@ -201,6 +244,7 @@ def publish_verified_transition(
                     or (remote_pr.get("head") or {}).get("ref") != state["active_branch"]
                     or (remote_main.get("commit") or {}).get("sha") != workflow_sha):
                 raise TransitionPublishDenied("remote PR or main changed")
+            stage = "TR-COMMENT-POST"
             created = transport(pr, body, reader.token)
             if not isinstance(created, dict) or type(created.get("id")) is not int:
                 raise TransitionPublishDenied("GitHub creation acknowledgement invalid")
@@ -211,6 +255,7 @@ def publish_verified_transition(
             was_created = False
         # Independent readback. A failed GET cannot claim publication success;
         # a later re-run can recover by discovering the already-posted comment.
+        stage = "TR-COMMENT-READBACK"
         readback = reader._get("/issues/comments/" + str(comment_id))
         if not _verified_comment(readback, body, pr) or readback["id"] != comment_id:
             raise TransitionPublishDenied("independent GitHub readback failed")
@@ -229,8 +274,9 @@ def publish_verified_transition(
                 + "#issuecomment-" + str(comment_id)
             ),
         }
-    except (GitHubEvidenceError, PhasePolicyError, KeyError, TypeError, ValueError):
-        raise TransitionPublishDenied("verified receipt prerequisites failed") from None
+    except (TransitionPublishDenied, GitHubEvidenceError, PhasePolicyError,
+            OSError, KeyError, TypeError, ValueError):
+        raise TransitionPublishDenied("verified receipt prerequisites failed", code=stage) from None
 
 
 def main() -> int:
@@ -258,8 +304,9 @@ def main() -> int:
             )
         print(json.dumps(result, sort_keys=True))
         return 0
-    except (TransitionPublishDenied, GitHubEvidenceError, OSError, ValueError, KeyError):
-        print(json.dumps({"status": "BLOCKED", "external_checkpoint_published": False,
+    except (TransitionPublishDenied, GitHubEvidenceError, OSError, ValueError, KeyError) as error:
+        print(json.dumps({"status": "BLOCKED", "diagnostic_code": _safe_diagnostic(error),
+                          "external_checkpoint_published": False,
                           "next_phase_started": False}))
         return 2
 
