@@ -209,5 +209,33 @@ class ChangeCenterTests(unittest.TestCase):
             self.assertIn(oid,wiki)
         self.assertIn("pending final-module approval",help_doc)
 
+    def test_twenty_option_native_receipt_requires_actual_focus_and_unique_inventory(self):
+        from tools.verify_p02_m26_options import EXPECTED, verify_receipt
+        from tools.verify_p02_m26_candidates import EXPECTED_TRANSITIONS, MODULE_TITLES
+        import copy
+        script=(ROOT/"scripts/capture_p01_desktop.ps1").read_text(encoding="utf-8")
+        self.assertEqual(len(EXPECTED),20)
+        self.assertIn("-M26OptionsOnly",(ROOT/".github/workflows/p01-desktop.yml").read_text(encoding="utf-8"))
+        for i in range(1,21):
+            self.assertIn(f"Capture-M26Option -Number {i} -Label ",script)
+        p={"schema_version":1,"source_commit_sha":"a"*40,"built_commit_sha":"a"*40,"github_run_id":"123","native_process_id":1,
+           "status":"M26_P02_OPTION_CANDIDATES_ONLY","no_user_data":True,"independent_visual_review":False,"screen_reader_verified":False,
+           "full_module_release_approved":False,"query_before_reset":"zzznomatch","query_after_reset":"",
+           "initial_titles":MODULE_TITLES,"selected_module":"M23","filtered_titles":MODULE_TITLES[:1],
+           "reset_module":"All modules","reset_titles":MODULE_TITLES,
+           "tab_transitions":[{"from":a,"key":b,"to":c,"source_focus_and_selection":True,"destination_focus_and_selection":True,
+                               "previous_tab_deselected":True} for a,b,c in EXPECTED_TRANSITIONS],
+           "observations":[{"option_id":oid,"screenshot_id":oid.replace("M26-OPT-","M26-P02-OPT-"),"label":label,"state":state,
+              "visible_focus_name":focus,"native_focus_verified":True,"foreground_window_verified":True,
+              "disabled_control_verified":state=="disabled","additional_visible_marker":
+              {"M26-OPT-05":"No matching notices. Reset filters to view all.","M26-OPT-12":"Select a capability notice"}.get(oid,"")}
+              for oid,(label,state,focus) in EXPECTED.items()]}
+        self.assertEqual(20,len(verify_receipt(p,"a"*40,"123")))
+        for key,value in (("disabled_control_verified",False),("native_focus_verified",False),("option_id","M26-OPT-02")):
+            bad=copy.deepcopy(p);bad["observations"][0][key]=value
+            with self.subTest(key=key), self.assertRaises(ValueError):verify_receipt(bad,"a"*40,"123")
+        bad=copy.deepcopy(p);bad["observations"].pop()
+        with self.assertRaises(ValueError):verify_receipt(bad,"a"*40,"123")
+
 if __name__ == "__main__":
     unittest.main()

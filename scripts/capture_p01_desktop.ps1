@@ -4,7 +4,8 @@ param(
     [Parameter(Mandatory = $true)][string]$OutputDirectory,
     [Parameter(Mandatory = $true)][string]$SourceSha,
     [Parameter(Mandatory = $true)][string]$BuiltSha,
-    [switch]$M26Only
+    [switch]$M26Only,
+    [switch]$M26OptionsOnly
 )
 $ErrorActionPreference = 'Stop'
 if ($SourceSha -notmatch '^[0-9a-f]{40}$') { throw 'ZYN-SCREEN-001: invalid source commit' }
@@ -240,7 +241,7 @@ function Save-NativeFollowup {
 }
 
 # Separate M26 journey: reuse real DWM capture, never expand the 69-frame T10 budget.
-if ($M26Only) {
+if ($M26Only -or $M26OptionsOnly) {
     Add-Type -AssemblyName UIAutomationClient
     Add-Type -AssemblyName UIAutomationTypes
     if (-not $env:GITHUB_RUN_ID) { throw 'ZYN-M26-001: CI run identity missing' }
@@ -302,7 +303,7 @@ public static class ZynoaM26Foreground {
         Assert-M26Foreground
     }
     function Wait-M26Name {
-        param([string]$Name, [switch]$Focusable, [switch]$Disabled, [switch]$Fragment, [switch]$Reveal)
+        param([string]$Name, [switch]$Focusable, [switch]$Disabled, [switch]$Fragment, [switch]$Reveal, [switch]$Visible)
         $deadline = (Get-Date).AddSeconds(10)
         do {
             Assert-M26Foreground
@@ -323,6 +324,12 @@ public static class ZynoaM26Foreground {
                     if ($Fragment -and -not ([string]$item.Current.Name).Contains($Name)) { continue }
                     if ($Focusable -and (-not $item.Current.IsKeyboardFocusable -or -not $item.Current.IsEnabled)) { continue }
                     if ($Disabled -and $item.Current.IsEnabled) { continue }
+                    if ($Visible) {
+                        $rect=$item.Current.BoundingRectangle
+                        if ($item.Current.IsOffscreen -or $rect.IsEmpty -or $rect.Width -le 0 -or $rect.Height -le 0 -or
+                            $rect.Left -lt $bounds.Left -or $rect.Top -lt $bounds.Top -or
+                            $rect.Right -gt $bounds.Right -or $rect.Bottom -gt $bounds.Bottom) { continue }
+                    }
                     if ($item.Current.IsOffscreen -and -not $Focusable -and -not $Disabled) {
                         if ($Reveal) {
                             # Real UIA scroll/focus only. An offscreen marker must
@@ -451,6 +458,170 @@ public static class ZynoaM26Foreground {
         $tabTransitions.Add([ordered]@{from=$From;key=$Keys;to=$To;source_focus_and_selection=$true;destination_focus_and_selection=$true;previous_tab_deselected=$true})
         Write-Host ("ZYN-M26-TAB-PASS "+$From+" "+$Keys+" "+$To)
     }
+    function Read-M26ModuleFilter {
+        Assert-M26Foreground
+        $combo = Wait-M26Name -Name 'Module' -Focusable
+        $selectedValue = ''
+        $valuePattern = $null
+        if ($combo.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern,[ref]$valuePattern)) {
+            $selectedValue = [string]$valuePattern.Current.Value
+        }
+        if ($selectedValue -notin @('All modules','M23','M24','M25','M26')) {
+            $selection = $null
+            if ($combo.TryGetCurrentPattern([System.Windows.Automation.SelectionPattern]::Pattern,[ref]$selection)) {
+                $selectedItems = @($selection.Current.GetSelection())
+                if ($selectedItems.Count -eq 1) { $selectedValue = [string]$selectedItems[0].Current.Name }
+            }
+        }
+        $group = Wait-M26Name -Name 'Bundled capability notices'
+        $buttons = $group.FindAll([System.Windows.Automation.TreeScope]::Descendants,
+            [System.Windows.Automation.PropertyCondition]::new(
+                [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
+                [System.Windows.Automation.ControlType]::Button))
+        $known = @('Backup and restore not available','Data relocation not available','Signed updates not available','Live change and release data not available')
+        $titles = [System.Collections.Generic.List[string]]::new()
+        for ($j=0; $j -lt $buttons.Count; $j++) {
+            $name = [string]$buttons.Item($j).Current.Name
+            $matched = @($known | Where-Object { $name.Contains($_) })
+            if ($matched.Count -ne 1) { throw 'ZYN-M26-014: unexpected bundled notice button' }
+            $titles.Add($matched[0])
+        }
+        return [pscustomobject]@{SelectedValue=$selectedValue;Titles=@($titles.ToArray())}
+    }
+    function Wait-M26ModuleFilter {
+        param([string]$ExpectedValue,[string[]]$ExpectedTitles,[int]$Seconds=8)
+        $deadline=(Get-Date).AddSeconds($Seconds)
+        do {
+            try {
+                $state=Read-M26ModuleFilter
+                if ($state.SelectedValue -ceq $ExpectedValue -and
+                    $state.Titles.Count -eq $ExpectedTitles.Count -and
+                    (($state.Titles -join '|') -ceq ($ExpectedTitles -join '|'))) { return $state }
+            } catch [System.Windows.Automation.ElementNotAvailableException] {}
+            Start-Sleep -Milliseconds 250
+        } until ((Get-Date) -ge $deadline)
+        return $null
+    }
+
+    # Separate disposable native option journey. Preserve the original ten
+    # candidate observations and verifier; no duplicate final asset claims.
+    if ($M26OptionsOnly) {
+        $optionObservations=[System.Collections.Generic.List[object]]::new()
+        function Capture-M26Option {
+            param([int]$Number,[string]$Label,[string]$State,[string]$FocusName,
+                  [switch]$FocusFragment,[string]$DisabledLabel='', [string]$VisibleName='')
+            $optionId='M26-OPT-{0:00}' -f $Number
+            $id='M26-P02-OPT-{0:00}' -f $Number
+            $script:m26Stage=$id
+            [void](Focus-M26Control -Name $FocusName -Fragment:$FocusFragment)
+            $focused=Wait-M26Name -Name $FocusName -Focusable -Visible -Fragment:$FocusFragment
+            if (-not $focused.Current.HasKeyboardFocus) { throw 'ZYN-M26-OPT-001: actual option focus missing' }
+            $disabledVerified=$false
+            if ($DisabledLabel -ne '') {
+                $button=Wait-M26Name -Name $DisabledLabel -Disabled -Visible
+                if ($button.Current.ControlType -ne [System.Windows.Automation.ControlType]::Button -or $button.Current.IsEnabled) {
+                    throw 'ZYN-M26-OPT-002: actual disabled option semantics missing'
+                }
+                $disabledVerified=$true
+            }
+            if ($VisibleName -ne '') { [void](Wait-M26Name -Name $VisibleName -Visible) }
+            Assert-M26Foreground
+            Save-NativeFollowup -ScreenshotId $id -Shortcut '' -ScreenTitle $Label -Description ("Actual native P02 option "+$optionId+" showing focused "+$Label+" and its truthful "+$State+" state")
+            Assert-M26Foreground
+            $after=Wait-M26Name -Name $FocusName -Focusable -Visible -Fragment:$FocusFragment
+            if (-not $after.Current.HasKeyboardFocus) { throw 'ZYN-M26-OPT-003: actual option focus lost during capture' }
+            if ($DisabledLabel -ne '') { [void](Wait-M26Name -Name $DisabledLabel -Disabled -Visible) }
+            if ($VisibleName -ne '') { [void](Wait-M26Name -Name $VisibleName -Visible) }
+            $optionObservations.Add([ordered]@{option_id=$optionId;screenshot_id=$id;label=$Label;state=$State;
+                visible_focus_name=$FocusName;native_focus_verified=$true;foreground_window_verified=$true;
+                disabled_control_verified=$disabledVerified;additional_visible_marker=$VisibleName})
+        }
+        [void](Focus-M26Control -Name 'Changelog')
+        Send-M26Key -Keys '{ENTER}'
+        Capture-M26Option -Number 9 -Label 'No verified releases' -State 'boundary' -FocusName 'No verified releases'
+        Capture-M26Option -Number 1 -Label 'Filter release channel or version' -State 'disabled' -FocusName 'Filter release channel or version unavailable' -DisabledLabel 'Filter release channel or version'
+        Capture-M26Option -Number 3 -Label 'Filter change category' -State 'disabled' -FocusName 'Filter change category unavailable' -DisabledLabel 'Filter change category'
+        Capture-M26Option -Number 11 -Label 'View fixed problems' -State 'disabled' -FocusName 'View fixed problems unavailable' -DisabledLabel 'View fixed problems'
+
+        Open-M26Tab -From "What's New" -Keys '{RIGHT}' -To 'Known Issues'
+        $allTitles=@('Backup and restore not available','Data relocation not available','Signed updates not available','Live change and release data not available')
+        $initial=Wait-M26ModuleFilter -ExpectedValue 'All modules' -ExpectedTitles $allTitles
+        if ($null -eq $initial) { throw 'ZYN-M26-OPT-004: actual initial inventory mismatch' }
+        Capture-M26Option -Number 10 -Label 'Live change and release data not available' -State 'active' -FocusName 'Live change and release data not available' -FocusFragment
+
+        [void](Focus-M26Control -Name 'Search bundled notices')
+        Send-M26Key -Keys 'zzznomatch'
+        $search=Wait-M26Name -Name 'Search bundled notices' -Focusable
+        $typed=$search.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).Current.Value
+        if ($typed -cne 'zzznomatch') { throw 'ZYN-M26-OPT-005: actual option query mismatch' }
+        Capture-M26Option -Number 5 -Label 'Search bundled notices' -State 'active' -FocusName 'Search bundled notices' -VisibleName 'No matching notices. Reset filters to view all.'
+
+        [void](Focus-M26Control -Name 'Reset filters')
+        Send-M26Key -Keys '{ENTER}'
+        $reset=Wait-M26Name -Name 'Search bundled notices' -Focusable
+        $queryAfter=$reset.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).Current.Value
+        if ($queryAfter -cne '') { throw 'ZYN-M26-OPT-006: actual option search reset failed' }
+        [void](Focus-M26Control -Name 'Backup and restore not available' -Fragment)
+        Send-M26Key -Keys '{ENTER}'
+        [void](Wait-M26Name -Name 'Not a released fix or live issue status.' -Reveal)
+        Capture-M26Option -Number 6 -Label 'Open linked issue' -State 'disabled' -FocusName 'Open linked issue unavailable' -DisabledLabel 'Open linked issue'
+        Capture-M26Option -Number 7 -Label 'Open linked pull request' -State 'disabled' -FocusName 'Open linked pull request unavailable' -DisabledLabel 'Open linked pull request'
+        Capture-M26Option -Number 20 -Label 'Report problem from change' -State 'disabled' -FocusName 'Report problem from change unavailable' -DisabledLabel 'Report problem from change'
+
+        Open-M26Tab -From 'Known Issues' -Keys '{RIGHT}' -To 'Version History'
+        Capture-M26Option -Number 17 -Label 'Compare versions' -State 'disabled' -FocusName 'Compare versions unavailable' -DisabledLabel 'Compare versions'
+
+        Open-M26Tab -From 'Version History' -Keys '{RIGHT}' -To 'Module Changes'
+        [void](Focus-M26Control -Name 'Module')
+        Assert-M26Foreground
+        [System.Windows.Forms.SendKeys]::SendWait('%{DOWN}{HOME}{DOWN}{ENTER}')
+        $popupDeadline=(Get-Date).AddSeconds(3)
+        do {
+            if ([ZynoaM26Foreground]::GetForegroundWindow() -eq $hwnd) { break }
+            Start-Sleep -Milliseconds 100
+        } until ((Get-Date) -ge $popupDeadline)
+        Assert-M26Foreground
+        $filtered=Wait-M26ModuleFilter -ExpectedValue 'M23' -ExpectedTitles @($allTitles[0])
+        if ($null -eq $filtered) { throw 'ZYN-M26-OPT-007: actual M23 inventory mismatch' }
+        Capture-M26Option -Number 2 -Label 'Module' -State 'active' -FocusName 'Module'
+        Capture-M26Option -Number 12 -Label 'Module Changes' -State 'active' -FocusName 'Module Changes' -VisibleName 'Select a capability notice'
+
+        $selected=Read-M26Tab -Name 'Module Changes'
+        if (-not $selected.Selected -or -not $selected.Focused) { throw 'ZYN-M26-OPT-008: actual module tab selection missing' }
+        [void](Focus-M26Control -Name 'Reset filters')
+        Send-M26Key -Keys '{ENTER}'
+        $restored=Wait-M26ModuleFilter -ExpectedValue 'All modules' -ExpectedTitles $allTitles
+        if ($null -eq $restored) { throw 'ZYN-M26-OPT-009: actual option module reset missing' }
+        Open-M26Tab -From 'Module Changes' -Keys '{RIGHT}' -To 'Audit Timeline'
+        Capture-M26Option -Number 15 -Label 'Audit access is not enabled' -State 'boundary' -FocusName 'Audit access is not enabled'
+        Capture-M26Option -Number 4 -Label 'View technical details' -State 'disabled' -FocusName 'View technical details unavailable' -DisabledLabel 'View technical details'
+        Capture-M26Option -Number 16 -Label 'Export change history' -State 'disabled' -FocusName 'Export change history unavailable' -DisabledLabel 'Export change history'
+
+        Open-M26Tab -From 'Audit Timeline' -Keys '{RIGHT}' -To 'Notifications'
+        Capture-M26Option -Number 13 -Label 'Enable What''s New notifications' -State 'disabled' -FocusName 'Enable What''s New notifications unavailable' -DisabledLabel 'Enable What''s New notifications'
+        Capture-M26Option -Number 19 -Label 'Configure unread marker' -State 'disabled' -FocusName 'Configure unread marker unavailable' -DisabledLabel 'Configure unread marker'
+
+        Open-M26Tab -From 'Notifications' -Keys '{END}' -To 'Migration Notes'
+        Capture-M26Option -Number 14 -Label 'View migration notes' -State 'disabled' -FocusName 'View migration notes unavailable' -DisabledLabel 'View migration notes'
+        Capture-M26Option -Number 18 -Label 'View rollback guidance' -State 'disabled' -FocusName 'View rollback guidance unavailable' -DisabledLabel 'View rollback guidance'
+
+        Open-M26Tab -From 'Migration Notes' -Keys '{HOME}' -To "What's New"
+        Send-M26Key -Keys '{F1}'
+        [void](Wait-M26Name -Name 'Changelog and release history' -Reveal)
+        Capture-M26Option -Number 8 -Label 'M26-OPT-08 — View documentation changes' -State 'active' -FocusName 'M26-OPT-08 — View documentation changes'
+
+        $optionReceipt=[ordered]@{
+            schema_version=1;source_commit_sha=$SourceSha;built_commit_sha=$BuiltSha;github_run_id=[string]$env:GITHUB_RUN_ID
+            native_process_id=$TargetPid;status='M26_P02_OPTION_CANDIDATES_ONLY';no_user_data=$true
+            independent_visual_review=$false;screen_reader_verified=$false;full_module_release_approved=$false
+            query_before_reset=$typed;query_after_reset=$queryAfter
+            initial_titles=@($initial.Titles);selected_module=$filtered.SelectedValue;filtered_titles=@($filtered.Titles)
+            reset_module=$restored.SelectedValue;reset_titles=@($restored.Titles)
+            observations=@($optionObservations.ToArray());tab_transitions=@($tabTransitions.ToArray())
+        }
+        $optionReceipt | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'M26-options.capture.json') -Encoding UTF8
+        return
+    }
     [void](Focus-M26Control -Name 'Changelog')
     Send-M26Key -Keys '{ENTER}'
     Capture-M26 -Id 'M26-CAND-S01' -Heading 'No verified releases' -Description 'Actual native Changelog release unavailable state, without invented signed data'
@@ -496,50 +667,6 @@ public static class ZynoaM26Foreground {
     Capture-M26 -Id 'M26-CAND-S03' -Heading 'No verified versions' -Description 'Actual native empty verified version history, comparison intentionally disabled'
     [void](Wait-M26Name -Name 'Compare versions' -Disabled)
     Open-M26Tab -From 'Version History' -Keys '{RIGHT}' -To 'Module Changes'
-    function Read-M26ModuleFilter {
-        Assert-M26Foreground
-        $combo = Wait-M26Name -Name 'Module' -Focusable
-        $selectedValue = ''
-        $valuePattern = $null
-        if ($combo.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern,[ref]$valuePattern)) {
-            $selectedValue = [string]$valuePattern.Current.Value
-        }
-        if ($selectedValue -notin @('All modules','M23','M24','M25','M26')) {
-            $selection = $null
-            if ($combo.TryGetCurrentPattern([System.Windows.Automation.SelectionPattern]::Pattern,[ref]$selection)) {
-                $selectedItems = @($selection.Current.GetSelection())
-                if ($selectedItems.Count -eq 1) { $selectedValue = [string]$selectedItems[0].Current.Name }
-            }
-        }
-        $group = Wait-M26Name -Name 'Bundled capability notices'
-        $buttons = $group.FindAll([System.Windows.Automation.TreeScope]::Descendants,
-            [System.Windows.Automation.PropertyCondition]::new(
-                [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
-                [System.Windows.Automation.ControlType]::Button))
-        $known = @('Backup and restore not available','Data relocation not available','Signed updates not available','Live change and release data not available')
-        $titles = [System.Collections.Generic.List[string]]::new()
-        for ($j=0; $j -lt $buttons.Count; $j++) {
-            $name = [string]$buttons.Item($j).Current.Name
-            $matched = @($known | Where-Object { $name.Contains($_) })
-            if ($matched.Count -ne 1) { throw 'ZYN-M26-014: unexpected bundled notice button' }
-            $titles.Add($matched[0])
-        }
-        return [pscustomobject]@{SelectedValue=$selectedValue;Titles=@($titles.ToArray())}
-    }
-    function Wait-M26ModuleFilter {
-        param([string]$ExpectedValue,[string[]]$ExpectedTitles,[int]$Seconds=8)
-        $deadline=(Get-Date).AddSeconds($Seconds)
-        do {
-            try {
-                $state=Read-M26ModuleFilter
-                if ($state.SelectedValue -ceq $ExpectedValue -and
-                    $state.Titles.Count -eq $ExpectedTitles.Count -and
-                    (($state.Titles -join '|') -ceq ($ExpectedTitles -join '|'))) { return $state }
-            } catch [System.Windows.Automation.ElementNotAvailableException] {}
-            Start-Sleep -Milliseconds 250
-        } until ((Get-Date) -ge $deadline)
-        return $null
-    }
     $allTitles=@('Backup and restore not available','Data relocation not available','Signed updates not available','Live change and release data not available')
     $initialFilter=Wait-M26ModuleFilter -ExpectedValue 'All modules' -ExpectedTitles $allTitles
     if ($null -eq $initialFilter) { throw 'ZYN-M26-015: default module filter value or actual notice inventory mismatch' }
