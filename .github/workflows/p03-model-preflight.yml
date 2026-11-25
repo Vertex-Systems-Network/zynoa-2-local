@@ -22,7 +22,7 @@ jobs:
   loopback-probe:
     if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'phase/03-chat'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     env:
       OLLAMA_HOST: 127.0.0.1:11434
       OLLAMA_NO_CLOUD: '1'
@@ -33,6 +33,15 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@v6
         with: { python-version: '3.12' }
+      - name: Install native Linux build prerequisites for product-adapter proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential pkg-config libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libssl-dev
+      - name: Compile exact-source product-adapter tests
+        working-directory: apps/desktop/src-tauri
+        run: cargo test --locked --lib --release --no-run
       - name: Download and verify pinned official CPU runtime
         shell: bash
         run: |
@@ -61,8 +70,15 @@ jobs:
           "$RUNNER_TEMP/ollama/bin/ollama" pull qwen2.5:0.5b
           python -m unittest tests.test_p03_model_gateway_contract -v
           python scripts/probe_p03_model.py --source-sha "$EXACT_HEAD" --out "$RUNNER_TEMP/p03-model-preflight.json"
+          export ZYNOA_P03_SOURCE_SHA="$EXACT_HEAD"
+          export ZYNOA_P03_REAL_MODEL_PROOF="$RUNNER_TEMP/p03-product-adapter.json"
+          (cd apps/desktop/src-tauri && cargo test --locked --lib --release model_gateway::tests::real_ollama_product_gateway_and_restart -- --ignored --exact --nocapture)
+          test -s "$ZYNOA_P03_REAL_MODEL_PROOF"
+
       - uses: actions/upload-artifact@v6
         with:
           name: p03-model-preflight-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/p03-model-preflight.json
+          path: |
+            ${{ runner.temp }}/p03-model-preflight.json
+            ${{ runner.temp }}/p03-product-adapter.json
           if-no-files-found: error

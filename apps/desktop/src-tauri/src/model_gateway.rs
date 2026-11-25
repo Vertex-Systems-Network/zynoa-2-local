@@ -908,6 +908,108 @@ mod tests {
         }
     }
 
+    // Explicit CI-only integration: the shipped gateway, not a fixture HTTP
+    // implementation, sends a synthetic turn to the pinned local CPU runtime.
+    #[test]
+    #[ignore = "requires the pinned local Ollama runtime and installed model"]
+    fn real_ollama_product_gateway_and_restart() {
+        use std::time::{Instant, SystemTime, UNIX_EPOCH};
+        use std::io::Write;
+        assert_eq!(std::env::var("GITHUB_ACTIONS").as_deref(), Ok("true"));
+        let source = std::env::var("ZYNOA_P03_SOURCE_SHA").unwrap();
+        assert_eq!(source.len(), 40);
+        assert!(source.bytes().all(|b| b.is_ascii_hexdigit()));
+        let proof_path = std::path::PathBuf::from(std::env::var_os("ZYNOA_P03_REAL_MODEL_PROOF").unwrap());
+        let root = std::env::temp_dir().join(format!("zynoa-real-model-{}-{}", std::process::id(),
+            SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos()));
+        let path = root.join("com.zynoa.desktop");
+        std::fs::create_dir_all(&path).unwrap();
+        struct Cleanup(std::path::PathBuf);
+        impl Drop for Cleanup { fn drop(&mut self) { let _ = std::fs::remove_dir_all(&self.0); } }
+        let _cleanup = Cleanup(root);
+        let gateway = LocalModelGateway::new().unwrap();
+        let (version, models) = tauri::async_runtime::block_on(gateway.inventory()).unwrap();
+        assert_eq!(version, "0.40.18");
+        let model = "qwen2.5:0.5b";
+        let matches: Vec<_> = models.iter().filter(|m| m["name"].as_str() == Some(model)).collect();
+        assert_eq!(matches.len(), 1);
+        let digest = matches[0]["digest"].as_str().unwrap();
+        assert_eq!(digest.len(), 64);
+        assert!(digest.starts_with("a8b0c5157701") && digest.bytes().all(|b| b.is_ascii_hexdigit()));
+        assert!(LocalModelGateway::has_model(&models, model));
+        let mut vault = NativeVault::open(&path).unwrap();
+        vault.create_conversation("thread_alpha", "Synthetic model acceptance").unwrap();
+        vault.create_conversation("thread_bravo", "Isolated synthetic conversation").unwrap();
+        vault.set_inference_settings("thread_alpha", model, 1024).unwrap();
+        vault.set_inference_settings("thread_bravo", model, 2048).unwrap();
+        let prompt = "Reply with a short greeting.";
+        let preview = vault.model_context_with_draft("thread_alpha", 1024, context_reserve(1024), prompt).unwrap();
+        vault.append_chat_message(ChatMessageInput {
+            id: "message_user_001", conversation_id: "thread_alpha", parent_id: None,
+            role: ChatRole::User, content: prompt, status: ChatStatus::Complete,
+        }).unwrap();
+        vault.append_chat_message(ChatMessageInput {
+            id: "message_other_01", conversation_id: "thread_bravo", parent_id: None,
+            role: ChatRole::User, content: "Unrelated synthetic thread", status: ChatStatus::Complete,
+        }).unwrap();
+        let storage = Arc::new(Mutex::new(vault));
+        let events = Mutex::new(Vec::<ModelEvent>::new());
+        let first_delta = Mutex::new(None::<u64>);
+        let started = Instant::now();
+        let result = tauri::async_runtime::block_on(gateway.generate(&storage, GeneratePayload {
+            conversation_id: "thread_alpha".into(), turn_id: "turn_alpha_001".into(),
+            parent_id: "message_user_001".into(), assistant_message_id: "message_asst_001".into(),
+        }, &|event| {
+            if event.kind == "delta" {
+                let mut first = first_delta.lock().unwrap();
+                if first.is_none() { *first = Some(started.elapsed().as_millis() as u64); }
+            }
+            events.lock().unwrap().push(event);
+            Ok(())
+        })).unwrap();
+        let total_ms = started.elapsed().as_millis() as u64;
+        let ttft_ms = first_delta.into_inner().unwrap().expect("actual streamed text required");
+        assert_eq!(result["status"], "complete");
+        assert_eq!(result["receipt"]["id"], "message_asst_001");
+        assert!(result["evalCount"].as_u64().unwrap() > 0);
+        assert_eq!(result["context"]["estimatedTokens"].as_u64(), Some(preview.estimated_tokens as u64));
+        assert_eq!(result["context"]["omittedMessages"].as_u64(), Some(preview.omitted_messages as u64));
+        assert_eq!(result["context"]["limit"], 1024);
+        assert!(gateway.active.lock().unwrap().is_empty());
+        let events = events.into_inner().unwrap();
+        assert!(events.len() >= 2);
+        assert_eq!(events.last().unwrap().kind, "terminal");
+        assert!(events.iter().enumerate().all(|(i, event)|
+            event.sequence == i as u32 + 1 && event.turn_id == "turn_alpha_001"));
+        assert_eq!(events.iter().filter(|event| event.kind == "terminal").count(), 1);
+        let streamed: String = events.iter().filter(|event| event.kind == "delta")
+            .map(|event| event.content.as_str()).collect();
+        assert!(!streamed.trim().is_empty());
+        drop(storage);
+        let reopened = NativeVault::open(&path).unwrap();
+        let saved = reopened.get_chat_message("thread_alpha", "message_asst_001").unwrap().unwrap();
+        assert_eq!(saved.content, streamed);
+        assert_eq!(saved.status, "complete");
+        assert!(reopened.get_chat_message("thread_bravo", "message_asst_001").unwrap().is_none());
+        let alpha = reopened.get_inference_settings("thread_alpha").unwrap().unwrap();
+        let bravo = reopened.get_inference_settings("thread_bravo").unwrap().unwrap();
+        assert_eq!(alpha.model, model); assert_eq!(alpha.context_limit, 1024);
+        assert_eq!(bravo.model, model); assert_eq!(bravo.context_limit, 2048);
+        let proof = json!({
+            "schema_version":1, "source_commit_sha":source, "runtime_version":version,
+            "model":model, "model_digest":digest, "local_only":true, "synthetic_prompt":true,
+            "product_adapter":true, "native_ui":false, "ttft_ms":ttft_ms, "total_ms":total_ms,
+            "content_chunks":events.len()-1, "output_bytes":streamed.len(),
+            "eval_count":result["evalCount"], "context_preview_matches":true,
+            "context_limit":1024, "estimated_tokens":preview.estimated_tokens,
+            "terminal_count":1, "durable_receipt_and_restart":true, "thread_settings_isolated":true,
+            "done":true
+        });
+        let mut file = std::fs::OpenOptions::new().write(true).create_new(true).open(proof_path).unwrap();
+        writeln!(file, "{}", serde_json::to_string_pretty(&proof).unwrap()).unwrap();
+        println!("{}", proof);
+    }
+
     #[test]
     fn client_constructor_rejects_remote_credentials_and_paths() {
         for base in [
