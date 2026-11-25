@@ -1,5 +1,7 @@
 # Status — 2026-11-25
 
+**P03 native model UI blocker** — first model selection failed on exact 60e23af, [issue #29](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/29); previous baseline and model pulls passed. Bounded native dropdown repair candidate committed; fresh CI pending. 4/16 DONE.
+
 **P03 T05–T07 native model UI candidate** — exact 258a563 prior Windows and real model CI green. New distinct actual Windows model journey awaits exact-head CI; 4/16 DONE. [Evidence scope](../evidence/P03_T05_T07_WINDOWS_MODEL_UI_CANDIDATE.md).
 
 **P03 T05–T07 IN_PROGRESS — UI state repair candidate** — 4/16 DONE (25%). Exact a2dbceb real English/mixed UTF-8 token calibration and Windows baseline passed. [Evidence and UI repair scope](../evidence/P03_T05_T07_UI_STATE_20261125.md). New tests, actual native model UI, multi-model switch and final captures pending. PR #25 draft, no merge/release.

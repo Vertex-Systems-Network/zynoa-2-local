@@ -52,6 +52,7 @@ def main():
 
     def check_settings(title, model, budget):
         tid, _ = by_title[title]
+        assert tid in settings, 'expected model preference not committed'
         data = settings[tid]
         assert data["model"] == model and data["context_limit"] == budget
         assert data["revision"] >= 1

@@ -3,10 +3,12 @@
   "module_id": "M03",
   "kind": "feature",
   "title": "Per-thread model and context controls",
-  "summary": "Model UI state regressions passed; add candidate real Windows two-model selection, context inspection, generation and restart proof.",
+  "summary": "First real Windows model selection probe failed; bounded native dropdown activation and exact control readback candidate, independent SQLite assertions preserved.",
   "status": "implementing",
   "audience": "developer",
-  "source_issue_urls": [],
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/29"
+  ],
   "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
   "affected_option_ids": [
     "M03-OPT-01",

@@ -230,3 +230,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P03 | Bind model controls to installed inventory, thread, settings revision and current draft | Verified a2dbceb calibration and baseline; avoid stale UI estimate or cross-thread retry and late stream state updates. Existing IPC/storage/dependencies retained; exact-head native/UI acceptance pending.
 
 2026-11-25 | P03 | Add real Windows model interaction after unchanged T03 baseline | Official runtime asset digest pinned, isolated CI-only two model inventory, keyboard selection and independent SQLite readback; no product capability or schema change. Actual proof and visual review pending.
+
+2026-11-25 | P03 | Require exact native dropdown acknowledgement before independent database readback | Windows run 45682806417 failed first model selection; original screenshot shows placeholder. Prefer actual provider selection, fallback to real physical click and bounded keyboard attempts; no direct state/DB injection or relaxed assertions. Issue #29 remains open.

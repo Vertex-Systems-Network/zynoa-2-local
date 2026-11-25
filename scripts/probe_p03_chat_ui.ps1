@@ -185,34 +185,98 @@ function Read-ModelVault([string]$Stage,[string]$Title='',[string]$Model='',[int
  if ($LASTEXITCODE -ne 0) {throw 'ZYN-MODEL-PROBE-001: independent SQLite verification failed'}
  return ($result | ConvertFrom-Json)
 }
-function Select-Combo([string]$Name,[string]$Key) {
- $control=Wait-Name $Name 'ComboBox' $true
- Focus-Control $control
- if ([ChatProbeWindow]::GetForegroundWindow() -ne $script:hwnd) {throw 'ZYN-MODEL-PROBE-002: foreground lost'}
- # Use the actual native dropdown keyboard path, never set React state.
- [System.Windows.Forms.SendKeys]::SendWait('%{DOWN}')
- Start-Sleep -Milliseconds 150
- [System.Windows.Forms.SendKeys]::SendWait($Key)
- [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
- Start-Sleep -Milliseconds 500
- [void](Wait-Name 'Message' 'Edit' $true)
+function Test-Combo([string]$Name,[string]$Expected) {
+ $condition=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,$Name)
+ $matches=$script:root.FindAll([System.Windows.Automation.TreeScope]::Descendants,$condition)
+ foreach ($control in $matches) {
+   try {
+     if ($control.Current.ControlType.ProgrammaticName -ne 'ControlType.ComboBox' -or !$control.Current.IsEnabled) {continue}
+     $value=$null
+     if ($control.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern,[ref]$value)) {
+       if ([string]$value.Current.Value -ceq $Expected) {return $true}
+     }
+     $selection=$null
+     if ($control.TryGetCurrentPattern([System.Windows.Automation.SelectionPattern]::Pattern,[ref]$selection)) {
+       foreach ($item in $selection.Current.GetSelection()) {
+         if ($item.Current.Name -ceq $Expected) {return $true}
+       }
+     }
+   } catch [System.Windows.Automation.ElementNotAvailableException] {}
+ }
+ return $false
 }
 function Assert-Combo([string]$Name,[string]$Expected) {
  for ($i=0;$i -lt 40;$i++) {
-   $control=Wait-Name $Name 'ComboBox' $true
-   $value=$null
-   if ($control.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern,[ref]$value)) {
-     if ([string]$value.Current.Value -ceq $Expected) {return}
-   }
-   $selection=$null
-   if ($control.TryGetCurrentPattern([System.Windows.Automation.SelectionPattern]::Pattern,[ref]$selection)) {
-     foreach ($item in $selection.Current.GetSelection()) {
-       if ($item.Current.Name -ceq $Expected) {return}
-     }
-   }
+   if (Test-Combo $Name $Expected) {return}
    Start-Sleep -Milliseconds 250
  }
- throw ('ZYN-MODEL-PROBE-003: model/context dropdown readback failed: '+$Name)
+ throw ('ZYN-MODEL-PROBE-003: exact model/context dropdown readback failed: '+$Name)
+}
+function Select-Combo([string]$Name,[string]$Key,[string]$Expected) {
+ # Selection is accepted only when the enabled native control reads back
+ # the exact requested option. React sets this value after the native reply.
+ if (Test-Combo $Name $Expected) {return}
+ for ($attempt=1;$attempt -le 2;$attempt++) {
+   $control=Wait-Name $Name 'ComboBox' $true
+   $method='physical click + keyboard'
+   if ($attempt -eq 1) {
+     # Prefer the real provider's item selection when it is available.
+     # Expand the native dropdown; scope all UIA search to the actual HWND.
+     Focus-Control $control
+     $expand=$null
+     $selected=$false
+     if ($control.TryGetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern,[ref]$expand)) {
+       try {
+         $expand.Expand()
+         Start-Sleep -Milliseconds 200
+         $condition=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,$Expected)
+         $items=$script:root.FindAll([System.Windows.Automation.TreeScope]::Descendants,$condition)
+         foreach ($item in $items) {
+           if ($item.Current.IsOffscreen -or !$item.Current.IsEnabled) {continue}
+           $kind=$item.Current.ControlType.ProgrammaticName
+           if ($kind -notin @('ControlType.ListItem','ControlType.DataItem')) {continue}
+           $selection=$null
+           if ($item.TryGetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern,[ref]$selection)) {
+             $selection.Select()
+             $selected=$true
+             $method='native UIA SelectionItem'
+             break
+           }
+         }
+       } catch {Write-Output 'Native dropdown item pattern unavailable; use physical keyboard path'}
+       finally {try {$expand.Collapse()} catch {}}
+     }
+     if ($selected) {
+       for ($i=0;$i -lt 40;$i++) {
+         if (Test-Combo $Name $Expected) {
+           Write-Output ('Native dropdown exact readback: '+$Name+' / '+$Expected+' via '+$method)
+           return
+         }
+         Start-Sleep -Milliseconds 250
+       }
+       continue
+     }
+   }
+   # Real focus + click (the prior title keyboard proof required this).
+   # The second attempt selects by the first character for the first model:
+   # Home may stay on the disabled placeholder on some WebView2 providers.
+   $control=Wait-Name $Name 'ComboBox' $true
+   Focus-ByPhysicalClick $control
+   if ([ChatProbeWindow]::GetForegroundWindow() -ne $script:hwnd) {throw 'ZYN-MODEL-PROBE-002: foreground lost'}
+   $actualKey=$Key
+   if ($attempt -eq 2 -and $Name -ceq 'Model' -and $Key -ceq '{HOME}') {$actualKey='q'}
+   [System.Windows.Forms.SendKeys]::SendWait($actualKey)
+   [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+   for ($i=0;$i -lt 40;$i++) {
+     if (Test-Combo $Name $Expected) {
+       Write-Output ('Native dropdown exact readback: '+$Name+' / '+$Expected+' via '+$method+' attempt '+$attempt)
+       return
+     }
+     Start-Sleep -Milliseconds 250
+   }
+   if ([ChatProbeWindow]::GetForegroundWindow() -eq $script:hwnd) {[System.Windows.Forms.SendKeys]::SendWait('{ESC}')}
+ }
+ throw ('ZYN-MODEL-PROBE-003: actual dropdown selection not acknowledged: '+$Name+' / '+$Expected)
 }
 function Wait-TextPattern([string]$Pattern,[int]$Attempts=80) {
  for ($i=0;$i -lt $Attempts;$i++) {
@@ -263,16 +327,16 @@ if ($ModelAcceptance) {
    Click-Control 'Refresh local models'
    [void](Wait-Name 'Model' 'ComboBox' $true)
    $script:stage='first installed model selection'
-   Select-Combo 'Model' '{HOME}'
+   Select-Combo 'Model' '{HOME}' $modelA
    $null=Read-ModelVault 'settings' $alpha $modelA 2048
    Assert-Combo 'Model' $modelA
    $script:stage='switch model in same thread'
-   Select-Combo 'Model' '{END}'
+   Select-Combo 'Model' '{END}' $modelB
    $null=Read-ModelVault 'settings' $alpha $modelB 2048
    Assert-Combo 'Model' $modelB
-   Select-Combo 'Model' '{HOME}'
+   Select-Combo 'Model' '{HOME}' $modelA
    $null=Read-ModelVault 'settings' $alpha $modelA 2048
-   Select-Combo 'Context budget' '{HOME}'
+   Select-Combo 'Context budget' '{HOME}' '512 tokens'
    $null=Read-ModelVault 'settings' $alpha $modelA 512
    Assert-Combo 'Context budget' '512 tokens'
    Capture 'M03-OPT-01-candidate.png'
@@ -291,7 +355,7 @@ if ($ModelAcceptance) {
    Type-Exact 'Conversation title' $beta
    Click-Control 'Create conversation'
    [void](Wait-Name 'Message' 'Edit' $true)
-   Select-Combo 'Model' '{END}'
+   Select-Combo 'Model' '{END}' $modelB
    $null=Read-ModelVault 'settings' $beta $modelB 2048
    Assert-Combo 'Model' $modelB
    Type-Exact 'Message' $promptB
