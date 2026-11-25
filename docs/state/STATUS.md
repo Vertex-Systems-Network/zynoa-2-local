@@ -2,6 +2,8 @@
 
 **P03 T12–T14 source candidate** — integrity-bound backup envelope, staged restore target validation and bounded recovery performance contract added. T12–T14 remain `IN_PROGRESS` pending exact-head/native evidence; T15–T16 remain TODO.
 
+**P03 T15–T16 blocked by external evidence** — native screenshots/Help/Wiki and protected-merge closeout are documented in [blockers](../evidence/P03_T15_T16_BLOCKERS.md); neither task is falsely marked complete.
+
 **P03 T08–T11 source batch candidate** — bounded attachment SHA-256 receipts, export manifest validation, and fail-closed local tool allowlist added in `artifact_contracts.rs`; source contract tests added. T08–T11 remain `IN_PROGRESS` pending exact-head CI and product evidence; T12–T16 remain TODO because they require encryption/recovery/native screenshots/owner merge gates.
 
 **P03 native model UI blocker** — first model selection failed on exact 60e23af, [issue #29](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/29); previous baseline and model pulls passed. Bounded native dropdown repair candidate committed; fresh CI pending. 4/16 DONE.
