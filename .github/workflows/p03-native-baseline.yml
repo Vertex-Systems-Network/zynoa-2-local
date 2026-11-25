@@ -19,7 +19,7 @@ jobs:
   baseline-windows:
     if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'phase/03-chat'
     runs-on: windows-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v6
         with:
@@ -229,4 +229,66 @@ jobs:
             ${{ runner.temp }}/p03-vault-native-tests.txt
             ${{ runner.temp }}/p03-vault-schema-proof.json
             ${{ runner.temp }}/p03-chat-ui-proof/
+          if-no-files-found: error
+      - name: P03 T05–T07 real Windows model interaction candidate
+        shell: pwsh
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $runtimeDir = Join-Path $env:RUNNER_TEMP 'p03-ollama-windows'
+          $zip = Join-Path $env:RUNNER_TEMP 'p03-ollama-windows.zip'
+          $proofDir = Join-Path $env:RUNNER_TEMP 'p03-model-ui-proof'
+          $env:OLLAMA_HOST = '127.0.0.1:11434'
+          $env:OLLAMA_NO_CLOUD = '1'
+          $env:OLLAMA_MODELS = Join-Path $env:RUNNER_TEMP 'p03-windows-models'
+          if (Get-NetTCPConnection -LocalPort 11434 -State Listen -ErrorAction SilentlyContinue) { throw 'P03 requires an unused local runtime port' }
+          & curl.exe --fail --location --retry 2 --max-time 900 --output $zip 'https://github.com/ollama/ollama/releases/download/v0.40.18/ollama-windows-amd64.zip'
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned Windows runtime download failed' }
+          if ((Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant() -cne 'ca97292ac1e9acc77fcf473bb2741fa6acd12e3798f261b419680068b7cc4c16') { throw 'Pinned Windows runtime SHA-256 mismatch' }
+          New-Item -ItemType Directory -Path $runtimeDir | Out-Null
+          & tar.exe -xf $zip -C $runtimeDir
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned Windows runtime extraction failed' }
+          Remove-Item -LiteralPath $zip
+          $candidates = @(Get-ChildItem -LiteralPath $runtimeDir -Recurse -File -Filter 'ollama.exe')
+          if ($candidates.Count -ne 1) { throw 'Unexpected runtime executable inventory' }
+          $ollama = $candidates[0].FullName
+          $server = Start-Process -FilePath $ollama -ArgumentList 'serve' -WorkingDirectory $candidates[0].DirectoryName -PassThru -RedirectStandardOutput (Join-Path $env:RUNNER_TEMP 'p03-ollama-stdout.log') -RedirectStandardError (Join-Path $env:RUNNER_TEMP 'p03-ollama-stderr.log')
+          try {
+            $version = $null
+            for ($i=0; $i -lt 60; $i++) {
+              $server.Refresh()
+              if ($server.HasExited) { throw 'Pinned Ollama process exited' }
+              try { $version = Invoke-RestMethod -Uri 'http://127.0.0.1:11434/api/version' -NoProxy -TimeoutSec 2; break } catch { Start-Sleep -Seconds 1 }
+            }
+            if ($version.version -cne '0.40.18') { throw 'Runtime readiness/version mismatch' }
+            foreach ($model in @('qwen2.5:0.5b','qwen2.5:1.5b')) {
+              & $ollama pull $model
+              if ($LASTEXITCODE -ne 0) { throw 'Synthetic fixture model pull failed' }
+            }
+            $inventory = Invoke-RestMethod -Uri 'http://127.0.0.1:11434/api/tags' -NoProxy -TimeoutSec 10
+            $models = @($inventory.models)
+            if ($models.Count -ne 2) { throw 'Unexpected installed test inventory' }
+            $a = @($models | Where-Object { $_.name -ceq 'qwen2.5:0.5b' })
+            $b = @($models | Where-Object { $_.name -ceq 'qwen2.5:1.5b' })
+            if ($a.Count -ne 1 -or $b.Count -ne 1 -or $a[0].digest -cne 'a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67' -or $b[0].digest -cnotmatch '^[a-f0-9]{64}$' -or $a[0].digest -ceq $b[0].digest) { throw 'Unexpected model identity' }
+            $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
+            & scripts/probe_p03_chat_ui.ps1 -Executable $exe -SourceSha $env:EXACT_HEAD -OutputDirectory $proofDir -ModelAcceptance
+            [ordered]@{schema_version=1;source_commit_sha=$env:EXACT_HEAD;runtime_version=$version.version;runtime_archive_sha256='ca97292ac1e9acc77fcf473bb2741fa6acd12e3798f261b419680068b7cc4c16';models=@($models | Select-Object name,digest,size);local_only=$true;synthetic_only=$true} | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $proofDir 'p03-windows-model-inventory.json') -Encoding utf8
+          } finally {
+            $server.Refresh()
+            if (!$server.HasExited) { Stop-Process -Id $server.Id -Force }
+          }
+      - name: Preserve failed real model UI diagnostics (not acceptance)
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-model-ui-failure-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-model-ui-proof/
+          if-no-files-found: warn
+      - name: Upload actual model UI candidate evidence
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-model-ui-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-model-ui-proof/
           if-no-files-found: error

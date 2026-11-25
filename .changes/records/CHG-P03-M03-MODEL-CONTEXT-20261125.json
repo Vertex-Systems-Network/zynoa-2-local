@@ -3,7 +3,7 @@
   "module_id": "M03",
   "kind": "feature",
   "title": "Per-thread model and context controls",
-  "summary": "Real runtime prompt calibration passed; candidate repairs model availability, thread-bound retry, draft-bound estimates and stale event/acknowledgement handling. Native model UI acceptance pending.",
+  "summary": "Model UI state regressions passed; add candidate real Windows two-model selection, context inspection, generation and restart proof.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [],
@@ -19,7 +19,8 @@
     "docs/modules/M03.md",
     "docs/evidence/P03_T05_INTERRUPTIBLE_TRANSPORT_20261125.md",
     "docs/evidence/P03_T04_REAL_PRODUCT_GATEWAY_20261125.md",
-    "docs/evidence/P03_T05_T07_UI_STATE_20261125.md"
+    "docs/evidence/P03_T05_T07_UI_STATE_20261125.md",
+    "docs/evidence/P03_T05_T07_WINDOWS_MODEL_UI_CANDIDATE.md"
   ],
   "help_paths": [
     "docs/help/articles/M03.md"
@@ -31,7 +32,9 @@
     "tests/test_p03_model_gateway_contract.py",
     "apps/desktop/tests/model-contract.test.mjs",
     "apps/desktop/src-tauri/src/vault.rs",
-    "apps/desktop/src-tauri/src/model_gateway.rs"
+    "apps/desktop/src-tauri/src/model_gateway.rs",
+    "scripts/verify_p03_model_ui_database.py",
+    "scripts/probe_p03_chat_ui.ps1"
   ],
   "commit_sha": "9ffff956a37e9cd9f072ec860b1416123658dbb0",
   "release": null,

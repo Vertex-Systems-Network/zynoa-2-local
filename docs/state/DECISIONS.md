@@ -228,3 +228,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P03 | Accept T04 minimal fixed-loopback product adapter, calibrate T07 separately | Exact c1a79a1 Linux real gateway and Windows baseline passed, original product evidence independently inspected. No universal tokenizer claim; native-only prompt usage metric with existing IPC shape and pinned-model multilingual test. T05–T07 retain acceptance gates.
 
 2026-11-25 | P03 | Bind model controls to installed inventory, thread, settings revision and current draft | Verified a2dbceb calibration and baseline; avoid stale UI estimate or cross-thread retry and late stream state updates. Existing IPC/storage/dependencies retained; exact-head native/UI acceptance pending.
+
+2026-11-25 | P03 | Add real Windows model interaction after unchanged T03 baseline | Official runtime asset digest pinned, isolated CI-only two model inventory, keyboard selection and independent SQLite readback; no product capability or schema change. Actual proof and visual review pending.

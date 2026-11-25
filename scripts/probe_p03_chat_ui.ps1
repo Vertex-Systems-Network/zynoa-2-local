@@ -2,7 +2,8 @@
 param(
  [Parameter(Mandatory=$true)][string]$Executable,
  [Parameter(Mandatory=$true)][string]$SourceSha,
- [Parameter(Mandatory=$true)][string]$OutputDirectory
+ [Parameter(Mandatory=$true)][string]$OutputDirectory,
+ [switch]$ModelAcceptance
 )
 $ErrorActionPreference='Stop'
 if ($env:GITHUB_ACTIONS -ne 'true' -or $SourceSha -cnotmatch '^[a-f0-9]{40}$') { throw 'ZYN-CHAT-PROBE-001: disposable CI only' }
@@ -61,9 +62,9 @@ function Stop-Native {
  }
  $script:root=$null
 }
-function Wait-Name([string]$Name,[string]$Type='', [bool]$Enabled=$false) {
+function Wait-Name([string]$Name,[string]$Type='', [bool]$Enabled=$false,[int]$Attempts=80) {
  $condition=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,$Name)
- for ($i=0;$i -lt 80;$i++) {
+ for ($i=0;$i -lt $Attempts;$i++) {
    $matches=$script:root.FindAll([System.Windows.Automation.TreeScope]::Descendants,$condition)
    for ($j=0;$j -lt $matches.Count;$j++) {
      try {
@@ -179,6 +180,165 @@ function Read-Vault([string]$Stage) {
  python scripts/verify_p03_chat_ui_database.py
  if ($LASTEXITCODE -ne 0) {throw 'ZYN-CHAT-PROBE-015: independent SQLite verification failed'}
 }
+function Read-ModelVault([string]$Stage,[string]$Title='',[string]$Model='',[int]$Budget=0) {
+ $result = & python scripts/verify_p03_model_ui_database.py --stage $Stage --output $OutputDirectory --title $Title --model $Model --budget $Budget
+ if ($LASTEXITCODE -ne 0) {throw 'ZYN-MODEL-PROBE-001: independent SQLite verification failed'}
+ return ($result | ConvertFrom-Json)
+}
+function Select-Combo([string]$Name,[string]$Key) {
+ $control=Wait-Name $Name 'ComboBox' $true
+ Focus-Control $control
+ if ([ChatProbeWindow]::GetForegroundWindow() -ne $script:hwnd) {throw 'ZYN-MODEL-PROBE-002: foreground lost'}
+ # Use the actual native dropdown keyboard path, never set React state.
+ [System.Windows.Forms.SendKeys]::SendWait('%{DOWN}')
+ Start-Sleep -Milliseconds 150
+ [System.Windows.Forms.SendKeys]::SendWait($Key)
+ [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+ Start-Sleep -Milliseconds 500
+ [void](Wait-Name 'Message' 'Edit' $true)
+}
+function Assert-Combo([string]$Name,[string]$Expected) {
+ for ($i=0;$i -lt 40;$i++) {
+   $control=Wait-Name $Name 'ComboBox' $true
+   $value=$null
+   if ($control.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern,[ref]$value)) {
+     if ([string]$value.Current.Value -ceq $Expected) {return}
+   }
+   $selection=$null
+   if ($control.TryGetCurrentPattern([System.Windows.Automation.SelectionPattern]::Pattern,[ref]$selection)) {
+     foreach ($item in $selection.Current.GetSelection()) {
+       if ($item.Current.Name -ceq $Expected) {return}
+     }
+   }
+   Start-Sleep -Milliseconds 250
+ }
+ throw ('ZYN-MODEL-PROBE-003: model/context dropdown readback failed: '+$Name)
+}
+function Wait-TextPattern([string]$Pattern,[int]$Attempts=80) {
+ for ($i=0;$i -lt $Attempts;$i++) {
+   $items=$script:root.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
+   foreach ($item in $items) {
+     try {
+       $name=[string]$item.Current.Name
+       if ($name -match $Pattern -and !$item.Current.IsOffscreen) {return $name}
+     } catch [System.Windows.Automation.ElementNotAvailableException] {}
+   }
+   Start-Sleep -Milliseconds 250
+ }
+ throw 'ZYN-MODEL-PROBE-004: required accessible text absent'
+}
+function Wait-Assistant([string]$Text) {
+ $normalized=($Text -replace '\s+',' ').Trim()
+ if (!$normalized) {throw 'ZYN-MODEL-PROBE-005: empty assistant output'}
+ for ($i=0;$i -lt 80;$i++) {
+   $items=$script:root.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
+   foreach ($item in $items) {
+     try {
+       if (([string]$item.Current.Name -replace '\s+',' ').Trim() -ceq $normalized -and !$item.Current.IsOffscreen) {return}
+     } catch [System.Windows.Automation.ElementNotAvailableException] {}
+   }
+   Start-Sleep -Milliseconds 250
+ }
+ throw 'ZYN-MODEL-PROBE-006: persisted assistant text not visible in native UI'
+}
+if ($ModelAcceptance) {
+ try {
+   $script:stage='model baseline identity'
+   $null=Read-ModelVault 'baseline'
+   $script:stage='real model first start'
+   Start-Native
+   $firstPid=$script:app.Id
+   Click-Control 'Chat'
+   [void](Wait-Name 'Conversation title' 'Edit' $true)
+   $alpha='P03 model alpha'
+   $beta='P03 model beta'
+   $modelA='qwen2.5:0.5b'
+   $modelB='qwen2.5:1.5b'
+   $promptA='Reply with a short greeting.'
+   $promptB='Say hello in three words.'
+   $script:stage='create first model thread'
+   Type-Exact 'Conversation title' $alpha
+   Click-Control 'Create conversation'
+   [void](Wait-Name 'Message' 'Edit' $true)
+   Click-Control 'Refresh local models'
+   [void](Wait-Name 'Model' 'ComboBox' $true)
+   $script:stage='first installed model selection'
+   Select-Combo 'Model' '{HOME}'
+   $null=Read-ModelVault 'settings' $alpha $modelA 2048
+   Assert-Combo 'Model' $modelA
+   $script:stage='switch model in same thread'
+   Select-Combo 'Model' '{END}'
+   $null=Read-ModelVault 'settings' $alpha $modelB 2048
+   Assert-Combo 'Model' $modelB
+   Select-Combo 'Model' '{HOME}'
+   $null=Read-ModelVault 'settings' $alpha $modelA 2048
+   Select-Combo 'Context budget' '{HOME}'
+   $null=Read-ModelVault 'settings' $alpha $modelA 512
+   Assert-Combo 'Context budget' '512 tokens'
+   Capture 'M03-OPT-01-candidate.png'
+   $script:stage='inspect first draft context'
+   Type-Exact 'Message' $promptA
+   Click-Control 'Inspect context'
+   $estimateA=Wait-TextPattern '^Estimated [0-9]+ / 512 tokens'
+   Capture 'M03-OPT-03-candidate.png'
+   $script:stage='actual native send first model'
+   Click-Control 'Send'
+   [void](Wait-Name 'Local model response completed and saved.' '' $false 640)
+   $savedA=Read-ModelVault 'turn' $alpha $modelA 512
+   Wait-Assistant $savedA.assistant_text
+   Capture 'M03-OPT-02-candidate.png'
+   $script:stage='create second model thread'
+   Type-Exact 'Conversation title' $beta
+   Click-Control 'Create conversation'
+   [void](Wait-Name 'Message' 'Edit' $true)
+   Select-Combo 'Model' '{END}'
+   $null=Read-ModelVault 'settings' $beta $modelB 2048
+   Assert-Combo 'Model' $modelB
+   Type-Exact 'Message' $promptB
+   Click-Control 'Inspect context'
+   $estimateB=Wait-TextPattern '^Estimated [0-9]+ / 2048 tokens'
+   $script:stage='actual native send second model'
+   Click-Control 'Send'
+   [void](Wait-Name 'Local model response completed and saved.' '' $false 640)
+   $savedB=Read-ModelVault 'turn' $beta $modelB 2048
+   Wait-Assistant $savedB.assistant_text
+   $script:stage='verify model database before restart'
+   Stop-Native
+   $null=Read-ModelVault 'saved'
+   $script:stage='restart model UI'
+   Start-Native
+   $secondPid=$script:app.Id
+   if ($firstPid -eq $secondPid) {throw 'ZYN-MODEL-PROBE-007: distinct process required'}
+   Click-Control 'Chat'
+   Click-Control $alpha
+   Assert-Combo 'Model' $modelA
+   Assert-Combo 'Context budget' '512 tokens'
+   Wait-Assistant $savedA.assistant_text
+   Click-Control $beta
+   Assert-Combo 'Model' $modelB
+   Assert-Combo 'Context budget' '2048 tokens'
+   Wait-Assistant $savedB.assistant_text
+   Capture 'M03-S04-candidate.png'
+   Stop-Native
+   $null=Read-ModelVault 'reopened'
+   $images=[ordered]@{}
+   foreach ($name in @('M03-OPT-01-candidate.png','M03-OPT-03-candidate.png','M03-OPT-02-candidate.png','M03-S04-candidate.png')) {
+     $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
+   }
+   $proof=[ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;native_ui=$true;actual_model_send=$true;models=@($modelA,$modelB);same_thread_switch=$true;thread_settings_readback=$true;context_estimates=@($estimateA,$estimateB);ui_assistant_readback=$true;database_reopen_identity_verified=$true;keyboard_input_verified=$true;input_checks=@($script:inputChecks.ToArray());images=$images;visual_review='candidate_pending_visual_review';stop_retry_ui_verified=$false;full_accessibility_certified=$false}
+   $proof | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-model-ui-proof.json') -Encoding utf8
+   Write-Output 'P03 actual Windows model selection, generation and restart verified'
+ } catch {
+   $failure=[ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;input_checks=@($script:inputChecks.ToArray());status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true}
+   $failure | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-model-ui-failure.json') -Encoding utf8
+   if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {
+     try {Capture 'DEBUG-native-model-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}
+   }
+   throw
+ } finally {Stop-Native}
+ return
+}
+
 try {
  $script:stage='verify empty fixture'
  Read-Vault 'empty'
