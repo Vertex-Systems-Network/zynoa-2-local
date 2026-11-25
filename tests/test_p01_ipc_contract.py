@@ -36,8 +36,8 @@ class ReadOnlyIpcContractTests(unittest.TestCase):
         self.assertEqual(["main"], self.cap["windows"])
         self.assertEqual(["allow-workspace-handshake"], self.cap["permissions"])
         self.assertNotIn("remote", self.cap)
-        self.assertIn('commands(&["workspace_handshake"])', self.build)
-        self.assertIn("generate_handler![ipc::workspace_handshake]", self.native)
+        self.assertIn('commands(&["workspace_handshake", "chat_request"])', self.build)
+        self.assertIn("generate_handler![ipc::workspace_handshake, chat_ipc::chat_request]", self.native)
         self.assertIn('window.label() != "main"', self.rust)
         for forbidden in (".plugin(", "std::fs::write", "std::fs::remove", "reqwest", "std::process::Command"):
             self.assertNotIn(forbidden, self.native + self.rust)

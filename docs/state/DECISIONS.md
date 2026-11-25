@@ -202,3 +202,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P03 | T03 dedicated Chat view with bounded typed native domain commands, no generic SQL/FS/network grant | Official Tauri v2 command/capability docs; preserve old workspace handshake and P02 shell. Main-local scoped capability and explicit allowlist planned; no product authority expanded in preflight. Real UI create/restart/readback required before DONE.
 
 2026-11-25 | P03 | Split T03 into native thread query then bounded IPC/UI slices | Existing P01/P02 exact privilege allowlists require explicit scoped migration and new negative tests; preserve historical checks. Add metadata-only queries and same-thread reconciliation lookup first; no authority expansion yet.
+
+2026-11-25 | P03 | Implement scoped chat_request domain command and separate local capability | Keep workspace handshake unchanged, no arbitrary host authority; stable mutation ID replay, bounded reads, typed errors. Retain historical P02 strict gate and test current exact grant. Native and UI proof pending.

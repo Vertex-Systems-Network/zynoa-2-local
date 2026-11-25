@@ -1,5 +1,6 @@
 //! Native transport for P01. No arbitrary filesystem or network IPC commands.
 mod ipc;
+mod chat_ipc;
 mod security;
 mod secrets;
 mod diagnostics;
@@ -26,7 +27,7 @@ pub fn run() {
                 .map_err(|_| std::io::Error::other("ZYN-STO-001"))?;
             app.manage(registry);
             // Native-only user vault is attached to the OS-owned app data root.
-            // It has NO Tauri invoke command or untrusted WebView write grant.
+            // Only the bounded M03 chat domain adapter may use it; no raw vault command.
             let storage = vault::NativeVault::open(&app_local)
                 .map_err(|_| std::io::Error::other("ZYN-DAT-001"))?;
             app.manage(std::sync::Mutex::new(storage));
@@ -36,7 +37,7 @@ pub fn run() {
             app.manage(std::sync::Mutex::new(ledger));
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![ipc::workspace_handshake])
+        .invoke_handler(tauri::generate_handler![ipc::workspace_handshake, chat_ipc::chat_request])
         .run(tauri::generate_context!())
         .expect("ZYN-BOOT-002: unable to initialize native shell");
 }

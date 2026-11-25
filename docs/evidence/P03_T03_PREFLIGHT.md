@@ -35,3 +35,7 @@ Next: implement backend and negative tests first, then typed frontend and real n
 ## Native query implementation slice
 
 Added private get/list conversation summary methods (ID cursor, bounded count, no message bodies) and exact same-conversation message lookup for later stable-ID reconciliation. Two real Rust tests exercise empty/list/pagination/invalid IDs/limits, restart, persisted content, and cross-conversation isolation. No schema, IPC, security capability, frontend or T02 acceptance changes. Native CI pending; no T03 DONE. The next slice must explicitly reconcile old P01/P02 exact privilege assertions without weakening deny-first security.
+
+## Backend candidate
+
+Fixed `chat_request` Tauri command dispatches only chat.list/create/history/saveUserMessage. Separate exact main-chat capability; existing main-readonly unchanged. Native role/status forced, fixed error codes, strict payload schemas, stable-ID replay, history bytes bounded and ID/ordinal pages. Existing P01/P02 source allowlist assertions account for planned new scope without permitting arbitrary grants; historical P02 live gate remains unchanged by default. Four Rust test fixtures cover denial, persistence/replay, scope/pagination, byte bounds. Existing full CI runs these; T03 remains IN_PROGRESS pending native results and frontend real Windows interaction. No inference or UI claim.
