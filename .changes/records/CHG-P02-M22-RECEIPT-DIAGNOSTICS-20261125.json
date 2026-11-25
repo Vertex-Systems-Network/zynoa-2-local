@@ -9,7 +9,7 @@
   "source_issue_urls": [
     "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/22"
   ],
-  "source_pr_url": null,
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/23",
   "affected_option_ids": [],
   "docs_paths": [
     "docs/state/HANDOFF.md",
@@ -21,7 +21,7 @@
     "tests/test_phase_transition_publisher.py",
     "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45603171384"
   ],
-  "commit_sha": null,
+  "commit_sha": "65a8896f06952c8aa4fd55dead2f7a71348b98f1",
   "release": null,
   "verification": {
     "tests_passed": false,
