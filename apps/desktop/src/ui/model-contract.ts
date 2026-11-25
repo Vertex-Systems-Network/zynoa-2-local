@@ -1,6 +1,17 @@
 export type InstalledModel={name:string;digest:string;size:number};
 export type ModelSettings={model:string;contextLimit:number;revision:number};
 export type ContextInspection={estimatedTokens:number;limit:number;includedMessages:number;omittedMessages:number};
+export type RetryTarget={conversationId:string;parentId:string};
+export type ContextSnapshot={conversationId:string;settingsRevision:number;draft:string;inspection:ContextInspection};
+export function modelAvailable(settings:ModelSettings|null,models:readonly InstalledModel[],runtimeVersion:string):boolean{
+ return Boolean(runtimeVersion&&settings&&models.some(model=>model.name===settings.model));
+}
+export function retryAvailable(target:RetryTarget|null,conversationId:string|null,available:boolean):boolean{
+ return Boolean(available&&target&&conversationId&&target.conversationId===conversationId);
+}
+export function currentContext(snapshot:ContextSnapshot|null,conversationId:string|null,settings:ModelSettings|null,draft:string):ContextInspection|null{
+ return snapshot&&settings&&snapshot.conversationId===conversationId&&snapshot.settingsRevision===settings.revision&&snapshot.draft===draft&&snapshot.inspection.limit===settings.contextLimit?snapshot.inspection:null;
+}
 export type TurnReceipt={id:string;revision:number;conversationRevision:number;ordinal:number};
 export type TurnResult={turnId:string;status:"complete"|"cancelled"|"failed";receipt:TurnReceipt|null;evalCount:number;context:{estimatedTokens:number;limit:number;omittedMessages:number}};
 export type ModelEvent={schemaVersion:1;turnId:string;sequence:number;kind:"delta"|"terminal";content:string};
@@ -33,7 +44,7 @@ function inspection(x:unknown):ContextInspection{const o=object(x,["estimatedTok
  if(!integer(o.estimatedTokens)||!integer(o.limit,512)||!integer(o.includedMessages)||!integer(o.omittedMessages)||Number(o.estimatedTokens)>Number(o.limit))return fail();return o as unknown as ContextInspection;}
 export function decodeModelEvent(raw:unknown,turnId:string,lastSequence:number):ModelEvent{
  const o=object(raw,["schemaVersion","turnId","sequence","kind","content"]);
- if(o.schemaVersion!==1||o.turnId!==turnId||!integer(o.sequence,1)||Number(o.sequence)<=lastSequence||
+ if(o.schemaVersion!==1||o.turnId!==turnId||!integer(o.sequence,1)||Number(o.sequence)!==lastSequence+1||
    (o.kind!=="delta"&&o.kind!=="terminal")||typeof o.content!=="string"||new TextEncoder().encode(o.content).length>65536||
    (o.kind==="terminal"&&o.content!==""))return fail();
  return o as unknown as ModelEvent;
@@ -44,7 +55,9 @@ export function decodeModelReply<K extends ModelCommand>(raw:unknown,command:K,c
    const models=o.models.map(row=>{const m=object(row,["name","digest","size"]);if(!modelName(m.name)||typeof m.digest!=="string"||m.digest.length>128||!integer(m.size))return fail();return m as unknown as InstalledModel;});
    return {version:o.version,models} as ModelReplies[K];}
  if(command==="inference.settings.get"){const o=object(root.data,["settings"]);return {settings:o.settings===null?null:settings(o.settings)} as ModelReplies[K];}
- if(command==="inference.settings.set"){const o=object(root.data,["settings"]);return {settings:settings(o.settings)} as ModelReplies[K];}
+ if(command==="inference.settings.set"){const o=object(root.data,["settings"]),actual=settings(o.settings),q=payload as ModelPayloads["inference.settings.set"];
+   if(actual.model!==q.model||actual.contextLimit!==q.contextLimit)return fail();
+   return {settings:actual} as ModelReplies[K];}
  if(command==="inference.context.inspect")return inspection(root.data) as ModelReplies[K];
  if(command==="inference.turn.cancel"){const o=object(root.data,["turnId","stopped"]);if(o.turnId!==(payload as ModelPayloads["inference.turn.cancel"]).turnId||typeof o.stopped!=="boolean")return fail();return o as ModelReplies[K];}
  const q=payload as ModelPayloads["inference.turn.generate"],o=object(root.data,["turnId","status","receipt","evalCount","context"]);

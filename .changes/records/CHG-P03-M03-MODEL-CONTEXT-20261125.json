@@ -3,7 +3,7 @@
   "module_id": "M03",
   "kind": "feature",
   "title": "Per-thread model and context controls",
-  "summary": "Fixed-loopback product gateway real-runtime proof accepted for scoped T04; native-only runtime prompt-count calibration candidate, T05–T07 acceptance pending.",
+  "summary": "Real runtime prompt calibration passed; candidate repairs model availability, thread-bound retry, draft-bound estimates and stale event/acknowledgement handling. Native model UI acceptance pending.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [],
@@ -18,7 +18,8 @@
     "docs/evidence/P03_T04_T07_CI_REPAIR_20261125.md",
     "docs/modules/M03.md",
     "docs/evidence/P03_T05_INTERRUPTIBLE_TRANSPORT_20261125.md",
-    "docs/evidence/P03_T04_REAL_PRODUCT_GATEWAY_20261125.md"
+    "docs/evidence/P03_T04_REAL_PRODUCT_GATEWAY_20261125.md",
+    "docs/evidence/P03_T05_T07_UI_STATE_20261125.md"
   ],
   "help_paths": [
     "docs/help/articles/M03.md"

@@ -1,5 +1,7 @@
 # Status — 2026-11-25
 
+**P03 T05–T07 IN_PROGRESS — UI state repair candidate** — 4/16 DONE (25%). Exact a2dbceb real English/mixed UTF-8 token calibration and Windows baseline passed. [Evidence and UI repair scope](../evidence/P03_T05_T07_UI_STATE_20261125.md). New tests, actual native model UI, multi-model switch and final captures pending. PR #25 draft, no merge/release.
+
 **P03 T04 DONE; T05–T07 IN_PROGRESS** — 4/16 (25%). Exact c1a79a1 real Rust product gateway and Windows baseline passed; original model artifact independently inspected. [T04 acceptance evidence](../evidence/P03_T04_REAL_PRODUCT_GATEWAY_20261125.md). New prompt usage calibration candidate requires exact-head CI; real native model interaction, model switching, screenshot/Wiki and phase release gates remain pending. PR #25 draft, unmerged.
 
 **P03 T04–T07 implementation candidate ready** — native fixed-loopback Ollama health/inventory, ordered streaming with stop/retry and durable terminal records, per-thread model settings, and bounded inspectable context are implemented together at `9ffff956`. Local model contracts 5/5, UI contracts 32/32 and production frontend build pass. Full Python regression is being rerun after a formatting-only contract-test repair; exact-head Windows/Ollama CI remains the completion gate, so T04–T07 stay `IN_PROGRESS` and PR #25 remains draft.

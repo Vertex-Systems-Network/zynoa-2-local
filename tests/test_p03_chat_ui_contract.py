@@ -14,4 +14,18 @@ class ChatUiContract(unittest.TestCase):
         self.assertIn('hidden={view !== "chat"}',app)
         for forbidden in ("localStorage","sessionStorage","dangerouslySetInnerHTML","fetch(","console.log"):
             self.assertNotIn(forbidden,view+transport)
+    def test_model_ui_state_is_scoped_and_fail_closed(self):
+        view=(ROOT/"src/ui/ChatView.tsx").read_text(encoding="utf-8")
+        transport=(ROOT/"src/model-transport.ts").read_text(encoding="utf-8")
+        for fragment in ('modelAvailable(settings,models,runtimeVersion)',
+                         'retryAvailable(retryTarget,selected?.id??null,installed)',
+                         'currentContext(contextSnapshot,selected?.id??null,settings,draft)',
+                         'invalidateInventory();const health=await',
+                         'disabled={!canEdit||!installed||!validText(draft,262144)}>Send',
+                         'setDraft(e.target.value);setContext(null)',
+                         'activeTurnRef.current===turnId',
+                         'Previously selected model unavailable'):
+            self.assertIn(fragment,view)
+        self.assertIn('closed=true',transport)
+        self.assertIn('terminalSeen',transport)
 if __name__=="__main__":unittest.main()

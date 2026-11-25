@@ -9,3 +9,5 @@ Downloaded original artifact ID 15048618144, ZIP 971 bytes, SHA-256 `c0b8583e480
 ## Gate decision
 
 T04 DONE for the explicitly scoped minimal fixed-loopback adapter and runtime health: exact-source runtime test, original product evidence and Windows baseline all support this task. No claim of full native model UI, real-model Stop/retry interaction, multiple-model switch, universal tokenizer accuracy, screenshots, hosted Wiki or phase completion. T05–T07 remain IN_PROGRESS. This source slice adds native-only extraction of runtime-reported prompt_eval_count without changing renderer schema; pinned exact model digest and short English/mixed UTF-8 calibration with output reserve assertions. New tests require fresh exact-head CI. Runtime-reported counts may be affected by caching/templates; no universal upper bound is claimed. No model downloads in product, no new dependencies or schema change, no merge/release.
+
+- Follow-up exact a2dbceb real token calibration passed; original artifact and measurements recorded in [T05–T07 UI state evidence](P03_T05_T07_UI_STATE_20261125.md). T04 scoped acceptance unchanged.
