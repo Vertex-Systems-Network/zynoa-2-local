@@ -262,6 +262,23 @@ function Select-Combo([string]$Name,[string]$Key,[string]$Expected) {
    # Home may stay on the disabled placeholder on some WebView2 providers.
    $control=Wait-Name $Name 'ComboBox' $true
    Focus-ByPhysicalClick $control
+   # WebView2 can expose the popup option without a SelectionItemPattern.
+   # On that provider, click the exact visible option before keyboard fallback.
+   if ($attempt -eq 2) {
+     $expand=$null
+     if ($control.TryGetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern,[ref]$expand)) {
+       try {
+         $expand.Expand(); Start-Sleep -Milliseconds 200
+         $condition=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,$Expected)
+         $items=$script:root.FindAll([System.Windows.Automation.TreeScope]::Descendants,$condition)
+         foreach ($item in $items) {
+           if ($item.Current.IsOffscreen -or !$item.Current.IsEnabled) {continue}
+           try { Focus-ByPhysicalClick $item; [System.Windows.Forms.SendKeys]::SendWait('{ENTER}'); break } catch {}
+         }
+       } catch {} finally {try {$expand.Collapse()} catch {}}
+       for ($i=0;$i -lt 40;$i++) { if (Test-Combo $Name $Expected) { return }; Start-Sleep -Milliseconds 250 }
+     }
+   }
    if ([ChatProbeWindow]::GetForegroundWindow() -ne $script:hwnd) {throw 'ZYN-MODEL-PROBE-002: foreground lost'}
    $actualKey=$Key
    # The model selector keeps a disabled placeholder at index zero on some
