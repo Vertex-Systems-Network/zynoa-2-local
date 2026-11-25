@@ -92,6 +92,15 @@ pub(crate) struct ChatMessageInput<'a> {
     pub(crate) status: ChatStatus,
 }
 
+// Native thread metadata, deliberately separate from message bodies.
+pub(crate) struct ConversationSummary {
+    pub(crate) id: String,
+    pub(crate) title: String,
+    pub(crate) revision: i64,
+    pub(crate) created_at: i64,
+    pub(crate) updated_at: i64,
+}
+
 pub(crate) struct StoredChatMessage {
     pub(crate) id: String,
     pub(crate) parent_id: Option<String>,
@@ -394,6 +403,44 @@ impl NativeVault {
         ).map_err(map_sql)?;
         tx.commit().map_err(map_sql)?;
         Ok(ChatWriteReceipt { id:input.id.to_owned(),revision:1,conversation_revision,ordinal:Some(ordinal) })
+    }
+
+    fn conversation_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<ConversationSummary> {
+        Ok(ConversationSummary { id:row.get(0)?, title:row.get(1)?, revision:row.get(2)?,
+            created_at:row.get(3)?, updated_at:row.get(4)? })
+    }
+
+    pub(crate) fn get_conversation(&self, id: &str) -> Result<Option<ConversationSummary>, VaultFault> {
+        if !safe_id(id) { return Err(VaultFault::InvalidRecord); }
+        self.conn.query_row("SELECT id,title,revision,created_at,updated_at FROM conversations WHERE id=?1",
+            [id], Self::conversation_row).optional().map_err(map_sql)
+    }
+
+    /// Stable ID cursor, bounded metadata only. No message bodies in thread list.
+    pub(crate) fn list_conversations(&self, after: Option<&str>, limit: u32)
+        -> Result<Vec<ConversationSummary>, VaultFault>
+    {
+        if after.is_some_and(|id| !safe_id(id)) || !(1..=MAX_PAGE).contains(&limit) {
+            return Err(VaultFault::InvalidRecord);
+        }
+        let mut stmt=self.conn.prepare("SELECT id,title,revision,created_at,updated_at FROM conversations
+            WHERE id>?1 ORDER BY id LIMIT ?2").map_err(map_sql)?;
+        let rows=stmt.query_map(params![after.unwrap_or(""),limit],Self::conversation_row).map_err(map_sql)?;
+        let mut result=Vec::new();
+        for row in rows { result.push(row.map_err(map_sql)?); }
+        Ok(result)
+    }
+
+    /// Exact same-thread lookup for reconciliation after uncertain write outcomes.
+    pub(crate) fn get_chat_message(&self, conversation_id: &str, id: &str)
+        -> Result<Option<StoredChatMessage>, VaultFault>
+    {
+        if !safe_id(conversation_id)||!safe_id(id) { return Err(VaultFault::InvalidRecord); }
+        self.conn.query_row("SELECT id,parent_id,ordinal,role,content,status,revision,created_at FROM messages
+            WHERE conversation_id=?1 AND id=?2",params![conversation_id,id],|r| Ok(StoredChatMessage {
+            id:r.get(0)?,parent_id:r.get(1)?,ordinal:r.get(2)?,role:r.get(3)?,content:r.get(4)?,
+            status:r.get(5)?,revision:r.get(6)?,created_at:r.get(7)?,
+        })).optional().map_err(map_sql)
     }
 
     /// Bounded stable ordinal pagination, scoped to a single conversation.
@@ -766,6 +813,56 @@ mod tests {
         assert_eq!(count(&restored,"SELECT count(*) FROM records"),1);
         drop(restored);
         assert_eq!(NativeVault::restore_to_new_test_profile(&snapshot,&preview),Err(VaultFault::InvalidLocation));
+    }
+
+    #[test]
+    fn thread_query_metadata_cursor_and_reopen() {
+        let f=Fixture::new();
+        let app=f.app();
+        let mut v=NativeVault::open(&app).unwrap();
+        assert!(v.list_conversations(None,20).unwrap().is_empty());
+        v.create_conversation("thread_bravo","Second").unwrap();
+        v.create_conversation("thread_alpha","First").unwrap();
+        v.append_chat_message(sample_message("message_0001","thread_alpha",None)).unwrap();
+        drop(v);
+        let after=NativeVault::open(&app).unwrap();
+        let page=after.list_conversations(None,1).unwrap();
+        assert_eq!(page.len(),1);
+        assert_eq!(page[0].id,"thread_alpha");
+        assert_eq!(page[0].title,"First");
+        assert_eq!(page[0].revision,2);
+        assert!(page[0].created_at>0);
+        assert!(page[0].updated_at>=page[0].created_at);
+        let next=after.list_conversations(Some(&page[0].id),1).unwrap();
+        assert_eq!(next[0].id,"thread_bravo");
+        assert!(after.list_conversations(Some(&next[0].id),1).unwrap().is_empty());
+        assert_eq!(after.get_conversation("thread_bravo").unwrap().unwrap().revision,1);
+        assert!(after.get_conversation("missing_thread").unwrap().is_none());
+        for limit in [0,201] { assert!(after.list_conversations(None,limit).is_err()); }
+        assert!(after.list_conversations(Some("../invalid"),1).is_err());
+        assert!(after.get_conversation("../invalid").is_err());
+    }
+
+    #[test]
+    fn thread_query_exact_message_lookup_never_crosses_conversation() {
+        let f=Fixture::new();
+        let app=f.app();
+        let mut v=NativeVault::open(&app).unwrap();
+        v.create_conversation("thread_alpha","Alpha").unwrap();
+        v.create_conversation("thread_bravo","Bravo").unwrap();
+        v.append_chat_message(sample_message("message_0001","thread_alpha",None)).unwrap();
+        drop(v);
+        let after=NativeVault::open(&app).unwrap();
+        let m=after.get_chat_message("thread_alpha","message_0001").unwrap().unwrap();
+        assert_eq!(m.id,"message_0001");
+        assert_eq!(m.content,"synthetic message");
+        assert_eq!(m.ordinal,1);
+        assert_eq!(m.role,"user");
+        assert_eq!(m.status,"complete");
+        assert!(after.get_chat_message("thread_bravo","message_0001").unwrap().is_none());
+        assert!(after.get_chat_message("thread_alpha","missing_message").unwrap().is_none());
+        assert!(after.get_chat_message("thread_alpha","../invalid").is_err());
+        assert!(after.get_chat_message("../invalid","message_0001").is_err());
     }
 
 }

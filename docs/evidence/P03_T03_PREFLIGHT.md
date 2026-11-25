@@ -31,3 +31,7 @@ Requests use schemaVersion=1, commandId, correlationId, scope=local, exact paylo
 6. Reserve change record CHG-P03-M03-CONVERSATION-IPC-20261125 before product source edits. Bounded fix per distinct CI failure, no skipped required gates, no mock-only DONE. T04 real loopback Ollama adapter follows T03; T05 real streaming/stop/retry; T06–T15 remaining options and recovery. No release or screenshot claim yet.
 
 Next: implement backend and negative tests first, then typed frontend and real native interaction proof. Lease released at preflight handoff.
+
+## Native query implementation slice
+
+Added private get/list conversation summary methods (ID cursor, bounded count, no message bodies) and exact same-conversation message lookup for later stable-ID reconciliation. Two real Rust tests exercise empty/list/pagination/invalid IDs/limits, restart, persisted content, and cross-conversation isolation. No schema, IPC, security capability, frontend or T02 acceptance changes. Native CI pending; no T03 DONE. The next slice must explicitly reconcile old P01/P02 exact privilege assertions without weakening deny-first security.

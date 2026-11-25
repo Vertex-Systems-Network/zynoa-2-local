@@ -1,0 +1,36 @@
+{
+  "change_id": "CHG-P03-M03-THREAD-QUERIES-20261125",
+  "module_id": "M03",
+  "kind": "feature",
+  "title": "Native bounded thread history queries",
+  "summary": "Metadata-only thread pagination and exact same-thread message lookup with real Rust reopen and isolation tests. No IPC authority granted yet.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
+  "affected_option_ids": [],
+  "docs_paths": [
+    "docs/evidence/P03_T03_PREFLIGHT.md",
+    "docs/state/HANDOFF.md"
+  ],
+  "help_paths": [],
+  "wiki_paths": [],
+  "test_evidence": [
+    "apps/desktop/src-tauri/src/vault.rs",
+    ".github/workflows/p03-native-baseline.yml"
+  ],
+  "commit_sha": "cf000a08a1692976225e29e09647ffc02e0ecd22",
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No schema changes. Revert source only; preserve user vault.",
+  "created_at": "2026-11-25",
+  "updated_at": "2026-11-25",
+  "version_bump": "none",
+  "docs_impact": true,
+  "data_migration": false
+}
