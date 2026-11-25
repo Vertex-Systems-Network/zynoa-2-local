@@ -21,8 +21,8 @@
     {
       "id": "P03-T03",
       "title": "M03 conversation threads, durable history and accessible conversation UI",
-      "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/27"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45635274324"
     },
     {
       "id": "P03-T04",

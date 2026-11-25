@@ -3,7 +3,7 @@
   "module_id": "M03",
   "kind": "maintenance",
   "title": "Real Windows conversation restart evidence gate",
-  "summary": "Native UIA synthetic keyboard create and save, restart, read-only SQLite journal identity verification and screenshot candidates. CI pending.",
+  "summary": "Native UIA synthetic keyboard create and save, restart, read-only SQLite journal identity verification and screenshot candidates. Exact-source CI passed.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [],
@@ -20,10 +20,10 @@
     "scripts/verify_p03_chat_ui_database.py",
     ".github/workflows/p03-native-baseline.yml"
   ],
-  "commit_sha": "8c818e3738588e05e426571524c34ed402842ad3",
+  "commit_sha": "8b73b99cdb83333cd3aae549f187e3f5682e0ba1",
   "release": null,
   "verification": {
-    "tests_passed": false,
+    "tests_passed": true,
     "merge_verified": false,
     "release_published": false
   },

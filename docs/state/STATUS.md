@@ -1,5 +1,7 @@
 # Status — 2026-11-25
 
+**P03-T01/T02/T03 DONE; T04 next** — 3/16 tasks complete (18% floor). Exact-source Windows run `45635274324` passed native conversation creation, durable save, process restart, UI readback and independent SQLite identity. Original artifact and both screenshot hashes independently verified and visually reviewed. Issue #27 resolved; PR #25 remains draft and unmerged. T04 local Ollama adapter is next.
+
 **P03-T01/T02 DONE, T03 IN_PROGRESS** — closeout all six workflows green at `040ef383`; [T03 preflight](../evidence/P03_T03_PREFLIGHT.md) committed. 2/16 complete, 1 active, 13 pending. Product IPC/UI implementation and native interaction verification pending.
 
 **P03-T01 and T02 DONE** — 2/16 (12% floor), native exact-source Windows migration, rollback and staged restoration accepted; [T02 evidence](../evidence/P03_T02_CHAT_VAULT.md). Governance 753 pass, Rust 41/41, focused migration 9/9, original proof ZIP independently verified. Native warnings 44 versus 36 baseline; T03/T14 resolution pending. Next T03; no merge or release.

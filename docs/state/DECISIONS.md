@@ -199,6 +199,8 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 
 2026-11-25 | P03 | Accept T02 native storage scope from exact-source Windows CI and independently hash-verified original proof | Nine focused real SQLite tests, 41 total Rust tests, native boot/schema v2 and all regression checks passed. T03 next; 8 new dead-code warnings tracked for wiring and T14. No UI or encrypted backup claim.
 
+2026-11-25 | P03 | Accept T03 local conversation UI and durable restart scope from exact-source Windows proof | Real keyboard create/save, process restart, UI readback and independent SQLite identity passed; original artifact and PNG hashes independently verified and visually reviewed. T04 inference remains separate.
+
 2026-11-25 | P03 | T03 dedicated Chat view with bounded typed native domain commands, no generic SQL/FS/network grant | Official Tauri v2 command/capability docs; preserve old workspace handshake and P02 shell. Main-local scoped capability and explicit allowlist planned; no product authority expanded in preflight. Real UI create/restart/readback required before DONE.
 
 2026-11-25 | P03 | Split T03 into native thread query then bounded IPC/UI slices | Existing P01/P02 exact privilege allowlists require explicit scoped migration and new negative tests; preserve historical checks. Add metadata-only queries and same-thread reconciliation lookup first; no authority expansion yet.

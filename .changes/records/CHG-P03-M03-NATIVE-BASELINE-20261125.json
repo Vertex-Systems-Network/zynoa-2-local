@@ -3,7 +3,7 @@
   "module_id": "M03",
   "kind": "maintenance",
   "title": "P03 exact-head Windows native baseline",
-  "summary": "Add phase-scoped read-only native build and runtime baseline preserving previous phase regressions. Evidence pending CI.",
+  "summary": "Add phase-scoped read-only native build and runtime baseline preserving previous phase regressions. Exact-source CI passed.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [],
@@ -18,10 +18,10 @@
   "test_evidence": [
     ".github/workflows/p03-native-baseline.yml"
   ],
-  "commit_sha": "6185962abab5686f723fc35f49140dabf2a93f6a",
+  "commit_sha": "8b73b99cdb83333cd3aae549f187e3f5682e0ba1",
   "release": null,
   "verification": {
-    "tests_passed": false,
+    "tests_passed": true,
     "merge_verified": false,
     "release_published": false
   },

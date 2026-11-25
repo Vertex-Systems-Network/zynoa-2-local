@@ -25,10 +25,10 @@
     "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45632415583",
     "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45632415583/artifacts/15030958332"
   ],
-  "commit_sha": "a79018d4f77fe0c6b3310c15f5a9263b091bea97",
+  "commit_sha": "8b73b99cdb83333cd3aae549f187e3f5682e0ba1",
   "release": null,
   "verification": {
-    "tests_passed": false,
+    "tests_passed": true,
     "merge_verified": false,
     "release_published": false
   },

@@ -3,7 +3,7 @@
   "module_id": "M03",
   "kind": "feature",
   "title": "Scoped native conversation service",
-  "summary": "Add fixed bounded main-local chat domain command and real SQLite replay/pagination tests. Native verification and frontend integration pending.",
+  "summary": "Add fixed bounded main-local chat domain command and real SQLite replay/pagination tests. Native verification and frontend integration passed.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [],
@@ -20,10 +20,10 @@
     "apps/desktop/src-tauri/src/chat_ipc.rs",
     ".github/workflows/p03-native-baseline.yml"
   ],
-  "commit_sha": "5c6e1e8f036d2af161065cdb42a96edd7b88966f",
+  "commit_sha": "8b73b99cdb83333cd3aae549f187e3f5682e0ba1",
   "release": null,
   "verification": {
-    "tests_passed": false,
+    "tests_passed": true,
     "merge_verified": false,
     "release_published": false
   },

@@ -3,7 +3,7 @@
   "module_id": "M03",
   "kind": "feature",
   "title": "Local conversation history interface",
-  "summary": "Dedicated native-backed conversation list/create/history/save-only view, strict response decoder and stable request retry. Actual native UI proof pending.",
+  "summary": "Dedicated native-backed conversation list/create/history/save-only view, strict response decoder and stable request retry. Exact-source native UI proof passed.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [],
@@ -20,10 +20,10 @@
     "tests/test_p03_chat_ui_contract.py",
     "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45627430024"
   ],
-  "commit_sha": "d0bdc80f5453ea78ecef23accab60b7d0b81b3fb",
+  "commit_sha": "8b73b99cdb83333cd3aae549f187e3f5682e0ba1",
   "release": null,
   "verification": {
-    "tests_passed": false,
+    "tests_passed": true,
     "merge_verified": false,
     "release_published": false
   },
