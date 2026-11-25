@@ -22,6 +22,9 @@ public static class ChatProbeWindow {
  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hwnd);
  [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
  [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hwnd, int command);
+ [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
+ [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extra);
+
  [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hwnd, out RECT rect);
  [StructLayout(LayoutKind.Sequential)] public struct RECT {public int Left,Top,Right,Bottom;}
 }
@@ -29,6 +32,8 @@ public static class ChatProbeWindow {
 $script:app=$null
 $script:root=$null
 $script:hwnd=[IntPtr]::Zero
+$script:stage='initializing'
+$script:inputChecks=[System.Collections.Generic.List[object]]::new()
 $title='P03 synthetic conversation'
 $content='P03 synthetic persisted message'
 function Start-Native {
@@ -78,7 +83,7 @@ function Focus-Control($Control) {
  [void][ChatProbeWindow]::SetForegroundWindow($script:hwnd)
  if ([ChatProbeWindow]::GetForegroundWindow() -ne $script:hwnd) {throw 'ZYN-CHAT-PROBE-009: foreground mismatch'}
  $Control.SetFocus()
- Start-Sleep -Milliseconds 150
+ Start-Sleep -Milliseconds 350
 }
 function Click-Control([string]$Name) {
  $control=Wait-Name $Name 'Button' $true
@@ -86,17 +91,51 @@ function Click-Control([string]$Name) {
  $pattern=$control.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
  $pattern.Invoke()
 }
+function Focus-ByPhysicalClick($Control) {
+ Focus-Control $Control
+ $point=$Control.GetClickablePoint()
+ $rect=New-Object ChatProbeWindow+RECT
+ if (![ChatProbeWindow]::GetWindowRect($script:hwnd,[ref]$rect)) {throw 'ZYN-CHAT-PROBE-017: click bounds unavailable'}
+ $x=[int]$point.X;$y=[int]$point.Y
+ if ($x -lt $rect.Left -or $x -ge $rect.Right -or $y -lt $rect.Top -or $y -ge $rect.Bottom) {throw 'ZYN-CHAT-PROBE-018: click outside native HWND'}
+ if ([ChatProbeWindow]::GetForegroundWindow() -ne $script:hwnd) {throw 'ZYN-CHAT-PROBE-019: foreground lost before click'}
+ if (![ChatProbeWindow]::SetCursorPos($x,$y)) {throw 'ZYN-CHAT-PROBE-020: native pointer positioning failed'}
+ [ChatProbeWindow]::mouse_event(2,0,0,0,[UIntPtr]::Zero)
+ [ChatProbeWindow]::mouse_event(4,0,0,0,[UIntPtr]::Zero)
+ Start-Sleep -Milliseconds 350
+}
 function Type-Exact([string]$Name,[string]$Text) {
- $control=Wait-Name $Name 'Edit' $true
- Focus-Control $control
- [System.Windows.Forms.SendKeys]::SendWait($Text)
- for ($i=0;$i -lt 20;$i++) {
+ $script:stage='keyboard '+$Name
+ for ($attempt=1;$attempt -le 2;$attempt++) {
    $control=Wait-Name $Name 'Edit' $true
-   $value=$control.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
-   if ($value.Current.Value -ceq $Text) {return}
-   Start-Sleep -Milliseconds 250
+   if ($attempt -eq 1) {Focus-Control $control} else {Focus-ByPhysicalClick $control}
+   if ([ChatProbeWindow]::GetForegroundWindow() -ne $script:hwnd) {throw 'ZYN-CHAT-PROBE-021: foreground lost before input'}
+   $focused=[System.Windows.Automation.AutomationElement]::FocusedElement
+   $focusMatches=$null -ne $focused -and $focused.Current.Name -ceq $Name -and $focused.Current.ControlType.ProgrammaticName -eq 'ControlType.Edit'
+   # Only synthetic text. No clipboard, ValuePattern.SetValue, JS, or database write.
+   # Clear previous partial input with keyboard, then type at a bounded pace.
+   [System.Windows.Forms.SendKeys]::SendWait('^a')
+   [System.Windows.Forms.SendKeys]::SendWait('{BACKSPACE}')
+   foreach ($char in $Text.ToCharArray()) {
+     [System.Windows.Forms.SendKeys]::SendWait([string]$char)
+     Start-Sleep -Milliseconds 50
+   }
+   $observedLength=-1
+   $exact=$false
+   for ($i=0;$i -lt 20;$i++) {
+     $control=Wait-Name $Name 'Edit' $true
+     $value=$control.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+     $observed=[string]$value.Current.Value
+     $observedLength=$observed.Length
+     if ($observed -ceq $Text) {$exact=$true;break}
+     Start-Sleep -Milliseconds 250
+   }
+   $check=[ordered]@{control=$Name;attempt=$attempt;focus_name_and_type_match=[bool]$focusMatches;observed_length=$observedLength;expected_length=$Text.Length;exact_keyboard_readback=[bool]$exact;method=if($attempt -eq 1){'UIA focus + paced keyboard'}else{'physical click + paced keyboard'}}
+   $script:inputChecks.Add($check)
+   Write-Output ('Native keyboard check: '+($check | ConvertTo-Json -Compress))
+   if ($exact) {return}
  }
- throw 'ZYN-CHAT-PROBE-010: keyboard input was not reflected by actual UIA value'
+ throw ('ZYN-CHAT-PROBE-010: keyboard input not reflected by actual UIA value: '+$Name)
 }
 function Capture([string]$Name) {
  [void][ChatProbeWindow]::SetForegroundWindow($script:hwnd)
@@ -126,7 +165,9 @@ function Read-Vault([string]$Stage) {
  if ($LASTEXITCODE -ne 0) {throw 'ZYN-CHAT-PROBE-015: independent SQLite verification failed'}
 }
 try {
+ $script:stage='verify empty fixture'
  Read-Vault 'empty'
+ $script:stage='first native start'
  Start-Native
  $firstPid=$script:app.Id
  Click-Control 'Chat'
@@ -134,28 +175,41 @@ try {
  [void](Wait-Name 'No saved conversations.')
  Capture 'M03-S01-candidate.png'
  Type-Exact 'Conversation title' $title
+ $script:stage='create conversation'
  Click-Control 'Create conversation'
  [void](Wait-Name 'Message' 'Edit' $true)
  Type-Exact 'Message' $content
+ $script:stage='save message'
  Click-Control 'Save message'
  [void](Wait-Name $content)
  Stop-Native
+ $script:stage='independent saved fixture check'
  Read-Vault 'saved'
+ $script:stage='restart native app'
  Start-Native
  $secondPid=$script:app.Id
  if ($firstPid -eq $secondPid) {throw 'ZYN-CHAT-PROBE-016: process identity not distinct'}
  Click-Control 'Chat'
+ $script:stage='reopen conversation from UI'
  Click-Control $title
  [void](Wait-Name $content)
  [void](Wait-Name 'Message' 'Edit' $true)
  Capture 'M03-S02-candidate.png'
  Stop-Native
+ $script:stage='independent reopened fixture check'
  Read-Vault 'reopened'
  $images=[ordered]@{}
  foreach ($name in @('M03-S01-candidate.png','M03-S02-candidate.png')) {
    $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
  }
- $proof=[ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();method='actual Windows Tauri UIA, real keyboard ValuePattern readback and independent read-only SQLite';first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;empty_profile=$true;keyboard_input_verified=$true;ui_create_save=$true;ui_reopen_readback=$true;database_reopen_identity_verified=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false;model_inference_claimed=$false}
+ $proof=[ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();method='actual Windows Tauri UIA, real keyboard ValuePattern readback and independent read-only SQLite';first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;empty_profile=$true;keyboard_input_verified=$true;input_checks=@($script:inputChecks.ToArray());ui_create_save=$true;ui_reopen_readback=$true;database_reopen_identity_verified=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false;model_inference_claimed=$false}
  $proof | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-chat-ui-proof.json') -Encoding utf8
  Write-Output 'P03 scoped real native chat interaction and independent restart readback passed'
+} catch {
+ $failure=[ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;input_checks=@($script:inputChecks.ToArray());status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true}
+ $failure | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-chat-ui-failure.json') -Encoding utf8
+ if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {
+   try {Capture 'DEBUG-native-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}
+ }
+ throw
 } finally {Stop-Native}

@@ -200,6 +200,17 @@ jobs:
           $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
           & scripts/probe_p03_chat_ui.ps1 -Executable $exe -SourceSha $env:EXACT_HEAD -OutputDirectory (Join-Path $env:RUNNER_TEMP 'p03-chat-ui-proof')
           if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) { throw 'P03 actual native UI probe failed' }
+      - name: Preserve failed synthetic UI probe diagnostics (not acceptance)
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-native-ui-failure-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/p03-chat-ui-proof/
+            ${{ runner.temp }}/p03-native-baseline.json
+            ${{ runner.temp }}/p03-vault-native-tests.txt
+            ${{ runner.temp }}/p03-vault-schema-proof.json
+          if-no-files-found: warn
       - uses: actions/upload-artifact@v6
         with:
           name: p03-native-baseline-${{ github.run_attempt }}

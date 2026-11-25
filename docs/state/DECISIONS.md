@@ -208,3 +208,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P03 | Wire dedicated save-only Chat UI to native typed domain service | Preserve local-only capability and existing shortcuts; strict correlated response validation, stable ID retry and session drafts. Fix missed P02 exact capability assertion by validating both explicitly scoped local grants; no arbitrary privilege or weakened deny tests. Native interaction proof pending.
 
 2026-11-25 | P03 | Add real Windows UIA create/save/restart proof after existing empty-vault assertions | Reuse disposable runner and current read-only workflow; compare DB identities and journal before/after restart, no test injection or data reset. Screenshots candidate only until independent review. Fresh exact-head CI required.
+
+2026-11-25 | P03 | Repair native keyboard probe without weakening acceptance | Run 45629508632 passed 47 real Rust tests and build, failed exact keyboard readback; root cause unknown. Two bounded real keyboard attempts, UIA focus then actual pointer focus, exact ValuePattern comparison retained; preserve separate failure artifacts. Issue #27 open.
