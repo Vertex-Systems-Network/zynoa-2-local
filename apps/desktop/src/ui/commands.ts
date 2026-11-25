@@ -1,7 +1,7 @@
 /** M02 allowlisted command navigation; no arbitrary code execution. */
 import { defaultShortcuts, shortcutForView, type ShortcutAssignments } from "./shortcut-map.js";
 export type AppView =
-  | "startup" | "workbench" | "gallery" | "help" | "settings" | "recovery" | "diagnostics" | "changelog";
+  | "startup" | "workbench" | "gallery" | "help" | "settings" | "recovery" | "diagnostics" | "changelog" | "backup" | "locations" | "updates";
 
 export type AppCommand = {
   readonly id: string;
@@ -22,6 +22,9 @@ export const appCommands: readonly AppCommand[] = [
   { id: "go.recovery", title: "Recovery", description: "Native recovery availability and limitations", section: "System", view: "recovery", keys: "Ctrl+3", symbol: "↺" },
   { id: "go.diagnostics", title: "Diagnostics", description: "Read-only local system status", section: "System", view: "diagnostics", keys: "Ctrl+4", symbol: "◎" },
   { id: "go.changelog", title: "Changelog", description: "What’s New, known issues, version and module history", section: "System", view: "changelog", keys: "VIEW", symbol: "≡" },
+  { id: "go.backup", title: "Backup Center", description: "Data privacy, backup planning and recovery", section: "System", view: "backup", keys: "VIEW", symbol: "▤" },
+  { id: "go.locations", title: "Data Locations", description: "Storage ownership, downloads and relocation planning", section: "System", view: "locations", keys: "VIEW", symbol: "▱" },
+  { id: "go.updates", title: "Update Center", description: "Signed release availability and update preferences", section: "System", view: "updates", keys: "VIEW", symbol: "⇧" },
 ] as const;
 
 export function findCommands(query: string, shortcuts: ShortcutAssignments = defaultShortcuts): AppCommand[] {
@@ -31,7 +34,7 @@ export function findCommands(query: string, shortcuts: ShortcutAssignments = def
   return appCommands
     .map(command => {
       const title = command.title.toLocaleLowerCase();
-      const effectiveKeys = command.view === "help" || command.view === "changelog" ? command.keys :
+      const effectiveKeys = command.keys === "F1" || command.keys === "VIEW" ? command.keys :
         "Ctrl+" + shortcutForView(command.view, shortcuts);
       const haystack = [command.title, command.description, command.section, effectiveKeys]
         .join(" ").toLocaleLowerCase();

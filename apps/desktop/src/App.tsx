@@ -5,6 +5,7 @@ import { CommandPalette } from "./ui/CommandPalette";
 import { Workbench, ComponentGallery } from "./ui/Workbench";
 import { HelpCenter } from "./ui/HelpCenter";
 import { ChangeCenter } from "./ui/ChangeCenter";
+import { SystemCenter } from "./ui/SystemCenter";
 import { effectiveTheme, densityOptions, isDensity, isTheme, themeOptions, type ThemePreference, type DensityPreference } from "./ui/theme";
 import type { AppView } from "./ui/commands";
 import { defaultShortcuts, remapShortcut, shortcutForView, viewForShortcut, type ShortcutAssignments } from "./ui/shortcut-map";
@@ -21,6 +22,9 @@ const views: { key: View; title: string; shortcut: string; icon: string; section
   { key: "recovery", title: "Recovery", shortcut: "3", icon: "↺", section: "SYSTEM" },
   { key: "diagnostics", title: "Diagnostics", shortcut: "4", icon: "◎", section: "SYSTEM" },
   { key: "changelog", title: "Changelog", shortcut: "", icon: "≡", section: "SYSTEM" },
+  { key: "backup", title: "Backup Center", shortcut: "", icon: "▤", section: "SYSTEM" },
+  { key: "locations", title: "Data Locations", shortcut: "", icon: "▱", section: "SYSTEM" },
+  { key: "updates", title: "Update Center", shortcut: "", icon: "⇧", section: "SYSTEM" },
 ];
 
 function Startup({ state, transport }: { state: StartupState; transport: TransportState }) {
@@ -178,7 +182,7 @@ export function App() {
     const topics: Record<View, string> = {
       startup: "quick-start", workbench: "commands", gallery: "appearance",
       help: "quick-start", settings: "appearance", recovery: "privacy",
-      diagnostics: "native-troubleshooting", changelog: "change-history",
+      diagnostics: "native-troubleshooting", changelog: "change-history", backup: "backup-center", locations: "data-locations", updates: "update-center",
     };
     setHelpTopic(topics[view]);
     setView("help");
@@ -238,7 +242,7 @@ export function App() {
           const topics: Record<View, string> = {
             startup: "quick-start", workbench: "commands", gallery: "appearance",
             help: "quick-start", settings: "appearance", recovery: "privacy",
-            diagnostics: "native-troubleshooting", changelog: "change-history",
+            diagnostics: "native-troubleshooting", changelog: "change-history", backup: "backup-center", locations: "data-locations", updates: "update-center",
           };
           setHelpTopic(topics[current]);
           return "help";
@@ -295,7 +299,8 @@ export function App() {
                   onClick={() => navigateView(page.key)}>
                   <span className="nav-icon" aria-hidden="true">{page.icon}</span>
                   <span className="nav-link-title">{page.title}</span>
-                </button> :
+                </button> : page.key === "backup" || page.key === "locations" || page.key === "updates" ?
+                <button key={page.key} type="button" className={"nav-link " + (view === page.key ? "selected" : "")} aria-current={view === page.key ? "page" : undefined} aria-label={page.title} onClick={()=>navigateView(page.key)}><span className="nav-icon" aria-hidden="true">{page.icon}</span><span className="nav-link-title">{page.title}</span></button> :
                 <button key={page.key} className={"nav-link " + (view === page.key ? "selected" : "")}
                   aria-current={view === page.key ? "page" : undefined}
                   aria-label={page.title + " (" + (page.key === "help" ? "F1" : "Ctrl+" + shortcutForView(page.key, shortcuts)) + ")"}
@@ -337,7 +342,8 @@ export function App() {
             view === "help" ? <HelpCenter contextArticle={helpTopic} destination={helpDestination} /> :
             view === "settings" ? <Settings theme={theme} onTheme={setTheme} density={density} onDensity={setDensity} systemDark={systemDark} reducedMotion={reducedMotion} onReset={() => { setTheme("system"); setDensity("comfortable"); }} onHelp={openContextHelp} /> :
             view === "recovery" ? <Recovery /> :
-            view === "changelog" ? <ChangeCenter transport={transport} onHelp={openContextHelp} /> : <Diagnostics transport={transport} />}
+            view === "changelog" ? <ChangeCenter transport={transport} onHelp={openContextHelp} /> :
+            view === "backup" || view === "locations" || view === "updates" ? <SystemCenter key={view} view={view} transport={transport} onHelp={openContextHelp} onDiagnostics={()=>navigateView("diagnostics")} /> : <Diagnostics transport={transport} />}
         </div>
         <footer className="footer"><span>Local-first shared interface · P02</span><span>Native services require verification · <strong>No workspace data stored</strong></span></footer>
       </main>

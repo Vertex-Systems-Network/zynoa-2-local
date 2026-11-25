@@ -26,9 +26,9 @@ test("density is a strict allowlist and options have unique IDs", () => {
   assert.equal(new Set(helpOptionIds).size, 8);
 });
 test("command palette only returns fixed application navigation commands", () => {
-  assert.equal(appCommands.length, 8);
+  assert.equal(appCommands.length, 11);
   assert.equal(new Set(appCommands.map(x => x.id)).size, appCommands.length);
-  assert.equal(findCommands("").length, 8);
+  assert.equal(findCommands("").length, 11);
   assert.equal(findCommands("help")[0].view, "help");
   assert.equal(findCommands("Preferences")[0].view, "settings");
   assert.equal(findCommands("NO-SUCH-COMMAND").length, 0);
@@ -172,7 +172,7 @@ test("M19 FAQ, glossary and source-only Wiki mappings are genuinely linked", () 
   assert.equal(new Set(helpFaq.map(x => x.id)).size, helpFaq.length);
   assert.equal(new Set(helpGlossary.map(x => x.term)).size, helpGlossary.length);
   for (const item of helpFaq) assert.ok(findHelpArticle(item.articleId), item.id);
-  assert.deepEqual(wikiSourceMappings.map(x => x.id), ["M02", "M19", "M26"]);
+  assert.deepEqual(wikiSourceMappings.map(x => x.id), ["M02", "M19", "M26", "M23", "M24", "M25"]);
   for (const map of wikiSourceMappings) {
     assert.match(map.source, /^docs\/wiki\/pages\/[A-Za-z0-9-]+\.md$/);
     assert.ok(findHelpArticle(map.articleId));
@@ -288,7 +288,7 @@ test("M02/M19 all sixteen option guides resolve locally and fail closed", () => 
 
 test("unified command palette discovers bundled articles and exact M02/M19 option references", () => {
   const initial = searchWorkspace("");
-  assert.equal(initial.length, 8);
+  assert.equal(initial.length, 11);
   assert.ok(initial.every(item => item.kind === "view" && item.destination.kind === "view"));
   const theme = searchWorkspace("theme");
   assert.ok(theme.some(item => item.kind === "article" && item.destination.articleId === "appearance"));
@@ -373,4 +373,25 @@ test("M26 service boundaries are explicit and never imply authorization", () => 
   assert.equal(resolveNoticeSelection(all,all[0].id),all[0]);
   assert.equal(resolveNoticeSelection(filterChangeNotices("","M24"),all[0].id),undefined);
   assert.equal(resolveNoticeSelection(filterChangeNotices("zzznomatch","All"),all[0].id),undefined);
+});
+
+import {systemCenters,getSystemCenter,centerAvailability,initialCenterDraft,updateCenterDraft} from "../.ui-tests/system-centers.js";
+test("P02 T13 exact system centers, draft and transport boundaries",()=>{
+  assert.equal(systemCenters.flatMap(x=>x.screens).length,24);
+  assert.equal(systemCenters.flatMap(x=>x.options).length,50);
+  for(const center of systemCenters){
+    assert.equal(getSystemCenter(center.view),center);
+    assert.equal(shortcutForView(center.view,defaultShortcuts),null);
+    assert.equal(searchWorkspace(center.title)[0].destination.view,center.view);
+    assert.equal(new Set(center.screens.flatMap(x=>x.options)).size,center.options.length);
+    const initial=initialCenterDraft(center);
+    for(const option of center.options){
+      if(option.kind==="blocked"){assert.equal(initial[option.id],undefined);assert.deepEqual(updateCenterDraft(center,initial,option.id,true),initial);}
+      if(option.kind==="toggle"){assert.equal(initial[option.id],false);assert.equal(updateCenterDraft(center,initial,option.id,true)[option.id],true);assert.deepEqual(updateCenterDraft(center,initial,option.id,"bad"),initial);}
+      if(option.kind==="select"){assert.ok(option.choices.includes(initial[option.id]));assert.deepEqual(updateCenterDraft(center,initial,option.id,"invalid"),initial);assert.equal(updateCenterDraft(center,initial,option.id,option.choices.at(-1))[option.id],option.choices.at(-1));}
+      assert.ok(findHelpArticle(center.article).sections.some(x=>x.heading.startsWith(option.id)));
+    }
+    assert.deepEqual(updateCenterDraft(center,initial,"__proto__",true),initial);
+  }
+  assert.deepEqual(["pending","connected","unavailable","preview"].map(x=>centerAvailability(x).state),["loading","active","error","offline"]);
 });

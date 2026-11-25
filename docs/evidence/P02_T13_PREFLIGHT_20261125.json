@@ -1,0 +1,30 @@
+{
+  "phase": "P02",
+  "task": "P02-T13",
+  "source_sha": "1e5b9d65f32159c4213009aac51cefbbac8f2a3c",
+  "base_sha": "f24c72eff1c4fec03a6687575ea19e9593b57a2c",
+  "issue": 17,
+  "scope": "24 screens, 50 options; shared UI only",
+  "alternatives": [
+    "Separate duplicated module implementations",
+    "Shared data-driven responsive center, selected to preserve tokens and keyboard contract"
+  ],
+  "source_contracts": [
+    "docs/PHASE_SPECS.md",
+    "docs/modules/M23.md",
+    "docs/modules/M24.md",
+    "docs/modules/M25.md",
+    "docs/operations/DATA_VAULT_BACKUP_RECOVERY.md",
+    "docs/operations/STORAGE_DOWNLOADS_RELOCATION.md",
+    "docs/operations/AUTO_RELEASE_AND_UPDATES.md"
+  ],
+  "threat": "No path input, secrets, network, privileged IPC, persistence or invented inventory. Bounded draft values only.",
+  "acceptance": [
+    "Exact canonical inventory",
+    "Six existing shortcuts preserved",
+    "Keyboard navigation and local F1 Help",
+    "Real 74-image Windows candidate capture and independent review",
+    "Exact-head CI and hosted Wiki"
+  ],
+  "results": "Source implemented; native verification pending."
+}

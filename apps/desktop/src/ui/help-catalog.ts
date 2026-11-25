@@ -1,3 +1,4 @@
+import { systemCenters } from "./system-centers.js";
 /** Bundled M19 help index. No fetch, HTML injection, telemetry or cloud requirement. */
 export type HelpCategory = "Get started" | "Interface" | "Privacy" | "Troubleshooting";
 export type HelpArticle = {
@@ -221,6 +222,10 @@ export const helpArticles: readonly HelpArticle[] = [
       { heading: "M26-OPT-20 — Report problem from a change", paragraphs: ["Disabled: no authorized change-reporting service. No issue, private content or network request is sent."] },
     ], related: ["offline", "privacy", "commands"],
   },
+  ...systemCenters.map(center=>({id:center.article,title:center.title+" — local planning guide",category:"Privacy" as const,summary:center.description,keywords:[center.module,center.title],sections:[
+    ...center.screens.map(screen=>({heading:screen.id+" — "+screen.title,paragraphs:[screen.description,screen.status+". Open the named screen from "+center.title+". No privileged service is invoked."]})),
+    ...center.options.map(option=>({heading:option.id+" — "+option.title,paragraphs:[option.reason,option.kind==="blocked"?"The action is disabled. Tab to its explanation; use F1 for bundled guidance.":"Change a session-only draft using the labeled control. Reset session drafts or leave the center to clear it."]}))
+  ],related:["privacy","native-troubleshooting","change-history"]})),
 ];
 
 export const helpOptionIds = [
