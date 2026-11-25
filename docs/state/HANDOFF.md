@@ -1,5 +1,7 @@
 # Handoff (canonical starter)
 
+- **P02-T12 27 original screenshots published:** read-only #45568255045 all 7 batches passed; exact independent Git blob hashes matched. Canonical paths/manifest 8 screens + 19 controls VERIFIED (PNG-only); OPT-13 PENDING, no full release or exact-head approval. Removed temporary transfer workflow. T12 IN_PROGRESS, T13 TODO; lease released.
+
 - **P02-T12 original evidence transfer:** 82f4fc6 both scoped M26 screen readers passed in #45563463515; native retries remain intermittent. One-shot read-only workflow exports 27 reviewed original a45ab65 PNGs, excluding OPT-13. Verify each blob against original downloaded bytes before attaching canonical paths. Do not claim final exact-head acceptance; T12 IN_PROGRESS, T13 TODO; lease released.
 
 - **P02-T12 full native candidates captured (2026-11-25):** #45561594369 artifact 14998223378, 10 screen/Help/search and 20 option machine gates passed; all 30 original PNGs visually reviewed and hash/source verified. OPT-13 missing visible focus ring, 19/20 option focus visuals accepted as candidates; no final manifest. M26 Narrator 5 stages passed; M26 NVDA no-match speech missing and legacy NVDA typing failed. Explicit real reset focus speech, bounded real input click retry and pre-frame stable focus checks added. T12 IN_PROGRESS, T13 TODO; lease released.

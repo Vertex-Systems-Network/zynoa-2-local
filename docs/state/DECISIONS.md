@@ -160,3 +160,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P02 | Record all 30 native candidates, reject OPT-13 visible focus gap, request genuine empty reset speech | Native screen/option gates passed but independent review finds focus ring missing and live NVDA empty speech absent; do not treat machine receipt as final visual or speech approval.
 
 2026-11-25 | P02 | Preserve independently reviewed original PNGs from successful capture run rather than restart entire evidence set | 27 scoped targets reviewed, OPT-13 excluded; read-only pinned transport and original blob verification required; exact-head gate remains mandatory.
+
+2026-11-25 | P02 | Commit 27 verified native M26 images to canonical paths | Original a45ab65 run receipts, independent pixel review and seven read-only transfer batches match; leave OPT-13 pending and retain final exact-head acceptance.
