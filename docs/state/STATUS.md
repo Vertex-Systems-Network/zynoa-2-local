@@ -1,5 +1,7 @@
 # Status — 2026-11-25
 
+**P03 T08–T11 source batch candidate** — bounded attachment SHA-256 receipts, export manifest validation, and fail-closed local tool allowlist added in `artifact_contracts.rs`; source contract tests added. T08–T11 remain `IN_PROGRESS` pending exact-head CI and product evidence; T12–T16 remain TODO because they require encryption/recovery/native screenshots/owner merge gates.
+
 **P03 native model UI blocker** — first model selection failed on exact 60e23af, [issue #29](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/29); previous baseline and model pulls passed. Bounded native dropdown repair candidate committed; fresh CI pending. 4/16 DONE.
 
 **P03 T05–T07 native model UI candidate** — exact 258a563 prior Windows and real model CI green. New distinct actual Windows model journey awaits exact-head CI; 4/16 DONE. [Evidence scope](../evidence/P03_T05_T07_WINDOWS_MODEL_UI_CANDIDATE.md).

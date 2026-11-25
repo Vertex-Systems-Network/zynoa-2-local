@@ -8,6 +8,7 @@ mod diagnostics;
 mod vault;
 mod locations; // native-only; not available to WebView
 mod events; // M26 native-only immutable event ledger
+mod artifact_contracts; // P03 bounded attachment/export/tool contracts
 
 use tauri::Manager;
 
