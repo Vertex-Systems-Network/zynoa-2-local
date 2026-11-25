@@ -39,15 +39,60 @@ def verify(proof, head, run_id):
         last_sequence = after
     return {"schema_version": 1, "status": "SCOPED_LIVE_MICROSOFT_NARRATOR_SPEECH_PASS", "source_commit_sha": head, "github_run_id": run_id, "narrator_live_spoken_journeys": 3, "narrator_live_spoken_stages": 4, "full_narrator_certified": False, "product_release_approved": False, "protected_merge_verified": False}
 
+M26_EXPECTED = {"m26_entry":"changelog","m26_tab":"known issues","m26_search":"search bundled notices",
+                "m26_empty":"no matching notices","m26_help":"changelog and release history"}
+
+def verify_m26(proof, head, run_id, executable_sha256):
+    def need(ok, why):
+        if not ok:
+            raise InvalidNarratorProof(why)
+    need(isinstance(proof,dict) and proof.get("schema_version")==1 and proof.get("status")=="CAPTURED", "incomplete M26 speech receipt")
+    need(bool(re.fullmatch(r"[a-f0-9]{40}",head)) and proof.get("source_commit_sha")==head
+         and proof.get("binary_source_commit_sha")==head and proof.get("diagnostic_artifact_reuse") is False, "wrong M26 source/binary identity")
+    need(bool(re.fullmatch(r"[1-9][0-9]*",run_id)) and proof.get("github_run_id")==run_id, "wrong M26 run")
+    need(bool(re.fullmatch(r"[a-f0-9]{64}",executable_sha256)) and proof.get("app_executable_sha256")==executable_sha256
+         and bool(re.fullmatch(r"[a-f0-9]{64}",proof.get("narrator_executable_sha256",""))), "wrong M26 executable")
+    need(proof.get("target")=="Real Microsoft Narrator speech copied from native Windows Tauri WebView2 M26"
+         and proof.get("narrator_signature_verified") is True and isinstance(proof.get("narrator_version"),str)
+         and bool(proof["narrator_version"]), "untrusted Microsoft Narrator")
+    need(all(type(proof.get(k)) is int and proof[k]>0 for k in ("app_pid","narrator_pid"))
+         and proof["app_pid"]!=proof["narrator_pid"], "missing real native processes")
+    need(all(proof.get(k) is True for k in ("native_uia_pid_match","actual_tab_keyboard_focus","actual_previous_tab_deselected",
+         "actual_search_keyboard_focus","actual_no_match_result_verified","actual_contextual_help_verified","no_user_data")), "M26 native keyboard evidence absent")
+    need(proof.get("actual_selected_tab")=="Known Issues" and proof.get("actual_keyboard_input_value")=="zzznomatch"
+         and proof.get("actual_no_match_keyboard_input_value")=="zzznomatch", "wrong actual native tab/query")
+    need(proof.get("full_narrator_certified") is False and proof.get("product_release_approved") is False, "false release claim")
+    events=proof.get("events")
+    need(isinstance(events,list) and len(events)==len(M26_EXPECTED), "five actual M26 speech stages required")
+    previous=-1
+    for stage,event in zip(M26_EXPECTED,events):
+        need(isinstance(event,dict) and event.get("stage")==stage, "replayed or missing M26 stage")
+        label=event.get("label")
+        need(isinstance(label,str) and 1<=len(label)<=150 and M26_EXPECTED[stage] in label.casefold(), "actual M26 spoken phrase absent")
+        before,after=event.get("clipboard_sequence_before"),event.get("clipboard_sequence_after")
+        need(type(before) is int and type(after) is int and previous<before<after
+             and event.get("actual_speech_clipboard_changed") is True, "stale M26 clipboard")
+        previous=after
+    return {"schema_version":1,"status":"SCOPED_M26_LIVE_NARRATOR_PASS","source_commit_sha":head,"github_run_id":run_id,
+            "app_executable_sha256":executable_sha256,"spoken_stages":len(events),"full_narrator_certified":False,
+            "product_release_approved":False}
+
 def main():
     a = argparse.ArgumentParser()
     a.add_argument("--proof", type=Path, required=True)
     a.add_argument("--source-sha", required=True)
     a.add_argument("--run-id", required=True)
     a.add_argument("--report", type=Path, required=True)
+    a.add_argument("--m26", action="store_true")
+    a.add_argument("--executable-sha256")
     args = a.parse_args()
     try:
-        result = verify(json.loads(args.proof.read_text(encoding="utf-8-sig")), args.source_sha, args.run_id)
+        proof=json.loads(args.proof.read_text(encoding="utf-8-sig"))
+        if args.m26:
+            if not args.executable_sha256: raise InvalidNarratorProof("M26 exact executable required")
+            result=verify_m26(proof,args.source_sha,args.run_id,args.executable_sha256)
+        else:
+            result=verify(proof,args.source_sha,args.run_id)
     except (OSError, ValueError, TypeError) as exc:
         a.exit(1, "ZYN-NAR-020: " + str(exc) + "\n")
     args.report.parent.mkdir(parents=True, exist_ok=True)

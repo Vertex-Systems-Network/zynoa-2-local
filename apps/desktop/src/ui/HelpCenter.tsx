@@ -109,7 +109,7 @@ export function HelpCenter({ contextArticle, destination }: Props) {
       {selected ? <article className="help-article" aria-labelledby="help-article-title">
         <div className="help-breadcrumb"><span>Help Center</span><span aria-hidden="true">/</span><span>{selected.category}</span></div>
         <span className="soft-chip">BUNDLED GUIDE</span>
-        <h2 id="help-article-title">{selected.title}</h2>
+        <h2 id="help-article-title" tabIndex={selected.id === "change-history" ? -1 : undefined}>{selected.title}</h2>
         <p className="help-article-lead">{selected.summary}</p>
         <div className="help-article-body">
           {selected.sections.map(section =>

@@ -3,7 +3,8 @@ param([Parameter(Mandatory=$true)][string]$Executable,
       [Parameter(Mandatory=$true)][string]$SourceSha,
       [Parameter(Mandatory=$true)][string]$OutputPath,
       [string]$DiagnosticBinarySourceSha='',
-      [string]$DiagnosticBinarySha256='')
+      [string]$DiagnosticBinarySha256='',
+      [switch]$M26Only)
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 if ($env:GITHUB_ACTIONS -ne 'true' -or $env:RUNNER_OS -ne 'Windows') { throw 'ZYN-NAR-001: disposable Windows CI only' }
@@ -11,6 +12,7 @@ if ($SourceSha -cnotmatch '^[a-f0-9]{40}$' -or ((& git -C $env:GITHUB_WORKSPACE 
 if (-not (Test-Path -LiteralPath $Executable -PathType Leaf)) { throw 'ZYN-NAR-003: real app missing' }
 # Diagnostic artifact reuse is explicit and can never satisfy exact-head acceptance.
 $binarySourceSha=$SourceSha
+if ($M26Only -and ($DiagnosticBinarySourceSha -ne '' -or $DiagnosticBinarySha256 -ne '')) { throw 'ZYN-M26-NAR-001: exact-head M26 binary required' }
 if ($DiagnosticBinarySourceSha -ne '') {
   if ($DiagnosticBinarySourceSha -cnotmatch '^[a-f0-9]{40}$' -or $DiagnosticBinarySha256 -cnotmatch '^[a-f0-9]{64}$' -or (Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant() -cne $DiagnosticBinarySha256) {
     throw 'ZYN-NAR-019: diagnostic executable digest mismatch'
@@ -180,7 +182,7 @@ function Read-ActualNarratorPhrase([string]$Stage,$Control,[string]$ExpectedLabe
         # No unrelated clipboard text leaves the disposable runner. A bounded
         # allowlist and digest distinguish genuine wrong-label announcements.
         $knownLabels=@()
-        foreach ($known in @('Interface appearance','Search available commands and offline Help','Search views, help, settings','Command palette','Close command palette','Overview','Home and native startup status','Available commands and bundled Help results','Wiki mapping and link checker','combo box','edit','list box','selected','scan mode','no item','no focus')) {
+        foreach ($known in @('Interface appearance','Search available commands and offline Help','Search views, help, settings','Command palette','Close command palette','Overview','Home and native startup status','Available commands and bundled Help results','Wiki mapping and link checker','Changelog','Known Issues','Search bundled notices','No matching notices','Changelog and release history','combo box','edit','list box','selected','scan mode','no item','no focus')) {
           if ($candidate.IndexOf($known,[StringComparison]::OrdinalIgnoreCase) -ge 0) { $knownLabels+=$known }
         }
         $sha=[System.Security.Cryptography.SHA256]::Create()
@@ -271,6 +273,82 @@ try {
     }
   }
   if ($null -eq $prefsNav) { throw 'ZYN-NAR-004: real Preferences navigation unavailable after bounded startup retry' }
+  if ($M26Only) {
+    $proof.target='Real Microsoft Narrator speech copied from native Windows Tauri WebView2 M26'
+    function Assert-M26NarratorForeground {
+      $app.Refresh()
+      if ($app.HasExited -or [ZynoaNarratorKeyboard]::GetForegroundWindow() -ne $app.MainWindowHandle) {
+        throw 'ZYN-M26-NAR-002: actual app foreground missing'
+      }
+      [void](Get-CurrentNativeRoot)
+    }
+    function Send-M26NarratorPassThrough([string]$Keys) {
+      Assert-M26NarratorForeground
+      Send-NarratorChord ([byte[]]@($script:workingNarratorModifier,0x33))
+      Start-Sleep -Milliseconds 200
+      [System.Windows.Forms.SendKeys]::SendWait($Keys)
+      Start-Sleep -Milliseconds 850
+      Assert-M26NarratorForeground
+    }
+    $nav=Find-FocusableNativeControl $uia 'Changelog'
+    $proof.events+= (Read-ActualNarratorPhrase 'm26_entry' $nav 'Changelog')
+    $nav=Find-FocusableNativeControl $uia 'Changelog'
+    $nav.SetFocus()
+    Start-Sleep -Milliseconds 250
+    if (-not $nav.Current.HasKeyboardFocus) { throw 'ZYN-M26-NAR-003: native Changelog focus missing' }
+    Send-M26NarratorPassThrough '{ENTER}'
+    $sourceTab=Find-FocusableNativeControl $uia "What's New"
+    if ($sourceTab.Current.ControlType -ne [System.Windows.Automation.ControlType]::TabItem -or
+        -not $sourceTab.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Current.IsSelected) {
+      throw 'ZYN-M26-NAR-004: native source tab selection missing'
+    }
+    $sourceTab.SetFocus()
+    Start-Sleep -Milliseconds 250
+    if (-not $sourceTab.Current.HasKeyboardFocus) { throw 'ZYN-M26-NAR-005: native source tab focus missing' }
+    Send-M26NarratorPassThrough '{RIGHT}'
+    $tab=Find-FocusableNativeControl $uia 'Known Issues'
+    # Inactive roving tabs need not remain keyboard-focusable. Read their
+    # actual SelectionItem state from the current root instead.
+    $condition=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,"What's New")
+    $previous=(Get-CurrentNativeRoot).FindFirst([System.Windows.Automation.TreeScope]::Descendants,$condition)
+    if ($tab.Current.ControlType -ne [System.Windows.Automation.ControlType]::TabItem -or -not $tab.Current.HasKeyboardFocus -or
+        -not $tab.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Current.IsSelected -or
+        $null -eq $previous -or $previous.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Current.IsSelected) {
+      throw 'ZYN-M26-NAR-006: actual native tab transition not verified'
+    }
+    $proof['actual_selected_tab']='Known Issues'
+    $proof['actual_tab_keyboard_focus']=$true
+    $proof['actual_previous_tab_deselected']=$true
+    $proof.events+= (Read-ActualNarratorPhrase 'm26_tab' $tab 'Known Issues')
+    $search=Find-FocusableNativeControl $uia 'Search bundled notices'
+    $proof.events+= (Read-ActualNarratorPhrase 'm26_search' $search 'Search bundled notices')
+    $search=Find-FocusableNativeControl $uia 'Search bundled notices'
+    $search.SetFocus()
+    Start-Sleep -Milliseconds 300
+    if (-not $search.Current.HasKeyboardFocus -or $search.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).Current.Value -cne '') {
+      throw 'ZYN-M26-NAR-007: actual empty focused search missing'
+    }
+    $proof['actual_search_keyboard_focus']=$true
+    Assert-M26NarratorForeground
+    [System.Windows.Forms.SendKeys]::SendWait('zzznomatch')
+    Start-Sleep -Milliseconds 1200
+    $search=Find-FocusableNativeControl $uia 'Search bundled notices'
+    $query=$search.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).Current.Value
+    if ($query -cne 'zzznomatch') { throw 'ZYN-M26-NAR-008: actual no-match query missing' }
+    $empty=Find-FocusableNativeControl $uia 'No matching notices. Reset filters to view all.'
+    $proof.actual_keyboard_input_value=$query
+    $proof.actual_no_match_keyboard_input_value=$query
+    $proof.actual_no_match_result_verified=$true
+    $proof.events+= (Read-ActualNarratorPhrase 'm26_empty' $empty 'No matching notices')
+    Send-M26NarratorPassThrough '{F1}'
+    $heading=Find-FocusableNativeControl $uia 'Changelog and release history'
+    $proof.events+= (Read-ActualNarratorPhrase 'm26_help' $heading 'Changelog and release history')
+    $proof['actual_contextual_help_verified']=$true
+    $app.Refresh();$narrator.Refresh()
+    if ($app.HasExited -or $narrator.HasExited) { throw 'ZYN-M26-NAR-009: live native process ended' }
+    $proof.status='CAPTURED'
+    return
+  }
   $prefsNav.SetFocus()
   [System.Windows.Forms.SendKeys]::SendWait('^{2}')
   Start-Sleep -Milliseconds 800

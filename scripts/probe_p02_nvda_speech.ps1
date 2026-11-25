@@ -337,6 +337,18 @@ public static class ZynoaNvdaReportFocus {
   $proof | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $OutputPath -Encoding UTF8
   Write-Output 'Live NVDA speech stream captured; validator will reject absent required announcements'
 } finally {
-  if ($null -ne $app) { $app.Refresh(); if (-not $app.HasExited) { Stop-Process -Id $app.Id -Force }; $app.Dispose() }
-  if ($null -ne $nvda) { $nvda.Refresh(); if (-not $nvda.HasExited) { Stop-Process -Id $nvda.Id -Force }; $nvda.Dispose() }
+  $cleanupOk=$true
+  if ($null -ne $app) {
+    $app.Refresh()
+    if (-not $app.HasExited) { Stop-Process -Id $app.Id -Force }
+    if (-not $app.WaitForExit(5000)) { $cleanupOk=$false }
+    $app.Dispose()
+  }
+  if ($null -ne $nvda) {
+    $nvda.Refresh()
+    if (-not $nvda.HasExited) { Stop-Process -Id $nvda.Id -Force }
+    if (-not $nvda.WaitForExit(5000)) { $cleanupOk=$false }
+    $nvda.Dispose()
+  }
+  if (-not $cleanupOk) { throw 'ZYN-NVDA-017: disposable native process cleanup not verified' }
 }
