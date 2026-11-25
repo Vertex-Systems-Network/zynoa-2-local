@@ -1,11 +1,11 @@
 {
   "change_id": "CHG-P03-M03-STREAMING-TURNS-20261125", "module_id": "M03", "kind": "feature",
-  "title": "Bounded streaming turn lifecycle", "summary": "Add ordered local deltas, cooperative stop, retry attempts and terminal durable receipts. Verification pending.",
+  "title": "Bounded streaming turn lifecycle", "summary": "Ordered local deltas, cooperative stop, retry attempts and terminal durable receipts are implemented; exact-head CI is pending.",
   "status": "implementing", "audience": "developer", "source_issue_urls": [],
   "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
   "affected_option_ids": ["M03-OPT-02", "M03-OPT-06"],
-  "docs_paths": ["docs/evidence/P03_T04_T07_PREFLIGHT.md"], "help_paths": [], "wiki_paths": [], "test_evidence": [],
-  "commit_sha": "5b0eb2db07a9b5672c154827fe484f410409ce31", "release": null,
+  "docs_paths": ["docs/evidence/P03_T04_T07_PREFLIGHT.md"], "help_paths": ["docs/help/articles/M03.md"], "wiki_paths": ["docs/wiki/pages/M03.md"], "test_evidence": ["tests/test_p03_model_gateway_contract.py", "apps/desktop/tests/model-contract.test.mjs"],
+  "commit_sha": "9ffff956a37e9cd9f072ec860b1416123658dbb0", "release": null,
   "verification": {"tests_passed": false, "merge_verified": false, "release_published": false},
   "breaking_change": false, "migration_notes": "No destructive data change; terminal attempts append new assistant records.",
   "created_at": "2026-11-25", "updated_at": "2026-11-25", "version_bump": "none", "docs_impact": true, "data_migration": false

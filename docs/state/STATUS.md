@@ -1,5 +1,7 @@
 # Status — 2026-11-25
 
+**P03 T04–T07 implementation candidate ready** — native fixed-loopback Ollama health/inventory, ordered streaming with stop/retry and durable terminal records, per-thread model settings, and bounded inspectable context are implemented together at `9ffff956`. Local model contracts 5/5, UI contracts 32/32 and production frontend build pass. Full Python regression is being rerun after a formatting-only contract-test repair; exact-head Windows/Ollama CI remains the completion gate, so T04–T07 stay `IN_PROGRESS` and PR #25 remains draft.
+
 **P03-T01/T02/T03 DONE; T04 next** — 3/16 tasks complete (18% floor). Exact-source Windows run `45635274324` passed native conversation creation, durable save, process restart, UI readback and independent SQLite identity. Original artifact and both screenshot hashes independently verified and visually reviewed. Issue #27 resolved; PR #25 remains draft and unmerged. T04 local Ollama adapter is next.
 
 **P03-T01/T02 DONE, T03 IN_PROGRESS** — closeout all six workflows green at `040ef383`; [T03 preflight](../evidence/P03_T03_PREFLIGHT.md) committed. 2/16 complete, 1 active, 13 pending. Product IPC/UI implementation and native interaction verification pending.
