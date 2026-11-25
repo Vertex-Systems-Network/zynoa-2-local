@@ -28,6 +28,14 @@ _MODEL = "qwen2.5-coder:7b"
 _KEYS = {"action","path","old","new","reason"}
 _MAX_SOURCE = 24000
 _MAX_EDIT = 2400
+_LEGACY_NVDA = "P02 live NVDA speech plus real Windows keyboard journey (fail closed)"
+_M26_FAILURES = frozenset((
+    "P02-T12 separate M26 native keyboard and screenshot candidates",
+    "P02-T12 M26 twenty native option candidates",
+    "P02-T12 M26 live NVDA tab, search and no-match speech",
+    "P02-T12 M26 live Microsoft Narrator native journey",
+))
+_KNOWN_FAILURES = _M26_FAILURES | {_LEGACY_NVDA}
 
 class ContinuationDenied(ValueError):
     pass
@@ -79,9 +87,12 @@ def route_job(task, job):
     if job["conclusion"]=="success" or task!="P02-T12":
         return "REVIEW_EVIDENCE",()
     failures={x["name"] for x in job["steps"] if x.get("conclusion")=="failure"}
-    if any(x.startswith("P02-T12 M26 ") or x=="P02-T12 separate M26 native keyboard and screenshot candidates" for x in failures):
+    # Unknown or mixed failures must not be disguised as a product-only repair.
+    if not failures or not failures <= _KNOWN_FAILURES:
+        return "UNROUTED_FAILURE",()
+    if failures <= _M26_FAILURES:
         return "DRAFT_REPAIR",("apps/desktop/src/ui/ChangeCenter.tsx",)
-    if failures=={"P02 live NVDA speech plus real Windows keyboard journey (fail closed)"}:
+    if failures=={_LEGACY_NVDA}:
         return "DRAFT_REPAIR",("apps/desktop/src/ui/HelpCenter.tsx","apps/desktop/src/ui/CommandPalette.tsx")
     return "UNROUTED_FAILURE",()
 
@@ -143,16 +154,15 @@ def observe(root, out, sha, run_id, attempt):
     verify_remote(pr,branch,run,job,sha,run_id,attempt)
     task=select_task(state,manifest["tasks"])
     action,paths=route_job(task,job)
-    known={"P02 live NVDA speech plus real Windows keyboard journey (fail closed)",
-           "P02-T12 separate M26 native keyboard and screenshot candidates",
-           "P02-T12 M26 twenty native option candidates",
-           "P02-T12 M26 live NVDA tab, search and no-match speech",
-           "P02-T12 M26 live Microsoft Narrator native journey"}
-    failures=[x["name"] for x in job["steps"] if x.get("conclusion")=="failure" and x.get("name") in known]
+    failed=[x for x in job["steps"] if x.get("conclusion")=="failure"]
+    failures=[x["name"] for x in failed if x.get("name") in _KNOWN_FAILURES]
+    # Report counts only for unknown steps; do not copy arbitrary log/step text.
+    unknown_count=len(failed)-len(failures)
     receipt={"schema_version":1,"phase":"P02","branch":BRANCH,"pr_number":12,
              "head_sha":sha,"run_id":run_id,"run_attempt":attempt,"windows_job_id":job["id"],
              "windows_conclusion":job["conclusion"],"task_id":task,"action":action,
              "allowed_paths":list(paths),"recognized_failed_steps":failures,
+             "unrecognized_failed_step_count":unknown_count,
              "model_called":False,"github_writes":0,"task_status_changed":False,
              "persistent_worker_deployed":False}
     out.mkdir(parents=True,exist_ok=False)

@@ -54,6 +54,18 @@ class ContinuationTests(unittest.TestCase):
         self.assertEqual(route_job("P02-T12",dict(JOB,steps=[{"name":"arbitrary","conclusion":"failure"}]))[0],"UNROUTED_FAILURE")
         self.assertEqual(route_job("P02-T13",JOB)[0],"REVIEW_EVIDENCE")
 
+    def test_mixed_and_spoofed_step_names_do_not_authorize_draft(self):
+        m26={"name":"P02-T12 M26 twenty native option candidates","conclusion":"failure"}
+        self.assertEqual(route_job("P02-T12",dict(JOB,steps=[m26])),
+                         ("DRAFT_REPAIR",("apps/desktop/src/ui/ChangeCenter.tsx",)))
+        for other in ({"name":"P02-T12 M26 unregistered step","conclusion":"failure"},
+                      {"name":"Desktop shell and IPC safety contracts","conclusion":"failure"},
+                      JOB["steps"][0]):
+            self.assertEqual(route_job("P02-T12",dict(JOB,steps=[m26,other])),
+                             ("UNROUTED_FAILURE",()))
+        self.assertEqual(route_job("P02-T12",dict(JOB,steps=[])),
+                         ("UNROUTED_FAILURE",()))
+
     def test_candidate_anchor_and_protected_paths(self):
         path="apps/desktop/src/ui/HelpCenter.tsx"
         sources={path:"const item = 1;\nconst other = 2;\n"}

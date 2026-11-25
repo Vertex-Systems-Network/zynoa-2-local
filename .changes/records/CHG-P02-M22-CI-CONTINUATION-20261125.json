@@ -3,7 +3,7 @@
   "module_id": "M22",
   "kind": "feature",
   "title": "Bounded active-phase CI continuation pilot",
-  "summary": "Automatically observes completed exact-source Windows CI, selects current P02 task and drafts a bounded local-model product edit with optional static TypeScript check in read-only Actions.",
+  "summary": "Automatically observes completed exact-source Windows CI, selects current P02 task and drafts a bounded local-model product edit with optional static TypeScript check in read-only Actions. First automatic CI dispatch verified, selected T12 and refused unrelated failure. Fixed inherited checkout count contract and exact failure routing; live model invocation still pending.",
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [
@@ -16,7 +16,9 @@
   ],
   "help_paths": [],
   "wiki_paths": [],
-  "test_evidence": [],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45573123008"
+  ],
   "commit_sha": null,
   "release": null,
   "verification": {
@@ -27,7 +29,7 @@
   "breaking_change": false,
   "migration_notes": "Developer-only candidate artifact; no product release, no persistent deployment, no privileged writer.",
   "created_at": "2026-11-25T08:05:00Z",
-  "updated_at": "2026-11-25T08:05:00Z",
+  "updated_at": "2026-11-25T08:12:00Z",
   "version_bump": "none",
   "affected_option_ids": [],
   "docs_impact": true,
