@@ -25,11 +25,13 @@ jobs:
         env:
           BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
           PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name || '' }}
         run: |
           python - <<'PY' >> "$GITHUB_OUTPUT"
           import json
           import os
           from pathlib import Path
+          import re
           import subprocess
           from tools.phase_controller import runner_job_plan, PhasePolicyError, validate_snapshot
 
@@ -48,20 +50,29 @@ jobs:
                                        capture_output=True, check=True).stdout
               files = [s.decode("utf-8") for s in changed.split(b"\0") if s]
           state = json.loads(Path("docs/state/PHASE.json").read_text(encoding="utf-8"))
-          # Closeout PRs propose a verified snapshot but must NEVER gain
-          # worker/model or observer authority. Only the dedicated, correctly
-          # phase-scoped postmerge closeout ref may report both jobs disabled.
+          # Closeout and maintenance PRs for a verified phase keep both
+          # runner jobs disabled. A maintenance PR must preserve the main snapshot.
           if state.get("phase_status") == "MERGED_VERIFIED":
-              closeout_ok = (
+              verified_pr = (
                   not validate_snapshot(state)
                   and event == "pull_request"
-                  and branch == f"phase/{state['phase'][1:].lower()}-closeout"
                   and pr.isdecimal()
                   and int(pr) != state.get("primary_pr")
                   and state.get("lease_holder") is None
                   and state.get("worker_running") is False
               )
-              if not closeout_ok:
+              if not verified_pr:
+                  raise PhasePolicyError("untrusted verified-phase runner event")
+              closeout = branch == f"phase/{state['phase'][1:].lower()}-closeout"
+              repair = (
+                  branch == f"phase/{state['phase'][1:].lower()}-transition-repair"
+                  and os.environ.get("GITHUB_BASE_REF") == "main"
+                  and os.environ.get("PR_HEAD_REPO") == os.environ["GITHUB_REPOSITORY"]
+                  and re.fullmatch(r"[0-9a-f]{40}", base) is not None
+                  and subprocess.run(["git", "show", base + ":docs/state/PHASE.json"],
+                                     capture_output=True).stdout == Path("docs/state/PHASE.json").read_bytes()
+              )
+              if not (closeout or repair):
                   raise PhasePolicyError("untrusted verified-phase runner event")
               plan = {"p00_fixture": False, "phase_observer": False}
           else:
