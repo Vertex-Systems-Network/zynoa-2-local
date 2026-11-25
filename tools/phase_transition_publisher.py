@@ -39,6 +39,9 @@ _DIAGNOSTIC_CODES = frozenset({
     "TR-WORKFLOW-PROVENANCE", "TR-WORKFLOW-SOURCE", "TR-ISSUE-SCOPE",
     "TR-BLOCKERS", "TR-RULES", "TR-JOURNAL", "TR-COMMENT-LOOKUP",
     "TR-REMOTE-RECHECK", "TR-COMMENT-POST", "TR-COMMENT-READBACK",
+    "TR-POST-AUTH", "TR-POST-FORBIDDEN", "TR-POST-NOT-FOUND",
+    "TR-POST-INVALID", "TR-POST-RATE", "TR-POST-HTTP", "TR-POST-TRANSPORT",
+    "TR-POST-RESPONSE",
 })
 
 
@@ -46,6 +49,14 @@ def _safe_diagnostic(error: BaseException) -> str:
     code = error.code if isinstance(error, TransitionPublishDenied) else None
     return code if isinstance(code, str) and code in _DIAGNOSTIC_CODES else "TR-PREFLIGHT"
 
+
+
+_POST_HTTP_CODES = {401: "TR-POST-AUTH", 403: "TR-POST-FORBIDDEN",
+                    404: "TR-POST-NOT-FOUND", 422: "TR-POST-INVALID",
+                    429: "TR-POST-RATE"}
+_POST_FAILURE_CODES = frozenset(_POST_HTTP_CODES.values()) | {
+    "TR-POST-HTTP", "TR-POST-TRANSPORT", "TR-POST-RESPONSE",
+}
 
 
 class _NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -80,10 +91,15 @@ def _post_issue_comment(pr: int, body: str, token: str) -> dict:
             if len(raw) > 65536:
                 raise TransitionPublishDenied("GitHub response too large")
             result = json.loads(raw.decode("utf-8"))
-    except urllib.error.HTTPError:
-        raise TransitionPublishDenied("GitHub refused receipt publication") from None
-    except (urllib.error.URLError, OSError, UnicodeError, ValueError):
-        raise TransitionPublishDenied("GitHub receipt publication unavailable") from None
+    except urllib.error.HTTPError as error:
+        raise TransitionPublishDenied("GitHub refused receipt publication",
+            code=_POST_HTTP_CODES.get(error.code, "TR-POST-HTTP")) from None
+    except (urllib.error.URLError, OSError):
+        raise TransitionPublishDenied("GitHub receipt transport unavailable",
+            code="TR-POST-TRANSPORT") from None
+    except (UnicodeError, ValueError):
+        raise TransitionPublishDenied("GitHub receipt response invalid",
+            code="TR-POST-RESPONSE") from None
     if not isinstance(result, dict):
         raise TransitionPublishDenied("GitHub comment response malformed")
     return result
@@ -275,7 +291,9 @@ def publish_verified_transition(
             ),
         }
     except (TransitionPublishDenied, GitHubEvidenceError, PhasePolicyError,
-            OSError, KeyError, TypeError, ValueError):
+            OSError, KeyError, TypeError, ValueError) as error:
+        if stage == "TR-COMMENT-POST" and _safe_diagnostic(error) in _POST_FAILURE_CODES:
+            stage = _safe_diagnostic(error)
         raise TransitionPublishDenied("verified receipt prerequisites failed", code=stage) from None
 
 

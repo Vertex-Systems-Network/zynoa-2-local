@@ -1,0 +1,38 @@
+{
+  "change_id": "CHG-P02-M22-RECEIPT-PR-SCOPE-20261125",
+  "module_id": "M22",
+  "kind": "maintenance",
+  "title": "Scope receipt publication to pull requests",
+  "summary": "Trusted-main-only PR receipt write scope and fixed HTTP status diagnostics following confirmed POST-stage failure. No verified publication yet.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/22"
+  ],
+  "source_pr_url": null,
+  "affected_option_ids": [],
+  "docs_paths": [
+    "docs/state/HANDOFF.md",
+    "docs/state/DECISIONS.md"
+  ],
+  "help_paths": [],
+  "wiki_paths": [],
+  "test_evidence": [
+    "tests/test_phase_transition_publisher.py",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45610066444"
+  ],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No user data changes. Revert maintenance source commit to roll back.",
+  "created_at": "2026-11-25",
+  "updated_at": "2026-11-25",
+  "version_bump": "none",
+  "docs_impact": false,
+  "data_migration": false
+}
