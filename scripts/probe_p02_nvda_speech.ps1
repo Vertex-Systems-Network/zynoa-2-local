@@ -1,7 +1,8 @@
 # P02 T10 live NVDA speech + native Tauri keyboard proof, no browser simulation.
 param([Parameter(Mandatory=$true)][string]$Executable,
       [Parameter(Mandatory=$true)][string]$SourceSha,
-      [Parameter(Mandatory=$true)][string]$OutputPath)
+      [Parameter(Mandatory=$true)][string]$OutputPath,
+      [switch]$M26Only)
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 if ($SourceSha -cnotmatch '^[a-f0-9]{40}$') { throw 'ZYN-NVDA-001: SHA absent' }
@@ -11,7 +12,8 @@ if (-not (Test-Path -LiteralPath $Executable -PathType Leaf)) { throw 'ZYN-NVDA-
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
-$root = Join-Path $env:RUNNER_TEMP 'zynoa-nvda-t10'
+$root = Join-Path $env:RUNNER_TEMP $(if ($M26Only) {'zynoa-nvda-m26'} else {'zynoa-nvda-t10'})
+if ($M26Only -and (Get-Process -Name nvda,Narrator -ErrorAction SilentlyContinue)) { throw 'ZYN-M26-NVDA-001: pre-existing screen reader' }
 New-Item -ItemType Directory -Force -Path $root | Out-Null
 $installer = Join-Path $root 'nvda_2026.3.1.exe'
 $portable = Join-Path $root 'portable'
@@ -19,6 +21,7 @@ $proofDir = Split-Path -Parent $OutputPath
 New-Item -ItemType Directory -Force -Path $proofDir | Out-Null
 $proofFile = Join-Path $root 'spoken-allowlisted.jsonl'
 $stageFile = Join-Path $root 'active-stage.txt'
+if (Test-Path -LiteralPath $proofFile) { throw 'ZYN-M26-NVDA-002: stale speech proof file' }
 Set-Content -LiteralPath $stageFile -Value 'initial' -Encoding UTF8
 $expectedHash = '6f80a5b0ca720a7d0d314b5be212f37388bbe81a1107ac3298c1821a1cd3f052'
 Invoke-WebRequest -Uri 'https://download.nvaccess.org/releases/2026.3.1/nvda_2026.3.1.exe' -OutFile $installer -TimeoutSec 150
@@ -118,6 +121,110 @@ public static class ZynoaNvdaFocus {
     throw 'ZYN-NVDA-009: native app cannot become foreground'
   }
   Start-Sleep -Milliseconds 500
+  Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class ZynoaNvdaReportFocus {
+  [DllImport("user32.dll")]
+  public static extern void keybd_event(byte vk, byte scan, uint flags, UIntPtr extra);
+}
+'@
+  if ($M26Only) {
+    # Use actual foreground native UIA, real focus and Windows key delivery.
+    # The independent M26 screenshot journey is still required.
+    function Find-M26NvdaControl {
+      param([string]$Name, [switch]$Focusable, [switch]$TabItem)
+      $deadline=(Get-Date).AddSeconds(10)
+      do {
+        Assert-NvdaForeground
+        $root=Get-NvdaNativeRoot
+        $condition=[System.Windows.Automation.PropertyCondition]::new(
+          [System.Windows.Automation.AutomationElement]::NameProperty,$Name)
+        $items=$root.FindAll([System.Windows.Automation.TreeScope]::Descendants,$condition)
+        for ($j=0;$j -lt $items.Count;$j++) {
+          try {
+            $item=$items.Item($j)
+            if ($item.Current.IsOffscreen) { continue }
+            if ($Focusable -and (-not $item.Current.IsEnabled -or -not $item.Current.IsKeyboardFocusable)) { continue }
+            if ($TabItem -and $item.Current.ControlType -ne [System.Windows.Automation.ControlType]::TabItem) { continue }
+            return $item
+          } catch [System.Windows.Automation.ElementNotAvailableException] {}
+        }
+        Start-Sleep -Milliseconds 250
+      } until ((Get-Date) -ge $deadline)
+      throw ('ZYN-M26-NVDA-003: actual native control absent: '+$Name)
+    }
+    function Focus-M26NvdaControl {
+      param([string]$Name,[switch]$TabItem)
+      $element=Find-M26NvdaControl -Name $Name -Focusable -TabItem:$TabItem
+      $element.SetFocus()
+      Start-Sleep -Milliseconds 350
+      Assert-NvdaForeground
+      $fresh=Find-M26NvdaControl -Name $Name -Focusable -TabItem:$TabItem
+      if (-not $fresh.Current.HasKeyboardFocus) { throw 'ZYN-M26-NVDA-004: real native focus not confirmed' }
+      return $fresh
+    }
+    function Request-M26NvdaFocusSpeech {
+      Assert-NvdaForeground
+      [ZynoaNvdaReportFocus]::keybd_event(0x2D,0,0,[UIntPtr]::Zero)
+      Start-Sleep -Milliseconds 120
+      [ZynoaNvdaReportFocus]::keybd_event(0x09,0,0,[UIntPtr]::Zero)
+      Start-Sleep -Milliseconds 120
+      [ZynoaNvdaReportFocus]::keybd_event(0x09,0,2,[UIntPtr]::Zero)
+      Start-Sleep -Milliseconds 120
+      [ZynoaNvdaReportFocus]::keybd_event(0x2D,0,2,[UIntPtr]::Zero)
+      Start-Sleep -Milliseconds 2200
+      Assert-NvdaForeground
+    }
+    [void](Focus-M26NvdaControl -Name 'Changelog')
+    [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+    Start-Sleep -Milliseconds 700
+    $sourceTab=Focus-M26NvdaControl -Name "What's New" -TabItem
+    if (-not $sourceTab.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Current.IsSelected) {
+      throw 'ZYN-M26-NVDA-005: source tab not selected'
+    }
+    Set-Content -LiteralPath $stageFile -Value 'm26_tab' -Encoding UTF8
+    Assert-NvdaForeground
+    [System.Windows.Forms.SendKeys]::SendWait('{RIGHT}')
+    Start-Sleep -Milliseconds 700
+    $tab=Find-M26NvdaControl -Name 'Known Issues' -Focusable -TabItem
+    if (-not $tab.Current.HasKeyboardFocus -or -not $tab.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Current.IsSelected) {
+      throw 'ZYN-M26-NVDA-006: actual selected/focused destination absent'
+    }
+    Request-M26NvdaFocusSpeech
+    Set-Content -LiteralPath $stageFile -Value 'm26_search' -Encoding UTF8
+    $input=Focus-M26NvdaControl -Name 'Search bundled notices'
+    Request-M26NvdaFocusSpeech
+    if ($input.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).Current.Value -cne '') {
+      throw 'ZYN-M26-NVDA-007: native query did not start empty'
+    }
+    Set-Content -LiteralPath $stageFile -Value 'm26_empty' -Encoding UTF8
+    Assert-NvdaForeground
+    [System.Windows.Forms.SendKeys]::SendWait('zzznomatch')
+    Start-Sleep -Milliseconds 2600
+    $input=Find-M26NvdaControl -Name 'Search bundled notices' -Focusable
+    $query=$input.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).Current.Value
+    if ($query -cne 'zzznomatch') { throw 'ZYN-M26-NVDA-008: actual keyboard query absent' }
+    [void](Find-M26NvdaControl -Name 'No matching notices. Reset filters to view all.')
+    $app.Refresh();$nvda.Refresh()
+    if ($app.HasExited -or $nvda.HasExited) { throw 'ZYN-M26-NVDA-009: native process ended' }
+    $events=@((Get-Content -LiteralPath $proofFile -Encoding UTF8) | ForEach-Object { $_ | ConvertFrom-Json })
+    $proof=[ordered]@{
+      schema_version=1; source_commit_sha=$SourceSha; github_run_id=[string]$env:GITHUB_RUN_ID
+      app_executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant()
+      official_nvda_installer_sha256=$actualHash; nvda_version='2026.3.1'
+      target='Real Windows Tauri WebView2 M26 with live NVDA pre_synthSpeak'
+      app_pid=[int]$app.Id; nvda_pid=[int]$nvda.Id; native_uia_pid_match=$true
+      actual_selected_tab='Known Issues'; actual_tab_keyboard_focus=$true
+      actual_search_keyboard_focus=$true; actual_keyboard_input_value=$query; actual_no_match_visible=$true
+      plugin_loaded=($events | Where-Object { $_.kind -eq 'plugin_loaded' }).Count -gt 0
+      events=@($events | Where-Object { $_.kind -eq 'speech' -and $_.stage -in @('m26_tab','m26_search','m26_empty') })
+      no_user_data=$true; full_narrator_verified=$false; full_product_release_approved=$false
+    }
+    $proof | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $OutputPath -Encoding UTF8
+    Write-Output 'M26 live speech captured; verifier requires all three actual stages'
+    return
+  }
   Set-Content -LiteralPath $stageFile -Value 'preferences' -Encoding UTF8
   [System.Windows.Forms.SendKeys]::SendWait('^{2}')
   Start-Sleep -Milliseconds 900
@@ -145,14 +252,6 @@ public static class ZynoaNvdaFocus {
   # NVDA+Tab is NVDA's user-initiated "report current focus" shortcut.
   # A programmatic UIA SetFocus alone does not guarantee spoken feedback.
   # Send actual Windows keyboard events; never fabricate a speech receipt.
-  Add-Type -TypeDefinition @'
-using System;
-using System.Runtime.InteropServices;
-public static class ZynoaNvdaReportFocus {
-  [DllImport("user32.dll")]
-  public static extern void keybd_event(byte vk, byte scan, uint flags, UIntPtr extra);
-}
-'@
   [ZynoaNvdaReportFocus]::keybd_event(0x2D, 0, 0, [UIntPtr]::Zero)
   Start-Sleep -Milliseconds 120
   [ZynoaNvdaReportFocus]::keybd_event(0x09, 0, 0, [UIntPtr]::Zero)

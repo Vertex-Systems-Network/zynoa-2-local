@@ -58,4 +58,28 @@ class NVDAProofTests(unittest.TestCase):
         self.assertIn("if ($null -eq $input) { throw 'ZYN-NVDA-010",ps)
         self.assertIn("if ($value -cne 'M19-OPT-06') { throw",ps)
         self.assertIn("events=@($events | Where-Object { $_.kind -eq 'speech' })",ps)
+    def test_m26_scoped_speech_requires_three_distinct_actual_stages(self):
+        from tools.verify_p02_nvda_speech import verify_m26
+        p=sample()
+        p.update(target="Real Windows Tauri WebView2 M26 with live NVDA pre_synthSpeak",
+                 actual_selected_tab="Known Issues", actual_tab_keyboard_focus=True,
+                 actual_search_keyboard_focus=True, actual_keyboard_input_value="zzznomatch",
+                 actual_no_match_visible=True, full_product_release_approved=False)
+        p["events"]=[{"kind":"speech","stage":stage,"label":label,"unix_ms":1795000000000+i}
+                     for i,(stage,label) in enumerate((("m26_tab","Known Issues"),("m26_search","Search bundled notices"),("m26_empty","No matching notices. Reset filters to view all.")))]
+        self.assertEqual(verify_m26(p,HEAD,p["github_run_id"],"a"*64)["spoken_stages"],3)
+        for key,value in (("actual_no_match_visible",False),("actual_tab_keyboard_focus",False),
+                          ("actual_keyboard_input_value","fake"),("source_commit_sha","b"*40),
+                          ("full_product_release_approved",True)):
+            bad=copy.deepcopy(p);bad[key]=value
+            with self.subTest(key=key),self.assertRaises(InvalidNvdaProof):
+                verify_m26(bad,HEAD,p["github_run_id"],"a"*64)
+        for i in range(3):
+            bad=copy.deepcopy(p);bad["events"].pop(i)
+            with self.subTest(stage=i),self.assertRaises(InvalidNvdaProof):
+                verify_m26(bad,HEAD,p["github_run_id"],"a"*64)
+        bad=copy.deepcopy(p);bad["events"][2]["unix_ms"]=bad["events"][0]["unix_ms"]
+        with self.assertRaises(InvalidNvdaProof):verify_m26(bad,HEAD,p["github_run_id"],"a"*64)
+        with self.assertRaises(InvalidNvdaProof):verify_m26(p,HEAD,"123","a"*64)
+        with self.assertRaises(InvalidNvdaProof):verify_m26(p,HEAD,p["github_run_id"],"b"*64)
 if __name__=="__main__":unittest.main()

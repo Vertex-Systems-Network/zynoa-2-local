@@ -436,6 +436,19 @@ jobs:
           & $script -Executable $exe -SourceSha $env:ZYNOA_HEAD_SHA -OutputPath $capture
           python -m tools.verify_p02_t11_narrator --proof $capture --source-sha $env:ZYNOA_HEAD_SHA --run-id $env:ZYNOA_RUN_ID --report $report
           if ($LASTEXITCODE -ne 0) { throw 'ZYN-NAR-022: actual speech receipt rejected' }
+      - name: P02-T12 M26 live NVDA tab, search and no-match speech
+        if: ${{ !cancelled() && steps.native_build.outcome == 'success' && github.event.pull_request.head.ref == 'phase/02-shared-ui' }}
+        shell: pwsh
+        env:
+          ZYNOA_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
+          $capture = Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\_ci\M26\M26-nvda.capture.json'
+          $report = Join-Path $env:GITHUB_WORKSPACE 'docs\screenshots\_ci\M26\M26-nvda.verify.json'
+          & (Join-Path $env:GITHUB_WORKSPACE 'scripts\probe_p02_nvda_speech.ps1') -Executable $exe -SourceSha $env:ZYNOA_HEAD_SHA -OutputPath $capture -M26Only
+          $exeHash = (Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          python -m tools.verify_p02_nvda_speech --m26 --proof $capture --source-sha $env:ZYNOA_HEAD_SHA --run-id $env:GITHUB_RUN_ID --executable-sha256 $exeHash --report $report
+          if ($LASTEXITCODE -ne 0) { throw 'ZYN-M26-NVDA-010: scoped M26 speech receipt rejected' }
       - uses: actions/upload-artifact@v6
         if: always()
         with:
@@ -479,4 +492,5 @@ jobs:
             docs/screenshots/_ci/M19/*.capture.json
             docs/screenshots/_ci/M26/M26-*.png
             docs/screenshots/_ci/M26/M26-*.capture.json
+            docs/screenshots/_ci/M26/M26-nvda.verify.json
           if-no-files-found: warn

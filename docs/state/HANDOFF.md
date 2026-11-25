@@ -1,5 +1,7 @@
 # Handoff (canonical starter)
 
+- **P02-T12 green native candidates + speech-specific gate (2026-11-25):** exact-head ffb5f0c all seven workflows passed (Windows #45375491642); original artifact 14911157789 downloaded, ten distinct 998x701 hash-matched candidate frames visually inspected, seven tab transitions/filter/reset/detail receipt verified. S01/S02/S04 lower content, S08 guidance and remaining option/Help/Wiki evidence pending. New separate M26 live NVDA tab/search/no-match probe and fail-closed exact run/binary verifier, existing T10 speech unchanged. Fresh CI needed. T12 IN_PROGRESS, T13 TODO, lease released.
+
 - **P02-T12 screen-reader isolation (2026-11-24):** Windows #45372694006 passed existing native/T10/performance/NVDA/Narrator, M26 recovered foreground once then failed after search-empty. Move separate M26 capture before live speech tests, fail if screen reader pre-exists, verify M26 process exit, add safe owner/stage diagnostics. Existing speech gates remain independent and fail closed. Fresh exact-head CI pending; T12 IN_PROGRESS, T13 TODO; lease released.
 
 - **P02-T12 Narrator cleanup source contract (2026-11-24):** Governance #45371337780 and Windows #45371337885 stopped at the same obsolete script-tail assertion; five other workflows passed. Updated contract requires clipboard cleanup followed by the unique fail-closed process-exit guard and bounded app/reader termination checks. Source readback satisfied; fresh runtime CI required. T12 IN_PROGRESS, T13 TODO, lease released.
