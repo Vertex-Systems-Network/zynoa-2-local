@@ -51,7 +51,7 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
    setHistoryCursor(page.next);
    if(after===0){const configured=await modelRequest("inference.settings.get",{conversationId:id});setSettings(configured.settings);setContext(null);}
  }
- async function modelHealth(){invalidateInventory();const health=await modelRequest("inference.health",{});setModels([...health.models].sort((a,b)=>a.name<b.name?-1:a.name>b.name?1:0));setRuntimeVersion(health.version);}
+ async function modelHealth(){invalidateInventory();const health=await modelRequest("inference.health",{});const installed=[...health.models].sort((a,b)=>a.name<b.name?-1:a.name>b.name?1:0);setModels(installed);setRuntimeVersion(health.version);if(selected&&!settings&&installed[0]){const reply=await modelRequest("inference.settings.set",{conversationId:selected.id,model:installed[0].name,contextLimit:2048});setSettings(reply.settings);}}
  useEffect(()=>{
    if(!active||!online||started.current)return;
    started.current=true;void run(async()=>{await Promise.all([list(),modelHealth()]);});
