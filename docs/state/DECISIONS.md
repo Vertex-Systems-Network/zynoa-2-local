@@ -192,3 +192,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P03 | Fix inherited SQLite connection lifetime as a minimal preflight regression repair | #26, full Windows suite failed with 31 leaked-handle cleanup errors. Explicit contextlib.closing preserves transactions and all tests; no P00 behavior expansion. Use pinned actual local Ollama probe and existing Rust SQLite vault; see P03 preflight ADR. T02 code waits for baseline.
 
 2026-11-25 | P03 | Move model cache location into runtime shell environment | Initial workflow failed before job creation; runner.temp is not available in job-level env. No tests or verification gates changed.
+
+2026-11-25 | P03 | Accept T01 scoped baseline and proceed to T02 | Native and local-model artifact readback and exact-head CI verified; inherited warnings recorded. T02 additive v2 migration and real Rust tests first.

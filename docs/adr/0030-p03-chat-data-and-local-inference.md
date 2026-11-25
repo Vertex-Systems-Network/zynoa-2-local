@@ -1,6 +1,6 @@
 # ADR-0030 — P03 transactional chat storage and local inference boundary
 
-Status: proposed, T01 research and tests-first decision; native and model baseline results pending. Date: 2026-11-25. Scope M03 and M23 chat-data only. No new shipped dependencies.
+Status: accepted for scoped P03 implementation; T01 native and model baseline independently verified in P03_T01_PREFLIGHT.md. Date: 2026-11-25. Scope M03 and M23 chat-data only. No new shipped dependencies.
 
 ## Source inventory and alternatives
 
