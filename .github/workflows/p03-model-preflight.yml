@@ -20,7 +20,6 @@ jobs:
     env:
       OLLAMA_HOST: 127.0.0.1:11434
       OLLAMA_NO_CLOUD: '1'
-      OLLAMA_MODELS: ${{ runner.temp }}/p03-models
     steps:
       - uses: actions/checkout@v6
         with:
@@ -44,6 +43,7 @@ jobs:
           EXACT_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
+          export OLLAMA_MODELS="$RUNNER_TEMP/p03-models"
           "$RUNNER_TEMP/ollama/bin/ollama" serve > "$RUNNER_TEMP/ollama-preflight.log" 2>&1 &
           pid=$!
           trap 'kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true' EXIT

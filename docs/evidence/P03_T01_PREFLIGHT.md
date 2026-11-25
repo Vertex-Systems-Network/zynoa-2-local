@@ -22,3 +22,5 @@ PR #25 activates P03 on its own branch. `.github/workflows/p03-native-baseline.y
 ## Research and tests-first decisions
 
 See [ADR](../adr/0030-p03-chat-data-and-local-inference.md) for official-source alternatives, risk and acceptance inventory. Exact T02 migration tests and data safety contract are specified there; implementation waits for T01 baseline evidence. Additional Linux job probes a real Ollama v0.40.18 (release SHA256 pinned), qwen2.5:0.5b local model, synthetic prompt, loopback only, no user content or tool executions; runtime version, digest, TTFT and generation counts captured. This is a preflight measurement, not the app inference adapter or a quality benchmark. Pending exact-head CI.
+
+Initial local-model workflow [#45617804576](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45617804576) failed before creating jobs; corrected job-level runner.temp expression to shell-time RUNNER_TEMP in executing step. This is configuration repair only, not evidence of model runtime success.

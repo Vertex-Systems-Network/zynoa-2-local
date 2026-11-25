@@ -190,3 +190,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P03 | Activate phase only after independent P02 bot receipt; use separate read-only exact-head Windows baseline workflow | Preserve P02 evidence and gates, avoid changing P01/P02 workflow scope. Real native baseline pending before feature code.
 
 2026-11-25 | P03 | Fix inherited SQLite connection lifetime as a minimal preflight regression repair | #26, full Windows suite failed with 31 leaked-handle cleanup errors. Explicit contextlib.closing preserves transactions and all tests; no P00 behavior expansion. Use pinned actual local Ollama probe and existing Rust SQLite vault; see P03 preflight ADR. T02 code waits for baseline.
+
+2026-11-25 | P03 | Move model cache location into runtime shell environment | Initial workflow failed before job creation; runner.temp is not available in job-level env. No tests or verification gates changed.
