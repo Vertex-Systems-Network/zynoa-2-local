@@ -220,3 +220,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P03 | Interruptible async loopback transport using pinned reqwest and a latched wakeable cancellation state | Prior Windows baseline passed; preserve byte limits and terminal persistence, no new dependency/schema/capability. Candidate tests require fresh exact-head native CI and real model UI proof.
 
 2026-11-25 | P03 | Expand cancellation acceptance without depending on installed runtime | Prior exact-head Windows baseline 45660752755 passed 57 native and 9 focused vault tests. Add bounded deterministic loopback stall/retry and terminal race fixtures; preserve real Ollama and native UI acceptance gates.
+
+2026-11-25 | P03 | Gate startup teardown on committed native audit ledger schema | Run 45664948466 passed 59 native / 9 focused vault tests but audit DB absent. Issue #28: probable early-stop race, not proven. Read-only readiness predicate, unchanged deadline and independent ledger validation; no app or data schema changes.

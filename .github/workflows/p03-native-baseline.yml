@@ -87,9 +87,19 @@ jobs:
               Start-Sleep -Milliseconds 500
               $process.Refresh()
               if ($process.HasExited) { throw 'P03 native process exited before readiness' }
-              $ready = ($process.MainWindowHandle -ne 0) -and (Test-Path -LiteralPath (Join-Path $root 'diagnostics\events-v1.jsonl')) -and (Test-Path -LiteralPath (Join-Path $root 'data\state.sqlite')) -and (Test-Path -LiteralPath (Join-Path $root 'storage-locations-v1.json'))
+              $metadataReady = ($process.MainWindowHandle -ne 0) -and (Test-Path -LiteralPath (Join-Path $root 'diagnostics\events-v1.jsonl')) -and (Test-Path -LiteralPath (Join-Path $root 'data\state.sqlite')) -and (Test-Path -LiteralPath (Join-Path $root 'storage-locations-v1.json'))
+              $ready = $false
+              if ($metadataReady) {
+                # M26 is initialized after the vault and registry. Wait for the
+                # native schema commit, not just the SQLite file's existence.
+                $ledgerReady = & python scripts/probe_p03_boot_readiness.py (Join-Path $root 'data\change-events-v1.sqlite')
+                if ($LASTEXITCODE -ne 0) { throw 'P03 native ledger readiness probe failed' }
+                $ready = ($ledgerReady -ceq 'ready')
+                $process.Refresh()
+                if ($process.HasExited) { throw 'P03 native process exited before readiness' }
+              }
             } until ($ready -or (Get-Date) -ge $deadline)
-            if (!$ready) { throw 'P03 native window and metadata startup not verified' }
+            if (!$ready) { throw 'P03 native window, metadata and committed audit ledger startup not verified' }
             $proof = [ordered]@{schema_version=1; source_commit_sha=$env:EXACT_HEAD; executable_sha256=(Get-FileHash -Algorithm SHA256 -LiteralPath $exe).Hash.ToLowerInvariant(); startup_window_and_metadata_ms=[int64]$clock.ElapsedMilliseconds; no_user_data=$true; scope='native baseline only'}
             $proof | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'p03-native-baseline.json') -Encoding utf8
           } finally {
