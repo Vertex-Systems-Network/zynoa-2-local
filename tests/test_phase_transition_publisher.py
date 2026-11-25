@@ -2,13 +2,15 @@
 import json
 import tempfile
 import unittest
+import urllib.error
+from unittest.mock import patch
 from pathlib import Path
 
 from tools.github_gateway import GitHubGateway
 from tools.phase_controller import EventJournal
 from tools.phase_transition_publisher import (
     API, REPO, TransitionPublishDenied, _MARKER, _receipt_body,
-    publish_verified_transition, _safe_diagnostic,
+    publish_verified_transition, _safe_diagnostic, _post_issue_comment,
 )
 
 MERGE = "a" * 40
@@ -258,6 +260,20 @@ class PhaseTransitionPublisherTests(unittest.TestCase):
         self.assertEqual("TR-COMMENT-READBACK", _safe_diagnostic(caught.exception))
         self.assertEqual(1, self.reader.post_count)
 
+    def test_post_http_failure_is_sanitized_and_propagated(self):
+        for status, code in ((401, "TR-POST-AUTH"), (403, "TR-POST-FORBIDDEN"),
+                             (404, "TR-POST-NOT-FOUND"), (422, "TR-POST-INVALID"),
+                             (429, "TR-POST-RATE"), (500, "TR-POST-HTTP")):
+            with self.subTest(status=status), patch("urllib.request.build_opener") as opener:
+                opener.return_value.open.side_effect = urllib.error.HTTPError(
+                    "https://example.invalid/private", status, "private body", {}, None)
+                with self.assertRaises(TransitionPublishDenied) as caught:
+                    self.publish(transport=_post_issue_comment)
+                self.assertEqual(code, _safe_diagnostic(caught.exception))
+                self.assertNotIn("private", str(caught.exception))
+                self.assertEqual(0, self.reader.post_count)
+        self.assertEqual(1, self.journal.count())
+
     def test_stale_workflow_main_or_diverged_ancestry_denied(self):
         with self.assertRaises(TransitionPublishDenied):
             self.publish(workflow_sha="f" * 40)
@@ -316,7 +332,10 @@ class PhaseTransitionPublisherTests(unittest.TestCase):
         self.assertIn("- tools/github_gateway.py", workflow)
         self.assertIn("branches: [main]", workflow)
         self.assertIn("github.ref == 'refs/heads/main'", workflow)
-        self.assertIn("issues: write", workflow)
+        self.assertIn("issues: read", workflow)
+        self.assertIn("pull-requests: write", workflow)
+        self.assertNotIn("issues: write", workflow)
+        self.assertNotIn("contents: write", workflow)
         self.assertIn("contents: read", workflow)
         self.assertIn("persist-credentials: false", workflow)
         self.assertIn("tools.phase_transition_publisher --publish", workflow)

@@ -27,8 +27,9 @@ jobs:
       contents: read
       actions: read
       checks: read
-      pull-requests: read
-      issues: write
+      # The receipt is a comment on a merged PR, not a general issue write.
+      pull-requests: write
+      issues: read
     steps:
       - name: Checkout exact trusted default-branch commit
         uses: actions/checkout@v6
