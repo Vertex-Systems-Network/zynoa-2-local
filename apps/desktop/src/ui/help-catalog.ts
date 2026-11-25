@@ -13,6 +13,16 @@ export type HelpArticle = {
 
 export const helpArticles: readonly HelpArticle[] = [
   {
+    id: "local-chat", title: "Local conversation history", category: "Get started",
+    summary: "Create local threads and save messages without a model response.",
+    keywords: ["chat","conversation","history","M03","local"],
+    sections: [
+      { heading: "Create and read a thread", paragraphs: ["Open Chat in the workspace rail. Enter a title and choose Create conversation. Select a saved thread and use Load more for additional history."] },
+      { heading: "Save-only mode", paragraphs: ["Save message stores your text in the native local vault. It does not send a prompt to a model. Inference, attachments and encrypted portable backups are not available in this slice. Browser preview cannot save."] },
+      { heading: "Recover an uncertain save", paragraphs: ["If the response is interrupted, keep the original draft and use Retry same request. The native service reconciles the original ID and rejects conflicting duplicates. A draft is kept in this application session only; committed history survives reopening."] },
+    ], related: ["privacy","native-troubleshooting"],
+  },
+  {
     id: "quick-start", title: "Get started with Zynoa", category: "Get started",
     summary: "Understand the desktop shell and which features are available today.",
     keywords: ["home", "overview", "windows", "native"],

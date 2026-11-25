@@ -1,7 +1,7 @@
 /** M02 allowlisted command navigation; no arbitrary code execution. */
 import { defaultShortcuts, shortcutForView, type ShortcutAssignments } from "./shortcut-map.js";
 export type AppView =
-  | "startup" | "workbench" | "gallery" | "help" | "settings" | "recovery" | "diagnostics" | "changelog" | "backup" | "locations" | "updates";
+  | "startup" | "chat" | "workbench" | "gallery" | "help" | "settings" | "recovery" | "diagnostics" | "changelog" | "backup" | "locations" | "updates";
 
 export type AppCommand = {
   readonly id: string;
@@ -15,6 +15,7 @@ export type AppCommand = {
 
 export const appCommands: readonly AppCommand[] = [
   { id: "go.overview", title: "Overview", description: "Home and native startup status", section: "Workspace", view: "startup", keys: "Ctrl+1", symbol: "⌂" },
+  { id: "go.chat", title: "Chat", description: "Local conversation threads and saved history", section: "Workspace", view: "chat", keys: "VIEW", symbol: "◈" },
   { id: "go.workbench", title: "Workbench", description: "Status panes and available workspace views", section: "Workspace", view: "workbench", keys: "Ctrl+5", symbol: "▣" },
   { id: "go.components", title: "Components", description: "Reusable design tokens and UI states", section: "Explore", view: "gallery", keys: "Ctrl+6", symbol: "◫" },
   { id: "go.help", title: "Help Center", description: "Search the bundled offline help catalog", section: "Explore", view: "help", keys: "F1", symbol: "?" },

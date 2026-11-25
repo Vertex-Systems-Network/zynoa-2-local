@@ -204,3 +204,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P03 | Split T03 into native thread query then bounded IPC/UI slices | Existing P01/P02 exact privilege allowlists require explicit scoped migration and new negative tests; preserve historical checks. Add metadata-only queries and same-thread reconciliation lookup first; no authority expansion yet.
 
 2026-11-25 | P03 | Implement scoped chat_request domain command and separate local capability | Keep workspace handshake unchanged, no arbitrary host authority; stable mutation ID replay, bounded reads, typed errors. Retain historical P02 strict gate and test current exact grant. Native and UI proof pending.
+
+2026-11-25 | P03 | Wire dedicated save-only Chat UI to native typed domain service | Preserve local-only capability and existing shortcuts; strict correlated response validation, stable ID retry and session drafts. Fix missed P02 exact capability assertion by validating both explicitly scoped local grants; no arbitrary privilege or weakened deny tests. Native interaction proof pending.

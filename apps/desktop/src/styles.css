@@ -640,3 +640,22 @@ main:focus{outline:none}
 .shell .system-center-option:focus,.shell .system-screen-heading h2:focus,.shell .system-center button:focus-visible,.shell .system-center input:focus-visible,.shell .system-center select:focus-visible{outline:2px solid var(--outline);outline-offset:3px}
 .shell .system-center-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
 @container(max-width:510px){.shell .system-center-layout{grid-template-columns:minmax(0,1fr)}.shell .system-center-screen-list{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}}
+
+/* M03 local history uses existing shared tokens, never external content. */
+.shell .chat-layout { display:grid; grid-template-columns:minmax(190px, 1fr) minmax(0, 2fr); gap:16px; align-items:start; }
+.shell .chat-pane { min-width:0; border:1px solid var(--outline); border-radius:12px; background:var(--surface); padding:16px; }
+.shell .chat-pane h2 { font-size:18px; margin:0 0 12px; overflow-wrap:anywhere; }
+.shell .chat-pane form { display:grid; gap:10px; margin:12px 0; }
+.shell .chat-pane input,.shell .chat-pane textarea { width:100%; min-width:0; font:inherit; color:var(--text-primary); background:var(--canvas); border:1px solid var(--outline); border-radius:8px; padding:10px; }
+.shell .chat-pane textarea { min-height:100px; resize:vertical; }
+.shell .chat-pane :is(input,textarea,button):focus-visible { outline:2px solid var(--outline); outline-offset:3px; }
+.shell .chat-list { list-style:none; margin:12px 0; padding:0; display:grid; gap:8px; max-height:420px; overflow:auto; }
+.shell .chat-list button { width:100%; text-align:left; padding:10px; overflow-wrap:anywhere; min-height:44px; color:var(--text-primary); background:var(--surface-raised); border:1px solid var(--outline); border-radius:8px; }
+.shell .chat-list button[aria-pressed="true"] { background:var(--surface-hover); border:2px solid var(--outline); }
+.shell .chat-history { display:grid; gap:12px; margin:16px 0; padding:0; list-style:none; max-height:390px; overflow:auto; }
+.shell .chat-history li { padding:12px; background:var(--surface-raised); border:1px solid var(--outline); border-radius:9px; }
+.shell .chat-history p { white-space:pre-wrap; overflow-wrap:anywhere; margin:6px 0; }
+.shell .chat-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.shell .chat-notice { overflow-wrap:anywhere; color:var(--text-secondary); font-size:13px; line-height:1.6; }
+.shell .chat-pane [role="alert"] { border-left:3px solid var(--outline); padding:10px; }
+@media(max-width:1050px){.shell .chat-layout { grid-template-columns:minmax(0,1fr); }}

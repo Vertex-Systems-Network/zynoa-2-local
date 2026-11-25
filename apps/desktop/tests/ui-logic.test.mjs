@@ -26,9 +26,9 @@ test("density is a strict allowlist and options have unique IDs", () => {
   assert.equal(new Set(helpOptionIds).size, 8);
 });
 test("command palette only returns fixed application navigation commands", () => {
-  assert.equal(appCommands.length, 11);
+  assert.equal(appCommands.length, 12);
   assert.equal(new Set(appCommands.map(x => x.id)).size, appCommands.length);
-  assert.equal(findCommands("").length, 11);
+  assert.equal(findCommands("").length, 12);
   assert.equal(findCommands("help")[0].view, "help");
   assert.equal(findCommands("Preferences")[0].view, "settings");
   assert.equal(findCommands("NO-SUCH-COMMAND").length, 0);
@@ -291,7 +291,7 @@ test("M02/M19 all sixteen option guides resolve locally and fail closed", () => 
 
 test("unified command palette discovers bundled articles and exact M02/M19 option references", () => {
   const initial = searchWorkspace("");
-  assert.equal(initial.length, 11);
+  assert.equal(initial.length, 12);
   assert.ok(initial.every(item => item.kind === "view" && item.destination.kind === "view"));
   const theme = searchWorkspace("theme");
   assert.ok(theme.some(item => item.kind === "article" && item.destination.articleId === "appearance"));
