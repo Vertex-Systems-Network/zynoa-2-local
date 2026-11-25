@@ -206,3 +206,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P03 | Implement scoped chat_request domain command and separate local capability | Keep workspace handshake unchanged, no arbitrary host authority; stable mutation ID replay, bounded reads, typed errors. Retain historical P02 strict gate and test current exact grant. Native and UI proof pending.
 
 2026-11-25 | P03 | Wire dedicated save-only Chat UI to native typed domain service | Preserve local-only capability and existing shortcuts; strict correlated response validation, stable ID retry and session drafts. Fix missed P02 exact capability assertion by validating both explicitly scoped local grants; no arbitrary privilege or weakened deny tests. Native interaction proof pending.
+
+2026-11-25 | P03 | Add real Windows UIA create/save/restart proof after existing empty-vault assertions | Reuse disposable runner and current read-only workflow; compare DB identities and journal before/after restart, no test injection or data reset. Screenshots candidate only until independent review. Fresh exact-head CI required.
