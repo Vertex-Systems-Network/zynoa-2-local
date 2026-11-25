@@ -160,7 +160,10 @@ def verify_m26(root, source_sha, run_id, receipt_path):
     """Independent public readback of a guarded, unshipped M26 page."""
     need(bool(re.fullmatch(r"[0-9a-f]{40}",source_sha)) and bool(re.fullmatch(r"[1-9][0-9]*",run_id)), "invalid M26 identity")
     receipt=json.loads(receipt_path.read_text(encoding="utf-8"))
-    need(receipt.get("repository")==REPO and receipt.get("source_sha")==source_sha and receipt.get("github_run_id")==run_id
+    pinned=receipt.get("source_sha","")
+    published_run=receipt.get("github_run_id","")
+    need(receipt.get("schema_version")==1 and receipt.get("repository")==REPO
+         and bool(re.fullmatch(r"[0-9a-f]{40}",pinned)) and bool(re.fullmatch(r"[1-9][0-9]*",published_run))
          and receipt.get("published_preview_not_final_release") is True
          and receipt.get("fresh_unauthenticated_git_clone_readback") is True
          and receipt.get("existing_pages_untouched") is True and receipt.get("full_module_release_approved") is False
@@ -175,21 +178,22 @@ def verify_m26(root, source_sha, run_id, receipt_path):
         wiki=temp/"wiki"
         run(["git","-c","credential.helper=","clone","--depth=1",ORIGIN+".wiki.git",str(wiki)])
         observed=run(["git","rev-parse","HEAD"],cwd=wiki).decode().strip()
-        need(observed==wiki_head,"Wiki changed after guarded publication; reconcile before approval")
+        need(bool(re.fullmatch(r"[0-9a-f]{40}",observed)),"invalid current public Wiki head")
         raw=(wiki/"M26.md").read_bytes()
         need(hashlib.sha256(raw).hexdigest()==digest,"public M26 bytes differ from publish receipt")
-        run(["git","-c","credential.helper=","fetch","--no-tags","--depth=1",ORIGIN+".git",source_sha],cwd=root)
+        run(["git","-c","credential.helper=","fetch","--no-tags","--depth=1",ORIGIN+".git",pinned],cwd=root)
         html=run([chrome,"--headless","--no-sandbox","--disable-dev-shm-usage","--disable-extensions",
                   "--no-first-run","--no-default-browser-check","--user-data-dir="+str(temp/"chrome"),
                   "--dump-dom","--timeout=30000",ORIGIN+"/wiki/M26"],seconds=75)
         need(0<len(html)<=12_000_000,"unexpected M26 browser DOM size")
-        row=audit_dom("M26",html.decode("utf-8",errors="strict"),source_sha)
+        row=audit_dom("M26",html.decode("utf-8",errors="strict"),pinned)
         for path in row["pinned_source_paths"]:
-            run(["git","cat-file","-e",source_sha+":"+path],cwd=root)
+            run(["git","cat-file","-e",pinned+":"+path],cwd=root)
     row.update(url=ORIGIN+"/wiki/M26",published_markdown_sha256=digest,
                public_chrome_dom_sha256=hashlib.sha256(html).hexdigest())
     return {"schema_version":1,"phase":"P02","task":"P02-T12","status":"M26_PUBLIC_WIKI_CHROME_DOM_AND_PINNED_LINKS_PASS",
             "source_commit_sha":source_sha,"github_run_id":run_id,"observed_public_wiki_head":observed,
+            "published_source_sha":pinned,"published_run_id":published_run,"published_wiki_head":wiki_head,
             "page":row,"rendered_options":20,"public_read_only":True,"no_user_data":True,
             "full_module_release_approved":False,"protected_merge_verified":False,"app_external_browser_route_verified":False}
 

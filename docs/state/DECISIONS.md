@@ -146,3 +146,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P02 | Add M26-specific actual NVDA speech gate after successful isolated candidate journey | All seven workflows passed; ten source-bound native frames reviewed; existing general speech evidence does not establish M26. Require actual tab/search/no-match speech and exact binary/run; lower option and Wiki evidence remain pending.
 
 2026-11-25 | P02 | Add dedicated 20-option native evidence, M26-specific Narrator and scoped new Wiki preview | Previously verified ten native frames insufficient for below-fold and option acceptance; keep disabled services nonoperational and separate write-once Wiki publication from read-only browser verification. Existing gates unchanged.
+
+2026-11-25 | P02 | Accept actual hosted M26 Wiki preview and remove temporary writer | Independent public Git clone and Chrome readback passed for all twenty option IDs and exact pinned source; keep only read-only PR verification and original receipts. No release or native approval inferred.
