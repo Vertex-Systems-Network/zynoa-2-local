@@ -144,3 +144,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-24 | P02 | Isolate M26 capture before live screen readers and diagnose foreground loss by allowlisted owner/stage | Repeated exact-head loss after search-empty despite successful recovery earlier; cause unconfirmed, no skipped acceptance gates.
 
 2026-11-25 | P02 | Add M26-specific actual NVDA speech gate after successful isolated candidate journey | All seven workflows passed; ten source-bound native frames reviewed; existing general speech evidence does not establish M26. Require actual tab/search/no-match speech and exact binary/run; lower option and Wiki evidence remain pending.
+
+2026-11-25 | P02 | Add dedicated 20-option native evidence, M26-specific Narrator and scoped new Wiki preview | Previously verified ten native frames insufficient for below-fold and option acceptance; keep disabled services nonoperational and separate write-once Wiki publication from read-only browser verification. Existing gates unchanged.
