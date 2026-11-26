@@ -7,7 +7,9 @@ export async function modelRequest<K extends ModelCommand>(command:K,payload:Mod
  const request={schemaVersion:1,commandId:command,correlationId,workspaceScope:"local",payload};
  const timeout=command==="inference.turn.generate"?180000:15000;let timer:ReturnType<typeof setTimeout>|undefined;
  try{const raw=await Promise.race([invoke<unknown>("model_request",{request,onEvent:channel}),new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new Error("ZYN-MODEL-TIMEOUT")),timeout);})]);
-   if(channelError)throw channelError;return decodeModelReply(raw,command,correlationId,payload);
+   if(channelError)throw channelError;
+   if(command==="inference.turn.generate"&&onEvent&&!terminalSeen)throw new Error("ZYN-MODEL-RESPONSE");
+   return decodeModelReply(raw,command,correlationId,payload);
  }finally{closed=true;if(timer!==undefined)clearTimeout(timer);}
 }
 export function modelError(error:unknown):string{const code=error instanceof Error?error.message:typeof error==="object"&&error!==null&&"code" in error?String(error.code):"";
