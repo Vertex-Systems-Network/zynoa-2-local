@@ -284,9 +284,12 @@ function Select-Combo([string]$Name,[string]$Key,[string]$Expected) {
    # The model selector keeps a disabled placeholder at index zero on some
    # WebView2 builds. HOME alone therefore never reaches the first installed
    # model; move one bounded step past the placeholder before committing.
-   if ($attempt -eq 2 -and $Name -ceq 'Model' -and $Key -ceq '{HOME}') {
-     [System.Windows.Forms.SendKeys]::SendWait('{HOME}')
-     [System.Windows.Forms.SendKeys]::SendWait('{DOWN}')
+   if ($attempt -eq 2 -and $Name -ceq 'Model') {
+     # WebView2 can ignore HOME/DOWN while the placeholder remains selected
+     # (the bounded legacy fallback still used SendWait('{DOWN}')).
+     # Type the exact visible option so native select type-ahead resolves it;
+     # acceptance still requires exact UIA readback below.
+     [System.Windows.Forms.SendKeys]::SendWait($Expected)
    } else {
      [System.Windows.Forms.SendKeys]::SendWait($actualKey)
    }
