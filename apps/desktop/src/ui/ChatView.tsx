@@ -51,7 +51,16 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
    setHistoryCursor(page.next);
    if(after===0){const configured=await modelRequest("inference.settings.get",{conversationId:id});let next= configured.settings;if(!next){const health=await modelRequest("inference.health",{});const first=[...health.models].sort((a,b)=>a.name<b.name?-1:a.name>b.name?1:0)[0];if(first){const reply=await modelRequest("inference.settings.set",{conversationId:id,model:first.name,contextLimit:2048});next=reply.settings;}}setSettings(next);setContext(null);}
  }
- async function modelHealth(){invalidateInventory();const health=await modelRequest("inference.health",{});setModels([...health.models].sort((a,b)=>a.name<b.name?-1:a.name>b.name?1:0));setRuntimeVersion(health.version);}
+ async function modelHealth(){invalidateInventory();const health=await modelRequest("inference.health",{});
+  const available=[...health.models].sort((a,b)=>a.name<b.name?-1:a.name>b.name?1:0);
+  setModels(available);setRuntimeVersion(health.version);
+  // Complete bootstrap in the same refresh transaction so WebView2 never
+  // observes an enabled selector with only its disabled placeholder.
+  if(selected&&!settings&&available[0]){
+   const reply=await modelRequest("inference.settings.set",{conversationId:selected.id,model:available[0].name,contextLimit:2048});
+   setSettings(reply.settings);
+  }
+ }
  useEffect(()=>{
    if(!active||!online||started.current)return;
    started.current=true;void run(async()=>{await Promise.all([list(),modelHealth()]);});
