@@ -1,6 +1,7 @@
 /** M03 strict native response validation; no browser persistence or model calls. */
 export type Thread={id:string;title:string;revision:number;createdAt:number;updatedAt:number};
-export type Message={id:string;parentId:string|null;ordinal:number;role:"user"|"assistant"|"system";content:string;status:"complete"|"cancelled"|"failed";revision:number;createdAt:number};
+export type Attachment={id:string;name:string;bytes:number;sha256:string};
+export type Message={id:string;parentId:string|null;ordinal:number;role:"user"|"assistant"|"system";content:string;status:"complete"|"cancelled"|"failed";revision:number;createdAt:number;attachments:Attachment[]};
 export type ThreadPage={items:Thread[];next:string|null};
 export type HistoryPage={conversation:Thread;items:Message[];next:number|null};
 export type WriteResult={receipt:{id:string;revision:number;conversationRevision:number;ordinal:number|null};replayed:boolean};
@@ -28,12 +29,24 @@ function thread(v:unknown):Thread{
  if(!id(o.id)||typeof o.title!=="string"||!validText(o.title,512)||!integer(o.revision)||!integer(o.createdAt)||!integer(o.updatedAt))return fail();
  return o as Thread;
 }
+function attachment(v:unknown):Attachment{
+ const o=object(v,["id","name","bytes","sha256"]);
+ if(!id(o.id)||typeof o.name!=="string"||byteLength(o.name)<1||byteLength(o.name)>160||
+ /[\\/:*?"<>|\u0000-\u001f\u007f-\u009f]/u.test(o.name)||/[. ]$/.test(o.name)||
+ !o.name.split(".")[0].trimEnd()||/^(CON|PRN|AUX|NUL|CONIN\$|CONOUT\$|COM[1-9¹²³]|LPT[1-9¹²³])$/i.test(o.name.split(".")[0].trimEnd())||
+ !integer(o.bytes,0)||o.bytes>25*1024*1024||typeof o.sha256!=="string"||! /^[a-f0-9]{64}$/.test(o.sha256))return fail();
+ return o as Attachment;
+}
 function message(v:unknown):Message{
- const o=object(v,["id","parentId","ordinal","role","content","status","revision","createdAt"]);
+ const o=object(v,["id","parentId","ordinal","role","content","status","revision","createdAt","attachments"]);
  if(!id(o.id)||(o.parentId!==null&&!id(o.parentId))||!integer(o.ordinal)||!["user","assistant","system"].includes(String(o.role))||
  typeof o.role!=="string"||typeof o.content!=="string"||!validText(o.content,262144)||typeof o.status!=="string"||
  !["complete","cancelled","failed"].includes(o.status)||!integer(o.revision)||!integer(o.createdAt))return fail();
- return o as Message;
+ if(!Array.isArray(o.attachments)||o.attachments.length>8)return fail();
+ const attachments=o.attachments.map(attachment);
+ if(new Set(attachments.map(a=>a.id)).size!==attachments.length||
+ attachments.reduce((sum,a)=>sum+a.bytes,0)>100*1024*1024)return fail();
+ return {...o,attachments} as Message;
 }
 export function decodeReply<K extends ChatCommand>(raw:unknown,command:K,correlationId:string,payload:Payloads[K]):Replies[K]{
  const e=object(raw,["schemaVersion","commandId","correlationId","data"]);

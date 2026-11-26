@@ -1,5 +1,7 @@
 # Handoff (canonical starter)
 
+- **P03 T08 attachment history candidate: exact 4a9aff6 all six applicable CI workflows passed, #31 signed length regression verified. Native history now returns bounded scoped metadata only, text-only replay cannot acknowledge an attached message, frontend validates and displays metadata. New exact-head CI pending; picker, file-open, attachment-aware send/retry and model consumption not enabled. 4/16 DONE; no merge/release.** [Evidence](../evidence/P03_T08_ATTACHMENT_HISTORY_20261126.md). Lease released.
+
 - **P03 T08 CI repair candidate (2026-11-26): exact b34a95b Linux and Windows compilation failed E0277 (rusqlite FromSql not implemented for u64). Read i64, checked conversion and individual/aggregate bounds; negative/oversized and corrupted persisted length regression tests added. #31 open until exact-head CI. Existing gates intact; 4/16 DONE; no merge/release.** Lease released.
 
 - **P03 T08 transactional attachment candidate (2026-11-26): prior exact `6030169` all six applicable workflows passed. V3 additive migration, pre-v2-upgrade snapshot, scoped metadata/links committed atomically with messages and journal; native-only. Updated exact schema probes to require v3 while retaining v2 migration evidence and nine existing tests. Four new native regression tests; exact new-head CI pending, no UI or completed task claim.** [Evidence](../evidence/P03_T08_TRANSACTIONAL_ATTACHMENTS_20261126.md). Lease released.

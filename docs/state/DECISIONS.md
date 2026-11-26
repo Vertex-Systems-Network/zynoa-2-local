@@ -242,3 +242,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-26 | P03 | Add V3 attachment schema with separate migration receipt and atomic message links | Existing V2 source snapshot mandatory before upgrade; preserve V2 history and all previous data assertions. No new dependencies or renderer authority. Fresh CI pending.
 
 2026-11-26 | P03 | Read SQLite attachment lengths as signed INTEGER and validate before conversion | Reject negative, oversized and aggregate-overflow metadata; maintain existing native acceptance gates. Issue #31.
+
+2026-11-26 | P03 | Expose scoped attachment metadata through existing bounded history only | Strict decoder, text-only replay conflict; no arbitrary file authority or model ingestion. #31 verified; new exact CI pending.

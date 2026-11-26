@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { decodeReply,validText,byteLength } from "../.ui-tests/chat-contract.js";
 const thread={id:"thread-alpha-001",title:"Saved",revision:2,createdAt:1,updatedAt:2};
-const msg={id:"message-alpha-001",parentId:null,ordinal:1,role:"user",content:"<script>plain text</script>",status:"complete",revision:1,createdAt:1};
+const msg={id:"message-alpha-001",parentId:null,ordinal:1,role:"user",content:"<script>plain text</script>",status:"complete",revision:1,createdAt:1,attachments:[]};
 const wrap=(commandId,data)=>({schemaVersion:1,commandId,correlationId:"correlation-00001",data});
 const decode=(cmd,data,payload)=>decodeReply(wrap(cmd,data),cmd,"correlation-00001",payload);
 test("UTF-8 byte bounds and NUL/whitespace rejection",()=>{
@@ -20,6 +20,15 @@ test("list and history are scoped, ordered and bounded",()=>{
   assert.throws(()=>decode("chat.history",data,q),/ZYN-CHAT-RESPONSE/);
  }
  assert.throws(()=>decode("chat.list",{items:[thread],next:"other-thread-001"},{after:null,limit:1}),/ZYN-CHAT-RESPONSE/);
+});
+test("attachment metadata is bounded, validated and never grants path authority",()=>{
+ const q={conversationId:thread.id,after:0,limit:1};
+ const a={id:"artifact-alpha-001",name:"note.txt",bytes:23,sha256:"a".repeat(64)};
+ const withAttachments=attachments=>({conversation:thread,items:[{...msg,attachments}],next:null});
+ assert.deepEqual(decode("chat.history",withAttachments([a]),q).items[0].attachments,[a]);
+ for(const invalid of [[{...a,name:"../outside"}],[{...a,name:"NUL.txt"}],[{...a,bytes:-1}],[{...a,bytes:25*1024*1024+1}],[{...a,sha256:"bad"}],[{...a,path:"outside"}],[a,a],Array.from({length:5},(_,i)=>({...a,id:"artifact-alpha-00"+i,bytes:25*1024*1024}))]){
+  assert.throws(()=>decode("chat.history",withAttachments(invalid),q),/ZYN-CHAT-RESPONSE/);
+ }
 });
 test("stale correlation and unverified acknowledgement rejected",()=>{
  const q={id:msg.id,conversationId:thread.id,parentId:null,content:msg.content};

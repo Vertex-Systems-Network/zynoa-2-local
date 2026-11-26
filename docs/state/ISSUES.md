@@ -15,4 +15,4 @@
 
 - 2026-11-26 | P03 | RESOLVED (scoped dropdown) | [#29](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/29) | Exact a4c757f native model interaction, original artifact/hash and SQLite proof; remaining T05–T07 acceptance stays open.
 
-- 2026-11-26 | P03 | OPEN | [#31](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/31) | Exact b34a95b Linux/Windows E0277; checked i64 conversion repair candidate, fresh CI pending.
+- 2026-11-26 | P03 | RESOLVED | [#31](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/31) | Exact b34a95b Linux/Windows E0277; checked i64 conversion repair verified on exact 4a9aff6 Windows and Linux.

@@ -9,3 +9,5 @@ Four new native tests: v2 migration snapshot, backup failure, scoped links/reope
 ## CI repair
 
 Exact b34a95b failed [Linux product-adapter compile](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45858763330/job/140044092874) and [Windows IPC tests](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45858762868/job/140043991509), both E0277 for u64 FromSql. Governance, foundation, runner and task sync passed. [Issue #31](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/31). Candidate reads signed SQLite INTEGER, validates with checked conversion, rejects out-of-range individual and aggregate sizes, and tests conversion boundary and a synthetic corrupted DB row. No test skipped or disabled; local cargo unavailable; new exact-head native CI pending.
+
+Exact 4a9aff6 repair passed all six applicable workflows. [Next scoped history candidate](P03_T08_ATTACHMENT_HISTORY_20261126.md).

@@ -53,9 +53,14 @@ struct SavePayload { id: String, conversation_id: String, parent_id: Option<Stri
 fn summary(row:&ConversationSummary)->Value {
     json!({"id":row.id,"title":row.title,"revision":row.revision,"createdAt":row.created_at,"updatedAt":row.updated_at})
 }
-fn message(row:&StoredChatMessage)->Value {
-    json!({"id":row.id,"parentId":row.parent_id,"ordinal":row.ordinal,"role":row.role,"content":row.content,
-        "status":row.status,"revision":row.revision,"createdAt":row.created_at})
+fn message(vault:&NativeVault,conversation_id:&str,row:&StoredChatMessage)->Result<Value,ChatError> {
+    let attachments=vault.list_message_attachments(conversation_id,&row.id)?;
+    // Metadata only: no original path, bytes, preview URL or filesystem authority.
+    let attachments=attachments.iter().map(|a|json!({
+        "id":a.id,"name":a.receipt.name,"bytes":a.receipt.bytes,"sha256":a.receipt.sha256
+    })).collect::<Vec<_>>();
+    Ok(json!({"id":row.id,"parentId":row.parent_id,"ordinal":row.ordinal,"role":row.role,"content":row.content,
+        "status":row.status,"revision":row.revision,"createdAt":row.created_at,"attachments":attachments}))
 }
 fn receipt(row:&ChatWriteReceipt)->Value {
     json!({"id":row.id,"revision":row.revision,"conversationRevision":row.conversation_revision,"ordinal":row.ordinal})
@@ -112,7 +117,9 @@ fn execute(vault:&mut NativeVault, request:ChatRequest) -> Result<ChatReply,Chat
             items.truncate(q.limit as usize);
             loop {
                 let next=if more {items.last().map(|x| x.ordinal)} else {None};
-                let candidate=json!({"conversation":summary(&thread),"items":items.iter().map(message).collect::<Vec<_>>(),"next":next});
+                let history=items.iter().map(|row|message(vault,&q.conversation_id,row))
+                    .collect::<Result<Vec<_>,ChatError>>()?;
+                let candidate=json!({"conversation":summary(&thread),"items":history,"next":next});
                 if serde_json::to_vec(&candidate).map_err(|_|error("ZYN-CHAT-STORAGE"))?.len()<=MAX_RESPONSE_BYTES {break candidate;}
                 if items.len()<=1 {return Err(error("ZYN-CHAT-STORAGE"));}
                 items.pop(); more=true;
@@ -127,7 +134,8 @@ fn execute(vault:&mut NativeVault, request:ChatRequest) -> Result<ChatReply,Chat
                 Ok(row)=>json!({"receipt":receipt(&row),"replayed":false}),
                 Err(VaultFault::Conflict)=>{
                     let row=vault.get_chat_message(&q.conversation_id,&q.id)?.ok_or_else(||error("ZYN-CHAT-CONFLICT"))?;
-                    if row.content!=q.content || row.parent_id!=q.parent_id || row.role!="user" || row.status!="complete" {
+                    if row.content!=q.content || row.parent_id!=q.parent_id || row.role!="user" || row.status!="complete"
+                        || !vault.list_message_attachments(&q.conversation_id,&q.id)?.is_empty() {
                         return Err(error("ZYN-CHAT-CONFLICT"));
                     }
                     let thread=vault.get_conversation(&q.conversation_id)?.ok_or_else(||error("ZYN-CHAT-CONFLICT"))?;
@@ -216,6 +224,25 @@ mod tests {
         assert!(call(&mut v,"chat.history",json!({"conversationId":"missing-thread-001","after":0,"limit":1})).is_err());
         assert!(call(&mut v,"chat.list",json!({"limit":51})).is_err());
         assert!(call(&mut v,"chat.history",json!({"conversationId":A,"after":0,"limit":5})).is_err());
+    }
+    #[test]
+    fn chat_ipc_attachment_history_is_scoped_and_plain_replay_cannot_drop_links() {
+        let f=Fixture::new();let mut v=NativeVault::open(&f.0).unwrap();
+        for id in [A,B] {call(&mut v,"chat.create",json!({"id":id,"title":"Synthetic"})).unwrap();}
+        let a=crate::vault::LinkedAttachment {id:"artifact-alpha-001".into(),
+            receipt:v.stage_managed_blob("note.txt",b"private synthetic bytes").unwrap()};
+        let hash=a.receipt.sha256.clone();
+        v.append_chat_message_with_attachments(ChatMessageInput {id:M,conversation_id:A,parent_id:None,
+            content:"One",role:ChatRole::User,status:ChatStatus::Complete},&[a]).unwrap();
+        drop(v);let mut v=NativeVault::open(&f.0).unwrap();
+        let h=call(&mut v,"chat.history",json!({"conversationId":A,"after":0,"limit":1})).unwrap();
+        assert_eq!(h["items"][0]["attachments"],json!([{"id":"artifact-alpha-001","name":"note.txt","bytes":23,"sha256":hash}]));
+        assert!(!h.to_string().contains("private synthetic bytes"));
+        assert_eq!(call(&mut v,"chat.history",json!({"conversationId":B,"after":0,"limit":1})).unwrap()["items"],json!([]));
+        let err=call(&mut v,"chat.saveUserMessage",json!({"id":M,"conversationId":A,"content":"One"})).unwrap_err();
+        assert_eq!(err.code,"ZYN-CHAT-CONFLICT");
+        let h=call(&mut v,"chat.history",json!({"conversationId":A,"after":0,"limit":1})).unwrap();
+        assert_eq!(h["items"][0]["attachments"].as_array().unwrap().len(),1);
     }
     #[test]
     fn chat_ipc_large_history_is_byte_bounded_and_continues() {
