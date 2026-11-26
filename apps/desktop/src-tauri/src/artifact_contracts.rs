@@ -3,7 +3,7 @@
 use sha2::{Digest, Sha256};
 
 const MAX_NAME: usize = 160;
-const MAX_ATTACHMENT: u64 = 25 * 1024 * 1024;
+pub(crate) const MAX_ATTACHMENT: u64 = 25 * 1024 * 1024;
 const MAX_EXPORT_ITEMS: usize = 4096;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

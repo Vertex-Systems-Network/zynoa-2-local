@@ -236,3 +236,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-26 | P03 | Align existing T05–T16 dependency order; share portable managed-name validation between attachment and restore candidates | Exact-head model UI candidate passed but independent proof pending; source-only contracts are not storage or encryption. No dependency, scope or gate expansion. See docs/evidence/P03_PLAN_ALIGNMENT_AUDIT_20261126.md.
 
 2026-11-26 | P03 | Repair confirmed CI regressions without weakening prior-phase checks | Issue #30: keep exact Wiki screen/option anchor inventory, explicitly decode UTF-8 Rust test sources. New-head verification required.
+
+2026-11-26 | P03 | Stage managed content under the existing vault by hash before adding DB links | Reuse existing SHA-256, create-new staging and no-replace publication; preserve source/occupied data; explicit native-only and durability/race limitations. Prior exact CI green; no new gate waived.

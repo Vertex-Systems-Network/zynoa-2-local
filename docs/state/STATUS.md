@@ -1,5 +1,7 @@
 # Status — 2026-11-26
 
+P03 T08 native managed-blob candidate (2026-11-26): prior exact `a4c757f` six applicable workflows passed; #30 repair verified; #29 scoped model selection proof reverified (artifact 15129903623, four matching image hashes). Added native SHA-256 addressed no-replace staging/readback, bounded verification, observed link rejection, dedup/reopen/corruption tests. No schema/IPC/UI change or chat save acknowledgement. New exact-head CI pending; 4/16 DONE; no merge/release.
+
 P03 CI repair candidate (2026-11-26): exact `b6966b2` Governance and Windows Python checks failed because M23 Wiki added an extra illustrated anchor (28 vs 27) and Windows CP1252 could not decode Unicode Rust source. [Issue #30](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/30). Preserve exact illustrated inventory; use full-guide link for candidate note; read both native source contracts as UTF-8. No assertions or acceptance gates removed. New-head CI pending; 4/16 DONE; no merge/release.
 
 P03 plan alignment and first portable managed-name source repair (2026-11-26): prior exact `0d75fb7b` Windows/model candidate CI passed; original artifacts still require independent inspection (#29 open). T08–T14 remain source-level/in progress, T15–T16 TODO. Shared native filename validation and Rust regressions added; exact new-head CI pending. 4/16 DONE; no merge/release. [Audit](../evidence/P03_PLAN_ALIGNMENT_AUDIT_20261126.md).

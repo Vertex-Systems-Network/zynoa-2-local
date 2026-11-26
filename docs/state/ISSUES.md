@@ -11,4 +11,6 @@
 
 | I-007 | IMPORTANT | P02 | RESOLVED | Native NVDA palette search unavailable ([#19](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/19)) | Bounded UIA/foreground repair verified in both approved-head live NVDA checks. M26-specific failures remain tracked in T11. |
 
-- 2026-11-26 | P03 | OPEN | [#30](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/30) | Wiki inventory/Windows UTF-8 regression on b6966b2; repair candidate, exact-head CI pending.
+- 2026-11-26 | P03 | RESOLVED | [#30](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/30) | Wiki inventory/Windows UTF-8 regression on b6966b2; exact a4c757f Governance and Windows passed.
+
+- 2026-11-26 | P03 | RESOLVED (scoped dropdown) | [#29](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/29) | Exact a4c757f native model interaction, original artifact/hash and SQLite proof; remaining T05–T07 acceptance stays open.

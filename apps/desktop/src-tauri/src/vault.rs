@@ -279,6 +279,68 @@ fn apply_v2(db: &Connection, from: i64, backup_id: Option<&str>) -> Result<(), V
     Ok(())
 }
 
+// Managed content is native-only and derived from verified SHA-256, never a renderer path.
+// These helpers assume the OS-owned app directory is not concurrently mutated by an
+// external same-user process. They reject observed links/reparse points but do not
+// claim OS sandbox isolation or adversarial path-race protection.
+fn managed_plain(meta: &fs::Metadata) -> bool {
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::MetadataExt;
+        if meta.file_attributes() & 0x400 != 0 { return false; }
+    }
+    !meta.file_type().is_symlink()
+}
+
+fn managed_directory(path: &Path) -> Result<(), VaultFault> {
+    let meta = fs::symlink_metadata(path).map_err(|_| VaultFault::InvalidLocation)?;
+    if !meta.is_dir() || !managed_plain(&meta) { return Err(VaultFault::InvalidLocation); }
+    Ok(())
+}
+
+fn managed_child(parent: &Path, child: &str) -> Result<PathBuf, VaultFault> {
+    managed_directory(parent)?;
+    let path = parent.join(child);
+    match fs::create_dir(&path) {
+        Ok(()) => (),
+        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => (),
+        Err(_) => return Err(VaultFault::StorageUnavailable),
+    }
+    managed_directory(&path)?;
+    Ok(path)
+}
+
+fn managed_hash_valid(hash: &str) -> bool {
+    hash.len() == 64 && hash.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+}
+
+fn read_verified_blob(path: &Path, receipt: &crate::artifact_contracts::AttachmentReceipt)
+    -> Result<Vec<u8>, VaultFault>
+{
+    use std::io::Read;
+    let meta = fs::symlink_metadata(path).map_err(|_| VaultFault::StorageUnavailable)?;
+    if !meta.is_file() || !managed_plain(&meta) { return Err(VaultFault::InvalidLocation); }
+    if meta.len() != receipt.bytes || receipt.bytes > crate::artifact_contracts::MAX_ATTACHMENT {
+        return Err(VaultFault::Corrupt);
+    }
+    let mut opts = OpenOptions::new();
+    opts.read(true);
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::OpenOptionsExt;
+        opts.custom_flags(0x00200000); // FILE_FLAG_OPEN_REPARSE_POINT
+    }
+    let file = opts.open(path).map_err(|_| VaultFault::StorageUnavailable)?;
+    let opened = file.metadata().map_err(|_| VaultFault::StorageUnavailable)?;
+    if !opened.is_file() || !managed_plain(&opened) || opened.len() != receipt.bytes {
+        return Err(VaultFault::Corrupt);
+    }
+    let mut bytes = Vec::new();
+    file.take(receipt.bytes + 1).read_to_end(&mut bytes).map_err(|_| VaultFault::StorageUnavailable)?;
+    if !crate::artifact_contracts::verify_attachment(receipt, &bytes) { return Err(VaultFault::Corrupt); }
+    Ok(bytes)
+}
+
 fn snapshot_connection_new(app_root: &Path, source: &Connection, snapshot_id: &str)
     -> Result<PathBuf, VaultFault>
 {
@@ -356,6 +418,77 @@ impl NativeVault {
         if validate_schema(&tx)? != SCHEMA_VERSION { return Err(VaultFault::Corrupt); }
         tx.commit().map_err(map_sql)?;
         Ok(Self { app_root: app_root.to_path_buf(), conn })
+    }
+
+    // P03-T08 storage primitive: native trusted bytes only. A blob receipt is not a
+    // conversation save acknowledgement; metadata/links must still commit atomically.
+    pub(crate) fn stage_managed_blob(&self, name: &str, bytes: &[u8])
+        -> Result<crate::artifact_contracts::AttachmentReceipt, VaultFault>
+    {
+        use std::io::Write;
+        use std::sync::atomic::{AtomicU64, Ordering};
+        static NEXT_STAGE: AtomicU64 = AtomicU64::new(0);
+        let receipt = crate::artifact_contracts::attachment_receipt(name, bytes)
+            .ok_or(VaultFault::InvalidRecord)?;
+        let dir = self.managed_blob_directory(&receipt.sha256, true)?;
+        let target = dir.join(&receipt.sha256);
+        match fs::symlink_metadata(&target) {
+            Ok(_) => {
+                read_verified_blob(&target, &receipt)?;
+                return Ok(receipt);
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => (),
+            Err(_) => return Err(VaultFault::StorageUnavailable),
+        }
+        let stamp = SystemTime::now().duration_since(UNIX_EPOCH)
+            .map_err(|_| VaultFault::StorageUnavailable)?.as_nanos();
+        let seq = NEXT_STAGE.fetch_add(1, Ordering::Relaxed);
+        let temp = dir.join(format!(".stage-{}-{stamp}-{seq}", std::process::id()));
+        let mut file = OpenOptions::new().write(true).create_new(true).open(&temp)
+            .map_err(|_| VaultFault::StorageUnavailable)?;
+        // Preserve an interrupted stage on error; do not delete a possible sole copy.
+        file.write_all(bytes).and_then(|_| file.sync_all()).map_err(|_| VaultFault::StorageUnavailable)?;
+        drop(file);
+        read_verified_blob(&temp, &receipt)?;
+        // Atomic no-replace publication on supported same-volume filesystems.
+        // Never fall back to overwrite/rename if hard links are unavailable.
+        match fs::hard_link(&temp, &target) {
+            Ok(()) => (),
+            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => (),
+            Err(_) => return Err(VaultFault::StorageUnavailable),
+        }
+        read_verified_blob(&target, &receipt)?;
+        #[cfg(unix)]
+        fs::File::open(&dir).and_then(|f| f.sync_all()).map_err(|_| VaultFault::StorageUnavailable)?;
+        // The verified target exists. Stage cleanup is best effort; leftovers are
+        // retained for later reconciliation, never treated as linked chat data.
+        let _ = fs::remove_file(&temp);
+        Ok(receipt)
+    }
+
+    fn managed_blob_directory(&self, hash: &str, create: bool) -> Result<PathBuf, VaultFault> {
+        if !managed_hash_valid(hash) { return Err(VaultFault::InvalidRecord); }
+        managed_directory(&self.app_root)?;
+        let mut path = self.app_root.clone();
+        for name in ["data", "artifacts", "sha256", &hash[..2]] {
+            path = if create { managed_child(&path, name)? } else {
+                let child = path.join(name);
+                managed_directory(&child)?;
+                child
+            };
+        }
+        Ok(path)
+    }
+
+    pub(crate) fn read_managed_blob(&self, receipt: &crate::artifact_contracts::AttachmentReceipt)
+        -> Result<Vec<u8>, VaultFault>
+    {
+        if !crate::artifact_contracts::valid_managed_basename(&receipt.name)
+            || receipt.bytes > crate::artifact_contracts::MAX_ATTACHMENT {
+            return Err(VaultFault::InvalidRecord);
+        }
+        let dir = self.managed_blob_directory(&receipt.sha256, false)?;
+        read_verified_blob(&dir.join(&receipt.sha256), receipt)
     }
 
     /// New-only insert. A receipt is returned only AFTER transaction commit.
@@ -626,6 +759,66 @@ mod tests {
         }
     }
     impl Drop for Fixture { fn drop(&mut self) { let _ = fs::remove_dir_all(&self.0); } }
+
+    #[test]
+    fn managed_blob_stage_deduplicates_and_reopens_without_original_path() {
+        let f = Fixture::new();
+        let app = f.app();
+        let v = NativeVault::open(&app).unwrap();
+        let receipt = v.stage_managed_blob("notes.txt", b"synthetic bytes").unwrap();
+        let other = v.stage_managed_blob("copy.txt", b"synthetic bytes").unwrap();
+        assert_eq!(receipt.sha256, other.sha256);
+        let dir = app.join("data").join("artifacts").join("sha256").join(&receipt.sha256[..2]);
+        assert_eq!(fs::read_dir(&dir).unwrap().count(), 1);
+        assert_eq!(fs::read(dir.join(&receipt.sha256)).unwrap(), b"synthetic bytes");
+        drop(v);
+        let reopened = NativeVault::open(&app).unwrap();
+        assert_eq!(reopened.read_managed_blob(&receipt).unwrap(), b"synthetic bytes");
+        assert_eq!(reopened.read_managed_blob(&other).unwrap(), b"synthetic bytes");
+        assert_eq!(reopened.stage_managed_blob("../outside", b"x"), Err(VaultFault::InvalidRecord));
+        let mut malformed = receipt.clone();
+        malformed.sha256 = "../outside".into();
+        assert_eq!(reopened.read_managed_blob(&malformed), Err(VaultFault::InvalidRecord));
+    }
+
+    #[test]
+    fn managed_blob_corrupt_existing_target_is_never_overwritten() {
+        let f = Fixture::new();
+        let app = f.app();
+        let v = NativeVault::open(&app).unwrap();
+        let receipt = v.stage_managed_blob("note.txt", b"original").unwrap();
+        let path = app.join("data").join("artifacts").join("sha256")
+            .join(&receipt.sha256[..2]).join(&receipt.sha256);
+        fs::write(&path, b"tampered").unwrap();
+        assert_eq!(v.read_managed_blob(&receipt), Err(VaultFault::Corrupt));
+        assert_eq!(v.stage_managed_blob("note.txt", b"original"), Err(VaultFault::Corrupt));
+        assert_eq!(fs::read(&path).unwrap(), b"tampered");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn managed_blob_rejects_observed_symlink_directory_and_target() {
+        use std::os::unix::fs::symlink;
+        let f = Fixture::new();
+        let app = f.app();
+        let v = NativeVault::open(&app).unwrap();
+        let outside = f.0.join("outside");
+        fs::create_dir(&outside).unwrap();
+        let artifacts = app.join("data").join("artifacts");
+        symlink(&outside, &artifacts).unwrap();
+        assert_eq!(v.stage_managed_blob("note.txt", b"x"), Err(VaultFault::InvalidLocation));
+        assert_eq!(fs::read_dir(&outside).unwrap().count(), 0);
+        fs::remove_file(&artifacts).unwrap();
+        let receipt = v.stage_managed_blob("note.txt", b"x").unwrap();
+        let target = artifacts.join("sha256").join(&receipt.sha256[..2]).join(&receipt.sha256);
+        let original = outside.join("untouched");
+        fs::write(&original, b"x").unwrap();
+        fs::remove_file(&target).unwrap();
+        symlink(&original, &target).unwrap();
+        assert_eq!(v.read_managed_blob(&receipt), Err(VaultFault::InvalidLocation));
+        assert_eq!(v.stage_managed_blob("note.txt", b"x"), Err(VaultFault::InvalidLocation));
+        assert_eq!(fs::read(original).unwrap(), b"x");
+    }
 
     #[test]
     fn transactional_commit_ack_and_reopen_preserve_user_content() {

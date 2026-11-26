@@ -33,3 +33,7 @@ Tests added in the two Rust modules. Required checks: `cargo test --locked` in a
 ## CI repair checkpoint
 
 Exact `b6966b2` Governance run 45843464371: 770 tests, one M23 Wiki inventory failure. Windows run 45843464315: 770 tests, one Wiki failure, two CP1252 decode errors, 46 skips. [Issue #30](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/30) tracks both regressions. Candidate preserves the exact 27 M23 illustrated links, uses the full-guide link for the P03 note, and explicitly reads both Rust source files as UTF-8. No local full suite or new native acceptance is claimed; verify fresh CI and retain all gates.
+
+## Verified repair and next T08 slice
+
+Exact a4c757f six applicable workflows passed. See [managed blob candidate and original model artifact review](P03_T08_MANAGED_BLOB_CANDIDATE_20261126.md). No broad task status promotion.
