@@ -138,17 +138,18 @@ jobs:
           assert "src-tauri" not in str(path).lower()
           uri = f"file:{path.as_posix()}?mode=ro"
           with sqlite3.connect(uri, uri=True) as db:
-              assert db.execute("PRAGMA user_version").fetchone()[0] == 2
+              assert db.execute("PRAGMA user_version").fetchone()[0] == 3
               assert db.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
               assert db.execute("PRAGMA journal_mode").fetchone()[0].lower() == "wal"
               assert db.execute("SELECT count(*) FROM records").fetchone()[0] == 0
               assert db.execute("PRAGMA foreign_key_check").fetchall() == []
               assert db.execute("SELECT count(*) FROM schema_migrations WHERE version=2 AND from_version=0 AND backup_id IS NULL AND result='applied'").fetchone()[0] == 1
-              for table in ("conversations", "messages", "chat_change_journal"):
+              assert db.execute("SELECT count(*) FROM artifact_schema_migrations WHERE version=3 AND from_version=0 AND backup_id IS NULL").fetchone()[0] == 1
+              for table in ("conversations", "messages", "chat_change_journal", "managed_artifacts", "artifact_links"):
                   assert db.execute("SELECT count(*) FROM " + table).fetchone()[0] == 0
           import json, hashlib
           test_log = Path(os.environ["RUNNER_TEMP"]) / "p03-vault-native-tests.txt"
-          report = {"source_commit_sha": os.environ["ZYNOA_SOURCE_SHA"], "vault_schema_version": 2,
+          report = {"source_commit_sha": os.environ["ZYNOA_SOURCE_SHA"], "vault_schema_version": 3,
                     "integrity_check": "ok", "foreign_key_check": "ok", "journal_mode": "wal",
                     "fresh_migration_record": True, "native_chat_tests": 9, "no_user_data": True,
                     "test_log_sha256": hashlib.sha256(test_log.read_bytes()).hexdigest()}

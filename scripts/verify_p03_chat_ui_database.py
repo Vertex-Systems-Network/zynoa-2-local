@@ -16,7 +16,7 @@ def main():
     with closing(sqlite3.connect(path.as_uri()+"?mode=ro",uri=True)) as db:
         assert db.execute("PRAGMA integrity_check").fetchone()==("ok",)
         assert db.execute("PRAGMA foreign_key_check").fetchall()==[]
-        assert db.execute("PRAGMA user_version").fetchone()==(2,)
+        assert db.execute("PRAGMA user_version").fetchone() == (3,)
         threads=db.execute("SELECT id,title,revision FROM conversations ORDER BY id").fetchall()
         messages=db.execute("SELECT id,conversation_id,parent_id,ordinal,role,content,status,revision FROM messages ORDER BY id").fetchall()
         journal=db.execute("SELECT entity_type,entity_id,revision,operation FROM chat_change_journal ORDER BY seq").fetchall()

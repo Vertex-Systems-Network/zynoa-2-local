@@ -7,7 +7,10 @@ use std::fs::{self, OpenOptions};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-const SCHEMA_VERSION: i64 = 2;
+const SCHEMA_VERSION: i64 = 3;
+const CHAT_SCHEMA_VERSION: i64 = 2;
+const MAX_MESSAGE_ATTACHMENTS: usize = 8;
+const MAX_MESSAGE_ATTACHMENT_BYTES: u64 = 100 * 1024 * 1024;
 const LEGACY_VERSION: i64 = 1;
 const MAX_CONTENT_BYTES: usize = 262_144;
 const MAX_TITLE_BYTES: usize = 512;
@@ -67,6 +70,41 @@ CREATE TABLE chat_change_journal(
 );
 CREATE INDEX chat_journal_entity ON chat_change_journal(entity_type,entity_id,seq);
 ";
+
+// V2 history stays intact. V3 has its own immutable migration receipt so older
+// V2 snapshots remain verifiable without rewriting their migration history.
+const ARTIFACT_SCHEMA: &str = "
+CREATE TABLE managed_artifacts(
+    id TEXT PRIMARY KEY NOT NULL CHECK(length(id) BETWEEN 8 AND 64 AND id NOT GLOB '*[^A-Za-z0-9_-]*'),
+    conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE RESTRICT,
+    name TEXT NOT NULL CHECK(length(CAST(name AS BLOB)) BETWEEN 1 AND 160 AND instr(name,char(0))=0),
+    sha256 TEXT NOT NULL CHECK(length(sha256)=64 AND sha256 NOT GLOB '*[^0-9a-f]*'),
+    bytes INTEGER NOT NULL CHECK(typeof(bytes)='integer' AND bytes BETWEEN 0 AND 26214400),
+    created_at INTEGER NOT NULL,
+    UNIQUE(conversation_id,id)
+);
+CREATE TABLE artifact_links(
+    conversation_id TEXT NOT NULL,
+    message_id TEXT NOT NULL,
+    artifact_id TEXT NOT NULL UNIQUE,
+    position INTEGER NOT NULL CHECK(typeof(position)='integer' AND position BETWEEN 0 AND 7),
+    PRIMARY KEY(conversation_id,message_id,position),
+    FOREIGN KEY(conversation_id,message_id) REFERENCES messages(conversation_id,id) ON DELETE RESTRICT,
+    FOREIGN KEY(conversation_id,artifact_id) REFERENCES managed_artifacts(conversation_id,id) ON DELETE RESTRICT
+);
+CREATE TABLE artifact_schema_migrations(
+    version INTEGER PRIMARY KEY CHECK(version=3),
+    from_version INTEGER NOT NULL CHECK(from_version IN (0,1,2)),
+    backup_id TEXT,
+    applied_at INTEGER NOT NULL,
+    CHECK((from_version IN (0,1) AND backup_id IS NULL) OR (from_version=2 AND backup_id IS NOT NULL))
+);
+";
+
+pub(crate) struct LinkedAttachment {
+    pub(crate) id: String,
+    pub(crate) receipt: crate::artifact_contracts::AttachmentReceipt,
+}
 
 #[derive(Clone, Copy)]
 pub(crate) enum ChatRole { User, Assistant, System }
@@ -240,7 +278,7 @@ fn verify_legacy_table(db: &Connection) -> Result<(), VaultFault> {
 
 fn validate_schema(db: &Connection) -> Result<i64, VaultFault> {
     let v = version(db)?;
-    if v != LEGACY_VERSION && v != SCHEMA_VERSION { return Err(VaultFault::UnsupportedSchema); }
+    if !matches!(v, LEGACY_VERSION | CHAT_SCHEMA_VERSION | SCHEMA_VERSION) { return Err(VaultFault::UnsupportedSchema); }
     integrity_check(db)?;
     verify_legacy_table(db)?;
     if v == LEGACY_VERSION {
@@ -261,6 +299,20 @@ fn validate_schema(db: &Connection) -> Result<i64, VaultFault> {
             [], |r| r.get(0)
         ).map_err(|_| VaultFault::Corrupt)?;
         if migrated != 1 { return Err(VaultFault::Corrupt); }
+        if v == SCHEMA_VERSION {
+            for table in ["managed_artifacts", "artifact_links", "artifact_schema_migrations"] {
+                let found: i64 = db.query_row(
+                    "SELECT count(*) FROM sqlite_schema WHERE type='table' AND name=?1", [table], |r| r.get(0)
+                ).map_err(|_| VaultFault::Corrupt)?;
+                if found != 1 { return Err(VaultFault::Corrupt); }
+            }
+            let migrated: i64 = db.query_row(
+                "SELECT count(*) FROM artifact_schema_migrations WHERE version=3 AND
+                 ((from_version IN (0,1) AND backup_id IS NULL) OR (from_version=2 AND backup_id IS NOT NULL))",
+                [], |r| r.get(0)
+            ).map_err(|_| VaultFault::Corrupt)?;
+            if migrated != 1 { return Err(VaultFault::Corrupt); }
+        }
         let mut check = db.prepare("PRAGMA foreign_key_check").map_err(|_| VaultFault::Corrupt)?;
         let mut rows = check.query([]).map_err(|_| VaultFault::Corrupt)?;
         if rows.next().map_err(|_| VaultFault::Corrupt)?.is_some() { return Err(VaultFault::Corrupt); }
@@ -276,6 +328,16 @@ fn apply_v2(db: &Connection, from: i64, backup_id: Option<&str>) -> Result<(), V
         params![from, env!("CARGO_PKG_VERSION"), backup_id],
     ).map_err(map_sql)?;
     db.execute_batch("PRAGMA user_version=2;").map_err(map_sql)?;
+    Ok(())
+}
+
+fn apply_v3(db: &Connection, from: i64, backup_id: Option<&str>) -> Result<(), VaultFault> {
+    db.execute_batch(ARTIFACT_SCHEMA).map_err(map_sql)?;
+    db.execute(
+        "INSERT INTO artifact_schema_migrations(version,from_version,backup_id,applied_at)
+         VALUES(3,?1,?2,unixepoch())", params![from,backup_id],
+    ).map_err(map_sql)?;
+    db.execute_batch("PRAGMA user_version=3;").map_err(map_sql)?;
     Ok(())
 }
 
@@ -394,6 +456,7 @@ impl NativeVault {
             0 if !existed => {
                 tx.execute_batch(LEGACY_SCHEMA).map_err(map_sql)?;
                 apply_v2(&tx, 0, None)?;
+                apply_v3(&tx, 0, None)?;
             }
             LEGACY_VERSION => {
                 validate_schema(&tx)?;
@@ -410,6 +473,20 @@ impl NativeVault {
                 snapshot_connection_new(app_root, &source, &backup_id)?;
                 drop(source);
                 apply_v2(&tx, LEGACY_VERSION, Some(&backup_id))?;
+                apply_v3(&tx, LEGACY_VERSION, None)?;
+            }
+            CHAT_SCHEMA_VERSION => {
+                validate_schema(&tx)?;
+                let stamp = SystemTime::now().duration_since(UNIX_EPOCH)
+                    .map_err(|_| VaultFault::StorageUnavailable)?.as_nanos();
+                let backup_id = format!("pre_v3_{}_{stamp}", std::process::id());
+                let source = Connection::open_with_flags(&file, OpenFlags::SQLITE_OPEN_READ_ONLY)
+                    .map_err(map_sql)?;
+                source.busy_timeout(Duration::from_secs(2)).map_err(map_sql)?;
+                if validate_schema(&source)? != CHAT_SCHEMA_VERSION { return Err(VaultFault::Conflict); }
+                snapshot_connection_new(app_root, &source, &backup_id)?;
+                drop(source);
+                apply_v3(&tx, CHAT_SCHEMA_VERSION, Some(&backup_id))?;
             }
             SCHEMA_VERSION => { validate_schema(&tx)?; }
             _ => return Err(VaultFault::UnsupportedSchema),
@@ -535,10 +612,29 @@ impl NativeVault {
     pub(crate) fn append_chat_message(&mut self, input: ChatMessageInput<'_>)
         -> Result<ChatWriteReceipt, VaultFault>
     {
+        self.append_chat_message_with_attachments(input, &[])
+    }
+
+    /// Commit message, attachment metadata, links and existing journal in one transaction.
+    /// Native staged receipts only; this is not renderer authority or a file picker.
+    pub(crate) fn append_chat_message_with_attachments(&mut self, input: ChatMessageInput<'_>,
+        attachments: &[LinkedAttachment]) -> Result<ChatWriteReceipt, VaultFault>
+    {
         if !safe_id(input.id) || !safe_id(input.conversation_id)
             || input.parent_id.is_some_and(|p| !safe_id(p) || p == input.id)
             || !valid_text(input.content, MAX_CONTENT_BYTES)
         { return Err(VaultFault::InvalidRecord); }
+        if attachments.len() > MAX_MESSAGE_ATTACHMENTS { return Err(VaultFault::InvalidRecord); }
+        let mut total = 0u64;
+        let mut ids = std::collections::HashSet::new();
+        for attachment in attachments {
+            if !safe_id(&attachment.id) || !ids.insert(attachment.id.as_str()) {
+                return Err(VaultFault::InvalidRecord);
+            }
+            total = total.checked_add(attachment.receipt.bytes).ok_or(VaultFault::InvalidRecord)?;
+            if total > MAX_MESSAGE_ATTACHMENT_BYTES { return Err(VaultFault::InvalidRecord); }
+            self.read_managed_blob(&attachment.receipt)?;
+        }
         let tx = self.conn.transaction_with_behavior(TransactionBehavior::Immediate).map_err(map_sql)?;
         let ordinal: i64 = tx.query_row(
             "SELECT COALESCE(MAX(ordinal),0)+1 FROM messages WHERE conversation_id=?1",
@@ -549,6 +645,19 @@ impl NativeVault {
              VALUES(?1,?2,?3,?4,?5,?6,?7,1,unixepoch())",
             params![input.id,input.conversation_id,input.parent_id,ordinal,input.role.name(),input.content,input.status.name()]
         ).map_err(map_sql)?;
+        for (position, attachment) in attachments.iter().enumerate() {
+            tx.execute(
+                "INSERT INTO managed_artifacts(id,conversation_id,name,sha256,bytes,created_at)
+                 VALUES(?1,?2,?3,?4,?5,unixepoch())",
+                params![attachment.id,input.conversation_id,attachment.receipt.name,
+                    attachment.receipt.sha256,attachment.receipt.bytes as i64]
+            ).map_err(map_sql)?;
+            tx.execute(
+                "INSERT INTO artifact_links(conversation_id,message_id,artifact_id,position)
+                 VALUES(?1,?2,?3,?4)",
+                params![input.conversation_id,input.id,attachment.id,position as i64]
+            ).map_err(map_sql)?;
+        }
         if tx.execute(
             "UPDATE conversations SET updated_at=unixepoch(),revision=revision+1 WHERE id=?1",
             [input.conversation_id]
@@ -563,6 +672,34 @@ impl NativeVault {
         ).map_err(map_sql)?;
         tx.commit().map_err(map_sql)?;
         Ok(ChatWriteReceipt { id:input.id.to_owned(),revision:1,conversation_revision,ordinal:Some(ordinal) })
+    }
+
+    pub(crate) fn list_message_attachments(&self, conversation_id: &str, message_id: &str)
+        -> Result<Vec<LinkedAttachment>, VaultFault>
+    {
+        if !safe_id(conversation_id) || !safe_id(message_id) { return Err(VaultFault::InvalidRecord); }
+        if self.get_chat_message(conversation_id,message_id)?.is_none() { return Err(VaultFault::Conflict); }
+        let mut stmt = self.conn.prepare(
+            "SELECT a.id,a.name,a.sha256,a.bytes FROM artifact_links l
+             JOIN managed_artifacts a ON a.conversation_id=l.conversation_id AND a.id=l.artifact_id
+             WHERE l.conversation_id=?1 AND l.message_id=?2 ORDER BY l.position LIMIT 9"
+        ).map_err(map_sql)?;
+        let rows = stmt.query_map(params![conversation_id,message_id], |r| Ok(LinkedAttachment {
+            id:r.get(0)?, receipt:crate::artifact_contracts::AttachmentReceipt {
+                name:r.get(1)?,sha256:r.get(2)?,bytes:r.get(3)?,
+            },
+        })).map_err(map_sql)?;
+        let mut result = Vec::new();
+        for row in rows {
+            let a = row.map_err(map_sql)?;
+            if !safe_id(&a.id) || !crate::artifact_contracts::valid_managed_basename(&a.receipt.name)
+                || !managed_hash_valid(&a.receipt.sha256) || a.receipt.bytes > crate::artifact_contracts::MAX_ATTACHMENT {
+                return Err(VaultFault::Corrupt);
+            }
+            result.push(a);
+        }
+        if result.len() > MAX_MESSAGE_ATTACHMENTS { return Err(VaultFault::Corrupt); }
+        Ok(result)
     }
 
     fn conversation_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<ConversationSummary> {
@@ -821,6 +958,85 @@ mod tests {
     }
 
     #[test]
+    fn attachment_v2_upgrade_preserves_chat_and_preupgrade_snapshot() {
+        let f=Fixture::new();
+        let app=f.app();
+        let data=checked_child(&app,"data").unwrap();
+        let path=data.join("state.sqlite");
+        let db=Connection::open(&path).unwrap();
+        db.execute_batch(LEGACY_SCHEMA).unwrap();
+        apply_v2(&db,0,None).unwrap();
+        db.execute_batch("INSERT INTO conversations VALUES('thread_alpha','Synthetic',1,1,1);
+            INSERT INTO messages VALUES('message_0001','thread_alpha',NULL,1,'user','previous chat','complete',1,1);").unwrap();
+        drop(db);
+        let v=NativeVault::open(&app).unwrap();
+        assert_eq!(version(&v.conn).unwrap(),3);
+        assert_eq!(v.get_chat_message("thread_alpha","message_0001").unwrap().unwrap().content,"previous chat");
+        let backup_id:String=v.conn.query_row("SELECT backup_id FROM artifact_schema_migrations WHERE from_version=2",[],|r|r.get(0)).unwrap();
+        let backup=app.join("backups").join("snapshots").join(format!("{backup_id}.sqlite"));
+        let old=Connection::open_with_flags(backup,OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+        assert_eq!(validate_schema(&old).unwrap(),2);
+        assert_eq!(count(&old,"SELECT count(*) FROM messages WHERE content='previous chat'"),1);
+        assert_eq!(count(&old,"SELECT count(*) FROM sqlite_schema WHERE name='artifact_links'"),0);
+    }
+
+    #[test]
+    fn attachment_v2_upgrade_refuses_missing_backup_without_mutating_schema() {
+        let f=Fixture::new();
+        let app=f.app();
+        let path=checked_child(&app,"data").unwrap().join("state.sqlite");
+        let db=Connection::open(&path).unwrap();
+        db.execute_batch(LEGACY_SCHEMA).unwrap();
+        apply_v2(&db,0,None).unwrap();
+        drop(db);
+        fs::write(app.join("backups"),b"occupied").unwrap();
+        assert!(NativeVault::open(&app).is_err());
+        let db=Connection::open_with_flags(path,OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+        assert_eq!(validate_schema(&db).unwrap(),2);
+        assert_eq!(count(&db,"SELECT count(*) FROM sqlite_schema WHERE name='artifact_links'"),0);
+        assert_eq!(fs::read(app.join("backups")).unwrap(),b"occupied");
+    }
+
+    #[test]
+    fn attachment_message_commit_scopes_links_and_reopens() {
+        let f=Fixture::new();
+        let app=f.app();
+        let mut v=NativeVault::open(&app).unwrap();
+        v.create_conversation("thread_alpha","One").unwrap();
+        v.create_conversation("thread_other","Two").unwrap();
+        let a=LinkedAttachment{id:"artifact_001".into(),receipt:v.stage_managed_blob("note.txt",b"contents").unwrap()};
+        let receipt=v.append_chat_message_with_attachments(sample_message("message_0001","thread_alpha",None),&[a]).unwrap();
+        assert_eq!(receipt.ordinal,Some(1));
+        assert!(v.list_message_attachments("thread_other","message_0001").is_err());
+        drop(v);
+        let v=NativeVault::open(&app).unwrap();
+        let links=v.list_message_attachments("thread_alpha","message_0001").unwrap();
+        assert_eq!(links.len(),1);
+        assert_eq!(links[0].id,"artifact_001");
+        assert_eq!(v.read_managed_blob(&links[0].receipt).unwrap(),b"contents");
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM artifact_links"),1);
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM managed_artifacts"),1);
+    }
+
+    #[test]
+    fn attachment_link_failure_rolls_back_message_metadata_and_journal() {
+        let f=Fixture::new();
+        let mut v=NativeVault::open(&f.app()).unwrap();
+        v.create_conversation("thread_alpha","One").unwrap();
+        let a=LinkedAttachment{id:"artifact_001".into(),receipt:v.stage_managed_blob("note.txt",b"contents").unwrap()};
+        v.conn.execute_batch("CREATE TEMP TRIGGER fail_link BEFORE INSERT ON artifact_links
+            BEGIN SELECT RAISE(ABORT,'fixture failure'); END;").unwrap();
+        assert!(v.append_chat_message_with_attachments(sample_message("message_0001","thread_alpha",None),&[a]).is_err());
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM messages"),0);
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM managed_artifacts"),0);
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM artifact_links"),0);
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM chat_change_journal"),1);
+        assert_eq!(count(&v.conn,"SELECT revision FROM conversations"),1);
+        // The staged content remains available for explicit retry; never delete a sole copy.
+        assert_eq!(v.stage_managed_blob("note.txt",b"contents").unwrap().bytes,8);
+    }
+
+    #[test]
     fn transactional_commit_ack_and_reopen_preserve_user_content() {
         let f = Fixture::new();
         let app = f.app();
@@ -936,7 +1152,8 @@ mod tests {
     fn p03_fresh_schema_wal_full_fk_and_migration_history() {
         let f = Fixture::new();
         let v = NativeVault::open(&f.app()).unwrap();
-        assert_eq!(version(&v.conn).unwrap(), 2);
+        assert_eq!(version(&v.conn).unwrap(), 3);
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM artifact_schema_migrations WHERE version=3 AND from_version=0 AND backup_id IS NULL"),1);
         assert_eq!(count(&v.conn,"PRAGMA synchronous"),2);
         assert_eq!(count(&v.conn,"PRAGMA foreign_keys"),1);
         assert_eq!(count(&v.conn,"SELECT count(*) FROM schema_migrations WHERE version=2 AND from_version=0 AND backup_id IS NULL"),1);
@@ -952,7 +1169,8 @@ mod tests {
         let app=f.app();
         legacy_fixture(&app);
         let v=NativeVault::open(&app).unwrap();
-        assert_eq!(version(&v.conn).unwrap(),2);
+        assert_eq!(version(&v.conn).unwrap(),3);
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM artifact_schema_migrations WHERE version=3 AND from_version=1 AND backup_id IS NULL"),1);
         assert_eq!(v.read("legacy_chat_001").unwrap().as_deref(),Some("legacy opaque content"));
         assert_eq!(count(&v.conn,"SELECT revision FROM records WHERE id='legacy_chat_001'"),3);
         assert_eq!(count(&v.conn,"SELECT created_at FROM records WHERE id='legacy_chat_001'"),1234);
@@ -1109,10 +1327,10 @@ mod tests {
         v.append_chat_message(sample_message("message_0001","thread_alpha",None)).unwrap();
         let snapshot=v.snapshot_new("p03_snapshot_01").unwrap();
         v.append_chat_message(sample_message("message_0002","thread_alpha",Some("message_0001"))).unwrap();
-        let preview=f.0.join("v2-preview.sqlite");
+        let preview=f.0.join("v3-preview.sqlite");
         NativeVault::restore_to_new_test_profile(&snapshot,&preview).unwrap();
         let restored=Connection::open_with_flags(&preview,OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
-        assert_eq!(validate_schema(&restored).unwrap(),2);
+        assert_eq!(validate_schema(&restored).unwrap(),3);
         assert_eq!(count(&restored,"SELECT count(*) FROM messages"),1);
         assert_eq!(count(&v.conn,"SELECT count(*) FROM messages"),2);
         assert_eq!(count(&restored,"SELECT count(*) FROM records"),1);
