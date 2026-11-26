@@ -6,7 +6,9 @@
   "summary": "Shared bounded portable filename validation and negative Rust regression candidates; actual native integration and exact-head CI remain pending.",
   "status": "implementing",
   "audience": "developer",
-  "source_issue_urls": [],
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/30"
+  ],
   "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
   "affected_option_ids": [
     "M23-OPT-09"
@@ -22,7 +24,9 @@
     "docs/wiki/pages/M23.md"
   ],
   "test_evidence": [
-    "apps/desktop/src-tauri/src/backup_contracts.rs"
+    "apps/desktop/src-tauri/src/backup_contracts.rs",
+    "tests/test_p03_backup_contracts.py",
+    "tests/test_p02_t13_system_centers.py"
   ],
   "commit_sha": null,
   "release": null,

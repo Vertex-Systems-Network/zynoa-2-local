@@ -234,3 +234,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P03 | Require exact native dropdown acknowledgement before independent database readback | Windows run 45682806417 failed first model selection; original screenshot shows placeholder. Prefer actual provider selection, fallback to real physical click and bounded keyboard attempts; no direct state/DB injection or relaxed assertions. Issue #29 remains open.
 
 2026-11-26 | P03 | Align existing T05–T16 dependency order; share portable managed-name validation between attachment and restore candidates | Exact-head model UI candidate passed but independent proof pending; source-only contracts are not storage or encryption. No dependency, scope or gate expansion. See docs/evidence/P03_PLAN_ALIGNMENT_AUDIT_20261126.md.
+
+2026-11-26 | P03 | Repair confirmed CI regressions without weakening prior-phase checks | Issue #30: keep exact Wiki screen/option anchor inventory, explicitly decode UTF-8 Rust test sources. New-head verification required.

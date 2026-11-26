@@ -10,3 +10,5 @@
 | I-006 | IMPORTANT | P02 | OPEN | Warning baseline and CI runtime maintenance ([#18](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/18)) | Verify source fixes and track remaining baseline; no blanket suppression |
 
 | I-007 | IMPORTANT | P02 | RESOLVED | Native NVDA palette search unavailable ([#19](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/19)) | Bounded UIA/foreground repair verified in both approved-head live NVDA checks. M26-specific failures remain tracked in T11. |
+
+- 2026-11-26 | P03 | OPEN | [#30](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/30) | Wiki inventory/Windows UTF-8 regression on b6966b2; repair candidate, exact-head CI pending.
