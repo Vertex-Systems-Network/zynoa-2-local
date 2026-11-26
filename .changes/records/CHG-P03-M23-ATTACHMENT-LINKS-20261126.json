@@ -6,7 +6,9 @@
   "summary": "Additive V3 vault migration and scoped atomic attachment metadata and links; native UI pending.",
   "status": "implementing",
   "audience": "developer",
-  "source_issue_urls": [],
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/31"
+  ],
   "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
   "affected_option_ids": [
     "M23-OPT-01",

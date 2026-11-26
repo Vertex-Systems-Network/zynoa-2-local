@@ -240,3 +240,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-26 | P03 | Stage managed content under the existing vault by hash before adding DB links | Reuse existing SHA-256, create-new staging and no-replace publication; preserve source/occupied data; explicit native-only and durability/race limitations. Prior exact CI green; no new gate waived.
 
 2026-11-26 | P03 | Add V3 attachment schema with separate migration receipt and atomic message links | Existing V2 source snapshot mandatory before upgrade; preserve V2 history and all previous data assertions. No new dependencies or renderer authority. Fresh CI pending.
+
+2026-11-26 | P03 | Read SQLite attachment lengths as signed INTEGER and validate before conversion | Reject negative, oversized and aggregate-overflow metadata; maintain existing native acceptance gates. Issue #31.

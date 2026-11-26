@@ -376,6 +376,13 @@ fn managed_hash_valid(hash: &str) -> bool {
     hash.len() == 64 && hash.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
 
+// SQLite INTEGER is signed. Reject corrupt lengths before converting to a receipt.
+fn managed_length_from_sql(value: i64) -> Result<u64, VaultFault> {
+    let length = u64::try_from(value).map_err(|_| VaultFault::Corrupt)?;
+    if length > crate::artifact_contracts::MAX_ATTACHMENT { return Err(VaultFault::Corrupt); }
+    Ok(length)
+}
+
 fn read_verified_blob(path: &Path, receipt: &crate::artifact_contracts::AttachmentReceipt)
     -> Result<Vec<u8>, VaultFault>
 {
@@ -684,14 +691,19 @@ impl NativeVault {
              JOIN managed_artifacts a ON a.conversation_id=l.conversation_id AND a.id=l.artifact_id
              WHERE l.conversation_id=?1 AND l.message_id=?2 ORDER BY l.position LIMIT 9"
         ).map_err(map_sql)?;
-        let rows = stmt.query_map(params![conversation_id,message_id], |r| Ok(LinkedAttachment {
-            id:r.get(0)?, receipt:crate::artifact_contracts::AttachmentReceipt {
-                name:r.get(1)?,sha256:r.get(2)?,bytes:r.get(3)?,
-            },
-        })).map_err(map_sql)?;
+        let rows = stmt.query_map(params![conversation_id,message_id], |r| Ok((
+            r.get::<_,String>(0)?,r.get::<_,String>(1)?,r.get::<_,String>(2)?,r.get::<_,i64>(3)?
+        ))).map_err(map_sql)?;
         let mut result = Vec::new();
+        let mut total = 0u64;
         for row in rows {
-            let a = row.map_err(map_sql)?;
+            let (id,name,sha256,bytes) = row.map_err(|_| VaultFault::Corrupt)?;
+            let bytes = managed_length_from_sql(bytes)?;
+            total = total.checked_add(bytes).ok_or(VaultFault::Corrupt)?;
+            if total > MAX_MESSAGE_ATTACHMENT_BYTES { return Err(VaultFault::Corrupt); }
+            let a = LinkedAttachment { id, receipt:crate::artifact_contracts::AttachmentReceipt {
+                name,sha256,bytes,
+            }};
             if !safe_id(&a.id) || !crate::artifact_contracts::valid_managed_basename(&a.receipt.name)
                 || !managed_hash_valid(&a.receipt.sha256) || a.receipt.bytes > crate::artifact_contracts::MAX_ATTACHMENT {
                 return Err(VaultFault::Corrupt);
@@ -955,6 +967,33 @@ mod tests {
         assert_eq!(v.read_managed_blob(&receipt), Err(VaultFault::InvalidLocation));
         assert_eq!(v.stage_managed_blob("note.txt", b"x"), Err(VaultFault::InvalidLocation));
         assert_eq!(fs::read(original).unwrap(), b"x");
+    }
+
+    #[test]
+    fn attachment_sqlite_length_conversion_is_checked_and_bounded() {
+        assert_eq!(managed_length_from_sql(0), Ok(0));
+        assert_eq!(managed_length_from_sql(1), Ok(1));
+        let max = crate::artifact_contracts::MAX_ATTACHMENT;
+        assert_eq!(managed_length_from_sql(max as i64), Ok(max));
+        for value in [-1, i64::MIN, max as i64 + 1, i64::MAX] {
+            assert_eq!(managed_length_from_sql(value), Err(VaultFault::Corrupt));
+        }
+    }
+
+    #[test]
+    fn attachment_list_rejects_corrupt_persisted_length() {
+        let f=Fixture::new();
+        let mut v=NativeVault::open(&f.app()).unwrap();
+        v.create_conversation("thread_alpha","One").unwrap();
+        let a=LinkedAttachment{id:"artifact_001".into(),receipt:v.stage_managed_blob("note.txt",b"contents").unwrap()};
+        v.append_chat_message_with_attachments(sample_message("message_0001","thread_alpha",None),&[a]).unwrap();
+        // Deliberate synthetic DB corruption; production never disables CHECK constraints.
+        v.conn.execute_batch("PRAGMA ignore_check_constraints=ON;
+            UPDATE managed_artifacts SET bytes=-1 WHERE id='artifact_001';
+            PRAGMA ignore_check_constraints=OFF;").unwrap();
+        assert!(matches!(v.list_message_attachments("thread_alpha","message_0001"),Err(VaultFault::Corrupt)));
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM messages"),1);
+        assert_eq!(count(&v.conn,"SELECT bytes FROM managed_artifacts WHERE id='artifact_001'"),-1);
     }
 
     #[test]

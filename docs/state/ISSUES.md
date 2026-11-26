@@ -14,3 +14,5 @@
 - 2026-11-26 | P03 | RESOLVED | [#30](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/30) | Wiki inventory/Windows UTF-8 regression on b6966b2; exact a4c757f Governance and Windows passed.
 
 - 2026-11-26 | P03 | RESOLVED (scoped dropdown) | [#29](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/29) | Exact a4c757f native model interaction, original artifact/hash and SQLite proof; remaining T05–T07 acceptance stays open.
+
+- 2026-11-26 | P03 | OPEN | [#31](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/31) | Exact b34a95b Linux/Windows E0277; checked i64 conversion repair candidate, fresh CI pending.
