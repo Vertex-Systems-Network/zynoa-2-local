@@ -71,7 +71,10 @@ function Wait-Name([string]$Name,[string]$Type='', [bool]$Enabled=$false,[int]$A
        $e=$matches.Item($j)
        if ($Type -and $e.Current.ControlType.ProgrammaticName -ne ('ControlType.'+$Type)) {continue}
        if ($Enabled -and !$e.Current.IsEnabled) {continue}
-       if (!$e.Current.IsOffscreen -or $Type) {return $e}
+       # Completion status remains above the composer after Send scrolls it
+       # into view. Read its exact accessible text even outside the viewport;
+       # the later independent vault checks still verify durable output.
+       if (!$e.Current.IsOffscreen -or $Type -or $Name -ceq 'Local model response completed and saved.') {return $e}
      } catch [System.Windows.Automation.ElementNotAvailableException] {}
    }
    Start-Sleep -Milliseconds 250
