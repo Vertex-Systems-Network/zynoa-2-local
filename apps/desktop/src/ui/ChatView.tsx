@@ -152,7 +152,7 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
     <h2 id="chat-detail">{selected?.title??"Select a conversation"}</h2>
     {selected&&<><div className="chat-actions"><button type="button" className="subtle-action" disabled={!canEdit} onClick={()=>void run(()=>history(selected.id))}>Refresh history</button><button type="button" className="subtle-action" disabled={busy||activeTurn!==null} onClick={()=>void run(()=>modelHealth())}>Refresh local models</button></div>
     <div className="chat-model-controls" role="group" aria-label="Local model and context settings">
-     <label htmlFor="chat-model">Model</label><select id="chat-model" value={settings?.model??models[0]?.name??""} disabled={!canEdit||!runtimeVersion||activeTurn!==null} onChange={e=>chooseModel(e.target.value)}>
+     <label htmlFor="chat-model">Model</label><select id="chat-model" value={models.some(model=>model.name===settings?.model)?settings!.model:models[0]?.name??""} disabled={!canEdit||!runtimeVersion||activeTurn!==null} onChange={e=>chooseModel(e.target.value)}>
       <option value="" disabled>{settings&&!installed?"Previously selected model unavailable":"Choose an installed model"}</option>{models.map(model=><option key={model.name} value={model.name}>{model.name}</option>)}</select>
      {settings&&!installed&&<p className="chat-notice" role="status">The saved model is unavailable. Refresh local models or choose an installed model. Your saved messages are unchanged.</p>}
      <label htmlFor="chat-context">Context budget</label><select id="chat-context" value={settings?.contextLimit??2048} disabled={!installed||!canEdit||activeTurn!==null} onChange={e=>chooseContext(Number(e.target.value))}>
