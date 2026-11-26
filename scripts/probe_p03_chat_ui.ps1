@@ -327,7 +327,15 @@ function Wait-Assistant([string]$Text) {
    $items=$script:root.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
    foreach ($item in $items) {
      try {
-       if (([string]$item.Current.Name -replace '\s+',' ').Trim() -ceq $normalized -and !$item.Current.IsOffscreen) {return}
+       if (([string]$item.Current.Name -replace '\s+',' ').Trim() -ceq $normalized) {
+         if (!$item.Current.IsOffscreen) {return}
+         $scrollItem=$null
+         if ($item.TryGetCurrentPattern([System.Windows.Automation.ScrollItemPattern]::Pattern,[ref]$scrollItem)) {
+           $scrollItem.ScrollIntoView()
+         } else {
+           $item.SetFocus()
+         }
+       }
      } catch [System.Windows.Automation.ElementNotAvailableException] {}
    }
    Start-Sleep -Milliseconds 250
