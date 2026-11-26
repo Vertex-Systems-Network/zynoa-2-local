@@ -65,14 +65,6 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
    if(!active||!online||started.current)return;
    started.current=true;void run(async()=>{await Promise.all([list(),modelHealth()]);});
  },[active,online]);
- useEffect(()=>{
-   if(!selected||settings||!runtimeVersion||!models[0])return;
-   let live=true;
-   void modelRequest("inference.settings.set",{conversationId:selected.id,model:models[0].name,contextLimit:2048})
-     .then(reply=>{if(live)setSettings(reply.settings);})
-     .catch(()=>undefined);
-   return()=>{live=false;};
- },[selected,settings,runtimeVersion,models]);
  function choose(id:string){
    if(draft||pendingRef.current||lock.current)return;
    setNotice("");setRetryTarget(null);setContext(null);void run(()=>history(id));
