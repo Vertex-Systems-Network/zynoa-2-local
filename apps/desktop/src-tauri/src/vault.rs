@@ -210,6 +210,7 @@ pub(crate) struct NativeVault {
     app_root: PathBuf,
     conn: Connection,
     attachment_draft: AttachmentDraft,
+    discarded_uploads: std::collections::VecDeque<(String,String)>,
 }
 
 fn safe_id(value: &str) -> bool {
@@ -517,7 +518,7 @@ impl NativeVault {
         // Check constraints and version before committing the atomic DDL.
         if validate_schema(&tx)? != SCHEMA_VERSION { return Err(VaultFault::Corrupt); }
         tx.commit().map_err(map_sql)?;
-        Ok(Self { app_root: app_root.to_path_buf(), conn, attachment_draft: AttachmentDraft::default() })
+        Ok(Self { app_root: app_root.to_path_buf(), conn, attachment_draft: AttachmentDraft::default(), discarded_uploads: std::collections::VecDeque::new() })
     }
 
     /// Accept only bytes already supplied to the local chat domain. The chunk
@@ -536,6 +537,9 @@ impl NativeVault {
         }
         if self.get_conversation(conversation_id)?.is_none()
             || self.get_chat_message(conversation_id,message_id)?.is_some() {
+            return Err(VaultFault::Conflict);
+        }
+        if self.discarded_uploads.iter().any(|(c,m)|c==conversation_id&&m==message_id) {
             return Err(VaultFault::Conflict);
         }
         let draft = &mut self.attachment_draft;
@@ -577,9 +581,14 @@ impl NativeVault {
         -> Result<(), VaultFault>
     {
         if !safe_id(conversation_id) || !safe_id(message_id) { return Err(VaultFault::InvalidRecord); }
-        if self.attachment_draft.uploads.is_empty() { return Ok(()); }
-        if self.attachment_draft.conversation_id != conversation_id || self.attachment_draft.message_id != message_id {
+        if !self.attachment_draft.uploads.is_empty()
+            && (self.attachment_draft.conversation_id != conversation_id || self.attachment_draft.message_id != message_id) {
             return Err(VaultFault::Conflict);
+        }
+        // Bounded recent tombstones refuse delayed chunks after discard.
+        if !self.discarded_uploads.iter().any(|(c,m)|c==conversation_id&&m==message_id) {
+            if self.discarded_uploads.len() >= 64 { self.discarded_uploads.pop_front(); }
+            self.discarded_uploads.push_back((conversation_id.to_owned(),message_id.to_owned()));
         }
         self.attachment_draft = AttachmentDraft::default();
         Ok(())

@@ -5,14 +5,19 @@ export type Message={id:string;parentId:string|null;ordinal:number;role:"user"|"
 export type ThreadPage={items:Thread[];next:string|null};
 export type HistoryPage={conversation:Thread;items:Message[];next:number|null};
 export type WriteResult={receipt:{id:string;revision:number;conversationRevision:number;ordinal:number|null};replayed:boolean};
-export type ChatCommand="chat.list"|"chat.create"|"chat.history"|"chat.saveUserMessage";
+export type UploadChunk={conversationId:string;messageId:string;artifactId:string;name:string;total:number;offset:number;chunk:number[]};
+export type UploadAck={conversationId:string;messageId:string;artifactId:string;received:number;attachment:Attachment|null};
+export type DiscardDraft={conversationId:string;messageId:string};
+export type ChatCommand="chat.list"|"chat.create"|"chat.history"|"chat.saveUserMessage"|"chat.attachment.chunk"|"chat.attachment.discard";
 export type Payloads={
  "chat.list":{after:string|null;limit:number};
  "chat.create":{id:string;title:string};
  "chat.history":{conversationId:string;after:number;limit:number};
- "chat.saveUserMessage":{id:string;conversationId:string;parentId:string|null;content:string};
+ "chat.saveUserMessage":{id:string;conversationId:string;parentId:string|null;content:string;attachments?:Attachment[]};
+ "chat.attachment.chunk":UploadChunk;
+ "chat.attachment.discard":DiscardDraft;
 };
-export type Replies={"chat.list":ThreadPage;"chat.create":WriteResult;"chat.history":HistoryPage;"chat.saveUserMessage":WriteResult};
+export type Replies={"chat.list":ThreadPage;"chat.create":WriteResult;"chat.history":HistoryPage;"chat.saveUserMessage":WriteResult;"chat.attachment.chunk":UploadAck;"chat.attachment.discard":DiscardDraft&{discarded:true}};
 export const byteLength=(s:string)=>new TextEncoder().encode(s).length;
 export const validText=(s:string,max:number)=>s.trim().length>0&&!s.includes("\0")&&byteLength(s)<=max;
 function fail():never{throw new Error("ZYN-CHAT-RESPONSE");}
@@ -29,12 +34,20 @@ function thread(v:unknown):Thread{
  if(!id(o.id)||typeof o.title!=="string"||!validText(o.title,512)||!integer(o.revision)||!integer(o.createdAt)||!integer(o.updatedAt))return fail();
  return o as Thread;
 }
+export function validAttachmentName(name:string):boolean{
+ const stem=name.split(".")[0].replace(/ +$/,"");
+ return byteLength(name)>0&&byteLength(name)<=160&&!/[\\/:*?"<>|\u0000-\u001f\u007f-\u009f]/u.test(name)&&!/[. ]$/.test(name)&&
+ !!stem&&!/^(CON|PRN|AUX|NUL|CONIN\$|CONOUT\$|COM[1-9¹²³]|LPT[1-9¹²³])$/i.test(stem);
+}
+export const MAX_FILE_BYTES=25*1024*1024, MAX_DRAFT_BYTES=100*1024*1024, CHUNK_BYTES=64*1024;
+export function validSelection(files:readonly {name:string;size:number}[]):boolean{
+ return files.length<=8&&files.every(f=>validAttachmentName(f.name)&&integer(f.size,0)&&f.size<=MAX_FILE_BYTES)&&
+ files.reduce((n,f)=>n+f.size,0)<=MAX_DRAFT_BYTES;
+}
 function attachment(v:unknown):Attachment{
  const o=object(v,["id","name","bytes","sha256"]);
- if(!id(o.id)||typeof o.name!=="string"||byteLength(o.name)<1||byteLength(o.name)>160||
- /[\\/:*?"<>|\u0000-\u001f\u007f-\u009f]/u.test(o.name)||/[. ]$/.test(o.name)||
- !o.name.split(".")[0].trimEnd()||/^(CON|PRN|AUX|NUL|CONIN\$|CONOUT\$|COM[1-9¹²³]|LPT[1-9¹²³])$/i.test(o.name.split(".")[0].trimEnd())||
- !integer(o.bytes,0)||o.bytes>25*1024*1024||typeof o.sha256!=="string"||! /^[a-f0-9]{64}$/.test(o.sha256))return fail();
+ if(!id(o.id)||typeof o.name!=="string"||!validAttachmentName(o.name)||
+ !integer(o.bytes,0)||o.bytes>MAX_FILE_BYTES||typeof o.sha256!=="string"||!/^[a-f0-9]{64}$/.test(o.sha256))return fail();
  return o as Attachment;
 }
 function message(v:unknown):Message{
@@ -68,6 +81,23 @@ export function decodeReply<K extends ChatCommand>(raw:unknown,command:K,correla
    for(const row of items){if(row.ordinal<=previous||ids.has(row.id))return fail();previous=row.ordinal;ids.add(row.id);}
    if(o.next!==null&&(items.length===0||o.next!==previous))return fail();
    return {conversation,items,next:o.next as number|null} as Replies[K];
+ }
+ if(command==="chat.attachment.chunk"){
+   const q=payload as UploadChunk,o=object(e.data,["conversationId","messageId","artifactId","received","attachment"]);
+   if(o.conversationId!==q.conversationId||o.messageId!==q.messageId||o.artifactId!==q.artifactId||
+     o.received!==q.offset+q.chunk.length||!integer(o.received,0)||o.received>q.total)return fail();
+   if(o.received===q.total){
+     const a=attachment(o.attachment);
+     if(a.id!==q.artifactId||a.name!==q.name||a.bytes!==q.total)return fail();
+     return {...o,attachment:a} as Replies[K];
+   }
+   if(o.attachment!==null)return fail();
+   return o as Replies[K];
+ }
+ if(command==="chat.attachment.discard"){
+   const q=payload as DiscardDraft,o=object(e.data,["conversationId","messageId","discarded"]);
+   if(o.conversationId!==q.conversationId||o.messageId!==q.messageId||o.discarded!==true)return fail();
+   return o as Replies[K];
  }
  const q=payload as Payloads["chat.create"]|Payloads["chat.saveUserMessage"];
  const o=object(e.data,["receipt","replayed"]),a=object(o.receipt,["id","revision","conversationRevision","ordinal"]);

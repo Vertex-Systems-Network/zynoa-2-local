@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { decodeReply,validText,byteLength } from "../.ui-tests/chat-contract.js";
+import { decodeReply,validText,byteLength,validSelection,validAttachmentName } from "../.ui-tests/chat-contract.js";
 const thread={id:"thread-alpha-001",title:"Saved",revision:2,createdAt:1,updatedAt:2};
 const msg={id:"message-alpha-001",parentId:null,ordinal:1,role:"user",content:"<script>plain text</script>",status:"complete",revision:1,createdAt:1,attachments:[]};
 const wrap=(commandId,data)=>({schemaVersion:1,commandId,correlationId:"correlation-00001",data});
@@ -37,4 +37,25 @@ test("stale correlation and unverified acknowledgement rejected",()=>{
  assert.throws(()=>decodeReply(wrap("chat.saveUserMessage",ack),"chat.saveUserMessage","different-correlation",q),/ZYN-CHAT-RESPONSE/);
  assert.throws(()=>decode("chat.saveUserMessage",{...ack,receipt:{...ack.receipt,id:"wrong-message-001"}},q),/ZYN-CHAT-RESPONSE/);
  assert.throws(()=>decode("chat.saveUserMessage",{...ack,receipt:{...ack.receipt,ordinal:null}},q),/ZYN-CHAT-RESPONSE/);
+});
+
+test("file selection limits and names match native policy",()=>{
+ assert.equal(validSelection([{name:"résumé.txt",size:0},{name:"note.txt",size:25*1024*1024}]),true);
+ for(const name of ["../x","NUL.txt","COM1 .txt","a.","a ",".hidden","x:y"])assert.equal(validAttachmentName(name),false);
+ assert.equal(validSelection(Array.from({length:9},()=>({name:"x",size:0}))),false);
+ assert.equal(validSelection(Array.from({length:5},()=>({name:"x",size:25*1024*1024}))),false);
+ assert.equal(validSelection([{name:"x",size:25*1024*1024+1}]),false);
+});
+test("upload acknowledgements bind exact scope, offset and final manifest",()=>{
+ const q={conversationId:thread.id,messageId:msg.id,artifactId:"artifact-alpha-001",name:"note.txt",total:2,offset:0,chunk:[1,2]};
+ const a={id:q.artifactId,name:q.name,bytes:2,sha256:"a".repeat(64)};
+ const ack={conversationId:q.conversationId,messageId:q.messageId,artifactId:q.artifactId,received:2,attachment:a};
+ assert.deepEqual(decode("chat.attachment.chunk",ack,q),ack);
+ for(const bad of [{...ack,received:1},{...ack,messageId:"wrong-message-001"},{...ack,attachment:null},{...ack,attachment:{...a,bytes:3}},{...ack,attachment:{...a,name:"other.txt"}}])assert.throws(()=>decode("chat.attachment.chunk",bad,q),/ZYN-CHAT-RESPONSE/);
+ const partial={...q,total:3};
+ assert.equal(decode("chat.attachment.chunk",{...ack,attachment:null},partial).attachment,null);
+ assert.throws(()=>decode("chat.attachment.chunk",ack,partial),/ZYN-CHAT-RESPONSE/);
+ const discard={conversationId:q.conversationId,messageId:q.messageId};
+ assert.deepEqual(decode("chat.attachment.discard",{...discard,discarded:true},discard),{...discard,discarded:true});
+ assert.throws(()=>decode("chat.attachment.discard",{...discard,discarded:false},discard),/ZYN-CHAT-RESPONSE/);
 });

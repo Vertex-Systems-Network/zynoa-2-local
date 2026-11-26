@@ -1,0 +1,43 @@
+{
+  "change_id": "CHG-P03-M03-ATTACHMENT-COMPOSER-20261126",
+  "module_id": "M03",
+  "kind": "feature",
+  "title": "Local attachment composer and save-only flow",
+  "summary": "Explicit file selection, bounded upload, progress and manifest retry; model file consumption remains disabled.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
+  "affected_option_ids": [
+    "M03-OPT-04"
+  ],
+  "docs_paths": [
+    "docs/evidence/P03_T08_ATTACHMENT_COMPOSER_20261126.md",
+    "docs/modules/M03.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M03.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M03.md"
+  ],
+  "test_evidence": [
+    "apps/desktop/tests/chat-contract.test.mjs",
+    "tests/test_p03_chat_ui_contract.py",
+    "apps/desktop/src-tauri/src/chat_ipc.rs"
+  ],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No schema change. Session-only drafts are not durable until acknowledged message commit.",
+  "created_at": "2026-11-26",
+  "updated_at": "2026-11-26",
+  "version_bump": "none",
+  "docs_impact": true,
+  "data_migration": false
+}

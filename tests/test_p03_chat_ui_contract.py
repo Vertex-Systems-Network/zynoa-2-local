@@ -21,7 +21,7 @@ class ChatUiContract(unittest.TestCase):
                          'retryAvailable(retryTarget,selected?.id??null,installed)',
                          'currentContext(contextSnapshot,selected?.id??null,settings,draft)',
                          'invalidateInventory();const health=await',
-                         'disabled={!canEdit||!installed||!validText(draft,262144)}>Send',
+                         'disabled={!canEdit||!installed||files.length>0||!validText(draft,262144)}>Send',
                          'setDraft(e.target.value);setContext(null)',
                          'activeTurnRef.current===turnId',
                          'Previously selected model unavailable'):

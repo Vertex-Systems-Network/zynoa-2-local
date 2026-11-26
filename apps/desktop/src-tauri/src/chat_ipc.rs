@@ -339,10 +339,11 @@ mod tests {
         assert!(call(&mut v,"chat.attachment.chunk",bad).is_err());
         let mut huge=request.clone();huge["total"]=json!(65537);huge["chunk"]=json!(vec![0u8;65537]);
         assert!(call(&mut v,"chat.attachment.chunk",huge).is_err());
-        let result=call(&mut v,"chat.attachment.chunk",request).unwrap();
+        let result=call(&mut v,"chat.attachment.chunk",request.clone()).unwrap();
         assert_eq!(result["attachment"]["bytes"],0);
         let mut save=json!({"id":M,"conversationId":A,"content":"One","attachments":[result["attachment"].clone()]});
         call(&mut v,"chat.attachment.discard",json!({"conversationId":A,"messageId":M})).unwrap();
+        assert!(call(&mut v,"chat.attachment.chunk",request).is_err());
         assert!(call(&mut v,"chat.saveUserMessage",save.clone()).is_err());
         save["attachments"]=json!([]);
         assert_eq!(call(&mut v,"chat.saveUserMessage",save).unwrap()["replayed"],false);
