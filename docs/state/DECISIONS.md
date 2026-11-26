@@ -232,3 +232,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P03 | Add real Windows model interaction after unchanged T03 baseline | Official runtime asset digest pinned, isolated CI-only two model inventory, keyboard selection and independent SQLite readback; no product capability or schema change. Actual proof and visual review pending.
 
 2026-11-25 | P03 | Require exact native dropdown acknowledgement before independent database readback | Windows run 45682806417 failed first model selection; original screenshot shows placeholder. Prefer actual provider selection, fallback to real physical click and bounded keyboard attempts; no direct state/DB injection or relaxed assertions. Issue #29 remains open.
+
+2026-11-26 | P03 | Align existing T05–T16 dependency order; share portable managed-name validation between attachment and restore candidates | Exact-head model UI candidate passed but independent proof pending; source-only contracts are not storage or encryption. No dependency, scope or gate expansion. See docs/evidence/P03_PLAN_ALIGNMENT_AUDIT_20261126.md.

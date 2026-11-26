@@ -11,11 +11,24 @@ pub fn envelope(version: u8, nonce: &str, ciphertext: &[u8], key_ref: &str) -> O
     Some(BackupEnvelope { version, nonce: nonce.to_owned(), ciphertext_sha256: format!("{:x}", h.finalize()), key_ref: key_ref.to_owned() })
 }
 pub fn verify_envelope(meta: &BackupEnvelope, ciphertext: &[u8]) -> bool { envelope(meta.version, &meta.nonce, ciphertext, &meta.key_ref).is_some_and(|x| x == *meta) }
-pub fn staged_restore_target(path: &str) -> Option<String> { if path.is_empty() || path.contains(['/', '\\', '\0']) || path == "." || path == ".." { None } else { Some(format!("restore-staging/{path}")) } }
+/// Lexical staging target only; no file is opened or written here.
+pub fn staged_restore_target(path: &str) -> Option<String> {
+    if !crate::artifact_contracts::valid_managed_basename(path) { return None; }
+    Some(format!("restore-staging/{path}"))
+}
 pub fn performance_budget_ms(cold: u64, warm: &[u64]) -> bool { cold <= 15_000 && !warm.is_empty() && warm.iter().all(|x| *x <= 2_000) }
 
 #[cfg(test)]
 mod tests { use super::*;
+    #[test]
+    fn restore_targets_use_the_same_portable_name_policy() {
+        for name in ["", ".", "..", "file:stream", "nul.txt", "LPT³.log", "name.", "name ",
+            "a\nb", "a/b", "a\\b", "bad?.bin"] {
+            assert!(staged_restore_target(name).is_none(), "{name:?}");
+        }
+        assert!(staged_restore_target(&"a".repeat(161)).is_none());
+        assert_eq!(staged_restore_target("备份.bin").as_deref(), Some("restore-staging/备份.bin"));
+    }
     #[test] fn encrypted_backup_is_integrity_bound_and_staged() { let e=envelope(1,"0123456789abcdef",b"ciphertext","os-key-01").unwrap(); assert!(verify_envelope(&e,b"ciphertext")); assert!(!verify_envelope(&e,b"plain")); assert_eq!(staged_restore_target("snapshot.bin").as_deref(),Some("restore-staging/snapshot.bin")); assert!(staged_restore_target("../db").is_none()); }
     #[test] fn budget_is_bounded() { assert!(performance_budget_ms(1000,&[100,200])); assert!(!performance_budget_ms(16000,&[100])); }
 }

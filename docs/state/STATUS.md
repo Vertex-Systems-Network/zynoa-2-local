@@ -1,4 +1,6 @@
-# Status — 2026-11-25
+# Status — 2026-11-26
+
+P03 plan alignment and first portable managed-name source repair (2026-11-26): prior exact `0d75fb7b` Windows/model candidate CI passed; original artifacts still require independent inspection (#29 open). T08–T14 remain source-level/in progress, T15–T16 TODO. Shared native filename validation and Rust regressions added; exact new-head CI pending. 4/16 DONE; no merge/release. [Audit](../evidence/P03_PLAN_ALIGNMENT_AUDIT_20261126.md).
 
 **P03 T12–T14 source candidate** — integrity-bound backup envelope, staged restore target validation and bounded recovery performance contract added. T12–T14 remain `IN_PROGRESS` pending exact-head/native evidence; T15–T16 remain TODO.
 

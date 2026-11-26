@@ -371,3 +371,7 @@ A separate operator-only `tools/github_static_fixture_publisher.py` demonstrates
 ## 2026-11-24 — Current-scope and phase-transition audit (no roadmap change)
 
 The [P02 audit](evidence/P02_PLAN_ALIGNMENT_AUDIT_20261124.md) reconciles the original roadmap with v3.1/v3.2 cross-cutting requirements. P02-T12 (M26 UI) and P02-T13 (M23–M25 UI) are existing obligations omitted from the earlier task manifest, not new product scope. Both must pass before T11 protected merge. Phase order, explicit exact-head merge authority, data safety and release gates stay intact. P00/P01 historical merges do not prove full M22 autonomy; Issue #3 remains open. P03 preflight must establish its own exact-head Windows CI and preserve prior regression evidence without applying P02-only premerge-state predicates blindly to later authorized code. See [warning ledger](quality/P02_WARNING_LEDGER_20261124.md).
+
+## P03 execution alignment (2026-11-26)
+
+The [P03 alignment audit](evidence/P03_PLAN_ALIGNMENT_AUDIT_20261126.md) provides the evidence baseline and acceptance dependency order for existing P03-T05–T16. T08–T14 pure contract candidates are not completed user workflows; actual managed storage, scoped tool review, export, authenticated encryption, staged restore and recovery proof remain required. Finish T05–T07 native proof and reconcile #29; then deliver managed attachments before artifact/tool/export integration, backup before recovery, and native Help/Wiki/merge gates last. No phase expansion, no modified acceptance gates, no release claim.

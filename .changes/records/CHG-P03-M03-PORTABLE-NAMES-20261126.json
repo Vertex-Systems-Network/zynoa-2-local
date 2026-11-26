@@ -1,0 +1,41 @@
+{
+  "change_id": "CHG-P03-M03-PORTABLE-NAMES-20261126",
+  "module_id": "M03",
+  "kind": "bugfix",
+  "title": "Portable attachment name validation",
+  "summary": "Shared bounded portable filename validation and negative Rust regression candidates; actual native integration and exact-head CI remain pending.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
+  "affected_option_ids": [
+    "M03-OPT-04"
+  ],
+  "docs_paths": [
+    "docs/evidence/P03_PLAN_ALIGNMENT_AUDIT_20261126.md",
+    "docs/modules/M03.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M03.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M03.md"
+  ],
+  "test_evidence": [
+    "apps/desktop/src-tauri/src/artifact_contracts.rs"
+  ],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No schema or data migration. Pure validator only; do not modify original user files.",
+  "created_at": "2026-11-26",
+  "updated_at": "2026-11-26",
+  "version_bump": "none",
+  "docs_impact": true,
+  "data_migration": false
+}
