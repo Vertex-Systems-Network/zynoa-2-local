@@ -158,7 +158,7 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
      <label htmlFor="chat-context">Context budget</label><select id="chat-context" value={settings?.contextLimit??2048} disabled={!installed||!canEdit||activeTurn!==null} onChange={e=>chooseContext(Number(e.target.value))}>
       {[512,1024,2048,4096,8192,16384,32768].map(value=><option key={value} value={value}>{value} tokens</option>)}</select>
      <button type="button" className="subtle-action" disabled={!settings||busy||activeTurn!==null} onClick={inspectContext}>Inspect context</button>
-     {context&&<output aria-live="polite">Estimated {context.estimatedTokens} / {context.limit} tokens · {context.includedMessages} included · {context.omittedMessages} omitted</output>}
+     {context&&<output aria-live="polite" aria-label={`Estimated ${context.estimatedTokens} / ${context.limit} tokens · ${context.includedMessages} included · ${context.omittedMessages} omitted`}>{`Estimated ${context.estimatedTokens} / ${context.limit} tokens · ${context.includedMessages} included · ${context.omittedMessages} omitted`}</output>}
     </div>
     {messages.length===0&&!busy&&<p className="chat-notice">No saved messages.</p>}
     <ol className="chat-history" aria-label="Saved messages" tabIndex={0}>{messages.map(m=><li key={m.id}><strong>{m.role==="user"?"You":m.role==="assistant"?"Assistant":"System"}</strong><p>{m.content}</p><small>{m.status==="complete"?"Saved":m.status}</small></li>)}{live&&<li aria-live="polite"><strong>Assistant</strong><p>{live}</p><small>Generating locally</small></li>}</ol>
