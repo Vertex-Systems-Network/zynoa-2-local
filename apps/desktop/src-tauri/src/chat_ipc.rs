@@ -1,5 +1,5 @@
 //! M03 fixed local-domain commands. No generic SQL, path, tool or network authority.
-use crate::vault::{NativeVault, VaultFault, ChatMessageInput, ChatRole, ChatStatus, ConversationSummary, StoredChatMessage, ChatWriteReceipt};
+use crate::vault::{NativeVault, VaultFault, ChatMessageInput, ChatRole, ChatStatus, ConversationSummary, StoredChatMessage, ChatWriteReceipt, LinkedAttachment};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
@@ -48,7 +48,40 @@ struct CreatePayload { id: String, title: String }
 struct HistoryPayload { conversation_id: String, after: i64, limit: u32 }
 #[derive(Deserialize)]
 #[serde(rename_all="camelCase",deny_unknown_fields)]
-struct SavePayload { id: String, conversation_id: String, parent_id: Option<String>, content: String }
+struct SavePayload { id: String, conversation_id: String, parent_id: Option<String>, content: String,
+    #[serde(default)] attachments: Vec<AttachmentManifest> }
+#[derive(Deserialize)]
+#[serde(rename_all="camelCase",deny_unknown_fields)]
+struct AttachmentManifest { id:String, name:String, bytes:u64, sha256:String }
+#[derive(Deserialize)]
+#[serde(rename_all="camelCase",deny_unknown_fields)]
+struct UploadPayload { conversation_id:String, message_id:String, artifact_id:String,
+    name:String,total:u64,offset:u64,chunk:Vec<u8> }
+#[derive(Deserialize)]
+#[serde(rename_all="camelCase",deny_unknown_fields)]
+struct DiscardPayload { conversation_id:String,message_id:String }
+
+fn manifest(items: Vec<AttachmentManifest>) -> Result<Vec<LinkedAttachment>,ChatError> {
+    if items.len()>8 { return Err(error("ZYN-CHAT-INPUT")); }
+    let mut ids=std::collections::HashSet::new();
+    let mut total=0u64;
+    let mut result=Vec::new();
+    for a in items {
+        total=total.checked_add(a.bytes).ok_or_else(||error("ZYN-CHAT-INPUT"))?;
+        if !token(&a.id)||!ids.insert(a.id.clone())
+            || !crate::artifact_contracts::valid_managed_basename(&a.name)
+            || a.bytes>crate::artifact_contracts::MAX_ATTACHMENT||total>100*1024*1024
+            || a.sha256.len()!=64||!a.sha256.bytes().all(|b|b.is_ascii_digit()||(b'a'..=b'f').contains(&b)) {
+            return Err(error("ZYN-CHAT-INPUT"));
+        }
+        result.push(LinkedAttachment{id:a.id,receipt:crate::artifact_contracts::AttachmentReceipt{
+            name:a.name,bytes:a.bytes,sha256:a.sha256}});
+    }
+    Ok(result)
+}
+fn same_attachments(a:&[LinkedAttachment],b:&[LinkedAttachment])->bool {
+    a.len()==b.len()&&a.iter().zip(b).all(|(x,y)|x.id==y.id&&x.receipt==y.receipt)
+}
 
 fn summary(row:&ConversationSummary)->Value {
     json!({"id":row.id,"title":row.title,"revision":row.revision,"createdAt":row.created_at,"updatedAt":row.updated_at})
@@ -76,7 +109,7 @@ fn authorize_request(label:&str, request:&ChatRequest) -> Result<(),ChatError> {
     if request.schema_version!=1 || request.workspace_scope!="local" || !token(&request.correlation_id) {
         return Err(error("ZYN-CHAT-INPUT"));
     }
-    if !matches!(request.command_id.as_str(),"chat.list"|"chat.create"|"chat.history"|"chat.saveUserMessage") {
+    if !matches!(request.command_id.as_str(),"chat.list"|"chat.create"|"chat.history"|"chat.saveUserMessage"|"chat.attachment.chunk"|"chat.attachment.discard") {
         return Err(error("ZYN-CHAT-DENIED"));
     }
     if serde_json::to_vec(&request.payload).map_err(|_|error("ZYN-CHAT-INPUT"))?.len()>MAX_REQUEST_BYTES {
@@ -125,23 +158,42 @@ fn execute(vault:&mut NativeVault, request:ChatRequest) -> Result<ChatReply,Chat
                 items.pop(); more=true;
             }
         },
+        "chat.attachment.chunk" => {
+            let q:UploadPayload=parse(request.payload)?;
+            if !token(&q.message_id)||!token(&q.artifact_id) {return Err(error("ZYN-CHAT-INPUT"));}
+            let end=q.offset.checked_add(q.chunk.len() as u64).ok_or_else(||error("ZYN-CHAT-INPUT"))?;
+            let complete=vault.upload_attachment_chunk(&q.conversation_id,&q.message_id,&q.artifact_id,
+                &q.name,q.total,q.offset,&q.chunk)?;
+            let attachment=complete.map(|a|json!({"id":q.artifact_id,"name":a.name,"bytes":a.bytes,"sha256":a.sha256}));
+            json!({"conversationId":q.conversation_id,"messageId":q.message_id,"artifactId":q.artifact_id,
+                "received":end,"attachment":attachment})
+        },
+        "chat.attachment.discard" => {
+            let q:DiscardPayload=parse(request.payload)?;
+            if !token(&q.message_id) {return Err(error("ZYN-CHAT-INPUT"));}
+            vault.discard_attachment_draft(&q.conversation_id,&q.message_id)?;
+            json!({"conversationId":q.conversation_id,"messageId":q.message_id,"discarded":true})
+        },
         "chat.saveUserMessage" => {
             let q:SavePayload=parse(request.payload)?;
             if !token(&q.id) {return Err(error("ZYN-CHAT-INPUT"));}
-            let input=ChatMessageInput {id:&q.id,conversation_id:&q.conversation_id,parent_id:q.parent_id.as_deref(),
-                content:&q.content,role:ChatRole::User,status:ChatStatus::Complete};
-            match vault.append_chat_message(input) {
-                Ok(row)=>json!({"receipt":receipt(&row),"replayed":false}),
-                Err(VaultFault::Conflict)=>{
-                    let row=vault.get_chat_message(&q.conversation_id,&q.id)?.ok_or_else(||error("ZYN-CHAT-CONFLICT"))?;
-                    if row.content!=q.content || row.parent_id!=q.parent_id || row.role!="user" || row.status!="complete"
-                        || !vault.list_message_attachments(&q.conversation_id,&q.id)?.is_empty() {
-                        return Err(error("ZYN-CHAT-CONFLICT"));
-                    }
-                    let thread=vault.get_conversation(&q.conversation_id)?.ok_or_else(||error("ZYN-CHAT-CONFLICT"))?;
-                    json!({"receipt":{"id":row.id,"revision":row.revision,"conversationRevision":thread.revision,"ordinal":row.ordinal},"replayed":true})
-                },
-                Err(e)=>return Err(e.into()),
+            let expected=manifest(q.attachments)?;
+            // Reconcile an already committed ID before resolving ephemeral upload
+            // bytes. This also supports replay after a native restart.
+            if let Some(row)=vault.get_chat_message(&q.conversation_id,&q.id)? {
+                let stored=vault.list_message_attachments(&q.conversation_id,&q.id)?;
+                if row.content!=q.content || row.parent_id!=q.parent_id || row.role!="user" || row.status!="complete"
+                    || !same_attachments(&stored,&expected) {
+                    return Err(error("ZYN-CHAT-CONFLICT"));
+                }
+                for a in &stored {vault.read_managed_blob(&a.receipt)?;}
+                let thread=vault.get_conversation(&q.conversation_id)?.ok_or_else(||error("ZYN-CHAT-CONFLICT"))?;
+                json!({"receipt":{"id":row.id,"revision":row.revision,"conversationRevision":thread.revision,"ordinal":row.ordinal},"replayed":true})
+            } else {
+                let input=ChatMessageInput {id:&q.id,conversation_id:&q.conversation_id,parent_id:q.parent_id.as_deref(),
+                    content:&q.content,role:ChatRole::User,status:ChatStatus::Complete};
+                let row=vault.append_uploaded_message(input,&expected)?;
+                json!({"receipt":receipt(&row),"replayed":false})
             }
         },
         _=>return Err(error("ZYN-CHAT-DENIED")),
@@ -244,6 +296,58 @@ mod tests {
         let h=call(&mut v,"chat.history",json!({"conversationId":A,"after":0,"limit":1})).unwrap();
         assert_eq!(h["items"][0]["attachments"].as_array().unwrap().len(),1);
     }
+    #[test]
+    fn chat_ipc_chunked_attachment_upload_commit_and_exact_replay() {
+        let f=Fixture::new();let mut v=NativeVault::open(&f.0).unwrap();
+        for id in [A,B] {call(&mut v,"chat.create",json!({"id":id,"title":"Synthetic"})).unwrap();}
+        let id="artifact-alpha-001";
+        let chunk=|scope:&str,offset:u64,data:Vec<u8>|json!({"conversationId":scope,"messageId":M,
+            "artifactId":id,"name":"note.txt","total":4,"offset":offset,"chunk":data});
+        assert!(call(&mut v,"chat.attachment.chunk",chunk(A,2,vec![3,4])).is_err());
+        let first=chunk(A,0,vec![1,2]);
+        assert_eq!(call(&mut v,"chat.attachment.chunk",first.clone()).unwrap()["received"],2);
+        assert_eq!(call(&mut v,"chat.attachment.chunk",first).unwrap()["attachment"],Value::Null);
+        assert!(call(&mut v,"chat.attachment.chunk",chunk(A,0,vec![9,2])).is_err());
+        assert!(call(&mut v,"chat.attachment.chunk",chunk(B,0,vec![1,2])).is_err());
+        assert!(call(&mut v,"chat.attachment.discard",json!({"conversationId":B,"messageId":M})).is_err());
+        let plain=json!({"id":M,"conversationId":A,"content":"One"});
+        assert!(call(&mut v,"chat.saveUserMessage",plain.clone()).is_err());
+        let final_chunk=chunk(A,2,vec![3,4]);
+        let a=call(&mut v,"chat.attachment.chunk",final_chunk.clone()).unwrap()["attachment"].clone();
+        assert_eq!(call(&mut v,"chat.attachment.chunk",final_chunk).unwrap()["attachment"],a);
+        let mut save=plain.clone();save["attachments"]=json!([a]);
+        let mut wrong=save.clone();wrong["attachments"][0]["sha256"]=json!("a".repeat(64));
+        assert!(call(&mut v,"chat.saveUserMessage",wrong.clone()).is_err());
+        assert_eq!(call(&mut v,"chat.saveUserMessage",save.clone()).unwrap()["replayed"],false);
+        drop(v);let mut v=NativeVault::open(&f.0).unwrap();
+        assert_eq!(call(&mut v,"chat.saveUserMessage",save).unwrap()["replayed"],true);
+        assert!(call(&mut v,"chat.saveUserMessage",wrong).is_err());
+        assert!(call(&mut v,"chat.saveUserMessage",plain).is_err());
+        let stored=v.list_message_attachments(A,M).unwrap();
+        assert_eq!(v.read_managed_blob(&stored[0].receipt).unwrap(),vec![1,2,3,4]);
+    }
+
+    #[test]
+    fn chat_ipc_chunked_upload_discard_and_limits_are_fail_closed() {
+        let f=Fixture::new();let mut v=NativeVault::open(&f.0).unwrap();
+        call(&mut v,"chat.create",json!({"id":A,"title":"Synthetic"})).unwrap();
+        let request=json!({"conversationId":A,"messageId":M,"artifactId":"artifact-alpha-001",
+            "name":"empty.txt","total":0,"offset":0,"chunk":[]});
+        let mut oversized=request.clone();oversized["total"]=json!(25*1024*1024+1);
+        assert!(call(&mut v,"chat.attachment.chunk",oversized).is_err());
+        let mut bad=request.clone();bad["path"]=json!("outside");
+        assert!(call(&mut v,"chat.attachment.chunk",bad).is_err());
+        let mut huge=request.clone();huge["total"]=json!(65537);huge["chunk"]=json!(vec![0u8;65537]);
+        assert!(call(&mut v,"chat.attachment.chunk",huge).is_err());
+        let result=call(&mut v,"chat.attachment.chunk",request).unwrap();
+        assert_eq!(result["attachment"]["bytes"],0);
+        let mut save=json!({"id":M,"conversationId":A,"content":"One","attachments":[result["attachment"].clone()]});
+        call(&mut v,"chat.attachment.discard",json!({"conversationId":A,"messageId":M})).unwrap();
+        assert!(call(&mut v,"chat.saveUserMessage",save.clone()).is_err());
+        save["attachments"]=json!([]);
+        assert_eq!(call(&mut v,"chat.saveUserMessage",save).unwrap()["replayed"],false);
+    }
+
     #[test]
     fn chat_ipc_large_history_is_byte_bounded_and_continues() {
         let f=Fixture::new();let mut v=NativeVault::open(&f.0).unwrap();

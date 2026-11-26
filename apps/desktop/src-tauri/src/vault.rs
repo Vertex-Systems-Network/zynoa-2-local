@@ -191,9 +191,25 @@ impl ContentClass {
     }
 }
 
+// One bounded, session-only selected-file draft per native vault. No renderer
+// filesystem path or hash grants access to existing managed content.
+struct AttachmentUpload {
+    id: String,
+    name: String,
+    total: u64,
+    data: Vec<u8>,
+}
+#[derive(Default)]
+struct AttachmentDraft {
+    conversation_id: String,
+    message_id: String,
+    uploads: Vec<AttachmentUpload>,
+}
+pub(crate) const MAX_ATTACHMENT_CHUNK: usize = 64 * 1024;
 pub(crate) struct NativeVault {
     app_root: PathBuf,
     conn: Connection,
+    attachment_draft: AttachmentDraft,
 }
 
 fn safe_id(value: &str) -> bool {
@@ -501,7 +517,107 @@ impl NativeVault {
         // Check constraints and version before committing the atomic DDL.
         if validate_schema(&tx)? != SCHEMA_VERSION { return Err(VaultFault::Corrupt); }
         tx.commit().map_err(map_sql)?;
-        Ok(Self { app_root: app_root.to_path_buf(), conn })
+        Ok(Self { app_root: app_root.to_path_buf(), conn, attachment_draft: AttachmentDraft::default() })
+    }
+
+    /// Accept only bytes already supplied to the local chat domain. The chunk
+    /// offset and original metadata must match on retransmission. No disk write
+    /// occurs until the user explicitly requests the message transaction.
+    pub(crate) fn upload_attachment_chunk(&mut self, conversation_id: &str, message_id: &str,
+        artifact_id: &str, name: &str, total: u64, offset: u64, chunk: &[u8])
+        -> Result<Option<crate::artifact_contracts::AttachmentReceipt>, VaultFault>
+    {
+        if !safe_id(conversation_id) || !safe_id(message_id) || !safe_id(artifact_id)
+            || !crate::artifact_contracts::valid_managed_basename(name)
+            || total > crate::artifact_contracts::MAX_ATTACHMENT || chunk.len() > MAX_ATTACHMENT_CHUNK
+            || (chunk.is_empty() && total != 0) || offset > total
+            || offset.checked_add(chunk.len() as u64).map_or(true, |end| end > total) {
+            return Err(VaultFault::InvalidRecord);
+        }
+        if self.get_conversation(conversation_id)?.is_none()
+            || self.get_chat_message(conversation_id,message_id)?.is_some() {
+            return Err(VaultFault::Conflict);
+        }
+        let draft = &mut self.attachment_draft;
+        if !draft.uploads.is_empty() && (draft.conversation_id != conversation_id || draft.message_id != message_id) {
+            return Err(VaultFault::Conflict);
+        }
+        let index = match draft.uploads.iter().position(|a| a.id == artifact_id) {
+            Some(i) => i,
+            None => {
+                if offset != 0 || draft.uploads.len() >= MAX_MESSAGE_ATTACHMENTS
+                    || draft.uploads.iter().map(|a|a.total).sum::<u64>() + total > MAX_MESSAGE_ATTACHMENT_BYTES {
+                    return Err(VaultFault::InvalidRecord);
+                }
+                draft.conversation_id = conversation_id.to_owned();
+                draft.message_id = message_id.to_owned();
+                draft.uploads.push(AttachmentUpload { id:artifact_id.to_owned(), name:name.to_owned(), total, data:Vec::new() });
+                draft.uploads.len()-1
+            }
+        };
+        let upload = &mut draft.uploads[index];
+        if upload.name != name || upload.total != total { return Err(VaultFault::Conflict); }
+        let start = offset as usize;
+        let end = start + chunk.len();
+        if start == upload.data.len() {
+            upload.data.extend_from_slice(chunk);
+        } else if end > upload.data.len() || upload.data.get(start..end) != Some(chunk) {
+            return Err(VaultFault::Conflict);
+        }
+        // A replay returns the receipt only when this particular chunk ends the
+        // file, not merely when a later chunk has already been acknowledged.
+        if end as u64 == total {
+            return Ok(Some(crate::artifact_contracts::attachment_receipt(name,&upload.data)
+                .ok_or(VaultFault::InvalidRecord)?));
+        }
+        Ok(None)
+    }
+
+    pub(crate) fn discard_attachment_draft(&mut self, conversation_id: &str, message_id: &str)
+        -> Result<(), VaultFault>
+    {
+        if !safe_id(conversation_id) || !safe_id(message_id) { return Err(VaultFault::InvalidRecord); }
+        if self.attachment_draft.uploads.is_empty() { return Ok(()); }
+        if self.attachment_draft.conversation_id != conversation_id || self.attachment_draft.message_id != message_id {
+            return Err(VaultFault::Conflict);
+        }
+        self.attachment_draft = AttachmentDraft::default();
+        Ok(())
+    }
+
+    /// Resolve only this message's exact uploaded bytes, never a renderer-supplied
+    /// hash reference to a different stored artifact. Failed writes retain draft.
+    pub(crate) fn append_uploaded_message(&mut self, input: ChatMessageInput<'_>,
+        expected: &[LinkedAttachment]) -> Result<ChatWriteReceipt, VaultFault>
+    {
+        let draft = &self.attachment_draft;
+        let scoped = !draft.uploads.is_empty() && draft.conversation_id == input.conversation_id
+            && draft.message_id == input.id;
+        if expected.is_empty() {
+            if scoped { return Err(VaultFault::Conflict); }
+            return self.append_chat_message(input);
+        }
+        if !scoped || expected.len() != draft.uploads.len() || expected.len() > MAX_MESSAGE_ATTACHMENTS {
+            return Err(VaultFault::Conflict);
+        }
+        let mut ids = std::collections::HashSet::new();
+        for item in expected {
+            if !ids.insert(item.id.as_str()) { return Err(VaultFault::InvalidRecord); }
+            let upload = draft.uploads.iter().find(|a| a.id == item.id).ok_or(VaultFault::Conflict)?;
+            if upload.data.len() as u64 != upload.total
+                || !crate::artifact_contracts::verify_attachment(&item.receipt,&upload.data)
+                || upload.name != item.receipt.name {
+                return Err(VaultFault::Conflict);
+            }
+        }
+        for item in expected {
+            let upload = draft.uploads.iter().find(|a| a.id == item.id).ok_or(VaultFault::Conflict)?;
+            let stored = self.stage_managed_blob(&upload.name,&upload.data)?;
+            if stored != item.receipt { return Err(VaultFault::Corrupt); }
+        }
+        let result = self.append_chat_message_with_attachments(input,expected)?;
+        self.attachment_draft = AttachmentDraft::default();
+        Ok(result)
     }
 
     // P03-T08 storage primitive: native trusted bytes only. A blob receipt is not a

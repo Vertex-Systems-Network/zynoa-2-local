@@ -1,5 +1,7 @@
 # Handoff (canonical starter)
 
+- **P03 T08 bounded selected-file transport candidate: exact 1e4929a five applicable workflows passed, Windows native still in progress at inspection. Added native per-message in-memory chunk assembly, exact-offset replay, bounded totals, scoped discard, verified manifest commit/replay. No file picker/UI exposure or model byte ingestion yet. Fresh exact-head CI pending; 4/16 DONE; no merge/release.** [Evidence](../evidence/P03_T08_SELECTED_FILE_TRANSPORT_20261126.md). Lease released.
+
 - **P03 T08 attachment history candidate: exact 4a9aff6 all six applicable CI workflows passed, #31 signed length regression verified. Native history now returns bounded scoped metadata only, text-only replay cannot acknowledge an attached message, frontend validates and displays metadata. New exact-head CI pending; picker, file-open, attachment-aware send/retry and model consumption not enabled. 4/16 DONE; no merge/release.** [Evidence](../evidence/P03_T08_ATTACHMENT_HISTORY_20261126.md). Lease released.
 
 - **P03 T08 CI repair candidate (2026-11-26): exact b34a95b Linux and Windows compilation failed E0277 (rusqlite FromSql not implemented for u64). Read i64, checked conversion and individual/aggregate bounds; negative/oversized and corrupted persisted length regression tests added. #31 open until exact-head CI. Existing gates intact; 4/16 DONE; no merge/release.** Lease released.

@@ -1,0 +1,42 @@
+{
+  "change_id": "CHG-P03-M03-SELECTED-FILE-TRANSPORT-20261126",
+  "module_id": "M03",
+  "kind": "feature",
+  "title": "Bounded selected-file transport and exact replay",
+  "summary": "Native session-only chunk assembly and verified attachment manifest commit/replay; picker and model ingestion pending.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
+  "affected_option_ids": [
+    "M03-OPT-04"
+  ],
+  "docs_paths": [
+    "docs/evidence/P03_T08_SELECTED_FILE_TRANSPORT_20261126.md",
+    "docs/modules/M03.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M03.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M03.md"
+  ],
+  "test_evidence": [
+    "apps/desktop/src-tauri/src/chat_ipc.rs",
+    "apps/desktop/src-tauri/src/vault.rs"
+  ],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No schema change; uncommitted upload bytes are session-only and never treated as a durable acknowledgement.",
+  "created_at": "2026-11-26",
+  "updated_at": "2026-11-26",
+  "version_bump": "none",
+  "docs_impact": true,
+  "data_migration": false
+}
