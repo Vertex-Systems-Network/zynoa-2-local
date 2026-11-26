@@ -530,7 +530,7 @@ async fn execute(
                 .map_err(|_| fault("ZYN-MODEL-STORAGE"))?
                 .get_inference_settings(&q.conversation_id)
                 .map_err(|_| fault("ZYN-MODEL-STORAGE"))?;
-            json!({"settings":value})
+            json!({"settings":value.map(|s| json!({"model":s.model,"contextLimit":s.context_limit,"revision":s.revision}))})
         }
         "inference.settings.set" => {
             let q: SettingsPayload = parse(request.payload)?;
@@ -543,7 +543,7 @@ async fn execute(
                 .map_err(|_| fault("ZYN-MODEL-STORAGE"))?
                 .set_inference_settings(&q.conversation_id, &q.model, q.context_limit)
                 .map_err(|_| fault("ZYN-MODEL-STORAGE"))?;
-            json!({"settings":value})
+            json!({"settings":{"model":value.model,"contextLimit":value.context_limit,"revision":value.revision}})
         }
         "inference.context.inspect" => {
             let q: ContextPayload = parse(request.payload)?;
