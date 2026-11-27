@@ -64,7 +64,7 @@
       "id": "P03-T10",
       "title": "Tool trace, permission review and fail-closed tool boundary",
       "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/c9c0ee65b96e899200149cbcb2d69a1b74addf35"
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/d196291ee0c6335abbdedefd1856bce05cb17bb9"
     },
     {
       "id": "P03-T11",
