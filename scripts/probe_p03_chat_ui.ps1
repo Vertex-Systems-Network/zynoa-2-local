@@ -158,8 +158,31 @@ function Click-Control([string]$Name) {
  # implies InvokePattern. A physical click is bounded to the native HWND.
  $pattern=$null
  if ($control.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern,[ref]$pattern)) {
-   $pattern.Invoke()
-   Write-Output ('Native activation: '+$Name+' via InvokePattern')
+   try {
+     $pattern.Invoke()
+     Write-Output ('Native activation: '+$Name+' via InvokePattern')
+   } catch {
+     # Never repeat a mutation after an ambiguous provider acknowledgement.
+     # Only the bounded, read-only recovery inventory may be activated again.
+     if ($Name -cne 'Check managed files') {throw}
+     Write-Output ('Native recovery activation: InvokePattern failed; class='+$_.Exception.GetType().Name)
+     $reportCondition=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,'Managed file check result')
+     $existingReport=$null
+     for ($attempt=0;$attempt -lt 8;$attempt++) {
+       $existingReport=$script:root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$reportCondition)
+       if ($null -ne $existingReport) {break}
+       Start-Sleep -Milliseconds 250
+     }
+     if ($null -ne $existingReport) {
+       Write-Output 'Native recovery activation: report already present; no repeat click'
+     } else {
+       $freshControl=Wait-Name 'Check managed files' 'Button' $true
+       Focus-ByPhysicalClick $freshControl
+       Write-Output 'Native recovery activation: bounded physical click on freshly acquired read-only control'
+     }
+     # Caller must still read all eight exact visible counts and verify the
+     # database, managed blob and interrupted stage independently.
+   }
  } else {
    $pattern=$null
    if ($control.TryGetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern,[ref]$pattern)) {
