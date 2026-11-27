@@ -655,10 +655,12 @@ main:focus{outline:none}
 .shell .chat-history { display:grid; gap:12px; margin:16px 0; padding:0; list-style:none; max-height:390px; overflow:auto; }
 .shell .chat-history li { padding:12px; background:var(--surface-raised); border:1px solid var(--outline); border-radius:9px; }
 .shell .chat-history p { white-space:pre-wrap; overflow-wrap:anywhere; margin:6px 0; }
-.shell .chat-model-controls { display:grid; grid-template-columns:max-content minmax(150px,1fr); gap:9px 12px; align-items:center; margin:12px 0; padding:14px; border:1px solid var(--outline); border-radius:12px; }
-.shell .chat-model-controls label { font-size:12px; font-weight:700; }
-.shell .chat-model-controls select { min-width:0; padding:9px; border:1px solid var(--outline); border-radius:8px; background:var(--canvas); color:var(--text-primary); }
-.shell .chat-model-controls button,.shell .chat-model-controls output { grid-column:1/-1; }
+.shell .chat-model-controls { display:grid; grid-template-columns:minmax(0, max-content) minmax(0, 1fr); gap:9px 12px; align-items:center; margin:12px 0; padding:14px; border:1px solid var(--outline); border-radius:12px; }
+.shell .chat-model-controls label { min-width:0; overflow-wrap:anywhere; font-size:12px; font-weight:700; }
+.shell .chat-model-controls select { width:100%; min-width:0; max-width:100%; padding:9px; border:1px solid var(--outline); border-radius:8px; background:var(--canvas); color:var(--text-primary); }
+.shell .chat-model-controls button,.shell .chat-model-controls output,.shell .chat-model-controls .chat-notice { grid-column:1/-1; min-width:0; max-width:100%; overflow-wrap:anywhere; }
+.shell .chat-model-controls .chat-notice { margin:0; }
+.shell .chat-model-controls select:focus-visible { outline:2px solid var(--outline); outline-offset:3px; }
 .shell .chat-model-controls output { font-size:12px; color:var(--text-secondary); }
 .shell .chat-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
 .shell .chat-notice { overflow-wrap:anywhere; color:var(--text-secondary); font-size:13px; line-height:1.6; }

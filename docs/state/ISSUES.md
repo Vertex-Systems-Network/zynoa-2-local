@@ -28,3 +28,6 @@
 - 2026-11-27 | P03 | RESOLVED | [#34](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/34) | Exact 01f2a05 native attachment selection/save/restart and independent DB/blob proof passed; original artifact verified.
 
 - 2026-11-27 | P03 | OPEN | [#35](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/35) | Exact 8012305 governance change-record invalid kind; correction to bugfix, fresh CI pending.
+
+- 2026-11-27 | P03 | RESOLVED | [#35](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/35) | Exact faeb1f77 Governance 45962034087 and all five other applicable workflows passed.
+- 2026-11-27 | P03 | OPEN | [#36](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/36) | Original model availability screenshot horizontally clipped; grid containment repair and native bounds candidate, fresh CI pending.

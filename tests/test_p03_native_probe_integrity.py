@@ -80,6 +80,16 @@ class NativeProbeIntegrity(unittest.TestCase):
         self.assertIn('args.stage == "retry-check"', verifier)
         self.assertIn('json.loads(reopened.read_text(encoding="utf-8")) == proof', verifier)
 
+    def test_model_layout_native_containment_gate(self):
+        source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
+        css = (ROOT / "apps/desktop/src/styles.css").read_text(encoding="utf-8")
+        for marker in ("function Assert-ModelControlBounds", "BoundingRectangle", "GetWindowRect",
+                       "ZYN-MODEL-LAYOUT-002", "$missingBounds=Assert-ModelControlBounds $true",
+                       "$restoredBounds=Assert-ModelControlBounds $false", "horizontal_layout_bounds"):
+            self.assertIn(marker, source)
+        self.assertIn(".chat-model-controls .chat-notice { grid-column:1/-1;", css)
+        self.assertIn("minmax(0, max-content) minmax(0, 1fr)", css)
+
     def test_ast_validation_precedes_build_and_original_acceptance_gates(self):
         workflow = (ROOT / ".github/workflows/p03-native-baseline.yml").read_text(encoding="utf-8")
         self.assertIn("[System.Management.Automation.Language.Parser]::ParseFile", workflow)

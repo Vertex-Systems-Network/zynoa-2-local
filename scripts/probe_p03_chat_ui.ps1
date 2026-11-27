@@ -602,6 +602,36 @@ function Assert-NoContextEstimate {
    catch [System.Windows.Automation.ElementNotAvailableException] {}
  }
 }
+function Assert-ModelControlBounds([bool]$Missing) {
+ # Actual HWND-owned UIA rectangles, not DOM measurements or a mockup.
+ # Only horizontal containment is asserted; vertical scrolling and complete
+ # accessibility certification remain independent acceptance requirements.
+ $group=Wait-Name 'Local model and context settings' '' $false
+ $bounds=$group.Current.BoundingRectangle
+ $window=New-Object ChatProbeWindow+RECT
+ if (![ChatProbeWindow]::GetWindowRect($script:hwnd,[ref]$window) -or $bounds.IsEmpty -or $bounds.Width -le 0 -or
+     $bounds.Left -lt ($window.Left-2) -or $bounds.Right -gt ($window.Right+2)) {
+   throw 'ZYN-MODEL-LAYOUT-001: settings group outside native window'
+ }
+ $controls=@(
+   @{Name='Model';Type='ComboBox'},
+   @{Name='Context budget';Type='ComboBox'},
+   @{Name='Inspect context';Type='Button'}
+ )
+ if ($Missing) {
+   $controls+=@{Name='The saved model is unavailable. Refresh local models or choose an installed model. Your saved messages are unchanged.';Type=''}
+ }
+ $measured=@()
+ foreach ($spec in $controls) {
+   $control=Wait-Name $spec.Name $spec.Type $false
+   $rect=$control.Current.BoundingRectangle
+   if ($rect.IsEmpty -or $rect.Width -le 0 -or $rect.Left -lt ($bounds.Left-2) -or $rect.Right -gt ($bounds.Right+2)) {
+     throw ('ZYN-MODEL-LAYOUT-002: control outside settings group: '+$spec.Name)
+   }
+   $measured+=@{name=$spec.Name;left=$rect.Left;right=$rect.Right;width=$rect.Width}
+ }
+ return @{missing=$Missing;group_left=$bounds.Left;group_right=$bounds.Right;controls=$measured}
+}
 function Wait-RealStreamingPrefix {
  $condition=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,'Streaming assistant response')
  for ($i=0;$i -lt 1200;$i++) {
@@ -750,6 +780,7 @@ if ($PartialAcceptance) {
      if ($send.Current.IsEnabled) {throw 'ZYN-MODEL-AVAIL-007: Send enabled for missing saved model with nonempty draft'}
      Assert-NoContextEstimate
      $null=Read-PartialVault 'retry-check'
+     $missingBounds=Assert-ModelControlBounds $true
      Capture 'M03-OPT-01-missing-model-candidate.png'
    } finally {
      # Restore the exact original digest before removing its temporary alias.
@@ -774,6 +805,7 @@ if ($PartialAcceptance) {
    Click-Control 'Inspect context'
    $estimateAfter=Wait-TextPattern '^Estimated [0-9]+ / 512 tokens'
    if ($estimateBefore -cne $estimateAfter) {throw 'ZYN-MODEL-AVAIL-010: identical draft/history context changed'}
+   $restoredBounds=Assert-ModelControlBounds $false
    Capture 'M03-OPT-01-restored-model-candidate.png'
    Click-Control 'Clear draft'
    Stop-Native
@@ -782,7 +814,7 @@ if ($PartialAcceptance) {
    foreach ($name in @('M03-OPT-01-missing-model-candidate.png','M03-OPT-01-restored-model-candidate.png')) {
      $availabilityImages[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
    }
-   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();pid=$availabilityPid;synthetic_only=$true;actual_model=$originalModel;model_digest=$original[0].digest;other_model_present=$true;actual_model_removal=$true;missing_placeholder_verified=$true;send_disabled_with_draft=$true;inventory_restored=$true;original_preference_preserved=$true;stale_context_invalidated=$true;context_estimates=@($estimateBefore,$estimateAfter);prior_database_fingerprint=$identity.fingerprint;images=$availabilityImages;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-model-availability-ui-proof.json') -Encoding utf8
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();pid=$availabilityPid;synthetic_only=$true;actual_model=$originalModel;model_digest=$original[0].digest;other_model_present=$true;actual_model_removal=$true;missing_placeholder_verified=$true;send_disabled_with_draft=$true;inventory_restored=$true;original_preference_preserved=$true;stale_context_invalidated=$true;context_estimates=@($estimateBefore,$estimateAfter);prior_database_fingerprint=$identity.fingerprint;horizontal_layout_bounds=@($missingBounds,$restoredBounds);images=$availabilityImages;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-model-availability-ui-proof.json') -Encoding utf8
    Write-Output 'P03 T06 actual missing-model and restoration UI proof passed'
  } catch {
    [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true;input_checks=@($script:inputChecks.ToArray())} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-partial-ui-failure.json') -Encoding utf8

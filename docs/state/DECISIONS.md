@@ -268,3 +268,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-27 | P03 | Show unavailable model rather than speculative fallback; read native preference on inventory refresh; scope context to conversation revision | Preserve per-thread choice; invalidate stale estimate; no new authority/schema.
 
 2026-11-27 | P03 | T06 real model availability native journey using reversible fixture-only alias | Preserve pinned original digest, restore before removing alias, assert unavailable control and unchanged prior fingerprint; no user model deletion or permission changes. Fix changelog category per existing validator.
+
+2026-11-27 | P03 | Fix model-state notice grid span and shrinkable controls rather than masking overflow | Actual missing-model screenshot revealed misplaced grid child and horizontal clipping; use native UIA group/window bounding rectangles as scoped regression, not full accessibility proof.
