@@ -180,6 +180,26 @@ fn parse<T: serde::de::DeserializeOwned>(value: Value) -> Result<T, ModelError> 
     serde_json::from_value(value).map_err(|_| fault("ZYN-MODEL-INPUT"))
 }
 
+// This adapter is deliberately text-only until native tool review is integrated.
+// Even a frame containing both text and a tool request must fail before publication.
+fn validate_text_only_event(event: &Value) -> Result<(), ModelError> {
+    fn has_call(value: &Value) -> bool {
+        let calls = value.get("tool_calls");
+        let unexpected_calls = match calls {
+            None | Some(Value::Null) => false,
+            Some(Value::Array(items)) => !items.is_empty(),
+            Some(_) => true,
+        };
+        unexpected_calls || value.get("function_call").is_some_and(|v| !v.is_null())
+    }
+    if has_call(event) || event.get("message").is_some_and(|message| {
+        has_call(message) || message.get("role").and_then(Value::as_str) == Some("tool")
+    }) {
+        return Err(fault("ZYN-MODEL-RESPONSE"));
+    }
+    Ok(())
+}
+
 impl LocalModelGateway {
     pub fn new() -> Result<Self, std::io::Error> {
         Self::with_base(OLLAMA_BASE)
@@ -417,6 +437,7 @@ impl LocalModelGateway {
                         if !event.is_object() || event.get("error").is_some() {
                             return Err(fault("ZYN-MODEL-RESPONSE"));
                         }
+                        validate_text_only_event(&event)?;
                         let delta = event.get("message").and_then(|m| m.get("content"))
                             .and_then(Value::as_str).unwrap_or("");
                         if !delta.is_empty() {
@@ -611,6 +632,27 @@ mod tests {
         });
         (format!("http://{}", address), handle)
     }
+    #[test]
+    fn text_only_gateway_rejects_unapproved_structured_tool_frames() {
+        for event in [
+            json!({"message":{"content":"hello"},"done":true}),
+            json!({"message":{"content":"hello","tool_calls":[]},"done":true}),
+            json!({"message":{"content":"hello","tool_calls":null},"done":false}),
+        ] {
+            assert!(validate_text_only_event(&event).is_ok());
+        }
+        for event in [
+            json!({"message":{"content":"must not publish","tool_calls":[{"function":{"name":"local.read_attachment","arguments":{}}}]},"done":true}),
+            json!({"message":{"tool_calls":{}},"done":false}),
+            json!({"message":{"tool_calls":"unexpected"},"done":false}),
+            json!({"tool_calls":[{}],"done":true}),
+            json!({"message":{"function_call":{}},"done":true}),
+            json!({"message":{"role":"tool","content":"untrusted result"},"done":true}),
+        ] {
+            assert_eq!(validate_text_only_event(&event).unwrap_err().code, "ZYN-MODEL-RESPONSE");
+        }
+    }
+
     #[test]
     fn inventory_accepts_only_bounded_loopback_runtime_data() {
         let (base, server) = fixture(vec![
