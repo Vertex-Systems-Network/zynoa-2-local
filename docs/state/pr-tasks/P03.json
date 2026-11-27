@@ -64,7 +64,7 @@
       "id": "P03-T10",
       "title": "Tool trace, permission review and fail-closed tool boundary",
       "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/25aacd42331f25949d9c3fed51df163778de7abf"
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/c9c0ee65b96e899200149cbcb2d69a1b74addf35"
     },
     {
       "id": "P03-T11",
@@ -84,7 +84,8 @@
     {
       "id": "P03-T14",
       "title": "Security, accessibility, performance and prior-phase regressions",
-      "status": "IN_PROGRESS"
+      "status": "IN_PROGRESS",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/38"
     },
     {
       "id": "P03-T15",
