@@ -1,5 +1,9 @@
 # Status — 2026-11-26
 
+## P03 — T08/T09 scoped closure and T05 terminal retry candidate
+
+8/16 DONE (50%); 6 IN_PROGRESS; 2 TODO. T08/T09 scoped actual native proof independently reconciled at exact 01cee66, [evidence](../evidence/P03_T08_T09_SCOPED_ACCEPTANCE_20261128.md). T05 source b9e194c01d0211b77628c834b134b4d3667deb99 persists explicit native system notice when no assistant text is produced; original error semantics and complete-only model context retained. Native three-stage Stop/reopen/retry tests and frontend exact notice recovery test added. CI still running, no T05 promotion. Prior e2faa839 native/model runs cancelled on newer push by existing concurrency policy; last complete green baseline 01cee66. Task-by-task priority T05 validation, then T10 complete user-facing flow, T11, T12, T13, T14–T16. Prepare next task while CI runs; avoid unnecessary superseding pushes until previous CI result reconciled. No merge/release. Lease released.
+
 ## 2026-11-28 — T06/T07 scoped functional acceptance closed
 
 6/16 DONE (37.5%); 8 IN_PROGRESS, 2 TODO. Exact 01cee66f17a59e5c8e3e126505bab94af588118a passed six applicable CI; original model and partial/retry evidence verified, five screenshots reviewed, receipt pairs matched and actual Linux context calibration passed. See [acceptance evidence](../evidence/P03_T06_T07_SCOPED_ACCEPTANCE_20261128.md). T06/T07 DONE for scoped task titles, final cross-cutting T14–T16 gates remain. T05 zero-output recovery, T08/T09 independent closure, T10–T13 remaining workflows are priorities. No release, merge or P04. Lease released.
