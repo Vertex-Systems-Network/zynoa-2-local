@@ -1,0 +1,43 @@
+{
+  "change_id": "CHG-P03-M03-ATTACHMENT-NATIVE-PROBE-20261127",
+  "module_id": "M03",
+  "kind": "feature",
+  "title": "Native attachment picker acceptance candidate",
+  "summary": "Actual owned Windows dialog selection and read-only managed blob/SQLite restart verification.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
+  "affected_option_ids": [
+    "M03-OPT-04"
+  ],
+  "docs_paths": [
+    "docs/evidence/P03_T08_NATIVE_ATTACHMENT_ACCEPTANCE_CANDIDATE_20261127.md",
+    "docs/modules/M03.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M03.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M03.md"
+  ],
+  "test_evidence": [
+    "scripts/probe_p03_chat_ui.ps1",
+    "scripts/verify_p03_attachment_ui_database.py",
+    ".github/workflows/p03-native-baseline.yml"
+  ],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No schema or permissions change. Disposable synthetic source only.",
+  "created_at": "2026-11-27",
+  "updated_at": "2026-11-27",
+  "version_bump": "none",
+  "docs_impact": true,
+  "data_migration": false
+}

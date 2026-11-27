@@ -3,7 +3,8 @@ param(
  [Parameter(Mandatory=$true)][string]$Executable,
  [Parameter(Mandatory=$true)][string]$SourceSha,
  [Parameter(Mandatory=$true)][string]$OutputDirectory,
- [switch]$ModelAcceptance
+ [switch]$ModelAcceptance,
+ [switch]$AttachmentAcceptance
 )
 $ErrorActionPreference='Stop'
 if ($env:GITHUB_ACTIONS -ne 'true' -or $SourceSha -cnotmatch '^[a-f0-9]{40}$') { throw 'ZYN-CHAT-PROBE-001: disposable CI only' }
@@ -24,6 +25,7 @@ public static class ChatProbeWindow {
  [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
  [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hwnd, int command);
  [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
+ [DllImport("user32.dll")] public static extern IntPtr GetAncestor(IntPtr hwnd, uint flags);
  [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extra);
 
  [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hwnd, out RECT rect);
@@ -74,7 +76,7 @@ function Wait-Name([string]$Name,[string]$Type='', [bool]$Enabled=$false,[int]$A
        # Completion status remains above the composer after Send scrolls it
        # into view. Read its exact accessible text even outside the viewport;
        # the later independent vault checks still verify durable output.
-       if (!$e.Current.IsOffscreen -or $Type -or $Name -ceq 'Local model response completed and saved.') {return $e}
+       if (!$e.Current.IsOffscreen -or $Type -or $Name -ceq 'Local model response completed and saved.' -or $Name -ceq 'Message and attachments saved locally. No model response was requested.') {return $e}
      } catch [System.Windows.Automation.ElementNotAvailableException] {}
    }
    Start-Sleep -Milliseconds 250
@@ -342,6 +344,263 @@ function Wait-Assistant([string]$Text) {
  }
  throw 'ZYN-MODEL-PROBE-006: persisted assistant text not visible in native UI'
 }
+
+function Read-AttachmentVault([string]$Stage) {
+ & python scripts/verify_p03_attachment_ui_database.py --stage $Stage --output $OutputDirectory
+ if ($LASTEXITCODE -ne 0) {throw 'ZYN-ATTACH-PROBE-001: independent database/blob verification failed'}
+}
+function Select-SyntheticFile([string]$Path) {
+ # Use only the actual OS file dialog, never JS, DOM injection or native IPC.
+ if ($Path -cnotmatch '^[A-Za-z0-9_:\\ .-]+
+   $script:stage='model baseline identity'
+   $null=Read-ModelVault 'baseline'
+   $script:stage='real model first start'
+   Start-Native
+   $firstPid=$script:app.Id
+   Click-Control 'Chat'
+   [void](Wait-Name 'Conversation title' 'Edit' $true)
+   $alpha='P03 model alpha'
+   $beta='P03 model beta'
+   $modelA='qwen2.5:0.5b'
+   $modelB='qwen2.5:1.5b'
+   $promptA='Reply with a short greeting.'
+   $promptB='Say hello in three words.'
+   $script:stage='create first model thread'
+   Type-Exact 'Conversation title' $alpha
+   Click-Control 'Create conversation'
+   [void](Wait-Name 'Message' 'Edit' $true)
+   Click-Control 'Refresh local models'
+   [void](Wait-Name 'Model' 'ComboBox' $true)
+   $script:stage='first installed model selection'
+   Select-Combo 'Model' '{HOME}' $modelA
+   $null=Read-ModelVault 'settings' $alpha $modelA 2048
+   Assert-Combo 'Model' $modelA
+   $script:stage='switch model in same thread'
+   Select-Combo 'Model' '{END}' $modelB
+   $null=Read-ModelVault 'settings' $alpha $modelB 2048
+   Assert-Combo 'Model' $modelB
+   Select-Combo 'Model' '{HOME}' $modelA
+   $null=Read-ModelVault 'settings' $alpha $modelA 2048
+   Select-Combo 'Context budget' '{HOME}' '512 tokens'
+   $null=Read-ModelVault 'settings' $alpha $modelA 512
+   Assert-Combo 'Context budget' '512 tokens'
+   Capture 'M03-OPT-01-candidate.png'
+   $script:stage='inspect first draft context'
+   Type-Exact 'Message' $promptA
+   Click-Control 'Inspect context'
+   $estimateA=Wait-TextPattern '^Estimated [0-9]+ / 512 tokens'
+   Capture 'M03-OPT-03-candidate.png'
+   $script:stage='actual native send first model'
+   Click-Control 'Send'
+   [void](Wait-Name 'Local model response completed and saved.' '' $false 640)
+   $savedA=Read-ModelVault 'turn' $alpha $modelA 512
+   Wait-Assistant $savedA.assistant_text
+   Capture 'M03-OPT-02-candidate.png'
+   $script:stage='create second model thread'
+   Type-Exact 'Conversation title' $beta
+   Click-Control 'Create conversation'
+   [void](Wait-Name 'Message' 'Edit' $true)
+   Select-Combo 'Model' '{END}' $modelB
+   $null=Read-ModelVault 'settings' $beta $modelB 2048
+   Assert-Combo 'Model' $modelB
+   Type-Exact 'Message' $promptB
+   Click-Control 'Inspect context'
+   $estimateB=Wait-TextPattern '^Estimated [0-9]+ / 2048 tokens'
+   $script:stage='actual native send second model'
+   Click-Control 'Send'
+   [void](Wait-Name 'Local model response completed and saved.' '' $false 640)
+   $savedB=Read-ModelVault 'turn' $beta $modelB 2048
+   Wait-Assistant $savedB.assistant_text
+   $script:stage='verify model database before restart'
+   Stop-Native
+   $null=Read-ModelVault 'saved'
+   $script:stage='restart model UI'
+   Start-Native
+   $secondPid=$script:app.Id
+   if ($firstPid -eq $secondPid) {throw 'ZYN-MODEL-PROBE-007: distinct process required'}
+   Click-Control 'Chat'
+   Click-Control $alpha
+   Assert-Combo 'Model' $modelA
+   Assert-Combo 'Context budget' '512 tokens'
+   Wait-Assistant $savedA.assistant_text
+   Click-Control $beta
+   Assert-Combo 'Model' $modelB
+   Assert-Combo 'Context budget' '2048 tokens'
+   Wait-Assistant $savedB.assistant_text
+   Capture 'M03-S04-candidate.png'
+   Stop-Native
+   $null=Read-ModelVault 'reopened'
+   $images=[ordered]@{}
+   foreach ($name in @('M03-OPT-01-candidate.png','M03-OPT-03-candidate.png','M03-OPT-02-candidate.png','M03-S04-candidate.png')) {
+     $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
+   }
+   $proof=[ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;native_ui=$true;actual_model_send=$true;models=@($modelA,$modelB);same_thread_switch=$true;thread_settings_readback=$true;context_estimates=@($estimateA,$estimateB);ui_assistant_readback=$true;database_reopen_identity_verified=$true;keyboard_input_verified=$true;input_checks=@($script:inputChecks.ToArray());images=$images;visual_review='candidate_pending_visual_review';stop_retry_ui_verified=$false;full_accessibility_certified=$false}
+   $proof | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-model-ui-proof.json') -Encoding utf8
+   Write-Output 'P03 actual Windows model selection, generation and restart verified'
+ } catch {
+   $failure=[ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;input_checks=@($script:inputChecks.ToArray());status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true}
+   $failure | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-model-ui-failure.json') -Encoding utf8
+   if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {
+     try {Capture 'DEBUG-native-model-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}
+   }
+   throw
+ } finally {Stop-Native}
+ return
+}
+
+try {
+ $script:stage='verify empty fixture'
+ Read-Vault 'empty'
+ $script:stage='first native start'
+ Start-Native
+ $firstPid=$script:app.Id
+ Click-Control 'Chat'
+ [void](Wait-Name 'Conversation title' 'Edit' $true)
+ [void](Wait-Name 'No saved conversations.')
+ Capture 'M03-S01-candidate.png'
+ Type-Exact 'Conversation title' $title
+ $script:stage='create conversation'
+ Click-Control 'Create conversation'
+ [void](Wait-Name 'Message' 'Edit' $true)
+ Type-Exact 'Message' $content
+ $script:stage='save message'
+ Click-Control 'Save message'
+ [void](Wait-Name $content)
+ Stop-Native
+ $script:stage='independent saved fixture check'
+ Read-Vault 'saved'
+ $script:stage='restart native app'
+ Start-Native
+ $secondPid=$script:app.Id
+ if ($firstPid -eq $secondPid) {throw 'ZYN-CHAT-PROBE-016: process identity not distinct'}
+ Click-Control 'Chat'
+ $script:stage='reopen conversation from UI'
+ Click-Control $title
+ [void](Wait-Name $content)
+ $composer=Wait-Name 'Message' 'Edit' $true
+ Focus-Control $composer
+ [void](Wait-Name $content)
+ Capture 'M03-S02-candidate.png'
+ Stop-Native
+ $script:stage='independent reopened fixture check'
+ Read-Vault 'reopened'
+ $images=[ordered]@{}
+ foreach ($name in @('M03-S01-candidate.png','M03-S02-candidate.png')) {
+   $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
+ }
+ $proof=[ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();method='actual Windows Tauri UIA, real keyboard ValuePattern readback and independent read-only SQLite';first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;empty_profile=$true;keyboard_input_verified=$true;input_checks=@($script:inputChecks.ToArray());ui_create_save=$true;ui_reopen_readback=$true;database_reopen_identity_verified=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false;model_inference_claimed=$false}
+ $proof | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-chat-ui-proof.json') -Encoding utf8
+ Write-Output 'P03 scoped real native chat interaction and independent restart readback passed'
+} catch {
+ $failure=[ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;input_checks=@($script:inputChecks.ToArray());status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true}
+ $failure | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-chat-ui-failure.json') -Encoding utf8
+ if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {
+   try {Capture 'DEBUG-native-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}
+ }
+ throw
+} finally {Stop-Native}
+) {throw 'ZYN-ATTACH-PROBE-002: unexpected fixture path'}
+ $button=Wait-Name 'Attach local files' 'Button' $true
+ Focus-ByPhysicalClick $button
+ $dialog=[IntPtr]::Zero
+ for ($i=0;$i -lt 80;$i++) {
+   $candidate=[ChatProbeWindow]::GetForegroundWindow()
+   if ($candidate -ne [IntPtr]::Zero -and $candidate -ne $script:hwnd) {
+     $element=[System.Windows.Automation.AutomationElement]::FromHandle($candidate)
+     if ($null -ne $element -and $element.Current.ClassName -eq '#32770') {
+       $owner=[ChatProbeWindow]::GetAncestor($candidate,3)
+       if ($owner -eq $script:hwnd -or $element.Current.ProcessId -eq $script:app.Id) {$dialog=$candidate;break}
+       # WebView2 may own the dialog in a child process; verify ancestry.
+       $pidToCheck=$element.Current.ProcessId
+       for ($depth=0;$depth -lt 12 -and $pidToCheck -gt 0;$depth++) {
+         if ($pidToCheck -eq $script:app.Id) {$dialog=$candidate;break}
+         $proc=Get-CimInstance Win32_Process -Filter "ProcessId=$pidToCheck"
+         if (!$proc -or $proc.ParentProcessId -eq $pidToCheck) {break}
+         $pidToCheck=$proc.ParentProcessId
+       }
+       if ($dialog -ne [IntPtr]::Zero) {break}
+     }
+   }
+   Start-Sleep -Milliseconds 250
+ }
+ if ($dialog -eq [IntPtr]::Zero) {throw 'ZYN-ATTACH-PROBE-003: owned native file dialog missing'}
+ [System.Windows.Forms.SendKeys]::SendWait('%n')
+ Start-Sleep -Milliseconds 250
+ if ([ChatProbeWindow]::GetForegroundWindow() -ne $dialog) {throw 'ZYN-ATTACH-PROBE-004: dialog foreground lost'}
+ $focused=[System.Windows.Automation.AutomationElement]::FocusedElement
+ if ($null -eq $focused -or $focused.Current.ControlType.ProgrammaticName -ne 'ControlType.Edit') {throw 'ZYN-ATTACH-PROBE-005: file name edit not focused'}
+ [System.Windows.Forms.SendKeys]::SendWait('^a')
+ [System.Windows.Forms.SendKeys]::SendWait($Path)
+ $value=$focused.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+ if ([string]$value.Current.Value -cne $Path) {throw 'ZYN-ATTACH-PROBE-006: file path keyboard readback mismatch'}
+ if ([ChatProbeWindow]::GetForegroundWindow() -ne $dialog) {throw 'ZYN-ATTACH-PROBE-007: dialog foreground lost before confirmation'}
+ [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+ [void](Wait-Name 'Remove p03-attachment-fixture.bin' 'Button' $true)
+}
+if ($AttachmentAcceptance) {
+ try {
+   if ($ModelAcceptance) {throw 'ZYN-ATTACH-PROBE-008: mutually exclusive journeys'}
+   $script:stage='attachment baseline identity'
+   Read-AttachmentVault 'baseline'
+   $fixture=Join-Path $env:RUNNER_TEMP 'p03-attachment-fixture.bin'
+   if (Test-Path -LiteralPath $fixture) {throw 'ZYN-ATTACH-PROBE-009: fixture already exists'}
+   $bytes=[byte[]]::new(70000)
+   for ($i=0;$i -lt $bytes.Length;$i++) {$bytes[$i]=[byte]($i % 251)}
+   [IO.File]::WriteAllBytes($fixture,$bytes)
+   $script:stage='attachment native first start'
+   Start-Native
+   $firstPid=$script:app.Id
+   Click-Control 'Chat'
+   Type-Exact 'Conversation title' 'P03 attachment proof'
+   Click-Control 'Create conversation'
+   [void](Wait-Name 'Message' 'Edit' $true)
+   Type-Exact 'Message' 'P03 synthetic attachment message'
+   $script:stage='select actual file'
+   Select-SyntheticFile $fixture
+   $remove=Wait-Name 'Remove p03-attachment-fixture.bin' 'Button' $true
+   Focus-Control $remove
+   Capture 'M03-S03-candidate.png'
+   $script:stage='remove and reselect actual file'
+   Click-Control 'Remove p03-attachment-fixture.bin'
+   $condition=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,'Remove p03-attachment-fixture.bin')
+   for ($i=0;$i -lt 40;$i++) {
+     if ($script:root.FindAll([System.Windows.Automation.TreeScope]::Descendants,$condition).Count -eq 0) {break}
+     Start-Sleep -Milliseconds 250
+   }
+   if ($script:root.FindAll([System.Windows.Automation.TreeScope]::Descendants,$condition).Count -ne 0) {throw 'ZYN-ATTACH-PROBE-010: removed file remains selected'}
+   Select-SyntheticFile $fixture
+   $script:stage='save attachment transaction'
+   Click-Control 'Save message'
+   [void](Wait-Name 'Message and attachments saved locally. No model response was requested.' '' $false 240)
+   Stop-Native
+   Read-AttachmentVault 'saved'
+   # Remove only the disposable original fixture; verify independent managed storage.
+   Remove-Item -LiteralPath $fixture
+   if (Test-Path -LiteralPath $fixture) {throw 'ZYN-ATTACH-PROBE-011: original fixture remains'}
+   $script:stage='restart and reopen saved attachment'
+   Start-Native
+   $secondPid=$script:app.Id
+   if ($firstPid -eq $secondPid) {throw 'ZYN-ATTACH-PROBE-012: distinct process required'}
+   Click-Control 'Chat'
+   Click-Control 'P03 attachment proof'
+   Wait-Assistant 'P03 synthetic attachment message'
+   Wait-Assistant 'p03-attachment-fixture.bin'
+   Capture 'M03-OPT-04-candidate.png'
+   Stop-Native
+   Read-AttachmentVault 'reopened'
+   $images=[ordered]@{}
+   foreach ($name in @('M03-S03-candidate.png','M03-OPT-04-candidate.png')) {
+     $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
+   }
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;actual_os_picker=$true;remove_reselect=$true;original_removed=$true;database_blob_reopen_verified=$true;ui_filename_readback=$true;input_checks=@($script:inputChecks.ToArray());images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false;model_ingestion_claimed=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-attachment-ui-proof.json') -Encoding utf8
+ } catch {
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true;input_checks=@($script:inputChecks.ToArray())} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-attachment-ui-failure.json') -Encoding utf8
+   if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {try {Capture 'DEBUG-native-attachment-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}}
+   throw
+ } finally {Stop-Native}
+ return
+}
+
 if ($ModelAcceptance) {
  try {
    $script:stage='model baseline identity'

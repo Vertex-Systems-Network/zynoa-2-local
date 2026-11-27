@@ -28,7 +28,7 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
  const [retryTarget,setRetryTarget]=useState<RetryTarget|null>(null);
  const activeTurnRef=useRef<string|null>(null);
  const lock=useRef(false), pendingRef=useRef<Pending|null>(null), started=useRef(false);
- const titleRef=useRef<HTMLInputElement>(null),composerRef=useRef<HTMLTextAreaElement>(null);
+ const titleRef=useRef<HTMLInputElement>(null),composerRef=useRef<HTMLTextAreaElement>(null),fileRef=useRef<HTMLInputElement>(null);
  const online=transport==="connected";
  const canEdit=online&&!busy&&!pending;
  const installed=modelAvailable(settings,models,runtimeVersion);
@@ -182,8 +182,8 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
     <form onSubmit={save}><label htmlFor="chat-message">Message</label><textarea id="chat-message" data-testid="chat-message" ref={composerRef} value={draft} maxLength={262144} disabled={!canEdit} onChange={e=>{setDraft(e.target.value);setContext(null);}} aria-describedby="chat-draft-info"/>
     <p id="chat-draft-info" className="chat-notice">{byteLength(draft)} / 262144 bytes · Drafts are session-only.</p>
     <div role="group" aria-label="Draft attachments">
-     <label htmlFor="chat-attachments">Attach local files</label>
-     <input type="file" id="chat-attachments" data-testid="chat-attachments" multiple disabled={!canEdit||files.length>=8} onChange={e=>{selectFiles(e.currentTarget.files);e.currentTarget.value="";}} aria-describedby="chat-attachment-info"/>
+     <button type="button" className="subtle-action" disabled={!canEdit||files.length>=8} onClick={()=>fileRef.current?.click()} aria-describedby="chat-attachment-info">Attach local files</button>
+     <input ref={fileRef} type="file" id="chat-attachments" data-testid="chat-attachments" multiple hidden disabled={!canEdit||files.length>=8} onChange={e=>{selectFiles(e.currentTarget.files);e.currentTarget.value="";}}/>
      <p id="chat-attachment-info" className="chat-notice">Up to 8 files · 25 MiB each · 100 MiB total. Select files and enter message text, then Save message. File contents are not sent to the model.</p>
      {files.length>0&&<ul aria-label="Selected attachments">{files.map(a=><li key={a.id}><span>{a.file.name} · {a.file.size.toLocaleString()} bytes</span> <button type="button" className="subtle-action" disabled={!canEdit} onClick={()=>setFiles(old=>old.filter(x=>x.id!==a.id))} aria-label={`Remove ${a.file.name}`}>Remove</button></li>)}</ul>}
      {uploadProgress&&<div><progress aria-label="Attachment upload progress" value={uploadProgress.received} max={Math.max(1,uploadProgress.total)}/><span role="status">{uploadProgress.received.toLocaleString()} / {uploadProgress.total.toLocaleString()} bytes transferred to local service; save not yet confirmed.</span></div>}

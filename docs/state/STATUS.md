@@ -1,5 +1,7 @@
 # Status — 2026-11-26
 
+P03 T08 native attachment acceptance candidate (2026-11-27): exact ccb1d59 six applicable workflows passed. Added actual owned Windows OS picker journey with remove/reselect, multi-chunk synthetic file, UI save, independent read-only database/blob check, removal of original and distinct-process reopen. Candidate evidence not yet executed on new head; model ingestion, full accessibility, orphan recovery remain pending. 4/16 DONE; no merge/release.
+
 P03 T08 attachment composer candidate: exact 06005f1 six applicable workflows passed. File input uses OS/WebView selection only, local chunk transport, scoped progress, selection limits, remove/clear, save with exact manifest and retry/discard. Model Send disabled while files selected; file bytes not sent to model. Recent discard tombstones reject delayed chunks. Fresh exact-head native CI and end-to-end attachment journey pending; 4/16 DONE; no merge/release.
 
 P03 T08 bounded selected-file transport candidate: exact 1e4929a five applicable workflows passed, Windows native still in progress at inspection. Added native per-message in-memory chunk assembly, exact-offset replay, bounded totals, scoped discard, verified manifest commit/replay. No file picker/UI exposure or model byte ingestion yet. Fresh exact-head CI pending; 4/16 DONE; no merge/release.
