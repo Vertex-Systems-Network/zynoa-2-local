@@ -260,3 +260,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-27 | P03 | Verify reopened attachment as accessible filename and byte count in saved history | Actual screenshot shows combined row, not standalone filename; preserve restart and independent reopened DB checks; #34.
 
 2026-11-27 | P03 | Recovery inventory is read-only and bounded; unreferenced at inspection is not safe to delete | Preserve possible sole copies and stage files; no automatic deletion or startup gate; next explicit recovery integration.
+
+2026-11-27 | P03 | T05.8 independent actual Stop partial persistence journey | Preserve previous native model proof; require actual nonempty live prefix and exact cancelled record, distinct process reopen, no retry claim; update later attachment fixture baseline to preserve new thread.

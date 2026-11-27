@@ -287,11 +287,25 @@ jobs:
             if ($a.Count -ne 1 -or $b.Count -ne 1 -or $a[0].digest -cne 'a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67' -or $b[0].digest -cnotmatch '^[a-f0-9]{64}$' -or $a[0].digest -ceq $b[0].digest) { throw 'Unexpected model identity' }
             $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
             & scripts/probe_p03_chat_ui.ps1 -Executable $exe -SourceSha $env:EXACT_HEAD -OutputDirectory $proofDir -ModelAcceptance
+            & scripts/probe_p03_chat_ui.ps1 -Executable $exe -SourceSha $env:EXACT_HEAD -OutputDirectory (Join-Path $env:RUNNER_TEMP 'p03-partial-ui-proof') -PartialAcceptance -PriorModelProofDirectory $proofDir
             [ordered]@{schema_version=1;source_commit_sha=$env:EXACT_HEAD;runtime_version=$version.version;runtime_archive_sha256='ca97292ac1e9acc77fcf473bb2741fa6acd12e3798f261b419680068b7cc4c16';models=@($models | Select-Object name,digest,size);local_only=$true;synthetic_only=$true} | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $proofDir 'p03-windows-model-inventory.json') -Encoding utf8
           } finally {
             $server.Refresh()
             if (!$server.HasExited) { Stop-Process -Id $server.Id -Force }
           }
+      - name: Preserve failed partial UI diagnostics (not acceptance)
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-partial-ui-failure-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-partial-ui-proof/
+          if-no-files-found: warn
+      - name: Upload actual partial response candidate evidence
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-partial-ui-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-partial-ui-proof/
+          if-no-files-found: error
       - name: Preserve failed real model UI diagnostics (not acceptance)
         if: failure()
         uses: actions/upload-artifact@v6

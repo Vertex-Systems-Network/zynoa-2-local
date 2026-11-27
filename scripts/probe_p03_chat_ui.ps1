@@ -4,7 +4,9 @@ param(
  [Parameter(Mandatory=$true)][string]$SourceSha,
  [Parameter(Mandatory=$true)][string]$OutputDirectory,
  [switch]$ModelAcceptance,
- [switch]$AttachmentAcceptance
+ [switch]$AttachmentAcceptance,
+ [switch]$PartialAcceptance,
+ [string]$PriorModelProofDirectory=''
 )
 $ErrorActionPreference='Stop'
 if ($env:GITHUB_ACTIONS -ne 'true' -or $SourceSha -cnotmatch '^[a-f0-9]{40}$') { throw 'ZYN-CHAT-PROBE-001: disposable CI only' }
@@ -131,7 +133,7 @@ function Wait-Name([string]$Name,[string]$Type='', [bool]$Enabled=$false,[int]$A
        # Completion status remains above the composer after Send scrolls it
        # into view. Read its exact accessible text even outside the viewport;
        # the later independent vault checks still verify durable output.
-       if (!$e.Current.IsOffscreen -or $Type -or $Name -ceq 'Local model response completed and saved.' -or $Name -ceq 'Message and attachments saved locally. No model response was requested.') {return $e}
+       if (!$e.Current.IsOffscreen -or $Type -or $Name -ceq 'Turn stopped; any partial response was saved as cancelled.' -or $Name -ceq 'Local model response completed and saved.' -or $Name -ceq 'Message and attachments saved locally. No model response was requested.') {return $e}
      } catch [System.Windows.Automation.ElementNotAvailableException] {}
    }
    Start-Sleep -Milliseconds 250
@@ -564,6 +566,90 @@ if ($AttachmentAcceptance) {
  } catch {
    [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true;input_checks=@($script:inputChecks.ToArray())} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-attachment-ui-failure.json') -Encoding utf8
    if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {try {Capture 'DEBUG-native-attachment-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}}
+   throw
+ } finally {Stop-Native}
+ return
+}
+
+function Read-PartialVault([string]$Stage) {
+ $result=& python scripts/verify_p03_partial_ui_database.py --stage $Stage --output $OutputDirectory --prior $PriorModelProofDirectory
+ if ($LASTEXITCODE -ne 0) {throw 'ZYN-PARTIAL-PROBE-001: independent partial database verification failed'}
+ return ($result | ConvertFrom-Json)
+}
+function Wait-RealStreamingPrefix {
+ $condition=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,'Streaming assistant response')
+ for ($i=0;$i -lt 1200;$i++) {
+   $groups=$script:root.FindAll([System.Windows.Automation.TreeScope]::Descendants,$condition)
+   foreach ($group in $groups) {
+     $textCondition=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::ControlTypeProperty,[System.Windows.Automation.ControlType]::Text)
+     foreach ($item in $group.FindAll([System.Windows.Automation.TreeScope]::Descendants,$textCondition)) {
+       try {
+         $prefix=([string]$item.Current.Name -replace '\s+',' ').Trim()
+         if ($prefix.Length -ge 12 -and $prefix -cne 'Generating locally' -and $prefix -cne 'Streaming assistant response' -and !$item.Current.IsOffscreen) {return $prefix}
+       } catch [System.Windows.Automation.ElementNotAvailableException] {}
+     }
+   }
+   Start-Sleep -Milliseconds 100
+ }
+ throw 'ZYN-PARTIAL-PROBE-002: nonempty real streaming text not observed before Stop'
+}
+if ($PartialAcceptance) {
+ try {
+   if ($ModelAcceptance -or $AttachmentAcceptance -or !$PriorModelProofDirectory) {throw 'ZYN-PARTIAL-PROBE-003: separate journey requires prior model proof'}
+   $script:stage='partial baseline identity'
+   $null=Read-PartialVault 'baseline'
+   $script:stage='native partial first start'
+   Start-Native
+   $firstPid=$script:app.Id
+   Click-Control 'Chat'
+   Type-Exact 'Conversation title' 'P03 partial persistence'
+   Click-Control 'Create conversation'
+   [void](Wait-Name 'Message' 'Edit' $true)
+   Click-Control 'Refresh local models'
+   Select-Combo 'Model' '{END}' 'qwen2.5:1.5b'
+   Select-Combo 'Context budget' '{HOME}{DOWN 4}' '8192 tokens'
+   Assert-Combo 'Model' 'qwen2.5:1.5b'
+   Assert-Combo 'Context budget' '8192 tokens'
+   Type-Exact 'Message' 'List the numbers from one to one thousand in words. Use one line for every number. Do not summarize or stop early.'
+   $script:stage='actual real model stream'
+   Click-Control 'Send'
+   $prefix=Wait-RealStreamingPrefix
+   $script:stage='actual Stop during nonempty stream'
+   $stop=Wait-Name 'Stop' 'Button' $true 8
+   if ([ChatProbeWindow]::GetForegroundWindow() -ne $script:hwnd) {throw 'ZYN-PARTIAL-PROBE-004: foreground lost before Stop'}
+   $pattern=$null
+   if (!$stop.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern,[ref]$pattern)) {throw 'ZYN-PARTIAL-PROBE-005: actual Stop activation unavailable'}
+   $clock=[Diagnostics.Stopwatch]::StartNew()
+   $pattern.Invoke()
+   [void](Wait-Name 'Turn stopped; any partial response was saved as cancelled.' '' $false 80)
+   $elapsed=[int64]$clock.ElapsedMilliseconds
+   $script:stage='independent cancelled partial persistence'
+   $saved=Read-PartialVault 'saved'
+   $normalized=([string]$saved.assistant_text -replace '\s+',' ').Trim()
+   if (!$normalized.StartsWith($prefix,[StringComparison]::Ordinal)) {throw 'ZYN-PARTIAL-PROBE-006: observed live prefix not present in durable cancelled response'}
+   Wait-Assistant $saved.assistant_text
+   Capture 'M03-OPT-02-stopped-candidate.png'
+   Stop-Native
+   $script:stage='reopen cancelled partial in distinct process'
+   Start-Native
+   $secondPid=$script:app.Id
+   if ($firstPid -eq $secondPid) {throw 'ZYN-PARTIAL-PROBE-007: distinct process required'}
+   Click-Control 'Chat'
+   Click-Control 'P03 partial persistence'
+   Wait-Assistant $saved.assistant_text
+   Capture 'M03-OPT-02-partial-reopened-candidate.png'
+   Stop-Native
+   $script:stage='independent reopened partial identity'
+   $null=Read-PartialVault 'reopened'
+   $images=[ordered]@{}
+   foreach ($name in @('M03-OPT-02-stopped-candidate.png','M03-OPT-02-partial-reopened-candidate.png')) {
+     $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
+   }
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;actual_model='qwen2.5:1.5b';context_limit=8192;actual_native_stop=$true;nonempty_live_prefix_verified=$true;live_prefix_chars=$prefix.Length;stop_to_cancel_notice_ms=$elapsed;cancelled_partial_persisted=$true;ui_partial_reopen_verified=$true;database_reopen_identity_verified=$true;images=$images;visual_review='candidate_pending_visual_review';retry_ui_verified=$false;full_accessibility_certified=$false;input_checks=@($script:inputChecks.ToArray())} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-partial-ui-proof.json') -Encoding utf8
+   Write-Output 'P03 T05 actual real-model partial response Stop and restart proof passed'
+ } catch {
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true;input_checks=@($script:inputChecks.ToArray())} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-partial-ui-failure.json') -Encoding utf8
+   if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {try {Capture 'DEBUG-native-partial-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}}
    throw
  } finally {Stop-Native}
  return

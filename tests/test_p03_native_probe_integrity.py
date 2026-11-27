@@ -43,6 +43,20 @@ class NativeProbeIntegrity(unittest.TestCase):
         self.assertIn("Read-AttachmentVault 'reopened'", source)
         self.assertNotIn("Wait-Assistant 'p03-attachment-fixture.bin'", source)
 
+    def test_real_partial_acceptance_requires_live_prefix_stop_and_reopen(self):
+        source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
+        verifier = (ROOT / "scripts/verify_p03_partial_ui_database.py").read_text(encoding="utf-8")
+        workflow = (ROOT / ".github/workflows/p03-native-baseline.yml").read_text(encoding="utf-8")
+        self.assertIn("Wait-RealStreamingPrefix", source)
+        self.assertIn("Wait-Name 'Stop' 'Button' $true", source)
+        self.assertIn("$normalized.StartsWith($prefix", source)
+        self.assertIn("Read-PartialVault 'reopened'", source)
+        self.assertIn('assistant[6:] == ("cancelled", 1)', verifier)
+        self.assertIn("digest(prior) == previous", verifier)
+        self.assertIn("== proof", verifier)
+        self.assertIn("-PartialAcceptance -PriorModelProofDirectory", workflow)
+        self.assertIn("p03-partial-ui-failure-", workflow)
+
     def test_ast_validation_precedes_build_and_original_acceptance_gates(self):
         workflow = (ROOT / ".github/workflows/p03-native-baseline.yml").read_text(encoding="utf-8")
         self.assertIn("[System.Management.Automation.Language.Parser]::ParseFile", workflow)
