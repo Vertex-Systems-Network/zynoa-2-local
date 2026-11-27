@@ -102,6 +102,23 @@ class NativeProbeIntegrity(unittest.TestCase):
         self.assertIn('stage.read_bytes() == b"synthetic interrupted stage"', verifier)
         self.assertIn('json.loads(reopened.read_text(encoding="utf-8")) == proof', verifier)
 
+    def test_text_artifact_actual_native_journey_preserves_prior_data(self):
+        source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
+        verifier = (ROOT / "scripts/verify_p03_text_artifact_ui_database.py").read_text(encoding="utf-8")
+        workflow = (ROOT / ".github/workflows/p03-native-baseline.yml").read_text(encoding="utf-8")
+        for marker in ("Click-Control 'Generate text artifact from message 2'",
+                       "Click-Control 'Preview text artifact from receipt 3'",
+                       "Wait-ArtifactPreview $baseline.assistant_text", "IsReadOnly",
+                       "Read-ArtifactVault 'saved'", "Read-ArtifactVault 'reopened'",
+                       "Read-ArtifactVault 'replayed'", "p03-text-artifact-ui-proof.json"):
+            self.assertIn(marker, source)
+        for marker in ('blob.read_bytes() == data', 'digest(original_rows) == baseline["fingerprint"]',
+                       'json.loads(saved.read_text(encoding="utf-8")) == proof',
+                       'stage.read_bytes() == b"synthetic interrupted stage"'):
+            self.assertIn(marker, verifier)
+        self.assertLess(workflow.index("name: Upload actual attachment UI candidate evidence"),
+                        workflow.index("name: P03 T09 actual Windows text artifact"))
+
     def test_ast_validation_precedes_build_and_original_acceptance_gates(self):
         workflow = (ROOT / ".github/workflows/p03-native-baseline.yml").read_text(encoding="utf-8")
         self.assertIn("[System.Management.Automation.Language.Parser]::ParseFile", workflow)

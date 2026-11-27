@@ -682,6 +682,6 @@ main:focus{outline:none}
 .shell .chat-recovery-result li:focus-visible { outline:2px solid var(--outline); outline-offset:2px; }
 
 .shell .chat-artifact-preview { min-width:0; border:1px solid var(--line); border-radius:9px; padding:12px; margin:12px 0; }
-.shell .chat-artifact-preview pre { max-height:240px; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; min-width:0; color:var(--text-primary); font:inherit; padding:8px; background:var(--surface-raised); }
-.shell .chat-artifact-preview pre:focus-visible { outline:2px solid var(--outline); outline-offset:2px; }
+.shell .chat-artifact-preview textarea { max-height:240px; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; min-width:0; color:var(--text-primary); font:inherit; padding:8px; background:var(--surface-raised); }
+.shell .chat-artifact-preview textarea:focus-visible { outline:2px solid var(--outline); outline-offset:2px; }
 .shell .chat-history .subtle-action { display:block; margin-top:8px; max-width:100%; white-space:normal; }

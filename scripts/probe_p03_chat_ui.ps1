@@ -6,6 +6,7 @@ param(
  [switch]$ModelAcceptance,
  [switch]$AttachmentAcceptance,
  [switch]$PartialAcceptance,
+ [switch]$ArtifactAcceptance,
  [string]$PriorModelProofDirectory='',
  [string]$OllamaExecutable=''
 )
@@ -543,6 +544,87 @@ function Wait-RecoveryCounts {
    $seen.Add($name)
  }
  return @($seen.ToArray())
+}
+function Read-ArtifactVault([string]$Stage) {
+ $result=& python scripts/verify_p03_text_artifact_ui_database.py --stage $Stage --output $OutputDirectory --attachment-proof (Join-Path $env:RUNNER_TEMP 'p03-attachment-ui-proof')
+ if ($LASTEXITCODE -ne 0) {throw 'ZYN-ARTIFACT-PROBE-001: independent artifact database verification failed'}
+ return ($result | ConvertFrom-Json)
+}
+function Wait-ArtifactPreview([string]$Expected) {
+ # UIA ValuePattern reads the real readonly textarea; no DOM injection.
+ # Windows may normalize line endings in the text control. The verifier
+ # independently checks exact UTF-8 bytes, including original line endings.
+ $normalized=$Expected -replace '\r\n',"`n"
+ $groupCondition=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,'Verified text artifact preview')
+ $condition=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,'Verified artifact text')
+ for ($attempt=0;$attempt -lt 80;$attempt++) {
+   foreach ($group in $script:root.FindAll([System.Windows.Automation.TreeScope]::Descendants,$groupCondition)) {
+     foreach ($item in $group.FindAll([System.Windows.Automation.TreeScope]::Descendants,$condition)) {
+       try {
+         if ($item.Current.ControlType.ProgrammaticName -ne 'ControlType.Edit') {continue}
+         $value=$null
+         if (!$item.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern,[ref]$value) -or !$value.Current.IsReadOnly) {continue}
+         if (($value.Current.Value -replace '\r\n',"`n") -cne $normalized) {continue}
+         $rect=$item.Current.BoundingRectangle
+         if (!$item.Current.IsOffscreen -and !$rect.IsEmpty -and $rect.Width -gt 0 -and $rect.Height -gt 0) {return}
+         Focus-Control $item
+       } catch [System.Windows.Automation.ElementNotAvailableException] {}
+     }
+   }
+   Start-Sleep -Milliseconds 250
+ }
+ throw 'ZYN-ARTIFACT-PROBE-002: verified readonly artifact text not visible or exact'
+}
+if ($ArtifactAcceptance) {
+ try {
+   if ($AttachmentAcceptance -or $PartialAcceptance -or $ModelAcceptance) {throw 'ZYN-ARTIFACT-PROBE-003: mutually exclusive journeys'}
+   $script:stage='artifact baseline after attachment and recovery proof'
+   $baseline=Read-ArtifactVault 'baseline'
+   $script:stage='actual native artifact creation from saved model response'
+   Start-Native
+   $firstPid=$script:app.Id
+   Click-Control 'Chat'
+   Click-Control 'P03 model alpha'
+   Click-Control 'Generate text artifact from message 2'
+   Wait-ArtifactPreview $baseline.assistant_text
+   Capture 'M03-OPT-05-candidate.png'
+   Stop-Native
+   $script:stage='independent committed artifact receipt'
+   $null=Read-ArtifactVault 'saved'
+   $script:stage='restart and explicit artifact preview'
+   Start-Native
+   $secondPid=$script:app.Id
+   if ($firstPid -eq $secondPid) {throw 'ZYN-ARTIFACT-PROBE-004: distinct process required'}
+   Click-Control 'Chat'
+   Click-Control 'P03 model alpha'
+   Click-Control 'Preview text artifact from receipt 3'
+   Wait-ArtifactPreview $baseline.assistant_text
+   Capture 'M03-OPT-05-reopened-candidate.png'
+   Click-Control 'Close artifact preview'
+   Stop-Native
+   $null=Read-ArtifactVault 'reopened'
+   $script:stage='restart and repeat same source creation'
+   Start-Native
+   $thirdPid=$script:app.Id
+   if ($thirdPid -in @($firstPid,$secondPid)) {throw 'ZYN-ARTIFACT-PROBE-005: distinct replay process required'}
+   Click-Control 'Chat'
+   Click-Control 'P03 model alpha'
+   Click-Control 'Generate text artifact from message 2'
+   Wait-ArtifactPreview $baseline.assistant_text
+   Capture 'M03-OPT-05-replayed-candidate.png'
+   Stop-Native
+   $null=Read-ArtifactVault 'replayed'
+   $images=[ordered]@{}
+   foreach ($name in @('M03-OPT-05-candidate.png','M03-OPT-05-reopened-candidate.png','M03-OPT-05-replayed-candidate.png')) {
+      $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
+   }
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;reopened_pid=$secondPid;replayed_pid=$thirdPid;synthetic_only=$true;source_is_real_saved_model_response=$true;actual_native_creation=$true;readonly_preview_exact_readback=$true;actual_native_reopen_preview=$true;actual_native_replay=$true;no_duplicate_receipt=$true;prior_attachment_and_stage_preserved=$true;database_blob_reopen_verified=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-text-artifact-ui-proof.json') -Encoding utf8
+ } catch {
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-text-artifact-ui-failure.json') -Encoding utf8
+   if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {try {Capture 'DEBUG-native-text-artifact-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}}
+   throw
+ } finally {Stop-Native}
+ return
 }
 if ($AttachmentAcceptance) {
  try {

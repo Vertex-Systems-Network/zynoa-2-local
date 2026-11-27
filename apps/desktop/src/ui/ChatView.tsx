@@ -236,7 +236,7 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
     {artifactPreview&&artifactPreview.conversationId===selected.id&&<section role="group" aria-label="Verified text artifact preview" className="chat-artifact-preview">
      <h3>Verified text artifact preview</h3>
      <p className="chat-notice">assistant-response.txt · {byteLength(artifactPreview.content).toLocaleString()} bytes · verified local plain text</p>
-     <pre tabIndex={0} aria-label="Verified artifact text">{artifactPreview.content}</pre>
+     <textarea readOnly aria-label="Verified artifact text" value={artifactPreview.content} rows={5} spellCheck={false}/>
      <button type="button" className="subtle-action" onClick={()=>setArtifactPreview(null)}>Close artifact preview</button>
     </section>}
     <form onSubmit={save}><label htmlFor="chat-message">Message</label><textarea id="chat-message" data-testid="chat-message" ref={composerRef} value={draft} maxLength={262144} disabled={!canEdit} onChange={e=>{setDraft(e.target.value);setContext(null);}} aria-describedby="chat-draft-info"/>

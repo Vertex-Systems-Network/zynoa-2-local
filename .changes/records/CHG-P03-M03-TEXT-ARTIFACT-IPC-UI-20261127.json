@@ -25,7 +25,11 @@
   "test_evidence": [
     "apps/desktop/src-tauri/src/chat_ipc.rs",
     "apps/desktop/tests/chat-contract.test.mjs",
-    "apps/desktop/tests/model-contract.test.mjs"
+    "apps/desktop/tests/model-contract.test.mjs",
+    "scripts/probe_p03_chat_ui.ps1",
+    "scripts/verify_p03_text_artifact_ui_database.py",
+    ".github/workflows/p03-native-baseline.yml",
+    "tests/test_p03_native_probe_integrity.py"
   ],
   "commit_sha": null,
   "release": null,
