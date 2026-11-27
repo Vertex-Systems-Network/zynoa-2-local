@@ -24,7 +24,16 @@ export function recoveryRows(r:RecoveryInventory):string[]{
  `Damaged or unreadable: ${r.damagedOrUnreadable}`,`Interrupted stages: ${r.interruptedStages}`,
  `Unexpected entries: ${r.unexpectedEntries}`,`Unlinked metadata: ${r.unlinkedMetadata}`];
 }
-export type ChatCommand="chat.list"|"chat.create"|"chat.history"|"chat.saveUserMessage"|"chat.attachment.chunk"|"chat.attachment.discard"|"chat.recovery.inspect"|"chat.artifact.createText"|"chat.artifact.previewText";
+export type ReviewTool="local.read_attachment"|"local.write_artifact";
+export type ReviewChoice="approve"|"deny";
+export type ReviewBegin={conversationId:string;sourceId:string;attachmentId:string|null};
+export type ReviewPreview={conversationId:string;sourceId:string;requestId:string;targetId:string;targetSha256:string;tool:ReviewTool};
+export type ReviewFinish={conversationId:string;requestId:string;decision:ReviewChoice};
+export type ReviewResult=ReviewFinish&{executed:boolean};
+export type ReviewList={conversationId:string;after:string|null;limit:number};
+export type ReviewTrace={requestId:string;targetId:string;targetSha256:string;tool:ReviewTool;decision:ReviewChoice;recordedAt:number};
+export type ReviewPage={conversationId:string;items:ReviewTrace[];next:string|null};
+export type ChatCommand="chat.list"|"chat.create"|"chat.history"|"chat.saveUserMessage"|"chat.attachment.chunk"|"chat.attachment.discard"|"chat.recovery.inspect"|"chat.artifact.createText"|"chat.artifact.previewText"|"chat.review.begin"|"chat.review.finish"|"chat.review.list";
 export type Payloads={
  "chat.list":{after:string|null;limit:number};
  "chat.create":{id:string;title:string};
@@ -35,8 +44,11 @@ export type Payloads={
  "chat.recovery.inspect":Record<string,never>;
  "chat.artifact.createText":TextArtifactSource;
  "chat.artifact.previewText":TextArtifactSource;
+ "chat.review.begin":ReviewBegin;
+ "chat.review.finish":ReviewFinish;
+ "chat.review.list":ReviewList;
 };
-export type Replies={"chat.list":ThreadPage;"chat.create":WriteResult;"chat.history":HistoryPage;"chat.saveUserMessage":WriteResult;"chat.attachment.chunk":UploadAck;"chat.attachment.discard":DiscardDraft&{discarded:true};"chat.recovery.inspect":RecoveryInventory;"chat.artifact.createText":TextArtifactResult;"chat.artifact.previewText":TextArtifactPreview};
+export type Replies={"chat.list":ThreadPage;"chat.create":WriteResult;"chat.history":HistoryPage;"chat.saveUserMessage":WriteResult;"chat.attachment.chunk":UploadAck;"chat.attachment.discard":DiscardDraft&{discarded:true};"chat.recovery.inspect":RecoveryInventory;"chat.artifact.createText":TextArtifactResult;"chat.artifact.previewText":TextArtifactPreview;"chat.review.begin":ReviewPreview;"chat.review.finish":ReviewResult;"chat.review.list":ReviewPage};
 export const byteLength=(s:string)=>new TextEncoder().encode(s).length;
 export const validText=(s:string,max:number)=>s.trim().length>0&&!s.includes("\0")&&byteLength(s)<=max;
 function fail():never{throw new Error("ZYN-CHAT-RESPONSE");}
@@ -47,6 +59,7 @@ function object(v:unknown,keys:string[]):Record<string,unknown>{
  return o;
 }
 function id(v:unknown):v is string{return typeof v==="string"&&/^[A-Za-z0-9_-]{8,64}$/.test(v);}
+function reviewHash(v:unknown):v is string{return typeof v==="string"&&/^[a-f0-9]{64}$/.test(v);}
 function integer(v:unknown,min=1):v is number{return typeof v==="number"&&Number.isSafeInteger(v)&&v>=min;}
 function thread(v:unknown):Thread{
  const o=object(v,["id","title","revision","createdAt","updatedAt"]);
@@ -100,6 +113,32 @@ export function decodeReply<K extends ChatCommand>(raw:unknown,command:K,correla
    for(const row of items){if(row.ordinal<=previous||ids.has(row.id))return fail();previous=row.ordinal;ids.add(row.id);}
    if(o.next!==null&&(items.length===0||o.next!==previous))return fail();
    return {conversation,items,next:o.next as number|null} as Replies[K];
+ }
+ if(command==="chat.review.begin"){
+   const q=payload as ReviewBegin,o=object(e.data,["conversationId","sourceId","requestId","targetId","targetSha256","tool"]);
+   if(o.conversationId!==q.conversationId||o.sourceId!==q.sourceId||!reviewHash(o.requestId)||!id(o.targetId)||!reviewHash(o.targetSha256)||
+      o.tool!==(q.attachmentId===null?"local.write_artifact":"local.read_attachment")||
+      (q.attachmentId===null?!reviewHash(o.targetId):o.targetId!==q.attachmentId))return fail();
+   return o as unknown as Replies[K];
+ }
+ if(command==="chat.review.finish"){
+   const q=payload as ReviewFinish,o=object(e.data,["conversationId","requestId","decision","executed"]);
+   if(o.conversationId!==q.conversationId||o.requestId!==q.requestId||o.decision!==q.decision||o.executed!==(q.decision==="approve"))return fail();
+   return o as unknown as Replies[K];
+ }
+ if(command==="chat.review.list"){
+   const q=payload as ReviewList,o=object(e.data,["conversationId","items","next"]);
+   if(o.conversationId!==q.conversationId||!Array.isArray(o.items)||o.items.length>q.limit)return fail();
+   let previous=q.after??"";
+   const items=o.items.map(item=>{
+      const row=object(item,["requestId","targetId","targetSha256","tool","decision","recordedAt"]);
+      if(!reviewHash(row.requestId)||row.requestId<=previous||!id(row.targetId)||!reviewHash(row.targetSha256)||
+         (row.tool!=="local.read_attachment"&&row.tool!=="local.write_artifact")||
+         (row.decision!=="approve"&&row.decision!=="deny")||!integer(row.recordedAt))return fail();
+      previous=row.requestId;return row as unknown as ReviewTrace;
+   });
+   if(o.next!==null&&(items.length===0||o.next!==previous))return fail();
+   return {conversationId:q.conversationId,items,next:o.next as string|null} as Replies[K];
  }
  if(command==="chat.artifact.createText"){
    const q=payload as TextArtifactSource,o=object(e.data,["conversationId","sourceId","messageId","attachment","replayed"]);

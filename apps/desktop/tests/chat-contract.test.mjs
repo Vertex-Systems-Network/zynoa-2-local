@@ -83,3 +83,19 @@ test("text artifact replies are scoped, bounded and plain text",()=>{
    assert.throws(()=>decode("chat.artifact.previewText",bad,q),/ZYN-CHAT-RESPONSE/);
  }
 });
+
+
+test("review replies enforce exact request and thread, bounded tool vocabulary and decision",()=>{
+ const q={conversationId:thread.id,sourceId:msg.id,attachmentId:null};
+ const p={conversationId:thread.id,sourceId:msg.id,requestId:"a".repeat(64),targetId:"b".repeat(64),targetSha256:"c".repeat(64),tool:"local.write_artifact"};
+ assert.deepEqual(decode("chat.review.begin",p,q),p);
+ for(const bad of [{...p,tool:"shell.exec"},{...p,sourceId:"wrong-source-001"},{...p,path:"outside"},{...p,targetSha256:"bad"}])assert.throws(()=>decode("chat.review.begin",bad,q),/ZYN-CHAT-RESPONSE/);
+ const finish={conversationId:thread.id,requestId:p.requestId,decision:"deny"};
+ assert.deepEqual(decode("chat.review.finish",{...finish,executed:false},finish),{...finish,executed:false});
+ assert.throws(()=>decode("chat.review.finish",{...finish,executed:true},finish),/ZYN-CHAT-RESPONSE/);
+ const trace={requestId:p.requestId,targetId:p.targetId,targetSha256:p.targetSha256,tool:p.tool,decision:"deny",recordedAt:1};
+ const list={conversationId:thread.id,after:null,limit:1};const page={conversationId:thread.id,items:[trace],next:null};
+ assert.deepEqual(decode("chat.review.list",page,list),page);
+ assert.throws(()=>decode("chat.review.list",{...page,items:[{...trace,decision:"always"}]},list),/ZYN-CHAT-RESPONSE/);
+ assert.throws(()=>decode("chat.review.list",{...page,items:[trace,trace]},list),/ZYN-CHAT-RESPONSE/);
+});

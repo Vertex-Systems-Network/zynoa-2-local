@@ -48,6 +48,15 @@ struct RecoveryPayload {}
 struct TextArtifactPayload { conversation_id:String, source_id:String }
 #[derive(Deserialize)]
 #[serde(rename_all="camelCase",deny_unknown_fields)]
+struct ReviewBeginPayload { conversation_id:String, source_id:String, attachment_id:Option<String> }
+#[derive(Deserialize)]
+#[serde(rename_all="camelCase",deny_unknown_fields)]
+struct ReviewFinishPayload { conversation_id:String, request_id:String, decision:String }
+#[derive(Deserialize)]
+#[serde(rename_all="camelCase",deny_unknown_fields)]
+struct ReviewListPayload { conversation_id:String, after:Option<String>,limit:u32 }
+#[derive(Deserialize)]
+#[serde(rename_all="camelCase",deny_unknown_fields)]
 struct CreatePayload { id: String, title: String }
 #[derive(Deserialize)]
 #[serde(rename_all="camelCase",deny_unknown_fields)]
@@ -115,7 +124,7 @@ fn authorize_request(label:&str, request:&ChatRequest) -> Result<(),ChatError> {
     if request.schema_version!=1 || request.workspace_scope!="local" || !token(&request.correlation_id) {
         return Err(error("ZYN-CHAT-INPUT"));
     }
-    if !matches!(request.command_id.as_str(),"chat.list"|"chat.create"|"chat.history"|"chat.saveUserMessage"|"chat.attachment.chunk"|"chat.attachment.discard"|"chat.recovery.inspect"|"chat.artifact.createText"|"chat.artifact.previewText") {
+    if !matches!(request.command_id.as_str(),"chat.list"|"chat.create"|"chat.history"|"chat.saveUserMessage"|"chat.attachment.chunk"|"chat.attachment.discard"|"chat.recovery.inspect"|"chat.artifact.createText"|"chat.artifact.previewText"|"chat.review.begin"|"chat.review.finish"|"chat.review.list") {
         return Err(error("ZYN-CHAT-DENIED"));
     }
     if serde_json::to_vec(&request.payload).map_err(|_|error("ZYN-CHAT-INPUT"))?.len()>MAX_REQUEST_BYTES {
@@ -125,6 +134,34 @@ fn authorize_request(label:&str, request:&ChatRequest) -> Result<(),ChatError> {
 }
 fn execute(vault:&mut NativeVault, request:ChatRequest) -> Result<ChatReply,ChatError> {
     let data=match request.command_id.as_str() {
+        "chat.review.begin" => {
+            let q:ReviewBeginPayload=parse(request.payload)?;
+            if !token(&q.conversation_id)||!token(&q.source_id)||q.attachment_id.as_ref().is_some_and(|id|!token(id)) {
+                return Err(error("ZYN-CHAT-INPUT"));
+            }
+            serde_json::to_value(vault.begin_tool_review(&q.conversation_id,&q.source_id,q.attachment_id.as_deref())?)
+                .map_err(|_|error("ZYN-CHAT-STORAGE"))?
+        },
+        "chat.review.finish" => {
+            let q:ReviewFinishPayload=parse(request.payload)?;
+            if !token(&q.conversation_id)||!token(&q.request_id) {return Err(error("ZYN-CHAT-INPUT"));}
+            use crate::artifact_contracts::ReviewChoice;
+            let choice=match q.decision.as_str(){"approve"=>ReviewChoice::Approve,"deny"=>ReviewChoice::Deny,
+                _=>return Err(error("ZYN-CHAT-INPUT"))};
+            let executed=vault.finish_tool_review(&q.conversation_id,&q.request_id,choice)?;
+            json!({"conversationId":q.conversation_id,"requestId":q.request_id,"decision":q.decision,"executed":executed})
+        },
+        "chat.review.list" => {
+            let q:ReviewListPayload=parse(request.payload)?;
+            if !token(&q.conversation_id)||q.after.as_ref().is_some_and(|id|!token(id))||!(1..=50).contains(&q.limit) {
+                return Err(error("ZYN-CHAT-INPUT"));
+            }
+            let mut items=vault.list_tool_reviews(&q.conversation_id,q.after.as_deref(),q.limit+1)?;
+            let more=items.len()>q.limit as usize;items.truncate(q.limit as usize);
+            let items=serde_json::to_value(items).map_err(|_|error("ZYN-CHAT-STORAGE"))?;
+            let next=if more {items.as_array().and_then(|a|a.last()).and_then(|a|a.get("requestId")).cloned().ok_or_else(||error("ZYN-CHAT-STORAGE"))?}else{Value::Null};
+            json!({"conversationId":q.conversation_id,"items":items,"next":next})
+        },
         "chat.artifact.createText" => {
             let q:TextArtifactPayload=parse(request.payload)?;
             if !token(&q.conversation_id)||!token(&q.source_id) {return Err(error("ZYN-CHAT-INPUT"));}
@@ -271,6 +308,38 @@ mod tests {
     fn call(v:&mut NativeVault,command:&str,payload:Value)->Result<Value,ChatError> {
         let req=request(command,payload);authorize_request("main",&req)?;Ok(execute(v,req)?.data)
     }
+    #[test]
+    fn chat_ipc_review_is_local_scoped_single_use_and_strict() {
+        let f=Fixture::new();let mut v=NativeVault::open(&f.0).unwrap();
+        for id in [A,B] {call(&mut v,"chat.create",json!({"id":id,"title":"Synthetic"})).unwrap();}
+        call(&mut v,"chat.saveUserMessage",json!({"id":M,"conversationId":A,"content":"Prompt"})).unwrap();
+        let source="assistant-alpha-01";
+        v.append_chat_message(ChatMessageInput{id:source,conversation_id:A,parent_id:Some(M),role:ChatRole::Assistant,
+            content:"Synthetic answer",status:ChatStatus::Complete}).unwrap();
+        let q=json!({"conversationId":A,"sourceId":source,"attachmentId":null});
+        assert!(authorize_request("remote",&request("chat.review.begin",q.clone())).is_err());
+        assert!(call(&mut v,"chat.review.begin",json!({"conversationId":A,"sourceId":source,"path":"outside"})).is_err());
+        assert!(call(&mut v,"chat.review.begin",json!({"conversationId":B,"sourceId":source})).is_err());
+        let p=call(&mut v,"chat.review.begin",q.clone()).unwrap();
+        assert_eq!(p["tool"],"local.write_artifact");
+        assert_eq!(p["sourceId"],source);
+        let id=p["requestId"].as_str().unwrap();
+        assert!(call(&mut v,"chat.review.finish",json!({"conversationId":B,"requestId":id,"decision":"approve"})).is_err());
+        assert!(call(&mut v,"chat.review.finish",json!({"conversationId":A,"requestId":id,"decision":"allow"})).is_err());
+        let deny=json!({"conversationId":A,"requestId":id,"decision":"deny"});
+        assert_eq!(call(&mut v,"chat.review.finish",deny.clone()).unwrap()["executed"],false);
+        assert!(call(&mut v,"chat.review.finish",deny).is_err());
+        let p=call(&mut v,"chat.review.begin",q).unwrap();
+        let approve=json!({"conversationId":A,"requestId":p["requestId"],"decision":"approve"});
+        assert_eq!(call(&mut v,"chat.review.finish",approve.clone()).unwrap()["executed"],true);
+        assert!(call(&mut v,"chat.review.finish",approve).is_err());
+        drop(v);let mut v=NativeVault::open(&f.0).unwrap();
+        let trace=call(&mut v,"chat.review.list",json!({"conversationId":A,"limit":50,"after":null})).unwrap();
+        assert_eq!(trace["items"].as_array().unwrap().len(),2);
+        assert_eq!(call(&mut v,"chat.review.list",json!({"conversationId":B,"limit":50})).unwrap()["items"],json!([]));
+        assert!(call(&mut v,"chat.review.list",json!({"conversationId":A,"limit":51})).is_err());
+    }
+
     #[test]
     fn chat_ipc_denies_wrong_window_scope_version_and_unknown_fields() {
         let mut req=request("chat.list",json!({"limit":1}));
