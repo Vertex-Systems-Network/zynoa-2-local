@@ -28,7 +28,8 @@ def main():
     with closing(sqlite3.connect(path.as_uri() + "?mode=ro", uri=True, timeout=2)) as db:
         assert db.execute("PRAGMA integrity_check").fetchone() == ("ok",)
         assert db.execute("PRAGMA foreign_key_check").fetchall() == []
-        assert db.execute("PRAGMA user_version").fetchone() == (3,)
+        assert db.execute("PRAGMA user_version").fetchone() == (4,)
+        assert db.execute("SELECT count(*) FROM tool_review_decisions").fetchone() == (0,)
         threads = db.execute("SELECT id,title,revision FROM conversations ORDER BY id").fetchall()
         messages = db.execute("SELECT id,conversation_id,parent_id,ordinal,role,content,status,revision FROM messages ORDER BY id").fetchall()
         records = db.execute("SELECT id,class,payload,revision FROM records ORDER BY id").fetchall()

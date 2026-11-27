@@ -7,7 +7,8 @@ use std::fs::{self, OpenOptions};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-const SCHEMA_VERSION: i64 = 3;
+const SCHEMA_VERSION: i64 = 4;
+const ARTIFACT_SCHEMA_VERSION: i64 = 3;
 const CHAT_SCHEMA_VERSION: i64 = 2;
 const MAX_MESSAGE_ATTACHMENTS: usize = 8;
 // Explicit bounded recovery inspection, never a deletion authorization.
@@ -118,6 +119,31 @@ CREATE TABLE artifact_schema_migrations(
     backup_id TEXT,
     applied_at INTEGER NOT NULL,
     CHECK((from_version IN (0,1) AND backup_id IS NULL) OR (from_version=2 AND backup_id IS NOT NULL))
+);
+";
+
+// V4 keeps private review decisions alongside the durable conversation.
+const TOOL_REVIEW_SCHEMA: &str = "
+CREATE TABLE tool_review_decisions(
+    request_id TEXT PRIMARY KEY NOT NULL CHECK(length(request_id) BETWEEN 8 AND 64 AND request_id NOT GLOB '*[^A-Za-z0-9_-]*'),
+    conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE RESTRICT,
+    turn_id TEXT NOT NULL CHECK(length(turn_id) BETWEEN 8 AND 64 AND turn_id NOT GLOB '*[^A-Za-z0-9_-]*'),
+    target_id TEXT NOT NULL CHECK(length(target_id) BETWEEN 8 AND 64 AND target_id NOT GLOB '*[^A-Za-z0-9_-]*'),
+    target_sha256 TEXT NOT NULL CHECK(length(target_sha256)=64 AND target_sha256 NOT GLOB '*[^0-9a-f]*'),
+    tool TEXT NOT NULL CHECK(tool IN ('local.read_attachment','local.write_artifact')),
+    decision TEXT NOT NULL CHECK(decision IN ('approve','deny')),
+    recorded_at INTEGER NOT NULL CHECK(typeof(recorded_at)='integer' AND recorded_at>0)
+);
+CREATE TRIGGER tool_review_no_update BEFORE UPDATE ON tool_review_decisions
+    BEGIN SELECT RAISE(ABORT,'immutable review decision'); END;
+CREATE TRIGGER tool_review_no_delete BEFORE DELETE ON tool_review_decisions
+    BEGIN SELECT RAISE(ABORT,'immutable review decision'); END;
+CREATE TABLE tool_review_schema_migrations(
+    version INTEGER PRIMARY KEY CHECK(version=4),
+    from_version INTEGER NOT NULL CHECK(from_version IN (0,1,2,3)),
+    backup_id TEXT,
+    applied_at INTEGER NOT NULL,
+    CHECK((from_version IN (0,1,2) AND backup_id IS NULL) OR (from_version=3 AND backup_id IS NOT NULL))
 );
 ";
 
@@ -334,7 +360,7 @@ fn verify_legacy_table(db: &Connection) -> Result<(), VaultFault> {
 
 fn validate_schema(db: &Connection) -> Result<i64, VaultFault> {
     let v = version(db)?;
-    if !matches!(v, LEGACY_VERSION | CHAT_SCHEMA_VERSION | SCHEMA_VERSION) { return Err(VaultFault::UnsupportedSchema); }
+    if !matches!(v, LEGACY_VERSION | CHAT_SCHEMA_VERSION | ARTIFACT_SCHEMA_VERSION | SCHEMA_VERSION) { return Err(VaultFault::UnsupportedSchema); }
     integrity_check(db)?;
     verify_legacy_table(db)?;
     if v == LEGACY_VERSION {
@@ -355,7 +381,7 @@ fn validate_schema(db: &Connection) -> Result<i64, VaultFault> {
             [], |r| r.get(0)
         ).map_err(|_| VaultFault::Corrupt)?;
         if migrated != 1 { return Err(VaultFault::Corrupt); }
-        if v == SCHEMA_VERSION {
+        if v >= ARTIFACT_SCHEMA_VERSION {
             for table in ["managed_artifacts", "artifact_links", "artifact_schema_migrations"] {
                 let found: i64 = db.query_row(
                     "SELECT count(*) FROM sqlite_schema WHERE type='table' AND name=?1", [table], |r| r.get(0)
@@ -365,6 +391,21 @@ fn validate_schema(db: &Connection) -> Result<i64, VaultFault> {
             let migrated: i64 = db.query_row(
                 "SELECT count(*) FROM artifact_schema_migrations WHERE version=3 AND
                  ((from_version IN (0,1) AND backup_id IS NULL) OR (from_version=2 AND backup_id IS NOT NULL))",
+                [], |r| r.get(0)
+            ).map_err(|_| VaultFault::Corrupt)?;
+            if migrated != 1 { return Err(VaultFault::Corrupt); }
+        }
+        if v == SCHEMA_VERSION {
+            let found: i64 = db.query_row(
+                "SELECT count(*) FROM sqlite_schema WHERE (type='table' AND name IN
+                 ('tool_review_decisions','tool_review_schema_migrations')) OR (type='trigger' AND name IN
+                 ('tool_review_no_update','tool_review_no_delete'))",
+                [], |r| r.get(0)
+            ).map_err(|_| VaultFault::Corrupt)?;
+            if found != 4 { return Err(VaultFault::Corrupt); }
+            let migrated: i64 = db.query_row(
+                "SELECT count(*) FROM tool_review_schema_migrations WHERE version=4 AND
+                 ((from_version IN (0,1,2) AND backup_id IS NULL) OR (from_version=3 AND backup_id IS NOT NULL))",
                 [], |r| r.get(0)
             ).map_err(|_| VaultFault::Corrupt)?;
             if migrated != 1 { return Err(VaultFault::Corrupt); }
@@ -394,6 +435,16 @@ fn apply_v3(db: &Connection, from: i64, backup_id: Option<&str>) -> Result<(), V
          VALUES(3,?1,?2,unixepoch())", params![from,backup_id],
     ).map_err(map_sql)?;
     db.execute_batch("PRAGMA user_version=3;").map_err(map_sql)?;
+    Ok(())
+}
+
+fn apply_v4(db: &Connection, from: i64, backup_id: Option<&str>) -> Result<(), VaultFault> {
+    db.execute_batch(TOOL_REVIEW_SCHEMA).map_err(map_sql)?;
+    db.execute(
+        "INSERT INTO tool_review_schema_migrations(version,from_version,backup_id,applied_at)
+         VALUES(4,?1,?2,unixepoch())", params![from,backup_id],
+    ).map_err(map_sql)?;
+    db.execute_batch("PRAGMA user_version=4;").map_err(map_sql)?;
     Ok(())
 }
 
@@ -520,6 +571,7 @@ impl NativeVault {
                 tx.execute_batch(LEGACY_SCHEMA).map_err(map_sql)?;
                 apply_v2(&tx, 0, None)?;
                 apply_v3(&tx, 0, None)?;
+                apply_v4(&tx, 0, None)?;
             }
             LEGACY_VERSION => {
                 validate_schema(&tx)?;
@@ -537,6 +589,7 @@ impl NativeVault {
                 drop(source);
                 apply_v2(&tx, LEGACY_VERSION, Some(&backup_id))?;
                 apply_v3(&tx, LEGACY_VERSION, None)?;
+                apply_v4(&tx, LEGACY_VERSION, None)?;
             }
             CHAT_SCHEMA_VERSION => {
                 validate_schema(&tx)?;
@@ -550,6 +603,20 @@ impl NativeVault {
                 snapshot_connection_new(app_root, &source, &backup_id)?;
                 drop(source);
                 apply_v3(&tx, CHAT_SCHEMA_VERSION, Some(&backup_id))?;
+                apply_v4(&tx, CHAT_SCHEMA_VERSION, None)?;
+            }
+            ARTIFACT_SCHEMA_VERSION => {
+                validate_schema(&tx)?;
+                let stamp = SystemTime::now().duration_since(UNIX_EPOCH)
+                    .map_err(|_| VaultFault::StorageUnavailable)?.as_nanos();
+                let backup_id = format!("pre_v4_{}_{stamp}", std::process::id());
+                let source = Connection::open_with_flags(&file, OpenFlags::SQLITE_OPEN_READ_ONLY)
+                    .map_err(map_sql)?;
+                source.busy_timeout(Duration::from_secs(2)).map_err(map_sql)?;
+                if validate_schema(&source)? != ARTIFACT_SCHEMA_VERSION { return Err(VaultFault::Conflict); }
+                snapshot_connection_new(app_root, &source, &backup_id)?;
+                drop(source);
+                apply_v4(&tx, ARTIFACT_SCHEMA_VERSION, Some(&backup_id))?;
             }
             SCHEMA_VERSION => { validate_schema(&tx)?; }
             _ => return Err(VaultFault::UnsupportedSchema),
@@ -558,6 +625,31 @@ impl NativeVault {
         if validate_schema(&tx)? != SCHEMA_VERSION { return Err(VaultFault::Corrupt); }
         tx.commit().map_err(map_sql)?;
         Ok(Self { app_root: app_root.to_path_buf(), conn, attachment_draft: AttachmentDraft::default(), discarded_uploads: std::collections::VecDeque::new() })
+    }
+
+    /// Persist an exact native review decision, never a capability grant.
+    /// A replay (even identical) conflicts; a future broker must separately
+    /// verify provenance, target and expiry and atomically consume authority.
+    pub(crate) fn record_tool_review(&mut self,
+        expected: &crate::artifact_contracts::ToolReviewIdentity,
+        actual: &crate::artifact_contracts::ToolReviewIdentity,
+        choice: crate::artifact_contracts::ReviewChoice) -> Result<(), VaultFault>
+    {
+        use crate::artifact_contracts::{classify_tool_review, ReviewState};
+        let decision = match classify_tool_review(expected, Some((actual, choice))) {
+            ReviewState::ApprovedCandidate => "approve",
+            ReviewState::Denied => "deny",
+            _ => return Err(VaultFault::InvalidRecord),
+        };
+        let (conversation, turn, request, target, digest, tool) = expected.record_fields();
+        let tx = self.conn.transaction_with_behavior(TransactionBehavior::Immediate).map_err(map_sql)?;
+        tx.execute(
+            "INSERT INTO tool_review_decisions(request_id,conversation_id,turn_id,target_id,target_sha256,tool,decision,recorded_at)
+             VALUES(?1,?2,?3,?4,?5,?6,?7,unixepoch())",
+            params![request,conversation,turn,target,digest,tool,decision],
+        ).map_err(map_sql)?;
+        tx.commit().map_err(map_sql)?;
+        Ok(())
     }
 
     /// Accept only bytes already supplied to the local chat domain. The chunk
@@ -1259,6 +1351,80 @@ mod tests {
     impl Drop for Fixture { fn drop(&mut self) { let _ = fs::remove_dir_all(&self.0); } }
 
     #[test]
+    fn tool_review_v3_migration_preserves_chat_and_snapshot() {
+        let f=Fixture::new();
+        let app=f.app();
+        let path=checked_child(&app,"data").unwrap().join("state.sqlite");
+        let db=Connection::open(&path).unwrap();
+        db.execute_batch(LEGACY_SCHEMA).unwrap();
+        apply_v2(&db,0,None).unwrap();
+        apply_v3(&db,0,None).unwrap();
+        db.execute_batch("INSERT INTO conversations VALUES('thread_alpha','Synthetic',1,1,1);
+            INSERT INTO messages VALUES('message_0001','thread_alpha',NULL,1,'user','previous chat','complete',1,1);").unwrap();
+        drop(db);
+        let v=NativeVault::open(&app).unwrap();
+        assert_eq!(version(&v.conn).unwrap(),4);
+        assert_eq!(v.get_chat_message("thread_alpha","message_0001").unwrap().unwrap().content,"previous chat");
+        let id:String=v.conn.query_row("SELECT backup_id FROM tool_review_schema_migrations WHERE from_version=3",[],|r|r.get(0)).unwrap();
+        let old=Connection::open_with_flags(app.join("backups").join("snapshots").join(format!("{id}.sqlite")),OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+        assert_eq!(validate_schema(&old).unwrap(),3);
+        assert_eq!(count(&old,"SELECT count(*) FROM messages WHERE content='previous chat'"),1);
+        assert_eq!(count(&old,"SELECT count(*) FROM sqlite_schema WHERE name='tool_review_decisions'"),0);
+    }
+
+    #[test]
+    fn tool_review_v3_migration_requires_backup() {
+        let f=Fixture::new();
+        let app=f.app();
+        let path=checked_child(&app,"data").unwrap().join("state.sqlite");
+        let db=Connection::open(&path).unwrap();
+        db.execute_batch(LEGACY_SCHEMA).unwrap();
+        apply_v2(&db,0,None).unwrap();
+        apply_v3(&db,0,None).unwrap();
+        drop(db);
+        fs::write(app.join("backups"),b"occupied").unwrap();
+        assert!(NativeVault::open(&app).is_err());
+        let db=Connection::open_with_flags(path,OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+        assert_eq!(validate_schema(&db).unwrap(),3);
+        assert_eq!(count(&db,"SELECT count(*) FROM sqlite_schema WHERE name='tool_review_decisions'"),0);
+        assert_eq!(fs::read(app.join("backups")).unwrap(),b"occupied");
+    }
+
+    #[test]
+    fn tool_review_decisions_are_exact_immutable_and_durable() {
+        use crate::artifact_contracts::{ToolReviewIdentity,ReviewChoice};
+        let f=Fixture::new();
+        let app=f.app();
+        let mut v=NativeVault::open(&app).unwrap();
+        v.create_conversation("thread_alpha","One").unwrap();
+        v.create_conversation("thread_bravo","Two").unwrap();
+        let digest="a".repeat(64);
+        let identity=|conversation,request| ToolReviewIdentity::new(conversation,"turn_001",request,
+            "target_001",&digest,"local.read_attachment").unwrap();
+        let a=identity("thread_alpha","request_001");
+        let other=identity("thread_bravo","request_001");
+        let missing=identity("thread_missing","request_003");
+        assert!(v.record_tool_review(&a,&other,ReviewChoice::Approve).is_err());
+        assert!(v.record_tool_review(&missing,&missing,ReviewChoice::Approve).is_err());
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM tool_review_decisions"),0);
+        v.record_tool_review(&a,&a,ReviewChoice::Approve).unwrap();
+        assert!(v.record_tool_review(&a,&a,ReviewChoice::Approve).is_err());
+        assert!(v.record_tool_review(&a,&a,ReviewChoice::Deny).is_err());
+        assert!(v.record_tool_review(&other,&other,ReviewChoice::Approve).is_err());
+        let b=identity("thread_alpha","request_002");
+        v.record_tool_review(&b,&b,ReviewChoice::Deny).unwrap();
+        assert!(v.conn.execute("UPDATE tool_review_decisions SET decision='deny' WHERE request_id='request_001'",[]).is_err());
+        assert!(v.conn.execute("DELETE FROM tool_review_decisions WHERE request_id='request_001'",[]).is_err());
+        drop(v);
+        let v=NativeVault::open(&app).unwrap();
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM tool_review_decisions WHERE conversation_id='thread_alpha'"),2);
+        let choice:String=v.conn.query_row("SELECT decision FROM tool_review_decisions WHERE request_id='request_001'",[],|r|r.get(0)).unwrap();
+        assert_eq!(choice,"approve");
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM tool_review_decisions WHERE decision='deny'"),1);
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM messages"),0);
+    }
+
+    #[test]
     fn text_artifact_is_native_scoped_immutable_replayable_and_context_neutral() {
         let f=Fixture::new();
         let app=f.app();
@@ -1476,7 +1642,7 @@ mod tests {
             INSERT INTO messages VALUES('message_0001','thread_alpha',NULL,1,'user','previous chat','complete',1,1);").unwrap();
         drop(db);
         let v=NativeVault::open(&app).unwrap();
-        assert_eq!(version(&v.conn).unwrap(),3);
+        assert_eq!(version(&v.conn).unwrap(),4);
         assert_eq!(v.get_chat_message("thread_alpha","message_0001").unwrap().unwrap().content,"previous chat");
         let backup_id:String=v.conn.query_row("SELECT backup_id FROM artifact_schema_migrations WHERE from_version=2",[],|r|r.get(0)).unwrap();
         let backup=app.join("backups").join("snapshots").join(format!("{backup_id}.sqlite"));
@@ -1658,8 +1824,10 @@ mod tests {
     fn p03_fresh_schema_wal_full_fk_and_migration_history() {
         let f = Fixture::new();
         let v = NativeVault::open(&f.app()).unwrap();
-        assert_eq!(version(&v.conn).unwrap(), 3);
+        assert_eq!(version(&v.conn).unwrap(), 4);
         assert_eq!(count(&v.conn,"SELECT count(*) FROM artifact_schema_migrations WHERE version=3 AND from_version=0 AND backup_id IS NULL"),1);
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM tool_review_schema_migrations WHERE version=4 AND from_version=0 AND backup_id IS NULL"),1);
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM tool_review_decisions"),0);
         assert_eq!(count(&v.conn,"PRAGMA synchronous"),2);
         assert_eq!(count(&v.conn,"PRAGMA foreign_keys"),1);
         assert_eq!(count(&v.conn,"SELECT count(*) FROM schema_migrations WHERE version=2 AND from_version=0 AND backup_id IS NULL"),1);
@@ -1675,7 +1843,7 @@ mod tests {
         let app=f.app();
         legacy_fixture(&app);
         let v=NativeVault::open(&app).unwrap();
-        assert_eq!(version(&v.conn).unwrap(),3);
+        assert_eq!(version(&v.conn).unwrap(),4);
         assert_eq!(count(&v.conn,"SELECT count(*) FROM artifact_schema_migrations WHERE version=3 AND from_version=1 AND backup_id IS NULL"),1);
         assert_eq!(v.read("legacy_chat_001").unwrap().as_deref(),Some("legacy opaque content"));
         assert_eq!(count(&v.conn,"SELECT revision FROM records WHERE id='legacy_chat_001'"),3);
@@ -1836,7 +2004,7 @@ mod tests {
         let preview=f.0.join("v3-preview.sqlite");
         NativeVault::restore_to_new_test_profile(&snapshot,&preview).unwrap();
         let restored=Connection::open_with_flags(&preview,OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
-        assert_eq!(validate_schema(&restored).unwrap(),3);
+        assert_eq!(validate_schema(&restored).unwrap(),4);
         assert_eq!(count(&restored,"SELECT count(*) FROM messages"),1);
         assert_eq!(count(&v.conn,"SELECT count(*) FROM messages"),2);
         assert_eq!(count(&restored,"SELECT count(*) FROM records"),1);

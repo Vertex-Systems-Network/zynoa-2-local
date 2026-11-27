@@ -78,6 +78,14 @@ pub(crate) struct ToolReviewIdentity {
 }
 
 impl ToolReviewIdentity {
+    pub(crate) fn record_fields(&self) -> (&str, &str, &str, &str, &str, &'static str) {
+        let tool = match self.tool {
+            ReviewTool::ReadAttachment => "local.read_attachment",
+            ReviewTool::WriteArtifact => "local.write_artifact",
+        };
+        (&self.conversation_id, &self.turn_id, &self.request_id, &self.target_id, &self.target_sha256, tool)
+    }
+
     pub(crate) fn new(conversation_id: &str, turn_id: &str, request_id: &str,
         target_id: &str, target_sha256: &str, tool: &str) -> Option<Self> {
         fn valid_id(id: &str) -> bool {

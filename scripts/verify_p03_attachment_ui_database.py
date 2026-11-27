@@ -26,7 +26,8 @@ def main():
     path = root / "state.sqlite"
     assert path.is_file()
     with closing(sqlite3.connect(path.as_uri() + "?mode=ro", uri=True, timeout=2)) as db:
-        assert db.execute("PRAGMA user_version").fetchone() == (3,)
+        assert db.execute("PRAGMA user_version").fetchone() == (4,)
+        assert db.execute("SELECT count(*) FROM tool_review_decisions").fetchone() == (0,)
         assert db.execute("PRAGMA integrity_check").fetchone() == ("ok",)
         assert db.execute("PRAGMA foreign_key_check").fetchall() == []
         threads = db.execute("SELECT id,title,revision,created_at,updated_at FROM conversations ORDER BY id").fetchall()
