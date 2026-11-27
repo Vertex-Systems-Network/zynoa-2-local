@@ -19,6 +19,8 @@
 
 - 2026-11-27 | P03 | RESOLVED | [#32](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/32) | Exact 8508edb Windows parser failure before T03; repair and early AST gate verified on ba82847; T03 and T05–T07 passed.
 
-- 2026-11-27 | P03 | OPEN | [#33](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/33) | Exact ba82847 actual owned file dialog failed filename focus; candidate repair pending verification.
+- 2026-11-27 | P03 | RESOLVED | [#33](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/33) | Exact ba82847 actual owned file dialog failed filename focus; candidate repair pending verification.
 
-- 2026-11-27 | P03 | OPEN | [#33](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/33) | Exact 37c8386 UIA filename discovery failed; native HWND discovery repair candidate, fresh CI pending.
+- 2026-11-27 | P03 | RESOLVED | [#33](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/33) | Exact 37c8386 UIA filename discovery failed; native HWND discovery repair candidate, fresh CI pending.
+
+- 2026-11-27 | P03 | OPEN | [#34](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/34) | Exact deec001 picker and saved DB/blob passed; reopened history UI readback failed; repair candidate pending fresh CI.

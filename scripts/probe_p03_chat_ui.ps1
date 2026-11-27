@@ -470,6 +470,38 @@ function Select-SyntheticFile([string]$Path) {
  [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
  [void](Wait-Name 'Remove p03-attachment-fixture.bin' 'Button' $true)
 }
+function Wait-SavedAttachment([string]$Name,[long]$Bytes) {
+ $expected='Saved attachment: '+$Name+', '+$Bytes+' bytes'
+ $visible=$Name+' ('+$Bytes.ToString('N0',[Globalization.CultureInfo]::GetCultureInfo('en-US'))+' bytes · stored metadata)'
+ $historyCondition=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,'Saved messages')
+ for ($attempt=0;$attempt -lt 80;$attempt++) {
+   $histories=$script:root.FindAll([System.Windows.Automation.TreeScope]::Descendants,$historyCondition)
+   foreach ($history in $histories) {
+     $items=$history.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
+     foreach ($item in $items) {
+       try {
+         $name=([string]$item.Current.Name -replace '\s+',' ').Trim()
+         if ($name -cne $expected -and $name -cne $visible) {continue}
+         if (!$item.Current.IsOffscreen) {Write-Output 'Native saved attachment: exact filename and byte count read back in saved history';return}
+         $scroll=$null
+         if ($item.TryGetCurrentPattern([System.Windows.Automation.ScrollItemPattern]::Pattern,[ref]$scroll)) {$scroll.ScrollIntoView()}
+       } catch [System.Windows.Automation.ElementNotAvailableException] {}
+     }
+   }
+   Start-Sleep -Milliseconds 250
+ }
+ # Preserve provider names/types from synthetic saved history, not real user data.
+ $names=[System.Collections.Generic.List[object]]::new()
+ foreach ($history in $script:root.FindAll([System.Windows.Automation.TreeScope]::Descendants,$historyCondition)) {
+   foreach ($item in $history.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)) {
+     try {
+       if ($names.Count -lt 100) {$names.Add([ordered]@{name=$item.Current.Name;type=$item.Current.ControlType.ProgrammaticName;offscreen=$item.Current.IsOffscreen})}
+     } catch [System.Windows.Automation.ElementNotAvailableException] {}
+   }
+ }
+ ConvertTo-Json -InputObject @($names.ToArray()) -Depth 4 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'synthetic-saved-history-uia.json') -Encoding utf8
+ throw 'ZYN-ATTACH-PROBE-013: exact saved attachment filename and byte count not visible in history'
+}
 if ($AttachmentAcceptance) {
  try {
    if ($ModelAcceptance) {throw 'ZYN-ATTACH-PROBE-008: mutually exclusive journeys'}
@@ -516,10 +548,13 @@ if ($AttachmentAcceptance) {
    if ($firstPid -eq $secondPid) {throw 'ZYN-ATTACH-PROBE-012: distinct process required'}
    Click-Control 'Chat'
    Click-Control 'P03 attachment proof'
+   $script:stage='reopened message UI readback'
    Wait-Assistant 'P03 synthetic attachment message'
-   Wait-Assistant 'p03-attachment-fixture.bin'
+   $script:stage='reopened attachment filename and size UI readback'
+   Wait-SavedAttachment 'p03-attachment-fixture.bin' 70000
    Capture 'M03-OPT-04-candidate.png'
    Stop-Native
+   $script:stage='independent reopened attachment database and blob proof'
    Read-AttachmentVault 'reopened'
    $images=[ordered]@{}
    foreach ($name in @('M03-S03-candidate.png','M03-OPT-04-candidate.png')) {

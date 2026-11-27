@@ -256,3 +256,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-27 | P03 | Resolve actual owned Windows file dialog filename edit rather than Alt+N | Exact runtime identity, dialog-bounded physical click and keyboard readback; fail closed; #33.
 
 2026-11-27 | P03 | Resolve common-dialog filename native HWND when UIA label is absent | Native control IDs, owned foreground, actual keyboard focus and exact readback; diagnostic metadata only; #33.
+
+2026-11-27 | P03 | Verify reopened attachment as accessible filename and byte count in saved history | Actual screenshot shows combined row, not standalone filename; preserve restart and independent reopened DB checks; #34.
