@@ -134,6 +134,20 @@ class NativeProbeIntegrity(unittest.TestCase):
         self.assertLess(workflow.index("name: Upload actual attachment UI candidate evidence"),
                         workflow.index("name: P03 T09 actual Windows text artifact"))
 
+    def test_review_journey_preserves_prior_artifact_and_has_real_decisions(self):
+        source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
+        verifier = (ROOT / "scripts/verify_p03_review_ui_database.py").read_text(encoding="utf-8")
+        workflow = (ROOT / ".github/workflows/p03-native-baseline.yml").read_text(encoding="utf-8")
+        for marker in ("Click-Control 'Deny local tool'", "Click-Control 'Approve local tool'",
+                       "Read-ReviewVault 'denied'", "Read-ReviewVault 'approved'", "Read-ReviewVault 'reopened'",
+                       "Wait-ReviewDecision 'Tool decision: approve local.write_artifact'", "p03-review-ui-proof.json"):
+            self.assertIn(marker, source)
+        self.assertIn("mode=ro", verifier)
+        self.assertIn("tool_review_decisions", verifier)
+        self.assertIn("== baseline", verifier)
+        self.assertLess(workflow.index("name: Upload actual text artifact UI candidate evidence"),
+                        workflow.index("name: P03 T10 actual Windows scoped tool review"))
+
     def test_ast_validation_precedes_build_and_original_acceptance_gates(self):
         workflow = (ROOT / ".github/workflows/p03-native-baseline.yml").read_text(encoding="utf-8")
         self.assertIn("[System.Management.Automation.Language.Parser]::ParseFile", workflow)

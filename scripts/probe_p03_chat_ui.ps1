@@ -7,6 +7,7 @@ param(
  [switch]$AttachmentAcceptance,
  [switch]$PartialAcceptance,
  [switch]$ArtifactAcceptance,
+ [switch]$ReviewAcceptance,
  [string]$PriorModelProofDirectory='',
  [string]$OllamaExecutable=''
 )
@@ -597,6 +598,74 @@ function Wait-ArtifactPreview([string]$Expected) {
    Start-Sleep -Milliseconds 250
  }
  throw 'ZYN-ARTIFACT-PROBE-002: verified readonly artifact text not visible or exact'
+}
+function Read-ReviewVault([string]$Stage) {
+ $result=& python scripts/verify_p03_review_ui_database.py --stage $Stage --output $OutputDirectory --artifact-proof (Join-Path $env:RUNNER_TEMP 'p03-text-artifact-ui-proof')
+ if ($LASTEXITCODE -ne 0) {throw 'ZYN-REVIEW-PROBE-001: independent review DB proof failed'}
+ return ($result | ConvertFrom-Json)
+}
+function Wait-ReviewDecision([string]$Name) {
+ $row=Wait-Name $Name 'ListItem'
+ Focus-Control $row
+ if ($row.Current.IsOffscreen -or $row.Current.BoundingRectangle.IsEmpty) {throw 'ZYN-REVIEW-PROBE-002: decision not visible'}
+}
+if ($ReviewAcceptance) {
+ try {
+   if ($AttachmentAcceptance -or $PartialAcceptance -or $ModelAcceptance -or $ArtifactAcceptance) {throw 'ZYN-REVIEW-PROBE-003: mutually exclusive journeys'}
+   $script:stage='review baseline after T09 proof'
+   $null=Read-ReviewVault 'baseline'
+   $script:stage='native pending and explicit deny'
+   Start-Native
+   $firstPid=$script:app.Id
+   Click-Control 'Chat'
+   Click-Control 'P03 model beta'
+   Click-Control 'Review text artifact tool from message 2'
+   $button=Wait-Name 'Deny local tool' 'Button' $true
+   Focus-Control $button
+   Capture 'M03-S05-review-pending-candidate.png'
+   Click-Control 'Deny local tool'
+   Wait-ReviewDecision 'Tool decision: deny local.write_artifact'
+   Capture 'M03-OPT-08-denied-candidate.png'
+   Stop-Native
+   $null=Read-ReviewVault 'denied'
+   $script:stage='native reopened denial and explicit approval'
+   Start-Native
+   $secondPid=$script:app.Id
+   if ($secondPid -eq $firstPid) {throw 'ZYN-REVIEW-PROBE-004: distinct process required'}
+   Click-Control 'Chat'
+   Click-Control 'P03 model beta'
+   Click-Control 'Refresh tool trace'
+   Wait-ReviewDecision 'Tool decision: deny local.write_artifact'
+   Click-Control 'Review text artifact tool from message 2'
+   Click-Control 'Approve local tool'
+   Wait-ReviewDecision 'Tool decision: approve local.write_artifact'
+   Capture 'M03-OPT-08-approved-candidate.png'
+   Click-Control 'Preview text artifact from receipt 3'
+   Stop-Native
+   $null=Read-ReviewVault 'approved'
+   $script:stage='restart and actual review trace readback'
+   Start-Native
+   $thirdPid=$script:app.Id
+   if ($thirdPid -in @($firstPid,$secondPid)) {throw 'ZYN-REVIEW-PROBE-005: distinct process required'}
+   Click-Control 'Chat'
+   Click-Control 'P03 model beta'
+   Click-Control 'Refresh tool trace'
+   Wait-ReviewDecision 'Tool decision: deny local.write_artifact'
+   Wait-ReviewDecision 'Tool decision: approve local.write_artifact'
+   Capture 'M03-OPT-08-reopened-candidate.png'
+   Stop-Native
+   $null=Read-ReviewVault 'reopened'
+   $images=[ordered]@{}
+   foreach ($name in @('M03-S05-review-pending-candidate.png','M03-OPT-08-denied-candidate.png','M03-OPT-08-approved-candidate.png','M03-OPT-08-reopened-candidate.png')) {
+     $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
+   }
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;approved_pid=$secondPid;reopened_pid=$thirdPid;synthetic_only=$true;actual_native_denial=$true;actual_native_approval=$true;reopened_trace=$true;independent_db_and_blob_proof=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-review-ui-proof.json') -Encoding utf8
+ } catch {
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-review-ui-failure.json') -Encoding utf8
+   if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {try {Capture 'DEBUG-native-review-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}}
+   throw
+ } finally {Stop-Native}
+ return
 }
 if ($ArtifactAcceptance) {
  try {

@@ -365,3 +365,25 @@ jobs:
           name: p03-text-artifact-ui-${{ github.run_attempt }}
           path: ${{ runner.temp }}/p03-text-artifact-ui-proof/
           if-no-files-found: error
+
+      - name: P03 T10 actual Windows scoped tool review denial approval and restart candidate
+        shell: pwsh
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
+          & scripts/probe_p03_chat_ui.ps1 -Executable $exe -SourceSha $env:EXACT_HEAD -OutputDirectory (Join-Path $env:RUNNER_TEMP 'p03-review-ui-proof') -ReviewAcceptance
+          if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) { throw 'P03 review native probe failed' }
+      - name: Preserve failed review UI diagnostics (not acceptance)
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-review-ui-failure-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-review-ui-proof/
+          if-no-files-found: warn
+      - name: Upload actual review UI candidate evidence
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-review-ui-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-review-ui-proof/
+          if-no-files-found: error

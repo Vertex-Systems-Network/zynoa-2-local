@@ -266,21 +266,6 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
      <textarea readOnly aria-label="Verified artifact text" value={artifactPreview.content} rows={5} spellCheck={false}/>
      <button type="button" className="subtle-action" onClick={()=>setArtifactPreview(null)}>Close artifact preview</button>
     </section>}
-    <section className="chat-recovery" aria-label="Tool trace and permission review">
-     <h3>Tool trace and permission review</h3>
-     <p className="chat-notice">Only explicitly reviewed local attachment verification and fixed text artifact actions are supported. Model-requested tools remain blocked.</p>
-     {review&&review.conversationId===selected.id&&<div role="group" aria-label="Pending local tool review">
-      <p>{review.tool==="local.read_attachment"?"Verify saved attachment":"Generate fixed text artifact"}</p>
-      <p className="chat-notice">Target ID: {review.targetId}</p>
-      <p className="chat-notice" style={{overflowWrap:"anywhere"}}>SHA-256: {review.targetSha256}</p>
-      <p>Review expires after two minutes. Approval applies only to this action.</p>
-      <div className="chat-actions"><button type="button" className="gold-action" disabled={!canEdit||activeTurn!==null} onClick={()=>finishReview("approve")}>Approve local tool</button><button type="button" className="subtle-action" disabled={!canEdit||activeTurn!==null} onClick={()=>finishReview("deny")}>Deny local tool</button></div>
-     </div>}
-     <button type="button" className="subtle-action" disabled={!canEdit||activeTurn!==null} onClick={()=>void run(()=>loadReviewTrace(selected.id))}>Refresh tool trace</button>
-     {traceLoaded&&trace.length===0&&<p className="chat-notice">No recorded tool decisions in this conversation.</p>}
-     <ul aria-label="Recorded tool decisions">{trace.map(row=><li key={row.requestId}><strong>{row.decision==="approve"?"Approved":"Denied"} · {row.tool}</strong><p className="chat-notice" style={{overflowWrap:"anywhere"}}>Request: {row.requestId} · target: {row.targetId} · SHA-256: {row.targetSha256}</p><small>Historical decision, not an execution receipt or reusable permission.</small></li>)}</ul>
-     {traceCursor!==null&&<button type="button" className="subtle-action" disabled={!canEdit} onClick={()=>void run(()=>loadReviewTrace(selected.id,traceCursor))}>More tool decisions</button>}
-    </section>
     <form onSubmit={save}><label htmlFor="chat-message">Message</label><textarea id="chat-message" data-testid="chat-message" ref={composerRef} value={draft} maxLength={262144} disabled={!canEdit} onChange={e=>{setDraft(e.target.value);setContext(null);}} aria-describedby="chat-draft-info"/>
     <p id="chat-draft-info" className="chat-notice">{byteLength(draft)} / 262144 bytes · Drafts are session-only.</p>
     <div role="group" aria-label="Draft attachments">
@@ -300,6 +285,21 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
       <p role="status" className="chat-notice">Managed file check complete. Point-in-time result; no files were changed.</p>
       <ul aria-label="Managed file counts">{recoveryRows(recovery).map(row=><li key={row} aria-label={row} tabIndex={-1}>{row}</li>)}</ul>
      </div>}
+    </section>
+    <section className="chat-recovery" aria-label="Tool trace and permission review">
+     <h3>Tool trace and permission review</h3>
+     <p className="chat-notice">Only explicitly reviewed local attachment verification and fixed text artifact actions are supported. Model-requested tools remain blocked.</p>
+     {review&&review.conversationId===selected.id&&<div role="group" aria-label="Pending local tool review">
+      <p>{review.tool==="local.read_attachment"?"Verify saved attachment":"Generate fixed text artifact"}</p>
+      <p className="chat-notice">Target ID: {review.targetId}</p>
+      <p className="chat-notice" style={{overflowWrap:"anywhere"}}>SHA-256: {review.targetSha256}</p>
+      <p>Review expires after two minutes. Approval applies only to this action.</p>
+      <div className="chat-actions"><button type="button" className="gold-action" disabled={!canEdit||activeTurn!==null} onClick={()=>finishReview("approve")}>Approve local tool</button><button type="button" className="subtle-action" disabled={!canEdit||activeTurn!==null} onClick={()=>finishReview("deny")}>Deny local tool</button></div>
+     </div>}
+     <button type="button" className="subtle-action" disabled={!canEdit||activeTurn!==null} onClick={()=>void run(()=>loadReviewTrace(selected.id))}>Refresh tool trace</button>
+     {traceLoaded&&trace.length===0&&<p className="chat-notice">No recorded tool decisions in this conversation.</p>}
+     <ul aria-label="Recorded tool decisions">{trace.map(row=><li key={row.requestId} aria-label={`Tool decision: ${row.decision} ${row.tool}`} tabIndex={-1}><strong>{row.decision==="approve"?"Approved":"Denied"} · {row.tool}</strong><p className="chat-notice" style={{overflowWrap:"anywhere"}}>Request: {row.requestId} · target: {row.targetId} · SHA-256: {row.targetSha256}</p><small>Historical decision, not an execution receipt or reusable permission.</small></li>)}</ul>
+     {traceCursor!==null&&<button type="button" className="subtle-action" disabled={!canEdit} onClick={()=>void run(()=>loadReviewTrace(selected.id,traceCursor))}>More tool decisions</button>}
     </section>
     <p className="chat-notice">Inference stays on fixed loopback. Files can be saved with a message. Complete assistant responses can be saved and previewed as verified text artifacts. Opening imported files, model file consumption, model-requested tools and export are not available in this slice. Saved metadata does not grant arbitrary file access.</p>
    </section>
