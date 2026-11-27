@@ -120,3 +120,20 @@ test("native artifact receipts do not mask a later interrupted turn",()=>{
  assert.equal(recoverRetryTarget([...history.slice(0,-1),{...receipt,parentId:stopped.id}],null,cid,null),null);
  assert.equal(recoverRetryTarget([first,done,receipt],null,cid,null),null);
 });
+
+
+test("durable zero-output terminal notice restores only exact original retry parent",()=>{
+ const cid="thread_alpha";
+ const row=(id,ordinal,role,status,parentId=null)=>({id,ordinal,role,status,parentId,attachments:[],content:"synthetic",revision:1,createdAt:1});
+ const user=row("user_001",1,"user","complete");
+ const stopped={...row("attempt_001",2,"system","cancelled",user.id),content:"No assistant text was produced before this turn ended."};
+ const failed={...stopped,id:"attempt_002",ordinal:3,status:"failed"};
+ const target={conversationId:cid,parentId:user.id};
+ assert.deepEqual(recoverRetryTarget([user,stopped],null,cid,null),target);
+ assert.deepEqual(recoverRetryTarget([user,stopped,failed],null,cid,null),target);
+ assert.equal(recoverRetryTarget([user,stopped],2,cid,null),null);
+ assert.equal(recoverRetryTarget([user,{...stopped,content:"other system notice"}],null,cid,null),null);
+ assert.equal(recoverRetryTarget([user,{...stopped,parentId:"other_user"}],null,cid,null),null);
+ assert.equal(recoverRetryTarget([user,{...stopped,attachments:[{id:"unexpected"}]}],null,cid,null),null);
+ assert.equal(recoverRetryTarget([user,stopped,row("assistant_003",3,"assistant","complete",user.id)],null,cid,null),null);
+});

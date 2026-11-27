@@ -14,6 +14,11 @@ export function modelSelectValue(settings:ModelSettings|null,models:readonly Ins
 export function retryAvailable(target:RetryTarget|null,conversationId:string|null,available:boolean):boolean{
  return Boolean(available&&target&&conversationId&&target.conversationId===conversationId);
 }
+// Only native, exact terminal notices can serve as zero-output attempts.
+function interruptedAttempt(m:Message):boolean{
+ return m.status!=="complete"&&m.attachments.length===0&&
+   (m.role==="assistant"||(m.role==="system"&&m.content==="No assistant text was produced before this turn ended."));
+}
 // Recover only from the final history page. A bare saved user message
 // is not evidence of an attempted generation except in the live session.
 export function recoverRetryTarget(messages:readonly Message[],next:number|null,conversationId:string|null,session:RetryTarget|null):RetryTarget|null{
@@ -27,12 +32,12 @@ export function recoverRetryTarget(messages:readonly Message[],next:number|null,
  if(last.role==="user"){
    return last.status==="complete"&&last.attachments.length===0&&session?.conversationId===conversationId&&session.parentId===last.id?session:null;
  }
- if(last.role!=="assistant"||last.status==="complete"||!last.parentId)return null;
+ if(!interruptedAttempt(last)||!last.parentId)return null;
  const parentIndex=messages.findIndex(m=>m.id===last.parentId);
  if(parentIndex<0||parentIndex===messages.length-1)return null;
  const parent=messages[parentIndex];
  if(parent.role!=="user"||parent.status!=="complete"||parent.attachments.length!==0)return null;
- if(messages.slice(parentIndex+1).some(m=>m.role!=="assistant"||m.status==="complete"||m.parentId!==parent.id))return null;
+ if(messages.slice(parentIndex+1).some(m=>!interruptedAttempt(m)||m.parentId!==parent.id))return null;
  return {conversationId,parentId:parent.id};
 }
 export function currentContext(snapshot:ContextSnapshot|null,conversationId:string|null,conversationRevision:number|null,settings:ModelSettings|null,draft:string):ContextInspection|null{

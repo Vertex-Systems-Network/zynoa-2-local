@@ -473,17 +473,19 @@ impl LocalModelGateway {
         } else {
             "failed"
         };
-        let receipt = if output.trim().is_empty() {
-            None
-        } else {
+        let no_output = output.trim().is_empty();
+        // Persist a native status notice, not fabricated assistant text.
+        // Noncomplete rows are excluded from model context and retain the
+        // original user parent for explicit retry after restart.
+        let receipt = {
             let mut vault = storage.lock().map_err(|_| fault("ZYN-MODEL-STORAGE"))?;
             let saved = vault
                 .append_chat_message(ChatMessageInput {
                     id: &q.assistant_message_id,
                     conversation_id: &q.conversation_id,
                     parent_id: Some(&q.parent_id),
-                    role: ChatRole::Assistant,
-                    content: &output,
+                    role: if no_output { ChatRole::System } else { ChatRole::Assistant },
+                    content: if no_output { "No assistant text was produced before this turn ended." } else { &output },
                     status: if cancelled {
                         ChatStatus::Cancelled
                     } else if status == "complete" {
@@ -503,7 +505,7 @@ impl LocalModelGateway {
         })?;
         // Report a blocked tool call even if earlier safe text was committed.
         // The UI reconciles saved history after an error; no tool arguments cross IPC.
-        if !cancelled && (receipt.is_none()
+        if !cancelled && (no_output
             || matches!(&result, Err(error) if error.code == "ZYN-MODEL-TOOL-DENIED")) {
             if let Err(error) = result { return Err(error); }
         }
@@ -1002,7 +1004,8 @@ mod tests {
             let first = first.unwrap();
             assert!(elapsed < Duration::from_secs(2), "Stop stalled at {stage}: {elapsed:?}");
             assert_eq!(first["status"], "cancelled", "{stage}");
-            assert!(first["receipt"].is_null());
+            assert_eq!(first["receipt"]["id"], "message_asst_001");
+            assert_eq!(first["receipt"]["ordinal"], 2);
             assert!(gateway.active.lock().unwrap().is_empty());
             assert!(!gateway.cancel_turn("thread_alpha", "turn_alpha_001").unwrap());
             {
@@ -1012,6 +1015,16 @@ mod tests {
                 assert_eq!(recorded[0].sequence, 1);
                 recorded.clear();
             }
+            // Reopen the actual vault before retry, proving the zero-output
+            // terminal receipt is durable without renderer session state.
+            drop(storage);
+            let reopened = NativeVault::open(&path).unwrap();
+            let stopped = reopened.get_chat_message("thread_alpha", "message_asst_001").unwrap().unwrap();
+            assert_eq!(stopped.role, "system");
+            assert_eq!(stopped.status, "cancelled");
+            assert_eq!(stopped.content, "No assistant text was produced before this turn ended.");
+            assert_eq!(stopped.parent_id.as_deref(), Some("message_user_001"));
+            let storage = Arc::new(Mutex::new(reopened));
             let retry = tauri::async_runtime::block_on(gateway.generate(&storage, GeneratePayload {
                 conversation_id: "thread_alpha".into(), turn_id: "turn_alpha_002".into(),
                 parent_id: "message_user_001".into(), assistant_message_id: "message_asst_002".into(),
@@ -1034,14 +1047,18 @@ mod tests {
             assert_eq!(recorded[1].kind, "terminal");
             drop(storage);
             let reopened = NativeVault::open(&path).unwrap();
-            assert!(reopened.get_chat_message("thread_alpha", "message_asst_001").unwrap().is_none());
+            let stopped = reopened.get_chat_message("thread_alpha", "message_asst_001").unwrap().unwrap();
+            assert_eq!(stopped.role, "system");
+            assert_eq!(stopped.status, "cancelled");
             let saved = reopened.get_chat_message("thread_alpha", "message_asst_002").unwrap().unwrap();
             assert_eq!(saved.status, "complete");
             assert_eq!(saved.content, "retry complete");
             let history = reopened.list_chat_messages("thread_alpha", 0, 10).unwrap();
-            assert_eq!(history.len(), 2);
+            assert_eq!(history.len(), 3);
             assert_eq!(history[0].role, "user");
             assert_eq!(history[1].parent_id.as_deref(), Some("message_user_001"));
+            assert_eq!(history[2].parent_id.as_deref(), Some("message_user_001"));
+            assert_eq!(history[2].role, "assistant");
         }
     }
 
