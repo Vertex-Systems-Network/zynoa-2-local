@@ -930,3 +930,8 @@ P00 closed: `main` = `fe34877` (PR #8). P01 branch `phase/01-foundation`, task l
 - Baseline eab237765468112223c127d0c090379e2d381f95: all six applicable checks passed after unchanged-head Windows rerun 46032175926 (job 140663162826). Initial readiness timeout tracked in #38, cause unconfirmed; remains open.
 - Source c9c0ee6 and UI 960c894: structured denial error survives prior partial commit, loopback integration test covers accepted delta then rejected mixed frame, terminal and durable failed history after reopen. No raw tool request output, grants or dispatch. CHG-P03-M03-TOOL-DENIAL-RECOVERY-20261128; new exact-head CI pending, no local native test execution.
 - T10/T14 evidence links updated, status unchanged 4 DONE / 10 IN_PROGRESS / 2 TODO; no merge or release. Next: verify new test, then implement native scoped review identity and durable one-shot permission trace. Release this lease at handoff.
+
+## 2026-11-28 P03 exact-scope review candidate
+- Exact cca289afd28fd9e91562d11a81b7daab3791a2f3 passed six applicable checks; Windows 46075846164. Prior denial recovery validated.
+- Source d196291ee0c6335abbdedefd1856bce05cb17bb9: native validated tool review identity and classification with two Rust tests; no new execution authority. CHG-P03-M03-SCOPED-TOOL-REVIEW-20261128. Tests pending exact-head CI. No schema change; durable review storage, single-use consumption, IPC, UI and acceptance remain pending.
+- Task board 4 DONE / 10 IN_PROGRESS / 2 TODO; T10 source evidence updated. Next: verify CI, then integrate native-owned durable review trace with migration/rollback acceptance. Lease released at handoff; no merge or release.
