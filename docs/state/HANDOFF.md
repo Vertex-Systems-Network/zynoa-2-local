@@ -1,5 +1,9 @@
 # Handoff (canonical starter)
 
+## 2026-11-28 — T06/T07 scoped functional acceptance closed
+
+6/16 DONE (37.5%); 8 IN_PROGRESS, 2 TODO. Exact 01cee66f17a59e5c8e3e126505bab94af588118a passed six applicable CI; original model and partial/retry evidence verified, five screenshots reviewed, receipt pairs matched and actual Linux context calibration passed. See [acceptance evidence](../evidence/P03_T06_T07_SCOPED_ACCEPTANCE_20261128.md). T06/T07 DONE for scoped task titles, final cross-cutting T14–T16 gates remain. T05 zero-output recovery, T08/T09 independent closure, T10–T13 remaining workflows are priorities. No release, merge or P04. Lease released.
+
 - **P03 T09 native acceptance candidate: exact 4f17126 six applicable CI passed. Separate Windows journey after unchanged T08 proof, create text artifact from real saved model alpha response, exact readonly text UIA preview, distinct restart preview, distinct restart replay. Independent SQLite/blob verifier compares all previous rows, source provenance, one receipt/link, exact UTF-8 hash, preserved prior attachment/stage, identical saved/reopened/replayed fingerprints. Fresh CI and original artifact review pending; 4/16 DONE.** Lease released.
 
 - **P03 T09 IPC/UI candidate: exact 14be72b six applicable CI passed including native artifact backend tests. Add fixed createText/previewText local commands, strict scope/response validation, visible generate control on complete assistant, native verified plain-text preview and explicit replay, receipt-aware retry recovery, behavioral and IPC tests. No arbitrary file reads or model execution. Native UI acceptance still pending; 4/16 DONE.** Lease released.
