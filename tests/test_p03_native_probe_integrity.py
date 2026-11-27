@@ -93,7 +93,9 @@ class NativeProbeIntegrity(unittest.TestCase):
     def test_managed_recovery_inspection_preserves_interrupted_stage(self):
         source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
         verifier = (ROOT / "scripts/verify_p03_attachment_ui_database.py").read_text(encoding="utf-8")
-        for marker in ("Click-Control 'Check managed files'", "Wait-Assistant $expectedRecovery",
+        for marker in ("Click-Control 'Check managed files'", "Wait-RecoveryCounts",
+                       "Managed file check result", "Referenced hashes: 1", "Interrupted stages: 1",
+                       "ZYN-RECOVERY-PROBE-004", "recovery_counts=$recoveryCounts",
                        "[IO.FileMode]::CreateNew", "Read-AttachmentVault 'recovery'",
                        "M03-managed-recovery-candidate.png"):
             self.assertIn(marker, source)

@@ -6,7 +6,9 @@
   "summary": "Bounded native recovery counts, strict response and actual Windows inspection candidate.",
   "status": "implementing",
   "audience": "developer",
-  "source_issue_urls": [],
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/37"
+  ],
   "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
   "affected_option_ids": [
     "M03-OPT-04"

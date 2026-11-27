@@ -674,3 +674,9 @@ main:focus{outline:none}
 .shell .chat-pane input,.shell .chat-pane textarea { min-height:44px; }
 .shell .chat-pane textarea { min-height:100px; }
 @container(max-width:580px){.shell .chat-layout { grid-template-columns:minmax(0,1fr); }}
+
+.shell .chat-recovery-result { margin-top:12px; min-width:0; padding:12px; border:1px solid var(--line); border-radius:9px; background:var(--surface-raised); }
+.shell .chat-recovery-result p { margin:0 0 8px; }
+.shell .chat-recovery-result ul { list-style:none; margin:0; padding:0; display:grid; grid-template-columns:minmax(0,1fr); gap:5px; }
+.shell .chat-recovery-result li { font-size:13px; line-height:1.5; overflow-wrap:anywhere; min-width:0; }
+.shell .chat-recovery-result li:focus-visible { outline:2px solid var(--outline); outline-offset:2px; }

@@ -9,8 +9,11 @@ export type UploadChunk={conversationId:string;messageId:string;artifactId:strin
 export type UploadAck={conversationId:string;messageId:string;artifactId:string;received:number;attachment:Attachment|null};
 export type DiscardDraft={conversationId:string;messageId:string};
 export type RecoveryInventory={referencedHashes:number;verifiedReferenced:number;verifiedUnreferenced:number;unavailableReferenced:number;damagedOrUnreadable:number;interruptedStages:number;unexpectedEntries:number;unlinkedMetadata:number};
-export function recoverySummary(r:RecoveryInventory):string{
- return `Managed file check: ${r.verifiedReferenced} verified referenced, ${r.unavailableReferenced} unavailable referenced, ${r.verifiedUnreferenced} verified unreferenced, ${r.damagedOrUnreadable} damaged or unreadable, ${r.interruptedStages} interrupted stages, ${r.unexpectedEntries} unexpected entries, ${r.unlinkedMetadata} unlinked metadata.`;
+export function recoveryRows(r:RecoveryInventory):string[]{
+ return [`Referenced hashes: ${r.referencedHashes}`,`Verified referenced: ${r.verifiedReferenced}`,
+ `Unavailable referenced: ${r.unavailableReferenced}`,`Verified unreferenced: ${r.verifiedUnreferenced}`,
+ `Damaged or unreadable: ${r.damagedOrUnreadable}`,`Interrupted stages: ${r.interruptedStages}`,
+ `Unexpected entries: ${r.unexpectedEntries}`,`Unlinked metadata: ${r.unlinkedMetadata}`];
 }
 export type ChatCommand="chat.list"|"chat.create"|"chat.history"|"chat.saveUserMessage"|"chat.attachment.chunk"|"chat.attachment.discard"|"chat.recovery.inspect";
 export type Payloads={

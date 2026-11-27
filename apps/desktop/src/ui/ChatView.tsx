@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { chatRequest, chatError, mutationId, uploadSelectedFiles, type SelectedFile } from "../chat-transport";
 import {modelRequest,modelError} from "../model-transport";
-import { byteLength, validText, validSelection, recoverySummary, type RecoveryInventory, type Thread, type Message, type Payloads } from "./chat-contract";
+import { byteLength, validText, validSelection, recoveryRows, type RecoveryInventory, type Thread, type Message, type Payloads } from "./chat-contract";
 import {modelAvailable,modelSelectValue,retryAvailable,recoverRetryTarget,currentContext,type InstalledModel,type ModelSettings,type ContextSnapshot,type RetryTarget} from "./model-contract";
 type Transport="pending"|"connected"|"unavailable"|"preview";
 type Pending={command:"chat.create";payload:Payloads["chat.create"]}|{command:"chat.saveUserMessage";payload:Payloads["chat.saveUserMessage"]}|{command:"attachment-upload";payload:Payloads["chat.saveUserMessage"];files:SelectedFile[]};
@@ -225,7 +225,10 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
      <h3>Managed file recovery</h3>
      <p className="chat-notice">Check local managed files across conversations. This is a bounded read-only inspection, not a repair or deletion. Unreferenced files may still be needed.</p>
      <button type="button" className="subtle-action" disabled={!canEdit||activeTurn!==null} onClick={inspectRecovery}>Check managed files</button>
-     {recovery&&<p role="status" className="chat-notice">{recoverySummary(recovery)} This is a point-in-time result. No files were changed.</p>}
+     {recovery&&<div role="group" aria-label="Managed file check result" className="chat-recovery-result">
+      <p role="status" className="chat-notice">Managed file check complete. Point-in-time result; no files were changed.</p>
+      <ul aria-label="Managed file counts">{recoveryRows(recovery).map(row=><li key={row} aria-label={row} tabIndex={-1}>{row}</li>)}</ul>
+     </div>}
     </section>
     <p className="chat-notice">Inference stays on fixed loopback. Files can be saved with a message; opening files, model file consumption, tools and export are not available in this slice. Saved metadata does not grant file access.</p>
    </section>

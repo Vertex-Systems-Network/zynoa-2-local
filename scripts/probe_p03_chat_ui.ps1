@@ -505,6 +505,45 @@ function Wait-SavedAttachment([string]$Name,[long]$Bytes) {
  ConvertTo-Json -InputObject @($names.ToArray()) -Depth 4 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'synthetic-saved-history-uia.json') -Encoding utf8
  throw 'ZYN-ATTACH-PROBE-013: exact saved attachment filename and byte count not visible in history'
 }
+function Wait-RecoveryCounts {
+ $expected=@('Referenced hashes: 1','Verified referenced: 1','Unavailable referenced: 0','Verified unreferenced: 0','Damaged or unreadable: 0','Interrupted stages: 1','Unexpected entries: 0','Unlinked metadata: 0')
+ $groupCondition=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,'Managed file check result')
+ $seen=[System.Collections.Generic.List[string]]::new()
+ foreach ($name in $expected) {
+   $matched=$false
+   $condition=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,$name)
+   for ($attempt=0;$attempt -lt 80 -and !$matched;$attempt++) {
+     foreach ($group in $script:root.FindAll([System.Windows.Automation.TreeScope]::Descendants,$groupCondition)) {
+       foreach ($item in $group.FindAll([System.Windows.Automation.TreeScope]::Descendants,$condition)) {
+         try {
+           $rect=$item.Current.BoundingRectangle
+           if (!$item.Current.IsOffscreen -and !$rect.IsEmpty -and $rect.Width -gt 0 -and $rect.Height -gt 0) {
+             $matched=$true;break
+           }
+           $scroll=$null
+           if ($item.TryGetCurrentPattern([System.Windows.Automation.ScrollItemPattern]::Pattern,[ref]$scroll)) {$scroll.ScrollIntoView()}
+           elseif ($item.Current.IsKeyboardFocusable) {$item.SetFocus()}
+         } catch [System.Windows.Automation.ElementNotAvailableException] {}
+       }
+       if ($matched) {break}
+     }
+     if (!$matched) {Start-Sleep -Milliseconds 250}
+   }
+   if (!$matched) {
+     $names=[System.Collections.Generic.List[object]]::new()
+     foreach ($group in $script:root.FindAll([System.Windows.Automation.TreeScope]::Descendants,$groupCondition)) {
+       foreach ($item in $group.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)) {
+         try {if ($names.Count -lt 100) {$names.Add([ordered]@{name=$item.Current.Name;type=$item.Current.ControlType.ProgrammaticName;offscreen=$item.Current.IsOffscreen})}}
+         catch [System.Windows.Automation.ElementNotAvailableException] {}
+       }
+     }
+     ConvertTo-Json -InputObject @($names.ToArray()) -Depth 4 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'synthetic-recovery-uia.json') -Encoding utf8
+     throw ('ZYN-RECOVERY-PROBE-004: exact visible recovery count missing: '+$name)
+   }
+   $seen.Add($name)
+ }
+ return @($seen.ToArray())
+}
 if ($AttachmentAcceptance) {
  try {
    if ($ModelAcceptance) {throw 'ZYN-ATTACH-PROBE-008: mutually exclusive journeys'}
@@ -575,8 +614,8 @@ if ($AttachmentAcceptance) {
    Click-Control 'Chat'
    Click-Control 'P03 attachment proof'
    Click-Control 'Check managed files'
-   $expectedRecovery='Managed file check: 1 verified referenced, 0 unavailable referenced, 0 verified unreferenced, 0 damaged or unreadable, 1 interrupted stages, 0 unexpected entries, 0 unlinked metadata. This is a point-in-time result. No files were changed.'
-   Wait-Assistant $expectedRecovery
+   $recoveryCounts=@(Wait-RecoveryCounts)
+   if ($recoveryCounts.Count -ne 8) {throw 'ZYN-RECOVERY-PROBE-005: incomplete native recovery count readback'}
    Capture 'M03-managed-recovery-candidate.png'
    Stop-Native
    $script:stage='independent recovery stage and prior DB preservation'
@@ -585,7 +624,7 @@ if ($AttachmentAcceptance) {
    foreach ($name in @('M03-S03-candidate.png','M03-OPT-04-candidate.png','M03-managed-recovery-candidate.png')) {
      $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
    }
-   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;actual_os_picker=$true;remove_reselect=$true;original_removed=$true;database_blob_reopen_verified=$true;ui_filename_readback=$true;actual_recovery_inspection=$true;recovery_pid=$recoveryPid;interrupted_stage_preserved=$true;input_checks=@($script:inputChecks.ToArray());images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false;model_ingestion_claimed=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-attachment-ui-proof.json') -Encoding utf8
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;actual_os_picker=$true;remove_reselect=$true;original_removed=$true;database_blob_reopen_verified=$true;ui_filename_readback=$true;actual_recovery_inspection=$true;recovery_counts=$recoveryCounts;recovery_pid=$recoveryPid;interrupted_stage_preserved=$true;input_checks=@($script:inputChecks.ToArray());images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false;model_ingestion_claimed=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-attachment-ui-proof.json') -Encoding utf8
  } catch {
    [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true;input_checks=@($script:inputChecks.ToArray())} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-attachment-ui-failure.json') -Encoding utf8
    if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {try {Capture 'DEBUG-native-attachment-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}}
