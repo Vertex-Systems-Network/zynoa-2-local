@@ -1,5 +1,7 @@
 # Status — 2026-11-26
 
+P03 native probe parser repair candidate (2026-11-27): exact 8508edb Windows failed before T03 execution with ParserError line 355; T05–T08 skipped; five other applicable workflows passed. #32: remove duplicated script tail inside regex insertion; old model and baseline blocks byte-for-byte unchanged, add early actual PowerShell AST parser and source-integrity tests. New exact-head CI pending. 4/16 DONE; no merge/release.
+
 P03 T08 native attachment acceptance candidate (2026-11-27): exact ccb1d59 six applicable workflows passed. Added actual owned Windows OS picker journey with remove/reselect, multi-chunk synthetic file, UI save, independent read-only database/blob check, removal of original and distinct-process reopen. Candidate evidence not yet executed on new head; model ingestion, full accessibility, orphan recovery remain pending. 4/16 DONE; no merge/release.
 
 P03 T08 attachment composer candidate: exact 06005f1 six applicable workflows passed. File input uses OS/WebView selection only, local chunk transport, scoped progress, selection limits, remove/clear, save with exact manifest and retry/discard. Model Send disabled while files selected; file bytes not sent to model. Recent discard tombstones reject delayed chunks. Fresh exact-head native CI and end-to-end attachment journey pending; 4/16 DONE; no merge/release.

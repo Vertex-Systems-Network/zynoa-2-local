@@ -6,7 +6,9 @@
   "summary": "Actual owned Windows dialog selection and read-only managed blob/SQLite restart verification.",
   "status": "implementing",
   "audience": "developer",
-  "source_issue_urls": [],
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/32"
+  ],
   "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
   "affected_option_ids": [
     "M03-OPT-04"
@@ -24,7 +26,8 @@
   "test_evidence": [
     "scripts/probe_p03_chat_ui.ps1",
     "scripts/verify_p03_attachment_ui_database.py",
-    ".github/workflows/p03-native-baseline.yml"
+    ".github/workflows/p03-native-baseline.yml",
+    "tests/test_p03_native_probe_integrity.py"
   ],
   "commit_sha": null,
   "release": null,

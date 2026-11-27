@@ -38,6 +38,18 @@ jobs:
           if ((git rev-parse HEAD).Trim() -cne $env:EXACT_HEAD) { throw 'P03 source mismatch' }
           $s = Get-Content docs/state/PHASE.json -Raw | ConvertFrom-Json
           if ($s.phase -cne 'P03' -or $s.phase_status -cne 'IN_PROGRESS' -or $s.active_branch -cne 'phase/03-chat' -or $s.primary_pr -ne [int]$env:PRIMARY_PR) { throw 'P03 phase binding mismatch' }
+      - name: Parse Windows native probe before build
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $parseErrors = $null
+          $file = Join-Path $env:GITHUB_WORKSPACE 'scripts/probe_p03_chat_ui.ps1'
+          $null = [System.Management.Automation.Language.Parser]::ParseFile($file,[ref]$tokens,[ref]$parseErrors)
+          if ($parseErrors.Count -gt 0) {
+            foreach ($entry in $parseErrors) { Write-Error -ErrorAction Continue ("Probe parser error at line " + $entry.Extent.StartLineNumber + ": " + $entry.Message) }
+            throw 'P03 native probe parser validation failed'
+          }
+          Write-Output 'Native PowerShell probe parsed without errors'
       - name: Existing native and shared UI regression suite
         run: python -m unittest discover -s tests -v
       - name: Resolve pinned dependency inventory

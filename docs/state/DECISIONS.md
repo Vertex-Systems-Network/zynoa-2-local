@@ -250,3 +250,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-26 | P03 | Enable explicit WebView file selection and save-only attachments | No arbitrary paths, model attachment bytes or new grant; final manifest retry differs from unfinished upload retry. Recent discard tombstones; exact native picker journey required.
 
 2026-11-27 | P03 | Add actual OS picker and independent attachment restart acceptance | Preserve prior gates and previous chat/model state. Source fixture deletion is disposable CI only. No model file ingestion or acceptance claim until exact run.
+
+2026-11-27 | P03 | Repair corrupted literal insertion in native PowerShell probe; parse before build | Preserve previous journeys and all acceptance assertions; #32.
