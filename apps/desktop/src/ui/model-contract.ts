@@ -3,9 +3,13 @@ export type InstalledModel={name:string;digest:string;size:number};
 export type ModelSettings={model:string;contextLimit:number;revision:number};
 export type ContextInspection={estimatedTokens:number;limit:number;includedMessages:number;omittedMessages:number};
 export type RetryTarget={conversationId:string;parentId:string};
-export type ContextSnapshot={conversationId:string;settingsRevision:number;draft:string;inspection:ContextInspection};
+export type ContextSnapshot={conversationId:string;conversationRevision:number;settingsRevision:number;draft:string;inspection:ContextInspection};
 export function modelAvailable(settings:ModelSettings|null,models:readonly InstalledModel[],runtimeVersion:string):boolean{
  return Boolean(runtimeVersion&&settings&&models.some(model=>model.name===settings.model));
+}
+// The select value represents the durable preference, not a speculative fallback.
+export function modelSelectValue(settings:ModelSettings|null,models:readonly InstalledModel[],runtimeVersion:string):string{
+ return modelAvailable(settings,models,runtimeVersion)?settings!.model:"";
 }
 export function retryAvailable(target:RetryTarget|null,conversationId:string|null,available:boolean):boolean{
  return Boolean(available&&target&&conversationId&&target.conversationId===conversationId);
@@ -26,8 +30,8 @@ export function recoverRetryTarget(messages:readonly Message[],next:number|null,
  if(messages.slice(parentIndex+1).some(m=>m.role!=="assistant"||m.status==="complete"||m.parentId!==parent.id))return null;
  return {conversationId,parentId:parent.id};
 }
-export function currentContext(snapshot:ContextSnapshot|null,conversationId:string|null,settings:ModelSettings|null,draft:string):ContextInspection|null{
- return snapshot&&settings&&snapshot.conversationId===conversationId&&snapshot.settingsRevision===settings.revision&&snapshot.draft===draft&&snapshot.inspection.limit===settings.contextLimit?snapshot.inspection:null;
+export function currentContext(snapshot:ContextSnapshot|null,conversationId:string|null,conversationRevision:number|null,settings:ModelSettings|null,draft:string):ContextInspection|null{
+ return snapshot&&settings&&snapshot.conversationId===conversationId&&snapshot.conversationRevision===conversationRevision&&snapshot.settingsRevision===settings.revision&&snapshot.draft===draft&&snapshot.inspection.limit===settings.contextLimit?snapshot.inspection:null;
 }
 export type TurnReceipt={id:string;revision:number;conversationRevision:number;ordinal:number};
 export type TurnResult={turnId:string;status:"complete"|"cancelled"|"failed";receipt:TurnReceipt|null;evalCount:number;context:{estimatedTokens:number;limit:number;omittedMessages:number}};

@@ -264,3 +264,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-27 | P03 | T05.8 independent actual Stop partial persistence journey | Preserve previous native model proof; require actual nonempty live prefix and exact cancelled record, distinct process reopen, no retry claim; update later attachment fixture baseline to preserve new thread.
 
 2026-11-27 | P03 | Recover retry only from latest complete history pagination or explicit in-session zero-output target | Avoid auto-generating save-only rows or stale parents; serialize native admission; use 512 context for bounded actual retry acceptance after verified 8192 Stop. Preserve original partial evidence and only permitted new rows.
+
+2026-11-27 | P03 | Show unavailable model rather than speculative fallback; read native preference on inventory refresh; scope context to conversation revision | Preserve per-thread choice; invalidate stale estimate; no new authority/schema.

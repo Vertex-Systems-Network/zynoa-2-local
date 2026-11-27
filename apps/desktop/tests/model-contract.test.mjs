@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {decodeModelEvent,decodeModelReply,modelAvailable,retryAvailable,recoverRetryTarget,currentContext} from "../.ui-tests/model-contract.js";
+import {decodeModelEvent,decodeModelReply,modelAvailable,modelSelectValue,retryAvailable,recoverRetryTarget,currentContext} from "../.ui-tests/model-contract.js";
 const root=(command,correlationId,data)=>({schemaVersion:1,commandId:command,correlationId,data});
 test("model health accepts bounded installed inventory and rejects extra authority",()=>{
  const ok=decodeModelReply(root("inference.health","correlation-00001",{version:"0.40.18",models:[{name:"qwen2.5:0.5b",digest:"abc",size:10}]}),"inference.health","correlation-00001",{});
@@ -50,13 +50,15 @@ test("model availability and retry are bound to the installed inventory and sele
 test("context inspection belongs to exact draft, thread and settings revision",()=>{
  const settings={model:"qwen2.5:0.5b",contextLimit:2048,revision:2};
  const inspection={estimatedTokens:400,limit:2048,includedMessages:1,omittedMessages:0};
- const snapshot={conversationId:"thread_alpha",settingsRevision:2,draft:"hello",inspection};
- assert.equal(currentContext(snapshot,"thread_alpha",settings,"hello"),inspection);
- assert.equal(currentContext(snapshot,"thread_alpha",settings,"changed"),null);
- assert.equal(currentContext(snapshot,"thread_bravo",settings,"hello"),null);
- assert.equal(currentContext(snapshot,"thread_alpha",{...settings,revision:3},"hello"),null);
- assert.equal(currentContext(snapshot,"thread_alpha",{...settings,contextLimit:1024},"hello"),null);
- assert.equal(currentContext(snapshot,"thread_alpha",null,"hello"),null);
+ const snapshot={conversationId:"thread_alpha",conversationRevision:5,settingsRevision:2,draft:"hello",inspection};
+ assert.equal(currentContext(snapshot,"thread_alpha",5,settings,"hello"),inspection);
+ assert.equal(currentContext(snapshot,"thread_alpha",5,settings,"changed"),null);
+ assert.equal(currentContext(snapshot,"thread_alpha",6,settings,"hello"),null);
+ assert.equal(currentContext(snapshot,"thread_alpha",null,settings,"hello"),null);
+ assert.equal(currentContext(snapshot,"thread_bravo",5,settings,"hello"),null);
+ assert.equal(currentContext(snapshot,"thread_alpha",5,{...settings,revision:3},"hello"),null);
+ assert.equal(currentContext(snapshot,"thread_alpha",5,{...settings,contextLimit:1024},"hello"),null);
+ assert.equal(currentContext(snapshot,"thread_alpha",5,null,"hello"),null);
 });
 test("settings acknowledgement must match the requested choice and stream cannot skip sequence",()=>{
  const command="inference.settings.set",correlation="correlation-00001";
@@ -88,4 +90,18 @@ test("recover retry from final cancelled or failed history without stale or save
  assert.equal(recoverRetryTarget([user,stopped],null,null,target),null);
  assert.equal(recoverRetryTarget([{...user,attachments:[{id:"artifact_1"}]},stopped],null,cid,target),null);
  assert.equal(recoverRetryTarget([user,done,failed],null,cid,target),null);
+});
+
+test("model selector never displays an unacknowledged replacement",()=>{
+ const saved={model:"qwen2.5:0.5b",contextLimit:2048,revision:2};
+ const original={name:saved.model,digest:"original",size:10};
+ const alternative={name:"qwen2.5:1.5b",digest:"alternative",size:20};
+ assert.equal(modelSelectValue(saved,[original,alternative],"0.40.18"),saved.model);
+ assert.equal(modelSelectValue(saved,[alternative],"0.40.18"),"");
+ assert.equal(modelAvailable(saved,[alternative],"0.40.18"),false);
+ assert.equal(modelSelectValue(saved,[],"0.40.18"),"");
+ assert.equal(modelSelectValue(saved,[original],""),"");
+ assert.equal(modelSelectValue(null,[alternative],"0.40.18"),"");
+ assert.equal(modelSelectValue({...saved,model:alternative.name,revision:3},[alternative],"0.40.18"),alternative.name);
+ assert.equal(modelSelectValue(saved,[original],"0.40.18"),saved.model);
 });

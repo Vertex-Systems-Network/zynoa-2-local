@@ -19,11 +19,12 @@ class ChatUiContract(unittest.TestCase):
         transport=(ROOT/"src/model-transport.ts").read_text(encoding="utf-8")
         for fragment in ('modelAvailable(settings,models,runtimeVersion)',
                          'retryAvailable(retryTarget,selected?.id??null,installed)',
-                         'currentContext(contextSnapshot,selected?.id??null,settings,draft)',
+                         'currentContext(contextSnapshot,selected?.id??null,selected?.revision??null,settings,draft)',
                          'invalidateInventory();const health=await',
                          'disabled={!canEdit||!installed||files.length>0||!validText(draft,262144)}>Send',
                          'setDraft(e.target.value);setContext(null)',
                          'activeTurnRef.current===turnId',
+                         'modelSelectValue(settings,models,runtimeVersion)',
                          'Previously selected model unavailable'):
             self.assertIn(fragment,view)
         self.assertIn('closed=true',transport)

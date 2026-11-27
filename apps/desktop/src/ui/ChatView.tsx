@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { chatRequest, chatError, mutationId, uploadSelectedFiles, type SelectedFile } from "../chat-transport";
 import {modelRequest,modelError} from "../model-transport";
 import { byteLength, validText, validSelection, type Thread, type Message, type Payloads } from "./chat-contract";
-import {modelAvailable,retryAvailable,recoverRetryTarget,currentContext,type InstalledModel,type ModelSettings,type ContextSnapshot,type RetryTarget} from "./model-contract";
+import {modelAvailable,modelSelectValue,retryAvailable,recoverRetryTarget,currentContext,type InstalledModel,type ModelSettings,type ContextSnapshot,type RetryTarget} from "./model-contract";
 type Transport="pending"|"connected"|"unavailable"|"preview";
 type Pending={command:"chat.create";payload:Payloads["chat.create"]}|{command:"chat.saveUserMessage";payload:Payloads["chat.saveUserMessage"]}|{command:"attachment-upload";payload:Payloads["chat.saveUserMessage"];files:SelectedFile[]};
 export function ChatView({active,transport,onHelp}:{active:boolean;transport:Transport;onHelp:()=>void}){
@@ -34,8 +34,8 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
  const installed=modelAvailable(settings,models,runtimeVersion);
  const retryTarget=recoverRetryTarget(messages,historyCursor,selected?.id??null,sessionRetry);
  const canRetry=retryAvailable(retryTarget,selected?.id??null,installed);
- const context=currentContext(contextSnapshot,selected?.id??null,settings,draft);
- function invalidateInventory(){setModels([]);setRuntimeVersion("");}
+ const context=currentContext(contextSnapshot,selected?.id??null,selected?.revision??null,settings,draft);
+ function invalidateInventory(){setModels([]);setRuntimeVersion("");setContext(null);}
  async function run(work:()=>Promise<void>){
    if(lock.current||!online)return;
    lock.current=true;setBusy(true);setError("");
@@ -53,19 +53,38 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
    if(after!==0&&(!selected||selected.id!==id||selected.revision!==page.conversation.revision)){
      await history(id);return;
    }
+   // A new history read must not expose another conversation's preference
+   // if its native settings lookup fails.
+   if(after===0){setSettings(null);setContext(null);}
    setSelected(page.conversation);
    setMessages(old=>after===0?page.items:[...old,...page.items.filter(m=>!old.some(x=>x.id===m.id))]);
    setHistoryCursor(page.next);
-   if(after===0){const configured=await modelRequest("inference.settings.get",{conversationId:id});let next= configured.settings;if(!next){const health=await modelRequest("inference.health",{});const first=[...health.models].sort((a,b)=>a.name<b.name?-1:a.name>b.name?1:0)[0];if(first){const reply=await modelRequest("inference.settings.set",{conversationId:id,model:first.name,contextLimit:2048});next=reply.settings;}}setSettings(next);setContext(null);}
+   if(after===0){
+     const configured=await modelRequest("inference.settings.get",{conversationId:id});let next=configured.settings;
+     if(!next){
+       const health=await modelRequest("inference.health",{});
+       const available=[...health.models].sort((a,b)=>a.name<b.name?-1:a.name>b.name?1:0);
+       setModels(available);setRuntimeVersion(health.version);
+       if(available[0]){const reply=await modelRequest("inference.settings.set",{conversationId:id,model:available[0].name,contextLimit:2048});next=reply.settings;}
+     }
+     setSettings(next);setContext(null);
+   }
  }
  async function modelHealth(){invalidateInventory();const health=await modelRequest("inference.health",{});
   const available=[...health.models].sort((a,b)=>a.name<b.name?-1:a.name>b.name?1:0);
   setModels(available);setRuntimeVersion(health.version);
   // Complete bootstrap in the same refresh transaction so WebView2 never
   // observes an enabled selector with only its disabled placeholder.
-  if(selected&&!settings&&available[0]){
-   const reply=await modelRequest("inference.settings.set",{conversationId:selected.id,model:available[0].name,contextLimit:2048});
-   setSettings(reply.settings);
+  if(selected){
+   // Re-read durable settings; an earlier settings lookup may have failed.
+   // Never overwrite a saved preference solely because the model disappeared.
+   setSettings(null);
+   const configured=await modelRequest("inference.settings.get",{conversationId:selected.id});
+   if(configured.settings){setSettings(configured.settings);}
+   else if(available[0]){
+     const reply=await modelRequest("inference.settings.set",{conversationId:selected.id,model:available[0].name,contextLimit:2048});
+     setSettings(reply.settings);
+   }
   }
  }
  useEffect(()=>{
@@ -149,7 +168,7 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
  function retry(){if(!canEdit||!canRetry||!retryTarget||activeTurn||lock.current||draft||files.length)return;const target=retryTarget;void run(()=>generate(target.conversationId,target.parentId));}
  function chooseModel(model:string){if(!selected||!canEdit||activeTurn||!runtimeVersion||!models.some(item=>item.name===model))return;void run(async()=>{const reply=await modelRequest("inference.settings.set",{conversationId:selected.id,model,contextLimit:settings?.contextLimit??2048});setSettings(reply.settings);setContext(null);});}
  function chooseContext(contextLimit:number){if(!selected||!settings||!installed||!canEdit||activeTurn)return;void run(async()=>{const reply=await modelRequest("inference.settings.set",{conversationId:selected.id,model:settings.model,contextLimit});setSettings(reply.settings);setContext(null);});}
- function inspectContext(){if(!selected||!settings||!canEdit)return;const conversationId=selected.id,settingsRevision=settings.revision;setContext(null);void run(async()=>setContext({conversationId,settingsRevision,draft,inspection:await modelRequest("inference.context.inspect",{conversationId,draft})}));}
+ function inspectContext(){if(!selected||!settings||!canEdit)return;const conversationId=selected.id,conversationRevision=selected.revision,settingsRevision=settings.revision;setContext(null);void run(async()=>setContext({conversationId,conversationRevision,settingsRevision,draft,inspection:await modelRequest("inference.context.inspect",{conversationId,draft})}));}
  return <section className="studio-page" aria-labelledby="chat-heading" data-testid="chat-view">
    <div className="section-heading"><div><p className="eyebrow">M03 / LOCAL CONVERSATIONS</p>
    <h1 id="chat-heading">Local AI chat</h1><p className="lead">Create durable conversations and run installed models through the fixed local Ollama service.</p></div>
@@ -173,8 +192,8 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
     <h2 id="chat-detail">{selected?.title??"Select a conversation"}</h2>
     {selected&&<><div className="chat-actions"><button type="button" className="subtle-action" disabled={!canEdit} onClick={()=>void run(()=>history(selected.id))}>Refresh history</button><button type="button" className="subtle-action" disabled={busy||activeTurn!==null} onClick={()=>void run(()=>modelHealth())}>Refresh local models</button></div>
     <div className="chat-model-controls" role="group" aria-label="Local model and context settings">
-     <label htmlFor="chat-model">Model</label><select id="chat-model" value={models.some(model=>model.name===settings?.model)?settings!.model:models[0]?.name??""} disabled={!canEdit||!runtimeVersion||activeTurn!==null} onChange={e=>chooseModel(e.target.value)}>
-      <option value="" disabled>{settings&&!installed?"Previously selected model unavailable":"Choose an installed model"}</option>{models.map(model=><option key={model.name} value={model.name}>{model.name}</option>)}</select>
+     <label htmlFor="chat-model">Model</label><select id="chat-model" value={modelSelectValue(settings,models,runtimeVersion)} disabled={!canEdit||!runtimeVersion||models.length===0||activeTurn!==null} onChange={e=>chooseModel(e.target.value)}>
+      <option value="" disabled>{settings&&!installed?"Previously selected model unavailable":models.length===0?"No installed models":"Choose an installed model"}</option>{models.map(model=><option key={model.name} value={model.name}>{model.name}</option>)}</select>
      {settings&&!installed&&<p className="chat-notice" role="status">The saved model is unavailable. Refresh local models or choose an installed model. Your saved messages are unchanged.</p>}
      <label htmlFor="chat-context">Context budget</label><select id="chat-context" value={settings?.contextLimit??2048} disabled={!installed||!canEdit||activeTurn!==null} onChange={e=>chooseContext(Number(e.target.value))}>
       {[512,1024,2048,4096,8192,16384,32768].map(value=><option key={value} value={value}>{value} tokens</option>)}</select>
