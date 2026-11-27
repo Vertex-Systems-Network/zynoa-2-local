@@ -90,6 +90,16 @@ class NativeProbeIntegrity(unittest.TestCase):
         self.assertIn(".chat-model-controls .chat-notice { grid-column:1/-1;", css)
         self.assertIn("minmax(0, max-content) minmax(0, 1fr)", css)
 
+    def test_managed_recovery_inspection_preserves_interrupted_stage(self):
+        source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
+        verifier = (ROOT / "scripts/verify_p03_attachment_ui_database.py").read_text(encoding="utf-8")
+        for marker in ("Click-Control 'Check managed files'", "Wait-Assistant $expectedRecovery",
+                       "[IO.FileMode]::CreateNew", "Read-AttachmentVault 'recovery'",
+                       "M03-managed-recovery-candidate.png"):
+            self.assertIn(marker, source)
+        self.assertIn('stage.read_bytes() == b"synthetic interrupted stage"', verifier)
+        self.assertIn('json.loads(reopened.read_text(encoding="utf-8")) == proof', verifier)
+
     def test_ast_validation_precedes_build_and_original_acceptance_gates(self):
         workflow = (ROOT / ".github/workflows/p03-native-baseline.yml").read_text(encoding="utf-8")
         self.assertIn("[System.Management.Automation.Language.Parser]::ParseFile", workflow)

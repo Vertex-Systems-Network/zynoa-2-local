@@ -41,6 +41,9 @@ pub struct ChatReply {
 #[serde(rename_all="camelCase",deny_unknown_fields)]
 struct ListPayload { after: Option<String>, limit: u32 }
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RecoveryPayload {}
+#[derive(Deserialize)]
 #[serde(rename_all="camelCase",deny_unknown_fields)]
 struct CreatePayload { id: String, title: String }
 #[derive(Deserialize)]
@@ -109,7 +112,7 @@ fn authorize_request(label:&str, request:&ChatRequest) -> Result<(),ChatError> {
     if request.schema_version!=1 || request.workspace_scope!="local" || !token(&request.correlation_id) {
         return Err(error("ZYN-CHAT-INPUT"));
     }
-    if !matches!(request.command_id.as_str(),"chat.list"|"chat.create"|"chat.history"|"chat.saveUserMessage"|"chat.attachment.chunk"|"chat.attachment.discard") {
+    if !matches!(request.command_id.as_str(),"chat.list"|"chat.create"|"chat.history"|"chat.saveUserMessage"|"chat.attachment.chunk"|"chat.attachment.discard"|"chat.recovery.inspect") {
         return Err(error("ZYN-CHAT-DENIED"));
     }
     if serde_json::to_vec(&request.payload).map_err(|_|error("ZYN-CHAT-INPUT"))?.len()>MAX_REQUEST_BYTES {
@@ -119,6 +122,20 @@ fn authorize_request(label:&str, request:&ChatRequest) -> Result<(),ChatError> {
 }
 fn execute(vault:&mut NativeVault, request:ChatRequest) -> Result<ChatReply,ChatError> {
     let data=match request.command_id.as_str() {
+        "chat.recovery.inspect" => {
+            if !request.payload.is_object() {return Err(error("ZYN-CHAT-INPUT"));}
+            let _:RecoveryPayload=parse(request.payload)?;
+            let report=vault.inspect_managed_recovery()?;
+            // Counts only: no paths, content, file access or mutation authority.
+            json!({"referencedHashes":report.referenced_hashes,
+                "verifiedReferenced":report.verified_referenced,
+                "verifiedUnreferenced":report.verified_unreferenced,
+                "unavailableReferenced":report.unavailable_referenced,
+                "damagedOrUnreadable":report.damaged_or_unreadable,
+                "interruptedStages":report.interrupted_stages,
+                "unexpectedEntries":report.unexpected_entries,
+                "unlinkedMetadata":report.unlinked_metadata})
+        },
         "chat.list" => {
             let q:ListPayload=parse(request.payload)?;
             if !(1..=MAX_THREADS).contains(&q.limit) { return Err(error("ZYN-CHAT-INPUT")); }
@@ -347,6 +364,46 @@ mod tests {
         assert!(call(&mut v,"chat.saveUserMessage",save.clone()).is_err());
         save["attachments"]=json!([]);
         assert_eq!(call(&mut v,"chat.saveUserMessage",save).unwrap()["replayed"],false);
+    }
+
+    #[test]
+    fn chat_ipc_recovery_is_bounded_read_only_and_rejects_authority() {
+        let f=Fixture::new();let mut v=NativeVault::open(&f.0).unwrap();
+        assert!(authorize_request("remote",&request("chat.recovery.inspect",json!({}))).is_err());
+        for bad in [json!({"path":"outside"}),json!({"delete":true}),json!(null),json!([])] {
+            assert!(call(&mut v,"chat.recovery.inspect",bad).is_err());
+        }
+        let empty=json!({"referencedHashes":0,"verifiedReferenced":0,"verifiedUnreferenced":0,
+            "unavailableReferenced":0,"damagedOrUnreadable":0,"interruptedStages":0,
+            "unexpectedEntries":0,"unlinkedMetadata":0});
+        assert_eq!(call(&mut v,"chat.recovery.inspect",json!({})).unwrap(),empty);
+        call(&mut v,"chat.create",json!({"id":A,"title":"Synthetic"})).unwrap();
+        let receipt=v.stage_managed_blob("keep.txt",b"sole synthetic copy").unwrap();
+        let hash=receipt.sha256.clone();
+        let directory=f.0.join("data").join("artifacts").join("sha256").join(&hash[..2]);
+        let stage=directory.join(".stage-1-2-3");
+        std::fs::write(&stage,b"interrupted synthetic bytes").unwrap();
+        let mut expected=empty.clone();
+        expected["verifiedUnreferenced"]=json!(1);
+        expected["interruptedStages"]=json!(1);
+        assert_eq!(call(&mut v,"chat.recovery.inspect",json!({})).unwrap(),expected);
+        let a=LinkedAttachment{id:"artifact-alpha-001".into(),receipt:receipt.clone()};
+        v.append_chat_message_with_attachments(ChatMessageInput{id:M,conversation_id:A,parent_id:None,
+            content:"One",role:ChatRole::User,status:ChatStatus::Complete},&[a]).unwrap();
+        let history=call(&mut v,"chat.history",json!({"conversationId":A,"after":0,"limit":4})).unwrap();
+        drop(v);let mut v=NativeVault::open(&f.0).unwrap();
+        expected["referencedHashes"]=json!(1);expected["verifiedReferenced"]=json!(1);
+        expected["verifiedUnreferenced"]=json!(0);
+        assert_eq!(call(&mut v,"chat.recovery.inspect",json!({})).unwrap(),expected);
+        assert_eq!(call(&mut v,"chat.history",json!({"conversationId":A,"after":0,"limit":4})).unwrap(),history);
+        assert_eq!(v.read_managed_blob(&receipt).unwrap(),b"sole synthetic copy");
+        assert_eq!(std::fs::read(&stage).unwrap(),b"interrupted synthetic bytes");
+        std::fs::write(directory.join(&hash),b"corrupted").unwrap();
+        expected["verifiedReferenced"]=json!(0);expected["unavailableReferenced"]=json!(1);
+        expected["damagedOrUnreadable"]=json!(1);
+        assert_eq!(call(&mut v,"chat.recovery.inspect",json!({})).unwrap(),expected);
+        assert_eq!(std::fs::read(directory.join(&hash)).unwrap(),b"corrupted");
+        assert_eq!(std::fs::read(stage).unwrap(),b"interrupted synthetic bytes");
     }
 
     #[test]

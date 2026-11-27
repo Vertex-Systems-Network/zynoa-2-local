@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { decodeReply,validText,byteLength,validSelection,validAttachmentName } from "../.ui-tests/chat-contract.js";
+import { decodeReply,validText,byteLength,validSelection,validAttachmentName,recoverySummary } from "../.ui-tests/chat-contract.js";
 const thread={id:"thread-alpha-001",title:"Saved",revision:2,createdAt:1,updatedAt:2};
 const msg={id:"message-alpha-001",parentId:null,ordinal:1,role:"user",content:"<script>plain text</script>",status:"complete",revision:1,createdAt:1,attachments:[]};
 const wrap=(commandId,data)=>({schemaVersion:1,commandId,correlationId:"correlation-00001",data});
@@ -58,4 +58,14 @@ test("upload acknowledgements bind exact scope, offset and final manifest",()=>{
  const discard={conversationId:q.conversationId,messageId:q.messageId};
  assert.deepEqual(decode("chat.attachment.discard",{...discard,discarded:true},discard),{...discard,discarded:true});
  assert.throws(()=>decode("chat.attachment.discard",{...discard,discarded:false},discard),/ZYN-CHAT-RESPONSE/);
+});
+
+test("managed recovery inventory exposes counts only, with consistent bounded totals",()=>{
+ const report={referencedHashes:2,verifiedReferenced:1,verifiedUnreferenced:1,unavailableReferenced:1,damagedOrUnreadable:1,interruptedStages:1,unexpectedEntries:0,unlinkedMetadata:0};
+ assert.deepEqual(decode("chat.recovery.inspect",report,{}),report);
+ assert.match(recoverySummary(report),/1 unavailable referenced/);
+ assert.match(recoverySummary(report),/1 interrupted stages/);
+ for(const invalid of [{...report,path:"outside"},{...report,referencedHashes:1},{...report,verifiedReferenced:-1},{...report,interruptedStages:4097},{...report,unexpectedEntries:0.5},{...report,unlinkedMetadata:"0"}]){
+  assert.throws(()=>decode("chat.recovery.inspect",invalid,{}),/ZYN-CHAT-RESPONSE/);
+ }
 });

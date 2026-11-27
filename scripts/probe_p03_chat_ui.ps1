@@ -559,11 +559,33 @@ if ($AttachmentAcceptance) {
    Stop-Native
    $script:stage='independent reopened attachment database and blob proof'
    Read-AttachmentVault 'reopened'
+   $script:stage='prepare disposable interrupted managed stage fixture'
+   $attachmentReceipt=Get-Content -LiteralPath (Join-Path $OutputDirectory 'p03-attachment-db-reopened.json') -Raw | ConvertFrom-Json
+   if ($attachmentReceipt.sha256 -cnotmatch '^[a-f0-9]{64}$' -or $attachmentReceipt.bytes -ne 70000) {throw 'ZYN-RECOVERY-PROBE-001: invalid fixture receipt'}
+   $managedRoot=Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop\data\artifacts\sha256'
+   $managedDirectory=Join-Path $managedRoot $attachmentReceipt.sha256.Substring(0,2)
+   $stagePath=Join-Path $managedDirectory '.stage-1-2-3'
+   if (!(Test-Path -LiteralPath (Join-Path $managedDirectory $attachmentReceipt.sha256) -PathType Leaf) -or (Test-Path -LiteralPath $stagePath)) {throw 'ZYN-RECOVERY-PROBE-002: unexpected managed fixture inventory'}
+   $stageStream=[IO.File]::Open($stagePath,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+   try {$stageBytes=[Text.Encoding]::UTF8.GetBytes('synthetic interrupted stage');$stageStream.Write($stageBytes,0,$stageBytes.Length);$stageStream.Flush($true)} finally {$stageStream.Dispose()}
+   $script:stage='actual native recovery inspection after restart'
+   Start-Native
+   $recoveryPid=$script:app.Id
+   if ($recoveryPid -in @($firstPid,$secondPid)) {throw 'ZYN-RECOVERY-PROBE-003: distinct process required'}
+   Click-Control 'Chat'
+   Click-Control 'P03 attachment proof'
+   Click-Control 'Check managed files'
+   $expectedRecovery='Managed file check: 1 verified referenced, 0 unavailable referenced, 0 verified unreferenced, 0 damaged or unreadable, 1 interrupted stages, 0 unexpected entries, 0 unlinked metadata. This is a point-in-time result. No files were changed.'
+   Wait-Assistant $expectedRecovery
+   Capture 'M03-managed-recovery-candidate.png'
+   Stop-Native
+   $script:stage='independent recovery stage and prior DB preservation'
+   Read-AttachmentVault 'recovery'
    $images=[ordered]@{}
-   foreach ($name in @('M03-S03-candidate.png','M03-OPT-04-candidate.png')) {
+   foreach ($name in @('M03-S03-candidate.png','M03-OPT-04-candidate.png','M03-managed-recovery-candidate.png')) {
      $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
    }
-   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;actual_os_picker=$true;remove_reselect=$true;original_removed=$true;database_blob_reopen_verified=$true;ui_filename_readback=$true;input_checks=@($script:inputChecks.ToArray());images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false;model_ingestion_claimed=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-attachment-ui-proof.json') -Encoding utf8
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;actual_os_picker=$true;remove_reselect=$true;original_removed=$true;database_blob_reopen_verified=$true;ui_filename_readback=$true;actual_recovery_inspection=$true;recovery_pid=$recoveryPid;interrupted_stage_preserved=$true;input_checks=@($script:inputChecks.ToArray());images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false;model_ingestion_claimed=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-attachment-ui-proof.json') -Encoding utf8
  } catch {
    [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true;input_checks=@($script:inputChecks.ToArray())} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-attachment-ui-failure.json') -Encoding utf8
    if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {try {Capture 'DEBUG-native-attachment-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}}

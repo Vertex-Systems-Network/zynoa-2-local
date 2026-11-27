@@ -8,7 +8,11 @@ export type WriteResult={receipt:{id:string;revision:number;conversationRevision
 export type UploadChunk={conversationId:string;messageId:string;artifactId:string;name:string;total:number;offset:number;chunk:number[]};
 export type UploadAck={conversationId:string;messageId:string;artifactId:string;received:number;attachment:Attachment|null};
 export type DiscardDraft={conversationId:string;messageId:string};
-export type ChatCommand="chat.list"|"chat.create"|"chat.history"|"chat.saveUserMessage"|"chat.attachment.chunk"|"chat.attachment.discard";
+export type RecoveryInventory={referencedHashes:number;verifiedReferenced:number;verifiedUnreferenced:number;unavailableReferenced:number;damagedOrUnreadable:number;interruptedStages:number;unexpectedEntries:number;unlinkedMetadata:number};
+export function recoverySummary(r:RecoveryInventory):string{
+ return `Managed file check: ${r.verifiedReferenced} verified referenced, ${r.unavailableReferenced} unavailable referenced, ${r.verifiedUnreferenced} verified unreferenced, ${r.damagedOrUnreadable} damaged or unreadable, ${r.interruptedStages} interrupted stages, ${r.unexpectedEntries} unexpected entries, ${r.unlinkedMetadata} unlinked metadata.`;
+}
+export type ChatCommand="chat.list"|"chat.create"|"chat.history"|"chat.saveUserMessage"|"chat.attachment.chunk"|"chat.attachment.discard"|"chat.recovery.inspect";
 export type Payloads={
  "chat.list":{after:string|null;limit:number};
  "chat.create":{id:string;title:string};
@@ -16,8 +20,9 @@ export type Payloads={
  "chat.saveUserMessage":{id:string;conversationId:string;parentId:string|null;content:string;attachments?:Attachment[]};
  "chat.attachment.chunk":UploadChunk;
  "chat.attachment.discard":DiscardDraft;
+ "chat.recovery.inspect":Record<string,never>;
 };
-export type Replies={"chat.list":ThreadPage;"chat.create":WriteResult;"chat.history":HistoryPage;"chat.saveUserMessage":WriteResult;"chat.attachment.chunk":UploadAck;"chat.attachment.discard":DiscardDraft&{discarded:true}};
+export type Replies={"chat.list":ThreadPage;"chat.create":WriteResult;"chat.history":HistoryPage;"chat.saveUserMessage":WriteResult;"chat.attachment.chunk":UploadAck;"chat.attachment.discard":DiscardDraft&{discarded:true};"chat.recovery.inspect":RecoveryInventory};
 export const byteLength=(s:string)=>new TextEncoder().encode(s).length;
 export const validText=(s:string,max:number)=>s.trim().length>0&&!s.includes("\0")&&byteLength(s)<=max;
 function fail():never{throw new Error("ZYN-CHAT-RESPONSE");}
@@ -81,6 +86,13 @@ export function decodeReply<K extends ChatCommand>(raw:unknown,command:K,correla
    for(const row of items){if(row.ordinal<=previous||ids.has(row.id))return fail();previous=row.ordinal;ids.add(row.id);}
    if(o.next!==null&&(items.length===0||o.next!==previous))return fail();
    return {conversation,items,next:o.next as number|null} as Replies[K];
+ }
+ if(command==="chat.recovery.inspect"){
+   const keys=["referencedHashes","verifiedReferenced","verifiedUnreferenced","unavailableReferenced","damagedOrUnreadable","interruptedStages","unexpectedEntries","unlinkedMetadata"];
+   const o=object(e.data,keys);
+   if(keys.some(k=>!integer(o[k],0)||Number(o[k])>4096)||
+      Number(o.verifiedReferenced)+Number(o.unavailableReferenced)!==o.referencedHashes)return fail();
+   return o as unknown as Replies[K];
  }
  if(command==="chat.attachment.chunk"){
    const q=payload as UploadChunk,o=object(e.data,["conversationId","messageId","artifactId","received","attachment"]);

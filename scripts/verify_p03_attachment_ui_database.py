@@ -19,7 +19,7 @@ def digest(rows):
 def main():
     assert os.environ.get("GITHUB_ACTIONS") == "true"
     parser = argparse.ArgumentParser()
-    parser.add_argument("--stage", choices=("baseline", "saved", "reopened"), required=True)
+    parser.add_argument("--stage", choices=("baseline", "saved", "reopened", "recovery"), required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     root = Path(os.environ["LOCALAPPDATA"]) / "com.zynoa.desktop" / "data"
@@ -74,7 +74,17 @@ def main():
     else:
         assert not (Path(os.environ["RUNNER_TEMP"]) / NAME).exists()
         assert json.loads(saved.read_text(encoding="utf-8")) == proof
-        with (args.output / "p03-attachment-db-reopened.json").open("x",encoding="utf-8") as stream: json.dump(proof,stream,indent=2)
+        reopened = args.output / "p03-attachment-db-reopened.json"
+        if args.stage == "recovery":
+            assert json.loads(reopened.read_text(encoding="utf-8")) == proof
+            stage = blob.parent / ".stage-1-2-3"
+            assert stage.is_file() and not stage.is_symlink()
+            assert stage.read_bytes() == b"synthetic interrupted stage"
+            with (args.output / "p03-attachment-recovery-db.json").open("x", encoding="utf-8") as stream:
+                json.dump({"attachment": proof, "stage_sha256": hashlib.sha256(stage.read_bytes()).hexdigest(),
+                           "stage_preserved": True}, stream, indent=2)
+        else:
+            with reopened.open("x",encoding="utf-8") as stream: json.dump(proof,stream,indent=2)
     print("P03 attachment independent read-only database and blob proof:",args.stage)
 
 if __name__ == "__main__":
