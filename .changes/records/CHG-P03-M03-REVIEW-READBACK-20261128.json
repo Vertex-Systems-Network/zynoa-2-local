@@ -1,0 +1,42 @@
+{
+  "change_id": "CHG-P03-M03-REVIEW-READBACK-20261128",
+  "module_id": "M03",
+  "kind": "feature",
+  "title": "Read exact historical tool reviews and derive verified local target identities",
+  "summary": "Native scoped historical decision readback and verified saved target preparation; no live execution authority.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
+  "affected_option_ids": [
+    "M03-OPT-08"
+  ],
+  "docs_paths": [
+    "docs/evidence/P03_T10_DURABLE_REVIEW_V4_20261128.md",
+    "docs/modules/M03.md",
+    "docs/modules/M23.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M03.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M03.md"
+  ],
+  "test_evidence": [
+    "apps/desktop/src-tauri/src/vault.rs"
+  ],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No new schema migration or IPC.",
+  "created_at": "2026-11-28",
+  "updated_at": "2026-11-28",
+  "version_bump": "none",
+  "docs_impact": true,
+  "data_migration": false
+}
