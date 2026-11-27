@@ -34,29 +34,31 @@
       "id": "P03-T05",
       "title": "Streaming lifecycle, cancellation, retry and durable acknowledgements",
       "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/29"
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/46026288194"
     },
     {
       "id": "P03-T06",
       "title": "Per-thread model choice and model switcher",
       "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/29"
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/46026288194"
     },
     {
       "id": "P03-T07",
       "title": "Context budget inspection and bounded context assembly",
       "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/29"
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/46026288194"
     },
     {
       "id": "P03-T08",
       "title": "Managed attachments, immutable hashes and safe file validation",
-      "status": "IN_PROGRESS"
+      "status": "IN_PROGRESS",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/46026288194"
     },
     {
       "id": "P03-T09",
       "title": "Artifact generation, storage and recovery contracts",
-      "status": "IN_PROGRESS"
+      "status": "IN_PROGRESS",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/46026288194"
     },
     {
       "id": "P03-T10",
