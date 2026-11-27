@@ -19,6 +19,23 @@ const MAX_CONTENT_BYTES: usize = 262_144;
 const MAX_TITLE_BYTES: usize = 512;
 const MAX_PAGE: u32 = 200;
 const MAX_CONTEXT_MESSAGES: usize = 512;
+const TEXT_ARTIFACT_NOTICE: &str = "Saved assistant response as text artifact.";
+const TEXT_ARTIFACT_NAME: &str = "assistant-response.txt";
+
+/// Domain-separated deterministic identifiers, not filesystem paths.
+fn text_artifact_ids(conversation_id: &str, source_id: &str) -> (String, String) {
+    use sha2::{Digest, Sha256};
+    let derive = |domain: &str| {
+        let mut h = Sha256::new();
+        h.update(domain.as_bytes());
+        h.update([0u8]);
+        h.update(conversation_id.as_bytes());
+        h.update([0u8]);
+        h.update(source_id.as_bytes());
+        format!("{:x}", h.finalize())
+    };
+    (derive("zynoa-text-artifact-message-v1"), derive("zynoa-text-artifact-file-v1"))
+}
 
 // Retain the exact original P01 table, including its opaque conversation
 // records. Do not guess how legacy content maps to normalized messages.
@@ -153,6 +170,14 @@ pub(crate) struct StoredChatMessage {
     pub(crate) status: String,
     pub(crate) revision: i64,
     pub(crate) created_at: i64,
+}
+
+/// Native receipt for a managed artifact derived from committed assistant text.
+pub(crate) struct TextArtifactReceipt {
+    pub(crate) message_id: String,
+    pub(crate) source_id: String,
+    pub(crate) attachment: LinkedAttachment,
+    pub(crate) replayed: bool,
 }
 
 pub(crate) struct ChatWriteReceipt {
@@ -931,6 +956,75 @@ impl NativeVault {
         Ok(ChatWriteReceipt { id:input.id.to_owned(),revision:1,conversation_revision,ordinal:Some(ordinal) })
     }
 
+    /// Materialize a complete assistant response exactly as UTF-8, with
+    /// immutable provenance through the receipt message's parent and link.
+    /// Native-only for now: no renderer path, name, bytes or role authority.
+    pub(crate) fn create_text_artifact(&mut self, conversation_id: &str, source_id: &str)
+        -> Result<TextArtifactReceipt, VaultFault>
+    {
+        let source = self.get_chat_message(conversation_id, source_id)?.ok_or(VaultFault::Conflict)?;
+        if source.role != "assistant" || source.status != "complete"
+            || !valid_text(&source.content, MAX_CONTENT_BYTES) {
+            return Err(VaultFault::InvalidRecord);
+        }
+        let (message_id, artifact_id) = text_artifact_ids(conversation_id, source_id);
+        let expected = crate::artifact_contracts::attachment_receipt(TEXT_ARTIFACT_NAME, source.content.as_bytes())
+            .ok_or(VaultFault::InvalidRecord)?;
+        if self.get_chat_message(conversation_id, &message_id)?.is_some() {
+            // A replay must verify the original blob, not silently regenerate
+            // a missing/corrupt acknowledged file.
+            let stored = self.verify_text_artifact(conversation_id, source_id)?;
+            return Ok(TextArtifactReceipt {message_id, source_id:source_id.to_owned(),
+                attachment:stored, replayed:true});
+        }
+        let staged = self.stage_managed_blob(TEXT_ARTIFACT_NAME, source.content.as_bytes())?;
+        if staged != expected { return Err(VaultFault::Corrupt); }
+        let linked = LinkedAttachment {id:artifact_id.clone(), receipt:staged};
+        let input = ChatMessageInput {id:&message_id, conversation_id, parent_id:Some(source_id),
+            role:ChatRole::System, content:TEXT_ARTIFACT_NOTICE, status:ChatStatus::Complete};
+        // Existing transaction commits provenance message, file metadata, link,
+        // conversation revision and journal together. On error the staged
+        // content may remain for non-destructive recovery.
+        self.append_chat_message_with_attachments(input, std::slice::from_ref(&linked))?;
+        Ok(TextArtifactReceipt {message_id, source_id:source_id.to_owned(),
+            attachment:linked, replayed:false})
+    }
+
+    fn verify_text_artifact(&self, conversation_id: &str, source_id: &str)
+        -> Result<LinkedAttachment, VaultFault>
+    {
+        let source = self.get_chat_message(conversation_id, source_id)?.ok_or(VaultFault::Conflict)?;
+        if source.role != "assistant" || source.status != "complete"
+            || !valid_text(&source.content, MAX_CONTENT_BYTES) {
+            return Err(VaultFault::InvalidRecord);
+        }
+        let (message_id, artifact_id) = text_artifact_ids(conversation_id, source_id);
+        let row = self.get_chat_message(conversation_id, &message_id)?.ok_or(VaultFault::Conflict)?;
+        if row.role != "system" || row.status != "complete" || row.content != TEXT_ARTIFACT_NOTICE
+            || row.parent_id.as_deref() != Some(source_id) {
+            return Err(VaultFault::Conflict);
+        }
+        let mut items = self.list_message_attachments(conversation_id, &message_id)?;
+        if items.len() != 1 { return Err(VaultFault::Corrupt); }
+        let item = items.pop().ok_or(VaultFault::Corrupt)?;
+        let expected = crate::artifact_contracts::attachment_receipt(TEXT_ARTIFACT_NAME, source.content.as_bytes())
+            .ok_or(VaultFault::Corrupt)?;
+        if item.id != artifact_id || item.receipt != expected { return Err(VaultFault::Corrupt); }
+        if self.read_managed_blob(&item.receipt)?.as_slice() != source.content.as_bytes() {
+            return Err(VaultFault::Corrupt);
+        }
+        Ok(item)
+    }
+
+    /// Scoped, verified text only. Never interpret markup or return a path.
+    pub(crate) fn preview_text_artifact(&self, conversation_id: &str, source_id: &str)
+        -> Result<String, VaultFault>
+    {
+        let item = self.verify_text_artifact(conversation_id, source_id)?;
+        let bytes = self.read_managed_blob(&item.receipt)?;
+        String::from_utf8(bytes).map_err(|_| VaultFault::Corrupt)
+    }
+
     pub(crate) fn list_message_attachments(&self, conversation_id: &str, message_id: &str)
         -> Result<Vec<LinkedAttachment>, VaultFault>
     {
@@ -1088,11 +1182,16 @@ impl NativeVault {
         let mut used=if draft.is_empty(){0}else{Self::estimate_message_tokens(draft)};
         if used>available{return Err(VaultFault::InvalidRecord);}
         let history_limit=MAX_CONTEXT_MESSAGES as u32-u32::from(!draft.is_empty());
-        let total:u32=self.conn.query_row("SELECT count(*) FROM messages WHERE conversation_id=?1 AND status='complete'",
-            [conversation_id],|r|r.get(0)).map_err(map_sql)?;
+        // Native artifact receipts are durable history, not model instructions.
+        // Apply the same exclusion to both count and bounded assembly.
+        let total:u32=self.conn.query_row("SELECT count(*) FROM messages WHERE conversation_id=?1 AND status='complete'
+            AND NOT (role='system' AND content=?2 AND EXISTS (SELECT 1 FROM artifact_links l WHERE l.conversation_id=messages.conversation_id AND l.message_id=messages.id))",
+            params![conversation_id,TEXT_ARTIFACT_NOTICE],|r|r.get(0)).map_err(map_sql)?;
         let mut stmt=self.conn.prepare("SELECT id,parent_id,ordinal,role,content,status,revision,created_at FROM messages
-            WHERE conversation_id=?1 AND status='complete' ORDER BY ordinal DESC LIMIT ?2").map_err(map_sql)?;
-        let rows=stmt.query_map(params![conversation_id,history_limit],|r|Ok(StoredChatMessage{
+            WHERE conversation_id=?1 AND status='complete'
+            AND NOT (role='system' AND content=?3 AND EXISTS (SELECT 1 FROM artifact_links l WHERE l.conversation_id=messages.conversation_id AND l.message_id=messages.id))
+            ORDER BY ordinal DESC LIMIT ?2").map_err(map_sql)?;
+        let rows=stmt.query_map(params![conversation_id,history_limit,TEXT_ARTIFACT_NOTICE],|r|Ok(StoredChatMessage{
             id:r.get(0)?,parent_id:r.get(1)?,ordinal:r.get(2)?,role:r.get(3)?,content:r.get(4)?,
             status:r.get(5)?,revision:r.get(6)?,created_at:r.get(7)?,})).map_err(map_sql)?;
         let mut selected=Vec::new();
@@ -1158,6 +1257,65 @@ mod tests {
         }
     }
     impl Drop for Fixture { fn drop(&mut self) { let _ = fs::remove_dir_all(&self.0); } }
+
+    #[test]
+    fn text_artifact_is_native_scoped_immutable_replayable_and_context_neutral() {
+        let f=Fixture::new();
+        let app=f.app();
+        let mut v=NativeVault::open(&app).unwrap();
+        v.create_conversation("thread_alpha","Artifact").unwrap();
+        v.create_conversation("thread_bravo","Other").unwrap();
+        v.append_chat_message(sample_message("message_0001","thread_alpha",None)).unwrap();
+        let text="Synthetic <script>plain text</script>\nUnicode: اردو 中文 🙂\n";
+        v.append_chat_message(ChatMessageInput{id:"assistant_001",conversation_id:"thread_alpha",
+            parent_id:Some("message_0001"),role:ChatRole::Assistant,content:text,status:ChatStatus::Complete}).unwrap();
+        v.append_chat_message(ChatMessageInput{id:"assistant_002",conversation_id:"thread_alpha",
+            parent_id:Some("message_0001"),role:ChatRole::Assistant,content:"partial",status:ChatStatus::Cancelled}).unwrap();
+        assert!(v.create_text_artifact("thread_alpha","message_0001").is_err());
+        assert!(v.create_text_artifact("thread_alpha","assistant_002").is_err());
+        assert!(v.create_text_artifact("thread_bravo","assistant_001").is_err());
+        assert!(v.preview_text_artifact("thread_alpha","assistant_001").is_err());
+        let before=v.model_context("thread_alpha",2048,128).unwrap();
+        let created=v.create_text_artifact("thread_alpha","assistant_001").unwrap();
+        assert!(!created.replayed);
+        assert_eq!(created.source_id,"assistant_001");
+        assert_eq!(created.attachment.receipt.name,TEXT_ARTIFACT_NAME);
+        assert_eq!(created.attachment.receipt.bytes,text.len() as u64);
+        assert_eq!(v.preview_text_artifact("thread_alpha","assistant_001").unwrap(),text);
+        let row=v.get_chat_message("thread_alpha",&created.message_id).unwrap().unwrap();
+        assert_eq!(row.role,"system");
+        assert_eq!(row.parent_id.as_deref(),Some("assistant_001"));
+        let after=v.model_context("thread_alpha",2048,128).unwrap();
+        assert_eq!(before.estimated_tokens,after.estimated_tokens);
+        assert_eq!(before.omitted_messages,after.omitted_messages);
+        assert_eq!(before.messages.iter().map(|m|&m.id).collect::<Vec<_>>(),
+                   after.messages.iter().map(|m|&m.id).collect::<Vec<_>>());
+        let revision=v.get_conversation("thread_alpha").unwrap().unwrap().revision;
+        let journal=count(&v.conn,"SELECT count(*) FROM chat_change_journal");
+        drop(v);
+        let mut v=NativeVault::open(&app).unwrap();
+        let replay=v.create_text_artifact("thread_alpha","assistant_001").unwrap();
+        assert!(replay.replayed);
+        assert_eq!(replay.message_id,created.message_id);
+        assert_eq!(replay.attachment.id,created.attachment.id);
+        assert_eq!(replay.attachment.receipt,created.attachment.receipt);
+        assert_eq!(v.get_conversation("thread_alpha").unwrap().unwrap().revision,revision);
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM chat_change_journal"),journal);
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM managed_artifacts"),1);
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM artifact_links"),1);
+        assert_eq!(v.preview_text_artifact("thread_alpha","assistant_001").unwrap(),text);
+        assert!(v.preview_text_artifact("thread_bravo","assistant_001").is_err());
+        assert_eq!(v.inspect_managed_recovery().unwrap().verified_referenced,1);
+        let hash=&created.attachment.receipt.sha256;
+        let path=v.managed_blob_directory(hash,false).unwrap().join(hash);
+        let broken=vec![b'x';text.len()];
+        fs::write(&path,&broken).unwrap();
+        assert!(v.preview_text_artifact("thread_alpha","assistant_001").is_err());
+        assert!(v.create_text_artifact("thread_alpha","assistant_001").is_err());
+        assert_eq!(fs::read(&path).unwrap(),broken);
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM chat_change_journal"),journal);
+        assert_eq!(v.inspect_managed_recovery().unwrap().unavailable_referenced,1);
+    }
 
     #[test]
     fn managed_recovery_inventory_preserves_unlinked_blobs_stages_and_corruption() {

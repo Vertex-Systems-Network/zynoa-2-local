@@ -33,3 +33,5 @@
 - 2026-11-27 | P03 | OPEN | [#36](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/36) | Original model availability screenshot horizontally clipped; grid containment repair and native bounds candidate, fresh CI pending.
 
 - 2026-11-27 | P03 | OPEN | [#37](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/37) | Recovery actual UI result visible in failed artifact 15196860082, generic readback failed. Dedicated count rows and scoped UIA repair candidate; fresh CI pending.
+
+- 2026-11-27 | P03 | RESOLVED (recovery readback only) | [#37](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/37) | Exact ef62642 Windows 45996765037 and all six applicable CI passed; original artifact 15196478122 verifies eight actual visible counts, unchanged DB/blob/stage.

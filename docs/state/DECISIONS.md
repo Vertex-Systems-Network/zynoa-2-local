@@ -272,3 +272,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-27 | P03 | Fix model-state notice grid span and shrinkable controls rather than masking overflow | Actual missing-model screenshot revealed misplaced grid child and horizontal clipping; use native UIA group/window bounding rectangles as scoped regression, not full accessibility proof.
 
 2026-11-27 | P03 | Use visible, named individual recovery count rows instead of matching a wrapped assistant paragraph | Actual failed screenshot confirms counts but not UIA acceptance. Verify each exact count within named result group and retain independent post-inspection file/DB preservation.
+
+2026-11-27 | P03 | T09 native text artifact derives only from a committed complete assistant message | Reuse v3 managed storage and a native system provenance receipt linked to source, deterministic IDs and verified replay; exclude receipt from model context, no executable markup or arbitrary paths; no IPC in this slice. New schema deferred; UI must account for non-inference receipts before exposing command.
