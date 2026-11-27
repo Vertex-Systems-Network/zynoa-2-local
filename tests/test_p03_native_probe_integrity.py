@@ -20,10 +20,14 @@ class NativeProbeIntegrity(unittest.TestCase):
     def test_picker_uses_exact_owned_dialog_field(self):
         source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
         picker = source.split("function Select-SyntheticFile", 1)[1].split("if ($AttachmentAcceptance)", 1)[0]
-        for marker in ("FromHandle($dialog)", "AutomationId -eq '1148'", "ControlType]::Edit",
-                       "GetWindowRect($dialog", "Automation]::Compare($focused,$filenameEdit)",
-                       "GetForegroundWindow() -ne $dialog", "$value.Current.Value -cne $Path"):
+        for marker in ("FilenameEdits($dialog)", "IsChild($dialog,$filenameEdit)",
+                       "GetWindowRect($dialog", "OwnsKeyboardFocus($dialog,$filenameEdit)",
+                       "GetForegroundWindow() -ne $dialog", "ReadEditText($dialog,$filenameEdit) -cne $Path",
+                       "dialog-control-inventory.txt"):
             self.assertIn(marker, picker)
+        for marker in ("GetDlgCtrlID(child)==1152", "GetDlgCtrlID(parent)==1148",
+                       "EnumChildWindows(dialog", "GetGUIThreadInfo", "SendMessageTimeout"):
+            self.assertIn(marker, source)
         self.assertNotIn("SendWait('%n')", picker)
         self.assertNotIn("SetValue(", picker)
 

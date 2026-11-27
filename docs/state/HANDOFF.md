@@ -1,5 +1,7 @@
 # Handoff (canonical starter)
 
+- **P03 T08 native HWND filename discovery repair candidate (2026-11-27): exact 37c8386 AST, T03 and T05–T07 passed; T08 failed ZYN-ATTACH-PROBE-005 unique UIA filename edit not found. #33 remains open. Resolve native filename HWND via standard common-dialog control IDs, bounded physical click, GUI-thread focus identity and read-only text readback; capture class/control-ID-only failure inventory. No acceptance change, no product permission change; fresh CI pending; 4/16 DONE.** Lease released.
+
 - **P03 T08 native file-dialog focus repair candidate (2026-11-27): exact ba82847 AST, T03 and T05–T07 passed, T08 failed ZYN-ATTACH-PROBE-005 at actual file selection. Original failure artifact 15172498413 and screenshot confirm actual Open dialog. #32 parser scope verified; #33 open for filename focus. Resolve unique dialog-owned filename edit and exact physical-focus/keyboard readback; preserve all original acceptance checks. Fresh CI pending; 4/16 DONE.** Lease released.
 
 - **P03 native probe parser repair candidate (2026-11-27): exact 8508edb Windows failed before T03 execution with ParserError line 355; T05–T08 skipped; five other applicable workflows passed. #32: remove duplicated script tail inside regex insertion; old model and baseline blocks byte-for-byte unchanged, add early actual PowerShell AST parser and source-integrity tests. New exact-head CI pending. 4/16 DONE; no merge/release.** Lease released.

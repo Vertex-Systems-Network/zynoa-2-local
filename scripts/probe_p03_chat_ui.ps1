@@ -29,6 +29,61 @@ public static class ChatProbeWindow {
  [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extra);
 
  [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hwnd, out RECT rect);
+ [DllImport("user32.dll")] private static extern bool EnumChildWindows(IntPtr parent, EnumChildCallback callback, IntPtr data);
+ private delegate bool EnumChildCallback(IntPtr child, IntPtr data);
+ [DllImport("user32.dll")] private static extern int GetDlgCtrlID(IntPtr hwnd);
+ [DllImport("user32.dll")] private static extern IntPtr GetParent(IntPtr hwnd);
+ [DllImport("user32.dll")] public static extern bool IsChild(IntPtr parent, IntPtr child);
+ [DllImport("user32.dll")] private static extern bool IsWindowVisible(IntPtr hwnd);
+ [DllImport("user32.dll")] private static extern bool IsWindowEnabled(IntPtr hwnd);
+ [DllImport("user32.dll", CharSet=CharSet.Unicode)] private static extern int GetClassName(IntPtr hwnd, System.Text.StringBuilder text, int count);
+ [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint process);
+ [DllImport("user32.dll")] private static extern bool GetGUIThreadInfo(uint thread, ref GUITHREADINFO info);
+ [DllImport("user32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
+ private static extern IntPtr SendMessageTimeout(IntPtr hwnd, uint msg, UIntPtr wParam, System.Text.StringBuilder text, uint flags, uint timeout, out UIntPtr result);
+ [StructLayout(LayoutKind.Sequential)] private struct GUITHREADINFO {
+   public uint cbSize, flags; public IntPtr active, focus, capture, menuOwner, moveSize, caret; public RECT caretRect;
+ }
+ private static string ClassOf(IntPtr h) {
+   var text = new System.Text.StringBuilder(128); GetClassName(h,text,text.Capacity); return text.ToString();
+ }
+ public static IntPtr[] FilenameEdits(IntPtr dialog) {
+   var result = new System.Collections.Generic.List<IntPtr>();
+   EnumChildWindows(dialog, delegate(IntPtr child, IntPtr ignored) {
+     if (!String.Equals(ClassOf(child),"Edit",StringComparison.OrdinalIgnoreCase) ||
+         !IsWindowVisible(child) || !IsWindowEnabled(child)) return true;
+     bool anchored = GetDlgCtrlID(child)==1152;
+     for (IntPtr parent=GetParent(child); parent!=IntPtr.Zero && parent!=dialog && IsChild(dialog,parent); parent=GetParent(parent)) {
+       string cls=ClassOf(parent);
+       if (GetDlgCtrlID(parent)==1148 && (cls=="ComboBoxEx32" || cls=="ComboBox")) anchored=true;
+     }
+     if (anchored) result.Add(child);
+     return true;
+   }, IntPtr.Zero);
+   return result.ToArray();
+ }
+ public static string[] ChildInventory(IntPtr dialog) {
+   var result=new System.Collections.Generic.List<string>();
+   EnumChildWindows(dialog, delegate(IntPtr child, IntPtr ignored) {
+     if (result.Count>=256) return false;
+     IntPtr parent=GetParent(child);
+     result.Add("class="+ClassOf(child)+" id="+GetDlgCtrlID(child)+" parent_class="+ClassOf(parent)+" parent_id="+GetDlgCtrlID(parent)+" visible="+IsWindowVisible(child)+" enabled="+IsWindowEnabled(child));
+     return true;
+   },IntPtr.Zero);
+   return result.ToArray();
+ }
+ public static bool OwnsKeyboardFocus(IntPtr dialog, IntPtr child) {
+   uint process; uint thread=GetWindowThreadProcessId(dialog,out process);
+   var info=new GUITHREADINFO(); info.cbSize=(uint)Marshal.SizeOf(typeof(GUITHREADINFO));
+   return thread!=0 && GetGUIThreadInfo(thread,ref info) && info.focus==child && IsChild(dialog,child);
+ }
+ public static string ReadEditText(IntPtr dialog, IntPtr child) {
+   if (!IsChild(dialog,child) || !OwnsKeyboardFocus(dialog,child) || ClassOf(child)!="Edit") throw new InvalidOperationException("Unverified dialog edit");
+   var buffer=new System.Text.StringBuilder(32768); UIntPtr result;
+   if (SendMessageTimeout(child,0x000D,(UIntPtr)(uint)buffer.Capacity,buffer,2,2000,out result)==IntPtr.Zero)
+     throw new InvalidOperationException("Filename readback unavailable");
+   return buffer.ToString();
+ }
  [StructLayout(LayoutKind.Sequential)] public struct RECT {public int Left,Top,Right,Bottom;}
 }
 '@
@@ -376,52 +431,41 @@ function Select-SyntheticFile([string]$Path) {
    Start-Sleep -Milliseconds 250
  }
  if ($dialog -eq [IntPtr]::Zero) {throw 'ZYN-ATTACH-PROBE-003: owned native file dialog missing'}
- # The shell's Alt+N mnemonic may focus the combo container, not its
- # editable child. Resolve the exact filename field within this owned dialog.
- $dialogRoot=[System.Windows.Automation.AutomationElement]::FromHandle($dialog)
- $filenameEdit=$null
+ # Native common-dialog control IDs: cmb13 (1148) / edt1 (1152).
+ # UIA provider did not expose a unique labeled Edit on the last run.
+ # Enumerate real child HWNDs only within the already verified owned dialog.
+ $filenameEdit=[IntPtr]::Zero
  for ($attempt=0;$attempt -lt 40;$attempt++) {
    if ([ChatProbeWindow]::GetForegroundWindow() -ne $dialog) {throw 'ZYN-ATTACH-PROBE-004: dialog foreground lost'}
-   $fields=$dialogRoot.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
-   $candidates=[System.Collections.Generic.List[object]]::new()
-   foreach ($field in $fields) {
-     try {
-       $kind=$field.Current.ControlType.ProgrammaticName
-       $isName=($field.Current.AutomationId -eq '1148' -or $field.Current.Name -match '^File name:?$')
-       if (!$isName -or !$field.Current.IsEnabled -or $field.Current.IsOffscreen) {continue}
-       if ($kind -eq 'ControlType.Edit') {$candidates.Add($field);continue}
-       if ($kind -ne 'ControlType.ComboBox') {continue}
-       $editType=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::ControlTypeProperty,[System.Windows.Automation.ControlType]::Edit)
-       $edits=$field.FindAll([System.Windows.Automation.TreeScope]::Descendants,$editType)
-       foreach ($edit in $edits) {if ($edit.Current.IsEnabled -and !$edit.Current.IsOffscreen) {$candidates.Add($edit)}}
-     } catch [System.Windows.Automation.ElementNotAvailableException] {}
-   }
-   $unique=@($candidates | Group-Object {($_.GetRuntimeId() -join ':')} | ForEach-Object {$_.Group[0]})
-   if ($unique.Count -eq 1) {$filenameEdit=$unique[0];break}
+   $matches=@([ChatProbeWindow]::FilenameEdits($dialog))
+   if ($matches.Count -eq 1) {$filenameEdit=$matches[0];break}
    Start-Sleep -Milliseconds 250
  }
- if ($null -eq $filenameEdit) {throw 'ZYN-ATTACH-PROBE-005: unique dialog filename edit not found'}
+ if ($filenameEdit -eq [IntPtr]::Zero) {
+   [ChatProbeWindow]::ChildInventory($dialog) | Set-Content -LiteralPath (Join-Path $OutputDirectory 'dialog-control-inventory.txt') -Encoding utf8
+   throw 'ZYN-ATTACH-PROBE-005: unique native filename edit not found'
+ }
  $rect=New-Object ChatProbeWindow+RECT
- if (![ChatProbeWindow]::GetWindowRect($dialog,[ref]$rect)) {throw 'ZYN-ATTACH-PROBE-005: dialog bounds unavailable'}
- $bounds=$filenameEdit.Current.BoundingRectangle
- if ($bounds.IsEmpty -or $bounds.Width -lt 10 -or $bounds.Height -lt 5) {throw 'ZYN-ATTACH-PROBE-005: filename edit bounds invalid'}
- $x=[int]($bounds.Left+$bounds.Width/2);$y=[int]($bounds.Top+$bounds.Height/2)
- if ($x -lt $rect.Left -or $x -ge $rect.Right -or $y -lt $rect.Top -or $y -ge $rect.Bottom -or [ChatProbeWindow]::GetForegroundWindow() -ne $dialog) {throw 'ZYN-ATTACH-PROBE-005: filename click not inside owned foreground dialog'}
+ $bounds=New-Object ChatProbeWindow+RECT
+ if (![ChatProbeWindow]::GetWindowRect($dialog,[ref]$rect) -or ![ChatProbeWindow]::GetWindowRect($filenameEdit,[ref]$bounds)) {throw 'ZYN-ATTACH-PROBE-005: dialog or filename bounds unavailable'}
+ if ($bounds.Right-$bounds.Left -lt 10 -or $bounds.Bottom-$bounds.Top -lt 5) {throw 'ZYN-ATTACH-PROBE-005: filename edit bounds invalid'}
+ $x=[int](($bounds.Left+$bounds.Right)/2);$y=[int](($bounds.Top+$bounds.Bottom)/2)
+ if ($x -lt $rect.Left -or $x -ge $rect.Right -or $y -lt $rect.Top -or $y -ge $rect.Bottom -or [ChatProbeWindow]::GetForegroundWindow() -ne $dialog -or ![ChatProbeWindow]::IsChild($dialog,$filenameEdit)) {throw 'ZYN-ATTACH-PROBE-005: filename click not inside owned foreground dialog'}
  if (![ChatProbeWindow]::SetCursorPos($x,$y)) {throw 'ZYN-ATTACH-PROBE-005: pointer positioning failed'}
  [ChatProbeWindow]::mouse_event(2,0,0,0,[UIntPtr]::Zero)
  [ChatProbeWindow]::mouse_event(4,0,0,0,[UIntPtr]::Zero)
- $focused=$null
  for ($i=0;$i -lt 20;$i++) {
-   $focused=[System.Windows.Automation.AutomationElement]::FocusedElement
-   if ($null -ne $focused -and [System.Windows.Automation.Automation]::Compare($focused,$filenameEdit)) {break}
+   if ([ChatProbeWindow]::OwnsKeyboardFocus($dialog,$filenameEdit)) {break}
    Start-Sleep -Milliseconds 100
  }
- if ($null -eq $focused -or ![System.Windows.Automation.Automation]::Compare($focused,$filenameEdit) -or [ChatProbeWindow]::GetForegroundWindow() -ne $dialog) {throw 'ZYN-ATTACH-PROBE-005: exact filename edit not focused'}
+ if (![ChatProbeWindow]::OwnsKeyboardFocus($dialog,$filenameEdit) -or [ChatProbeWindow]::GetForegroundWindow() -ne $dialog) {
+   [ChatProbeWindow]::ChildInventory($dialog) | Set-Content -LiteralPath (Join-Path $OutputDirectory 'dialog-control-inventory.txt') -Encoding utf8
+   throw 'ZYN-ATTACH-PROBE-005: exact native filename edit not focused'
+ }
  [System.Windows.Forms.SendKeys]::SendWait('^a')
  [System.Windows.Forms.SendKeys]::SendWait($Path)
- $value=$filenameEdit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
- if ([string]$value.Current.Value -cne $Path) {throw 'ZYN-ATTACH-PROBE-006: file path keyboard readback mismatch'}
- Write-Output 'Native owned file dialog: exact filename keyboard readback verified'
+ if ([ChatProbeWindow]::ReadEditText($dialog,$filenameEdit) -cne $Path) {throw 'ZYN-ATTACH-PROBE-006: file path keyboard readback mismatch'}
+ Write-Output 'Native owned file dialog: exact HWND filename keyboard readback verified'
  if ([ChatProbeWindow]::GetForegroundWindow() -ne $dialog) {throw 'ZYN-ATTACH-PROBE-007: dialog foreground lost before confirmation'}
  [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
  [void](Wait-Name 'Remove p03-attachment-fixture.bin' 'Button' $true)
