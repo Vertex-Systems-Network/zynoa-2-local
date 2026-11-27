@@ -50,9 +50,112 @@ pub fn tool_is_allowed(name: &str) -> bool {
     matches!(name, "none" | "local.read_attachment" | "local.write_artifact")
 }
 
+/// Closed vocabulary for review candidates; the legacy "none" sentinel
+/// is not a reviewable operation. This does not grant execution authority.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum ReviewTool { ReadAttachment, WriteArtifact }
+
+impl ReviewTool {
+    fn parse(name: &str) -> Option<Self> {
+        match name {
+            "local.read_attachment" => Some(Self::ReadAttachment),
+            "local.write_artifact" => Some(Self::WriteArtifact),
+            _ => None,
+        }
+    }
+}
+
+/// Native-owned, validated identity. No paths, arguments or renderer
+/// deserialization. Bind the review to the exact target content, not just its ID.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct ToolReviewIdentity {
+    conversation_id: String,
+    turn_id: String,
+    request_id: String,
+    target_id: String,
+    target_sha256: String,
+    tool: ReviewTool,
+}
+
+impl ToolReviewIdentity {
+    pub(crate) fn new(conversation_id: &str, turn_id: &str, request_id: &str,
+        target_id: &str, target_sha256: &str, tool: &str) -> Option<Self> {
+        fn valid_id(id: &str) -> bool {
+            (8..=64).contains(&id.len())
+                && id.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
+        }
+        if ![conversation_id, turn_id, request_id, target_id].iter().all(|id| valid_id(id))
+            || target_sha256.len() != 64
+            || !target_sha256.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)) {
+            return None;
+        }
+        Some(Self { conversation_id: conversation_id.to_owned(), turn_id: turn_id.to_owned(),
+            request_id: request_id.to_owned(), target_id: target_id.to_owned(),
+            target_sha256: target_sha256.to_owned(), tool: ReviewTool::parse(tool)? })
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum ReviewChoice { Approve, Deny }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum ReviewState { Pending, Denied, ScopeMismatch, ApprovedCandidate }
+
+/// Classify only. A matching approval is NOT a grant; a future native broker
+/// must verify provenance and expiry and atomically consume a durable review.
+pub(crate) fn classify_tool_review(expected: &ToolReviewIdentity,
+    review: Option<(&ToolReviewIdentity, ReviewChoice)>) -> ReviewState {
+    match review {
+        None => ReviewState::Pending,
+        Some((actual, _)) if actual != expected => ReviewState::ScopeMismatch,
+        Some((_, ReviewChoice::Deny)) => ReviewState::Denied,
+        Some((_, ReviewChoice::Approve)) => ReviewState::ApprovedCandidate,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn tool_review_is_bound_to_every_identity_field() {
+        let digest = "a".repeat(64);
+        let identity = ToolReviewIdentity::new("thread_001", "turn_001", "request_001",
+            "target_001", &digest, "local.read_attachment").unwrap();
+        assert_eq!(classify_tool_review(&identity, None), ReviewState::Pending);
+        assert_eq!(classify_tool_review(&identity, Some((&identity, ReviewChoice::Deny))), ReviewState::Denied);
+        assert_eq!(classify_tool_review(&identity, Some((&identity, ReviewChoice::Approve))), ReviewState::ApprovedCandidate);
+        let mut mismatches = Vec::new();
+        let mut other = identity.clone(); other.conversation_id = "thread_002".into(); mismatches.push(other);
+        let mut other = identity.clone(); other.turn_id = "turn_002".into(); mismatches.push(other);
+        let mut other = identity.clone(); other.request_id = "request_002".into(); mismatches.push(other);
+        let mut other = identity.clone(); other.target_id = "target_002".into(); mismatches.push(other);
+        let mut other = identity.clone(); other.target_sha256 = "b".repeat(64); mismatches.push(other);
+        let mut other = identity.clone(); other.tool = ReviewTool::WriteArtifact; mismatches.push(other);
+        for other in mismatches {
+            for choice in [ReviewChoice::Approve, ReviewChoice::Deny] {
+                assert_eq!(classify_tool_review(&identity, Some((&other, choice))), ReviewState::ScopeMismatch);
+            }
+        }
+    }
+
+    #[test]
+    fn tool_review_rejects_malformed_scope_and_nonlocal_tools() {
+        let digest = "a".repeat(64);
+        for bad in ["", "short", "../target", "target/01", "target:01", "target 01", "target_é", "target_01\n", &"x".repeat(65)] {
+            for index in 0..4 {
+                let mut ids = ["thread_001", "turn_001", "request_001", "target_001"];
+                ids[index] = bad;
+                assert!(ToolReviewIdentity::new(ids[0], ids[1], ids[2], ids[3], &digest, "local.read_attachment").is_none());
+            }
+        }
+        for bad in ["", "none", "shell.exec", "local.read_attachment ", "Local.read_attachment", "https://example.invalid"] {
+            assert!(ToolReviewIdentity::new("thread_001", "turn_001", "request_001", "target_001", &digest, bad).is_none());
+        }
+        for bad in ["", &"a".repeat(63), &"a".repeat(65), &"A".repeat(64), &"g".repeat(64)] {
+            assert!(ToolReviewIdentity::new("thread_001", "turn_001", "request_001", "target_001", bad, "local.write_artifact").is_none());
+        }
+        assert!(ToolReviewIdentity::new(&"x".repeat(64), "turn_001", "request_001", "target_001", &digest, "local.write_artifact").is_some());
+    }
     #[test]
     fn managed_basename_rejects_unsafe_platform_names() {
         for name in ["", ".", "..", "dir/file", "dir\\file", "file:stream", "a\0b",
