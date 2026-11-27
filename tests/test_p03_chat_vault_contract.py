@@ -8,7 +8,7 @@ class ChatVaultContract(unittest.TestCase):
         self.vault = (ROOT/"apps/desktop/src-tauri/src/vault.rs").read_text(encoding="utf-8")
         self.workflow = (ROOT/".github/workflows/p03-native-baseline.yml").read_text(encoding="utf-8")
     def test_additive_native_schema_and_no_ui_grant(self):
-        for marker in ("SCHEMA_VERSION: i64 = 4", "ARTIFACT_SCHEMA_VERSION: i64 = 3", "CREATE TABLE tool_review_decisions", "tool_review_schema_migrations", "tool_review_no_update", "tool_review_no_delete", "CHAT_SCHEMA_VERSION: i64 = 2", "CREATE TABLE managed_artifacts", "CREATE TABLE artifact_links", "artifact_schema_migrations", "LEGACY_VERSION: i64 = 1", "CREATE TABLE conversations",
+        for marker in ("SCHEMA_VERSION: i64 = 4", "ARTIFACT_SCHEMA_VERSION: i64 = 3", "CREATE TABLE tool_review_decisions", "tool_review_schema_migrations", "tool_review_no_update", "tool_review_no_delete", "tool_review_no_replace", "CHAT_SCHEMA_VERSION: i64 = 2", "CREATE TABLE managed_artifacts", "CREATE TABLE artifact_links", "artifact_schema_migrations", "LEGACY_VERSION: i64 = 1", "CREATE TABLE conversations",
                        "CREATE TABLE messages", "CREATE TABLE schema_migrations", "CREATE TABLE chat_change_journal",
                        "FOREIGN KEY(conversation_id,parent_id) REFERENCES messages(conversation_id,id)",
                        "snapshot_connection_new(app_root, &source, &backup_id)", "apply_v2(&tx, LEGACY_VERSION, Some(&backup_id))",

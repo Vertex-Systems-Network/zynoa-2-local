@@ -158,7 +158,7 @@ jobs:
               assert db.execute("SELECT count(*) FROM schema_migrations WHERE version=2 AND from_version=0 AND backup_id IS NULL AND result='applied'").fetchone()[0] == 1
               assert db.execute("SELECT count(*) FROM artifact_schema_migrations WHERE version=3 AND from_version=0 AND backup_id IS NULL").fetchone()[0] == 1
               assert db.execute("SELECT count(*) FROM tool_review_schema_migrations WHERE version=4 AND from_version=0 AND backup_id IS NULL").fetchone()[0] == 1
-              assert db.execute("SELECT count(*) FROM sqlite_schema WHERE type='trigger' AND name IN ('tool_review_no_update','tool_review_no_delete')").fetchone()[0] == 2
+              assert db.execute("SELECT count(*) FROM sqlite_schema WHERE type='trigger' AND name IN ('tool_review_no_update','tool_review_no_delete','tool_review_no_replace')").fetchone()[0] == 3
               for table in ("conversations", "messages", "chat_change_journal", "managed_artifacts", "artifact_links", "tool_review_decisions"):
                   assert db.execute("SELECT count(*) FROM " + table).fetchone()[0] == 0
           import json, hashlib

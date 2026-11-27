@@ -134,6 +134,9 @@ CREATE TABLE tool_review_decisions(
     decision TEXT NOT NULL CHECK(decision IN ('approve','deny')),
     recorded_at INTEGER NOT NULL CHECK(typeof(recorded_at)='integer' AND recorded_at>0)
 );
+CREATE TRIGGER tool_review_no_replace BEFORE INSERT ON tool_review_decisions
+    WHEN EXISTS(SELECT 1 FROM tool_review_decisions WHERE request_id=NEW.request_id)
+    BEGIN SELECT RAISE(ABORT,'immutable review decision'); END;
 CREATE TRIGGER tool_review_no_update BEFORE UPDATE ON tool_review_decisions
     BEGIN SELECT RAISE(ABORT,'immutable review decision'); END;
 CREATE TRIGGER tool_review_no_delete BEFORE DELETE ON tool_review_decisions
@@ -399,10 +402,10 @@ fn validate_schema(db: &Connection) -> Result<i64, VaultFault> {
             let found: i64 = db.query_row(
                 "SELECT count(*) FROM sqlite_schema WHERE (type='table' AND name IN
                  ('tool_review_decisions','tool_review_schema_migrations')) OR (type='trigger' AND name IN
-                 ('tool_review_no_update','tool_review_no_delete'))",
+                 ('tool_review_no_update','tool_review_no_delete','tool_review_no_replace'))",
                 [], |r| r.get(0)
             ).map_err(|_| VaultFault::Corrupt)?;
-            if found != 4 { return Err(VaultFault::Corrupt); }
+            if found != 5 { return Err(VaultFault::Corrupt); }
             let migrated: i64 = db.query_row(
                 "SELECT count(*) FROM tool_review_schema_migrations WHERE version=4 AND
                  ((from_version IN (0,1,2) AND backup_id IS NULL) OR (from_version=3 AND backup_id IS NOT NULL))",
@@ -1415,6 +1418,7 @@ mod tests {
         v.record_tool_review(&b,&b,ReviewChoice::Deny).unwrap();
         assert!(v.conn.execute("UPDATE tool_review_decisions SET decision='deny' WHERE request_id='request_001'",[]).is_err());
         assert!(v.conn.execute("DELETE FROM tool_review_decisions WHERE request_id='request_001'",[]).is_err());
+        assert!(v.conn.execute("INSERT OR REPLACE INTO tool_review_decisions SELECT request_id,conversation_id,turn_id,target_id,target_sha256,tool,'deny',recorded_at FROM tool_review_decisions WHERE request_id='request_001'",[]).is_err());
         drop(v);
         let v=NativeVault::open(&app).unwrap();
         assert_eq!(count(&v.conn,"SELECT count(*) FROM tool_review_decisions WHERE conversation_id='thread_alpha'"),2);
