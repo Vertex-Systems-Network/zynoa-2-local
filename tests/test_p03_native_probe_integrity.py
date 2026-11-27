@@ -90,6 +90,21 @@ class NativeProbeIntegrity(unittest.TestCase):
         self.assertIn(".chat-model-controls .chat-notice { grid-column:1/-1;", css)
         self.assertIn("minmax(0, max-content) minmax(0, 1fr)", css)
 
+    def test_recovery_activation_fallback_never_retries_mutations(self):
+        source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
+        click = source.split("function Click-Control", 1)[1].split("function Focus-ByPhysicalClick", 1)[0]
+        fallback = click.split("} catch {", 1)[1].split("# Caller must still", 1)[0]
+        self.assertIn("if ($Name -cne 'Check managed files') {throw}", fallback)
+        self.assertLess(fallback.index("if ($Name -cne"), fallback.index("FindFirst"))
+        self.assertIn("$attempt -lt 8", fallback)
+        self.assertIn("if ($null -ne $existingReport)", fallback)
+        self.assertIn("$freshControl=Wait-Name 'Check managed files' 'Button' $true", fallback)
+        self.assertEqual(fallback.count("Focus-ByPhysicalClick $freshControl"), 1)
+        self.assertNotIn("$pattern.Invoke()", fallback)
+        journey = source.split("$script:stage='actual native recovery inspection after restart'", 1)[1]
+        self.assertLess(journey.index("Click-Control 'Check managed files'"), journey.index("Wait-RecoveryCounts"))
+        self.assertLess(journey.index("Wait-RecoveryCounts"), journey.index("Read-AttachmentVault 'recovery'"))
+
     def test_managed_recovery_inspection_preserves_interrupted_stage(self):
         source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
         verifier = (ROOT / "scripts/verify_p03_attachment_ui_database.py").read_text(encoding="utf-8")
