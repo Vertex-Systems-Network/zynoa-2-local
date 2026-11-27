@@ -2,6 +2,15 @@
 export type Thread={id:string;title:string;revision:number;createdAt:number;updatedAt:number};
 export type Attachment={id:string;name:string;bytes:number;sha256:string};
 export type Message={id:string;parentId:string|null;ordinal:number;role:"user"|"assistant"|"system";content:string;status:"complete"|"cancelled"|"failed";revision:number;createdAt:number;attachments:Attachment[]};
+export type TextArtifactSource={conversationId:string;sourceId:string};
+export type TextArtifactResult=TextArtifactSource&{messageId:string;attachment:Attachment;replayed:boolean};
+export type TextArtifactPreview=TextArtifactSource&{content:string};
+export function isTextArtifactReceipt(m:Message):boolean{
+ return m.role==="system"&&m.status==="complete"&&m.content==="Saved assistant response as text artifact."&&
+  m.parentId!==null&&/^[a-f0-9]{64}$/.test(m.id)&&m.attachments.length===1&&
+  /^[a-f0-9]{64}$/.test(m.attachments[0].id)&&m.attachments[0].name==="assistant-response.txt"&&
+  m.attachments[0].bytes>0&&m.attachments[0].bytes<=262144;
+}
 export type ThreadPage={items:Thread[];next:string|null};
 export type HistoryPage={conversation:Thread;items:Message[];next:number|null};
 export type WriteResult={receipt:{id:string;revision:number;conversationRevision:number;ordinal:number|null};replayed:boolean};
@@ -15,7 +24,7 @@ export function recoveryRows(r:RecoveryInventory):string[]{
  `Damaged or unreadable: ${r.damagedOrUnreadable}`,`Interrupted stages: ${r.interruptedStages}`,
  `Unexpected entries: ${r.unexpectedEntries}`,`Unlinked metadata: ${r.unlinkedMetadata}`];
 }
-export type ChatCommand="chat.list"|"chat.create"|"chat.history"|"chat.saveUserMessage"|"chat.attachment.chunk"|"chat.attachment.discard"|"chat.recovery.inspect";
+export type ChatCommand="chat.list"|"chat.create"|"chat.history"|"chat.saveUserMessage"|"chat.attachment.chunk"|"chat.attachment.discard"|"chat.recovery.inspect"|"chat.artifact.createText"|"chat.artifact.previewText";
 export type Payloads={
  "chat.list":{after:string|null;limit:number};
  "chat.create":{id:string;title:string};
@@ -24,8 +33,10 @@ export type Payloads={
  "chat.attachment.chunk":UploadChunk;
  "chat.attachment.discard":DiscardDraft;
  "chat.recovery.inspect":Record<string,never>;
+ "chat.artifact.createText":TextArtifactSource;
+ "chat.artifact.previewText":TextArtifactSource;
 };
-export type Replies={"chat.list":ThreadPage;"chat.create":WriteResult;"chat.history":HistoryPage;"chat.saveUserMessage":WriteResult;"chat.attachment.chunk":UploadAck;"chat.attachment.discard":DiscardDraft&{discarded:true};"chat.recovery.inspect":RecoveryInventory};
+export type Replies={"chat.list":ThreadPage;"chat.create":WriteResult;"chat.history":HistoryPage;"chat.saveUserMessage":WriteResult;"chat.attachment.chunk":UploadAck;"chat.attachment.discard":DiscardDraft&{discarded:true};"chat.recovery.inspect":RecoveryInventory;"chat.artifact.createText":TextArtifactResult;"chat.artifact.previewText":TextArtifactPreview};
 export const byteLength=(s:string)=>new TextEncoder().encode(s).length;
 export const validText=(s:string,max:number)=>s.trim().length>0&&!s.includes("\0")&&byteLength(s)<=max;
 function fail():never{throw new Error("ZYN-CHAT-RESPONSE");}
@@ -89,6 +100,20 @@ export function decodeReply<K extends ChatCommand>(raw:unknown,command:K,correla
    for(const row of items){if(row.ordinal<=previous||ids.has(row.id))return fail();previous=row.ordinal;ids.add(row.id);}
    if(o.next!==null&&(items.length===0||o.next!==previous))return fail();
    return {conversation,items,next:o.next as number|null} as Replies[K];
+ }
+ if(command==="chat.artifact.createText"){
+   const q=payload as TextArtifactSource,o=object(e.data,["conversationId","sourceId","messageId","attachment","replayed"]);
+   const a=attachment(o.attachment);
+   if(o.conversationId!==q.conversationId||o.sourceId!==q.sourceId||typeof o.messageId!=="string"||
+      !/^[a-f0-9]{64}$/.test(o.messageId)||!/^[a-f0-9]{64}$/.test(a.id)||o.messageId===a.id||
+      a.name!=="assistant-response.txt"||a.bytes===0||a.bytes>262144||typeof o.replayed!=="boolean")return fail();
+   return {...o,attachment:a} as Replies[K];
+ }
+ if(command==="chat.artifact.previewText"){
+   const q=payload as TextArtifactSource,o=object(e.data,["conversationId","sourceId","content"]);
+   if(o.conversationId!==q.conversationId||o.sourceId!==q.sourceId||typeof o.content!=="string"||
+      !validText(o.content,262144))return fail();
+   return o as unknown as Replies[K];
  }
  if(command==="chat.recovery.inspect"){
    const keys=["referencedHashes","verifiedReferenced","verifiedUnreferenced","unavailableReferenced","damagedOrUnreadable","interruptedStages","unexpectedEntries","unlinkedMetadata"];

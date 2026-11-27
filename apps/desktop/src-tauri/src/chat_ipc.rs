@@ -45,6 +45,9 @@ struct ListPayload { after: Option<String>, limit: u32 }
 struct RecoveryPayload {}
 #[derive(Deserialize)]
 #[serde(rename_all="camelCase",deny_unknown_fields)]
+struct TextArtifactPayload { conversation_id:String, source_id:String }
+#[derive(Deserialize)]
+#[serde(rename_all="camelCase",deny_unknown_fields)]
 struct CreatePayload { id: String, title: String }
 #[derive(Deserialize)]
 #[serde(rename_all="camelCase",deny_unknown_fields)]
@@ -112,7 +115,7 @@ fn authorize_request(label:&str, request:&ChatRequest) -> Result<(),ChatError> {
     if request.schema_version!=1 || request.workspace_scope!="local" || !token(&request.correlation_id) {
         return Err(error("ZYN-CHAT-INPUT"));
     }
-    if !matches!(request.command_id.as_str(),"chat.list"|"chat.create"|"chat.history"|"chat.saveUserMessage"|"chat.attachment.chunk"|"chat.attachment.discard"|"chat.recovery.inspect") {
+    if !matches!(request.command_id.as_str(),"chat.list"|"chat.create"|"chat.history"|"chat.saveUserMessage"|"chat.attachment.chunk"|"chat.attachment.discard"|"chat.recovery.inspect"|"chat.artifact.createText"|"chat.artifact.previewText") {
         return Err(error("ZYN-CHAT-DENIED"));
     }
     if serde_json::to_vec(&request.payload).map_err(|_|error("ZYN-CHAT-INPUT"))?.len()>MAX_REQUEST_BYTES {
@@ -122,6 +125,21 @@ fn authorize_request(label:&str, request:&ChatRequest) -> Result<(),ChatError> {
 }
 fn execute(vault:&mut NativeVault, request:ChatRequest) -> Result<ChatReply,ChatError> {
     let data=match request.command_id.as_str() {
+        "chat.artifact.createText" => {
+            let q:TextArtifactPayload=parse(request.payload)?;
+            if !token(&q.conversation_id)||!token(&q.source_id) {return Err(error("ZYN-CHAT-INPUT"));}
+            let saved=vault.create_text_artifact(&q.conversation_id,&q.source_id)?;
+            let a=&saved.attachment;
+            json!({"conversationId":q.conversation_id,"sourceId":saved.source_id,"messageId":saved.message_id,
+                "attachment":{"id":a.id,"name":a.receipt.name,"bytes":a.receipt.bytes,"sha256":a.receipt.sha256},
+                "replayed":saved.replayed})
+        },
+        "chat.artifact.previewText" => {
+            let q:TextArtifactPayload=parse(request.payload)?;
+            if !token(&q.conversation_id)||!token(&q.source_id) {return Err(error("ZYN-CHAT-INPUT"));}
+            let content=vault.preview_text_artifact(&q.conversation_id,&q.source_id)?;
+            json!({"conversationId":q.conversation_id,"sourceId":q.source_id,"content":content})
+        },
         "chat.recovery.inspect" => {
             if !request.payload.is_object() {return Err(error("ZYN-CHAT-INPUT"));}
             let _:RecoveryPayload=parse(request.payload)?;
@@ -215,6 +233,9 @@ fn execute(vault:&mut NativeVault, request:ChatRequest) -> Result<ChatReply,Chat
         },
         _=>return Err(error("ZYN-CHAT-DENIED")),
     };
+    if serde_json::to_vec(&data).map_err(|_|error("ZYN-CHAT-STORAGE"))?.len()>MAX_RESPONSE_BYTES {
+        return Err(error("ZYN-CHAT-STORAGE"));
+    }
     Ok(ChatReply {schema_version:1,command_id:request.command_id,correlation_id:request.correlation_id,data})
 }
 
@@ -406,6 +427,42 @@ mod tests {
         assert_eq!(std::fs::read(stage).unwrap(),b"interrupted synthetic bytes");
     }
 
+    #[test]
+    fn chat_ipc_text_artifact_create_preview_is_scoped_and_replayable() {
+        let f=Fixture::new();let mut v=NativeVault::open(&f.0).unwrap();
+        for id in [A,B] {call(&mut v,"chat.create",json!({"id":id,"title":"Synthetic"})).unwrap();}
+        call(&mut v,"chat.saveUserMessage",json!({"id":M,"conversationId":A,"content":"Synthetic prompt"})).unwrap();
+        let source="assistant-alpha-0001";
+        let content="Synthetic <script>plain text</script>\nUrdu: اردو";
+        v.append_chat_message(ChatMessageInput{id:source,conversation_id:A,parent_id:Some(M),
+            role:ChatRole::Assistant,content,status:ChatStatus::Complete}).unwrap();
+        let q=json!({"conversationId":A,"sourceId":source});
+        assert!(authorize_request("remote",&request("chat.artifact.createText",q.clone())).is_err());
+        assert!(authorize_request("remote",&request("chat.artifact.previewText",q.clone())).is_err());
+        for cmd in ["chat.artifact.createText","chat.artifact.previewText"] {
+            for bad in [json!({"conversationId":B,"sourceId":source}),
+                        json!({"conversationId":A,"sourceId":M}),
+                        json!({"conversationId":A,"sourceId":source,"path":"outside"}),
+                        json!({"conversationId":A,"sourceId":source,"content":"override"})] {
+                assert!(call(&mut v,cmd,bad).is_err());
+            }
+        }
+        assert!(call(&mut v,"chat.artifact.previewText",q.clone()).is_err());
+        let created=call(&mut v,"chat.artifact.createText",q.clone()).unwrap();
+        assert_eq!(created["replayed"],false);
+        assert_eq!(created["attachment"]["bytes"],content.len());
+        assert_eq!(created["attachment"]["name"],"assistant-response.txt");
+        assert_eq!(created["sourceId"],source);
+        assert_eq!(call(&mut v,"chat.artifact.previewText",q.clone()).unwrap()["content"],content);
+        drop(v);let mut v=NativeVault::open(&f.0).unwrap();
+        let mut replay=created.clone();replay["replayed"]=json!(true);
+        assert_eq!(call(&mut v,"chat.artifact.createText",q.clone()).unwrap(),replay);
+        assert_eq!(call(&mut v,"chat.artifact.previewText",q).unwrap()["content"],content);
+        let h=call(&mut v,"chat.history",json!({"conversationId":A,"after":0,"limit":4})).unwrap();
+        assert_eq!(h["items"].as_array().unwrap().len(),3);
+        assert_eq!(h["items"][2]["parentId"],source);
+        assert_eq!(h["items"][2]["attachments"][0],created["attachment"]);
+    }
     #[test]
     fn chat_ipc_large_history_is_byte_bounded_and_continues() {
         let f=Fixture::new();let mut v=NativeVault::open(&f.0).unwrap();

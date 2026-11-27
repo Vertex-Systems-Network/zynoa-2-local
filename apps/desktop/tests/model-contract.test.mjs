@@ -105,3 +105,18 @@ test("model selector never displays an unacknowledged replacement",()=>{
  assert.equal(modelSelectValue({...saved,model:alternative.name,revision:3},[alternative],"0.40.18"),alternative.name);
  assert.equal(modelSelectValue(saved,[original],"0.40.18"),saved.model);
 });
+
+test("native artifact receipts do not mask a later interrupted turn",()=>{
+ const cid="thread-alpha-0001";
+ const row=(id,ordinal,role,status,parentId=null)=>({id,ordinal,role,status,parentId,attachments:[],content:"synthetic",revision:1,createdAt:1});
+ const first=row("user-first-0001",1,"user","complete");
+ const done=row("assistant-done-0001",2,"assistant","complete",first.id);
+ const latest=row("user-latest-0001",3,"user","complete");
+ const stopped=row("assistant-stop-0001",4,"assistant","cancelled",latest.id);
+ const receipt={...row("a".repeat(64),5,"system","complete",done.id),content:"Saved assistant response as text artifact.",attachments:[{id:"b".repeat(64),name:"assistant-response.txt",bytes:9,sha256:"c".repeat(64)}]};
+ const history=[first,done,latest,stopped,receipt];
+ assert.deepEqual(recoverRetryTarget(history,null,cid,null),{conversationId:cid,parentId:latest.id});
+ assert.equal(recoverRetryTarget(history,5,cid,null),null);
+ assert.equal(recoverRetryTarget([...history.slice(0,-1),{...receipt,parentId:stopped.id}],null,cid,null),null);
+ assert.equal(recoverRetryTarget([first,done,receipt],null,cid,null),null);
+});

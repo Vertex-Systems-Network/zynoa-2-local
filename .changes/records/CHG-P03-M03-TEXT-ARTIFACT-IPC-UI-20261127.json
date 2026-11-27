@@ -1,0 +1,44 @@
+{
+  "change_id": "CHG-P03-M03-TEXT-ARTIFACT-IPC-UI-20261127",
+  "module_id": "M03",
+  "kind": "feature",
+  "title": "Expose scoped text artifact creation and verified plain-text preview",
+  "summary": "Local artifact IPC and explicit renderer controls, receipt-aware retry and strict contracts.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
+  "affected_option_ids": [
+    "M03-OPT-05",
+    "M03-OPT-06"
+  ],
+  "docs_paths": [
+    "docs/evidence/P03_T09_NATIVE_TEXT_ARTIFACT_CANDIDATE_20261127.md",
+    "docs/modules/M03.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M03.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M03.md"
+  ],
+  "test_evidence": [
+    "apps/desktop/src-tauri/src/chat_ipc.rs",
+    "apps/desktop/tests/chat-contract.test.mjs",
+    "apps/desktop/tests/model-contract.test.mjs"
+  ],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No schema or new capability grant; fixed scoped local commands.",
+  "created_at": "2026-11-27",
+  "updated_at": "2026-11-27",
+  "version_bump": "none",
+  "docs_impact": true,
+  "data_migration": false
+}

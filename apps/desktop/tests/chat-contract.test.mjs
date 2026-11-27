@@ -68,3 +68,18 @@ test("managed recovery inventory exposes counts only, with consistent bounded to
   assert.throws(()=>decode("chat.recovery.inspect",invalid,{}),/ZYN-CHAT-RESPONSE/);
  }
 });
+
+test("text artifact replies are scoped, bounded and plain text",()=>{
+ const q={conversationId:thread.id,sourceId:"assistant-alpha-0001"};
+ const a={id:"a".repeat(64),name:"assistant-response.txt",bytes:20,sha256:"b".repeat(64)};
+ const result={...q,messageId:"c".repeat(64),attachment:a,replayed:false};
+ assert.deepEqual(decode("chat.artifact.createText",result,q),result);
+ for(const bad of [{...result,sourceId:"wrong-source-0001"},{...result,messageId:"invalid"},{...result,attachment:{...a,name:"other.txt"}},{...result,attachment:{...a,bytes:262145}},{...result,path:"outside"}]){
+   assert.throws(()=>decode("chat.artifact.createText",bad,q),/ZYN-CHAT-RESPONSE/);
+ }
+ const p={...q,content:"<script>plain text</script> اردو"};
+ assert.deepEqual(decode("chat.artifact.previewText",p,q),p);
+ for(const bad of [{...p,conversationId:"wrong-thread-0001"},{...p,content:"\0"},{...p,content:"x".repeat(262145)},{...p,url:"file://outside"}]){
+   assert.throws(()=>decode("chat.artifact.previewText",bad,q),/ZYN-CHAT-RESPONSE/);
+ }
+});

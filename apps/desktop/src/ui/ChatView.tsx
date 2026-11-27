@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { chatRequest, chatError, mutationId, uploadSelectedFiles, type SelectedFile } from "../chat-transport";
 import {modelRequest,modelError} from "../model-transport";
-import { byteLength, validText, validSelection, recoveryRows, type RecoveryInventory, type Thread, type Message, type Payloads } from "./chat-contract";
+import { byteLength, validText, validSelection, recoveryRows, isTextArtifactReceipt, type TextArtifactPreview, type RecoveryInventory, type Thread, type Message, type Payloads } from "./chat-contract";
 import {modelAvailable,modelSelectValue,retryAvailable,recoverRetryTarget,currentContext,type InstalledModel,type ModelSettings,type ContextSnapshot,type RetryTarget} from "./model-contract";
 type Transport="pending"|"connected"|"unavailable"|"preview";
 type Pending={command:"chat.create";payload:Payloads["chat.create"]}|{command:"chat.saveUserMessage";payload:Payloads["chat.saveUserMessage"]}|{command:"attachment-upload";payload:Payloads["chat.saveUserMessage"];files:SelectedFile[]};
@@ -19,6 +19,7 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
  const [pending,setPending]=useState<Pending|null>(null);
  const [notice,setNotice]=useState("");
  const [recovery,setRecovery]=useState<RecoveryInventory|null>(null);
+ const [artifactPreview,setArtifactPreview]=useState<TextArtifactPreview|null>(null);
  const [error,setError]=useState("");
  const [models,setModels]=useState<InstalledModel[]>([]);
  const [runtimeVersion,setRuntimeVersion]=useState("");
@@ -56,7 +57,7 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
    }
    // A new history read must not expose another conversation's preference
    // if its native settings lookup fails.
-   if(after===0){setSettings(null);setContext(null);}
+   if(after===0){setSettings(null);setContext(null);setArtifactPreview(null);}
    setSelected(page.conversation);
    setMessages(old=>after===0?page.items:[...old,...page.items.filter(m=>!old.some(x=>x.id===m.id))]);
    setHistoryCursor(page.next);
@@ -170,6 +171,25 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
  function retry(){if(!canEdit||!canRetry||!retryTarget||activeTurn||lock.current||draft||files.length)return;const target=retryTarget;void run(()=>generate(target.conversationId,target.parentId));}
  function chooseModel(model:string){if(!selected||!canEdit||activeTurn||!runtimeVersion||!models.some(item=>item.name===model))return;void run(async()=>{const reply=await modelRequest("inference.settings.set",{conversationId:selected.id,model,contextLimit:settings?.contextLimit??2048});setSettings(reply.settings);setContext(null);});}
  function chooseContext(contextLimit:number){if(!selected||!settings||!installed||!canEdit||activeTurn)return;void run(async()=>{const reply=await modelRequest("inference.settings.set",{conversationId:selected.id,model:settings.model,contextLimit});setSettings(reply.settings);setContext(null);});}
+ function createArtifact(source:Message){
+   if(!selected||!canEdit||lock.current||pendingRef.current||activeTurn||
+      source.role!=="assistant"||source.status!=="complete"||!messages.some(m=>m.id===source.id))return;
+   const q={conversationId:selected.id,sourceId:source.id};
+   setArtifactPreview(null);setRecovery(null);setContext(null);
+   void run(async()=>{
+     const saved=await chatRequest("chat.artifact.createText",q);
+     setNotice(saved.replayed?"Existing text artifact verified.":"Text artifact saved locally.");
+     await history(q.conversationId);await list();
+     setArtifactPreview(await chatRequest("chat.artifact.previewText",q));
+   });
+ }
+ function previewArtifact(receipt:Message){
+   if(!selected||!canEdit||lock.current||pendingRef.current||activeTurn||!isTextArtifactReceipt(receipt)||!receipt.parentId||
+      !messages.some(m=>m.id===receipt.id))return;
+   const q={conversationId:selected.id,sourceId:receipt.parentId};
+   setArtifactPreview(null);
+   void run(async()=>setArtifactPreview(await chatRequest("chat.artifact.previewText",q)));
+ }
  function inspectRecovery(){
    if(!canEdit||lock.current||pendingRef.current)return;
    setRecovery(null);
@@ -208,8 +228,17 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
      {context&&<output aria-live="polite" aria-label={`Estimated ${context.estimatedTokens} / ${context.limit} tokens · ${context.includedMessages} included · ${context.omittedMessages} omitted`}>{`Estimated ${context.estimatedTokens} / ${context.limit} tokens · ${context.includedMessages} included · ${context.omittedMessages} omitted`}</output>}
     </div>
     {messages.length===0&&!busy&&<p className="chat-notice">No saved messages.</p>}
-    <ol className="chat-history" aria-label="Saved messages" tabIndex={0}>{messages.map(m=><li key={m.id}><strong>{m.role==="user"?"You":m.role==="assistant"?"Assistant":"System"}</strong><p>{m.content}</p>{m.attachments.length>0&&<ul aria-label="Saved attachments">{m.attachments.map(a=><li key={a.id} aria-label={`Saved attachment: ${a.name}, ${a.bytes} bytes`}><span>{a.name}</span> <small>({a.bytes.toLocaleString()} bytes · stored metadata)</small></li>)}</ul>}<small>{m.status==="complete"?"Saved":m.status}</small></li>)}{live&&<li aria-live="polite" aria-label="Streaming assistant response"><strong>Assistant</strong><p>{live}</p><small>Generating locally</small></li>}</ol>
+    <ol className="chat-history" aria-label="Saved messages" tabIndex={0}>{messages.map(m=><li key={m.id}><strong>{m.role==="user"?"You":m.role==="assistant"?"Assistant":"System"}</strong><p>{m.content}</p>{m.attachments.length>0&&<ul aria-label="Saved attachments">{m.attachments.map(a=><li key={a.id} aria-label={`Saved attachment: ${a.name}, ${a.bytes} bytes`}><span>{a.name}</span> <small>({a.bytes.toLocaleString()} bytes · stored metadata)</small></li>)}</ul>}<small>{m.status==="complete"?"Saved":m.status}</small>
+    {m.role==="assistant"&&m.status==="complete"&&<button type="button" className="subtle-action" disabled={!canEdit||activeTurn!==null} aria-label={`Generate text artifact from message ${m.ordinal}`} onClick={()=>createArtifact(m)}>Generate text artifact</button>}
+    {isTextArtifactReceipt(m)&&<button type="button" className="subtle-action" disabled={!canEdit||activeTurn!==null} aria-label={`Preview text artifact from receipt ${m.ordinal}`} onClick={()=>previewArtifact(m)}>Preview text artifact</button>}
+    </li>)}{live&&<li aria-live="polite" aria-label="Streaming assistant response"><strong>Assistant</strong><p>{live}</p><small>Generating locally</small></li>}</ol>
     {historyCursor!==null&&<button type="button" className="subtle-action" disabled={!canEdit} onClick={()=>void run(()=>history(selected.id,historyCursor))}>Load more messages</button>}
+    {artifactPreview&&artifactPreview.conversationId===selected.id&&<section role="group" aria-label="Verified text artifact preview" className="chat-artifact-preview">
+     <h3>Verified text artifact preview</h3>
+     <p className="chat-notice">assistant-response.txt · {byteLength(artifactPreview.content).toLocaleString()} bytes · verified local plain text</p>
+     <pre tabIndex={0} aria-label="Verified artifact text">{artifactPreview.content}</pre>
+     <button type="button" className="subtle-action" onClick={()=>setArtifactPreview(null)}>Close artifact preview</button>
+    </section>}
     <form onSubmit={save}><label htmlFor="chat-message">Message</label><textarea id="chat-message" data-testid="chat-message" ref={composerRef} value={draft} maxLength={262144} disabled={!canEdit} onChange={e=>{setDraft(e.target.value);setContext(null);}} aria-describedby="chat-draft-info"/>
     <p id="chat-draft-info" className="chat-notice">{byteLength(draft)} / 262144 bytes · Drafts are session-only.</p>
     <div role="group" aria-label="Draft attachments">
@@ -230,7 +259,7 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
       <ul aria-label="Managed file counts">{recoveryRows(recovery).map(row=><li key={row} aria-label={row} tabIndex={-1}>{row}</li>)}</ul>
      </div>}
     </section>
-    <p className="chat-notice">Inference stays on fixed loopback. Files can be saved with a message; opening files, model file consumption, tools and export are not available in this slice. Saved metadata does not grant file access.</p>
+    <p className="chat-notice">Inference stays on fixed loopback. Files can be saved with a message. Complete assistant responses can be saved and previewed as verified text artifacts. Opening imported files, model file consumption, tools and export are not available in this slice. Saved metadata does not grant arbitrary file access.</p>
    </section>
    </div>
  </section>;

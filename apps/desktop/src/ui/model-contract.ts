@@ -1,4 +1,4 @@
-import type { Message } from "./chat-contract";
+import { isTextArtifactReceipt, type Message } from "./chat-contract.js";
 export type InstalledModel={name:string;digest:string;size:number};
 export type ModelSettings={model:string;contextLimit:number;revision:number};
 export type ContextInspection={estimatedTokens:number;limit:number;includedMessages:number;omittedMessages:number};
@@ -18,6 +18,11 @@ export function retryAvailable(target:RetryTarget|null,conversationId:string|nul
 // is not evidence of an attempted generation except in the live session.
 export function recoverRetryTarget(messages:readonly Message[],next:number|null,conversationId:string|null,session:RetryTarget|null):RetryTarget|null{
  if(next!==null||!conversationId||messages.length===0)return null;
+ // Only native receipt-shaped rows with a loaded, matching complete source
+ // are neutral to retry ordering. Other system messages remain barriers.
+ messages=messages.filter(m=>!isTextArtifactReceipt(m)||!messages.some(source=>
+   source.id===m.parentId&&source.ordinal<m.ordinal&&source.role==="assistant"&&source.status==="complete"));
+ if(messages.length===0)return null;
  const last=messages[messages.length-1];
  if(last.role==="user"){
    return last.status==="complete"&&last.attachments.length===0&&session?.conversationId===conversationId&&session.parentId===last.id?session:null;
