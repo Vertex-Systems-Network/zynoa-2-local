@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { chatRequest, chatError, mutationId, uploadSelectedFiles, type SelectedFile } from "../chat-transport";
 import {modelRequest,modelError} from "../model-transport";
 import { byteLength, validText, validSelection, type Thread, type Message, type Payloads } from "./chat-contract";
-import {modelAvailable,retryAvailable,currentContext,type InstalledModel,type ModelSettings,type ContextSnapshot,type RetryTarget} from "./model-contract";
+import {modelAvailable,retryAvailable,recoverRetryTarget,currentContext,type InstalledModel,type ModelSettings,type ContextSnapshot,type RetryTarget} from "./model-contract";
 type Transport="pending"|"connected"|"unavailable"|"preview";
 type Pending={command:"chat.create";payload:Payloads["chat.create"]}|{command:"chat.saveUserMessage";payload:Payloads["chat.saveUserMessage"]}|{command:"attachment-upload";payload:Payloads["chat.saveUserMessage"];files:SelectedFile[]};
 export function ChatView({active,transport,onHelp}:{active:boolean;transport:Transport;onHelp:()=>void}){
@@ -25,13 +25,14 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
  const [contextSnapshot,setContext]=useState<ContextSnapshot|null>(null);
  const [live,setLive]=useState("");
  const [activeTurn,setActiveTurn]=useState<{turnId:string;conversationId:string;parentId:string}|null>(null);
- const [retryTarget,setRetryTarget]=useState<RetryTarget|null>(null);
+ const [sessionRetry,setRetryTarget]=useState<RetryTarget|null>(null);
  const activeTurnRef=useRef<string|null>(null);
  const lock=useRef(false), pendingRef=useRef<Pending|null>(null), started=useRef(false);
  const titleRef=useRef<HTMLInputElement>(null),composerRef=useRef<HTMLTextAreaElement>(null),fileRef=useRef<HTMLInputElement>(null);
  const online=transport==="connected";
  const canEdit=online&&!busy&&!pending;
  const installed=modelAvailable(settings,models,runtimeVersion);
+ const retryTarget=recoverRetryTarget(messages,historyCursor,selected?.id??null,sessionRetry);
  const canRetry=retryAvailable(retryTarget,selected?.id??null,installed);
  const context=currentContext(contextSnapshot,selected?.id??null,settings,draft);
  function invalidateInventory(){setModels([]);setRuntimeVersion("");}
@@ -48,6 +49,10 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
  }
  async function history(id:string,after=0){
    const page=await chatRequest("chat.history",{conversationId:id,after,limit:4});
+   // Never combine pages across conversation revisions.
+   if(after!==0&&(!selected||selected.id!==id||selected.revision!==page.conversation.revision)){
+     await history(id);return;
+   }
    setSelected(page.conversation);
    setMessages(old=>after===0?page.items:[...old,...page.items.filter(m=>!old.some(x=>x.id===m.id))]);
    setHistoryCursor(page.next);
@@ -141,7 +146,7 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
      pendingRef.current=null;setPending(null);setUploadProgress(null);setNotice("Upload discarded. Selected files and message text are still in this draft.");});
  }
   async function stop(){const turn=activeTurn;if(!turn)return;try{const reply=await modelRequest("inference.turn.cancel",{turnId:turn.turnId,conversationId:turn.conversationId});if(activeTurnRef.current===turn.turnId)setNotice(reply.stopped?"Stop requested; waiting for the local runtime to reach a safe boundary.":"Stop was not accepted; the turn may have already ended or may not have started yet.");}catch(e){if(activeTurnRef.current===turn.turnId)setError(modelError(e));}}
- function retry(){if(!canEdit||!canRetry||!retryTarget||activeTurn)return;const target=retryTarget;void run(()=>generate(target.conversationId,target.parentId));}
+ function retry(){if(!canEdit||!canRetry||!retryTarget||activeTurn||lock.current||draft||files.length)return;const target=retryTarget;void run(()=>generate(target.conversationId,target.parentId));}
  function chooseModel(model:string){if(!selected||!canEdit||activeTurn||!runtimeVersion||!models.some(item=>item.name===model))return;void run(async()=>{const reply=await modelRequest("inference.settings.set",{conversationId:selected.id,model,contextLimit:settings?.contextLimit??2048});setSettings(reply.settings);setContext(null);});}
  function chooseContext(contextLimit:number){if(!selected||!settings||!installed||!canEdit||activeTurn)return;void run(async()=>{const reply=await modelRequest("inference.settings.set",{conversationId:selected.id,model:settings.model,contextLimit});setSettings(reply.settings);setContext(null);});}
  function inspectContext(){if(!selected||!settings||!canEdit)return;const conversationId=selected.id,settingsRevision=settings.revision;setContext(null);void run(async()=>setContext({conversationId,settingsRevision,draft,inspection:await modelRequest("inference.context.inspect",{conversationId,draft})}));}
@@ -188,7 +193,7 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
      {files.length>0&&<ul aria-label="Selected attachments">{files.map(a=><li key={a.id}><span>{a.file.name} · {a.file.size.toLocaleString()} bytes</span> <button type="button" className="subtle-action" disabled={!canEdit} onClick={()=>setFiles(old=>old.filter(x=>x.id!==a.id))} aria-label={`Remove ${a.file.name}`}>Remove</button></li>)}</ul>}
      {uploadProgress&&<div><progress aria-label="Attachment upload progress" value={uploadProgress.received} max={Math.max(1,uploadProgress.total)}/><span role="status">{uploadProgress.received.toLocaleString()} / {uploadProgress.total.toLocaleString()} bytes transferred to local service; save not yet confirmed.</span></div>}
     </div>
-    <div className="chat-actions"><button type="submit" className="gold-action" disabled={!canEdit||!installed||files.length>0||!validText(draft,262144)}>Send</button><button type="button" className="subtle-action" disabled={!canEdit||!validText(draft,262144)} onClick={saveOnly}>Save message</button><button type="button" className="subtle-action" disabled={!activeTurn} onClick={()=>void stop()}>Stop</button><button type="button" className="subtle-action" disabled={!canEdit||!canRetry||activeTurn!==null} onClick={retry}>Retry turn</button><button type="button" className="subtle-action" disabled={!canEdit||(!draft&&!files.length)} onClick={()=>{setDraft("");setFiles([]);setContext(null);composerRef.current?.focus();}}>Clear draft</button></div>
+    <div className="chat-actions"><button type="submit" className="gold-action" disabled={!canEdit||!installed||files.length>0||!validText(draft,262144)}>Send</button><button type="button" className="subtle-action" disabled={!canEdit||!validText(draft,262144)} onClick={saveOnly}>Save message</button><button type="button" className="subtle-action" disabled={!activeTurn} onClick={()=>void stop()}>Stop</button><button type="button" className="subtle-action" disabled={!canEdit||!canRetry||activeTurn!==null||!!draft||files.length>0} onClick={retry}>Retry turn</button><button type="button" className="subtle-action" disabled={!canEdit||(!draft&&!files.length)} onClick={()=>{setDraft("");setFiles([]);setContext(null);composerRef.current?.focus();}}>Clear draft</button></div>
     </form></>}
     <p className="chat-notice">Inference stays on fixed loopback. Files can be saved with a message; opening files, model file consumption, tools and export are not available in this slice. Saved metadata does not grant file access.</p>
    </section>

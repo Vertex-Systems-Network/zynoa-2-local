@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {decodeModelEvent,decodeModelReply,modelAvailable,retryAvailable,currentContext} from "../.ui-tests/model-contract.js";
+import {decodeModelEvent,decodeModelReply,modelAvailable,retryAvailable,recoverRetryTarget,currentContext} from "../.ui-tests/model-contract.js";
 const root=(command,correlationId,data)=>({schemaVersion:1,commandId:command,correlationId,data});
 test("model health accepts bounded installed inventory and rejects extra authority",()=>{
  const ok=decodeModelReply(root("inference.health","correlation-00001",{version:"0.40.18",models:[{name:"qwen2.5:0.5b",digest:"abc",size:10}]}),"inference.health","correlation-00001",{});
@@ -65,4 +65,27 @@ test("settings acknowledgement must match the requested choice and stream cannot
  assert.throws(()=>decodeModelReply(root(command,correlation,{settings:{...settings,model:"another:1b"}}),command,correlation,payload));
  assert.throws(()=>decodeModelReply(root(command,correlation,{settings:{...settings,contextLimit:1024}}),command,correlation,payload));
  assert.throws(()=>decodeModelEvent({schemaVersion:1,turnId:"turn-alpha-00001",sequence:3,kind:"delta",content:"gap"},"turn-alpha-00001",1));
+});
+
+test("recover retry from final cancelled or failed history without stale or save-only targets",()=>{
+ const cid="thread_alpha",other="thread_bravo";
+ const row=(id,ordinal,role,status,parentId=null,attachments=[])=>({id,ordinal,role,status,parentId,attachments,content:"synthetic",revision:1,createdAt:1});
+ const user=row("user_001",1,"user","complete");
+ const stopped=row("asst_001",2,"assistant","cancelled",user.id);
+ const failed=row("asst_002",3,"assistant","failed",user.id);
+ const done=row("asst_003",4,"assistant","complete",user.id);
+ const target={conversationId:cid,parentId:user.id};
+ assert.deepEqual(recoverRetryTarget([user,stopped],null,cid,null),target);
+ assert.deepEqual(recoverRetryTarget([user,stopped,failed],null,cid,null),target);
+ assert.equal(recoverRetryTarget([user,stopped],2,cid,null),null);
+ assert.equal(recoverRetryTarget([stopped],null,cid,null),null);
+ assert.equal(recoverRetryTarget([user,stopped,failed,done],null,cid,target),null);
+ assert.equal(recoverRetryTarget([user,stopped,row("user_002",3,"user","complete")],null,cid,target),null);
+ assert.equal(recoverRetryTarget([user,stopped,row("asst_999",3,"assistant","failed","other_user")],null,cid,null),null);
+ assert.equal(recoverRetryTarget([user],null,cid,null),null);
+ assert.deepEqual(recoverRetryTarget([user],null,cid,target),target);
+ assert.equal(recoverRetryTarget([user],null,other,target),null);
+ assert.equal(recoverRetryTarget([user,stopped],null,null,target),null);
+ assert.equal(recoverRetryTarget([{...user,attachments:[{id:"artifact_1"}]},stopped],null,cid,target),null);
+ assert.equal(recoverRetryTarget([user,done,failed],null,cid,target),null);
 });

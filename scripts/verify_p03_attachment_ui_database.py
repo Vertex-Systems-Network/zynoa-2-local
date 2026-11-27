@@ -42,7 +42,7 @@ def main():
     prior = [ [t for t in threads if t[0] not in target_ids],
               [m for m in messages if m[1] not in target_ids],
               records, [j for j in journal if j[2] not in entity_ids] ]
-    assert len(prior[0]) == 4 and len(prior[1]) == 7 and len(records) == 3
+    assert len(prior[0]) == 4 and len(prior[1]) == 8 and len(records) == 3
     assert {t[1] for t in prior[0]} == {"P03 synthetic conversation","P03 model alpha","P03 model beta","P03 partial persistence"}
     baseline = args.output / "p03-attachment-baseline.json"
     prior_hash = digest(prior)

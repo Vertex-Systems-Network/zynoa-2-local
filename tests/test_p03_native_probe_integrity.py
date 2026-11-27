@@ -57,6 +57,17 @@ class NativeProbeIntegrity(unittest.TestCase):
         self.assertIn("-PartialAcceptance -PriorModelProofDirectory", workflow)
         self.assertIn("p03-partial-ui-failure-", workflow)
 
+    def test_retry_uses_actual_ui_and_independent_receipt(self):
+        source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
+        verifier = (ROOT / "scripts/verify_p03_partial_ui_database.py").read_text(encoding="utf-8")
+        for marker in ("Read-PartialVault 'retry-baseline'", "Click-Control 'Retry turn'",
+                       "Read-PartialVault 'retry-saved'", "Read-PartialVault 'retry-reopened'",
+                       "ZYN-RETRY-PROBE-002", "p03-retry-ui-proof.json"):
+            self.assertIn(marker, source)
+        for marker in ('len(ordered) == 3', 'digest(original_rows) == original["fingerprint"]',
+                       'completed[2:5] == (user[0], 3, "assistant")'):
+            self.assertIn(marker, verifier)
+
     def test_ast_validation_precedes_build_and_original_acceptance_gates(self):
         workflow = (ROOT / ".github/workflows/p03-native-baseline.yml").read_text(encoding="utf-8")
         self.assertIn("[System.Management.Automation.Language.Parser]::ParseFile", workflow)

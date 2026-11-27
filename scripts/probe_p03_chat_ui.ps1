@@ -647,6 +647,48 @@ if ($PartialAcceptance) {
    }
    [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;actual_model='qwen2.5:1.5b';context_limit=8192;actual_native_stop=$true;nonempty_live_prefix_verified=$true;live_prefix_chars=$prefix.Length;stop_to_cancel_notice_ms=$elapsed;cancelled_partial_persisted=$true;ui_partial_reopen_verified=$true;database_reopen_identity_verified=$true;images=$images;visual_review='candidate_pending_visual_review';retry_ui_verified=$false;full_accessibility_certified=$false;input_checks=@($script:inputChecks.ToArray())} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-partial-ui-proof.json') -Encoding utf8
    Write-Output 'P03 T05 actual real-model partial response Stop and restart proof passed'
+   $script:stage='retry baseline after independent partial reopen'
+   $null=Read-PartialVault 'retry-baseline'
+   Start-Native
+   $retryPid=$script:app.Id
+   if ($retryPid -eq $firstPid -or $retryPid -eq $secondPid) {throw 'ZYN-RETRY-PROBE-001: distinct process required'}
+   Click-Control 'Chat'
+   Click-Control 'P03 partial persistence'
+   [void](Wait-Name 'Retry turn' 'Button' $true)
+   Wait-Assistant $saved.assistant_text
+   $script:stage='retry after restart with bounded response budget'
+   Select-Combo 'Context budget' '{HOME}' '512 tokens'
+   Assert-Combo 'Context budget' '512 tokens'
+   Capture 'M03-OPT-06-retry-ready-candidate.png'
+   Click-Control 'Retry turn'
+   [void](Wait-Name 'Local model response completed and saved.' '' $false 640)
+   $script:stage='independent retry receipt and original cancelled preservation'
+   $retry=Read-PartialVault 'retry-saved'
+   Wait-Assistant $retry.assistant_text
+   Wait-Assistant $saved.assistant_text
+   $retryControl=Wait-Name 'Retry turn' 'Button' $false
+   if ($retryControl.Current.IsEnabled) {throw 'ZYN-RETRY-PROBE-002: completed turn remains retryable'}
+   Capture 'M03-OPT-06-retry-completed-candidate.png'
+   Stop-Native
+   $script:stage='reopen completed retry in distinct process'
+   Start-Native
+   $retryReopenedPid=$script:app.Id
+   if ($retryReopenedPid -in @($firstPid,$secondPid,$retryPid)) {throw 'ZYN-RETRY-PROBE-003: distinct process required'}
+   Click-Control 'Chat'
+   Click-Control 'P03 partial persistence'
+   Wait-Assistant $saved.assistant_text
+   Wait-Assistant $retry.assistant_text
+   $retryControl=Wait-Name 'Retry turn' 'Button' $false
+   if ($retryControl.Current.IsEnabled) {throw 'ZYN-RETRY-PROBE-004: reopened completed turn remains retryable'}
+   Capture 'M03-OPT-06-retry-reopened-candidate.png'
+   Stop-Native
+   $null=Read-PartialVault 'retry-reopened'
+   $retryImages=[ordered]@{}
+   foreach ($name in @('M03-OPT-06-retry-ready-candidate.png','M03-OPT-06-retry-completed-candidate.png','M03-OPT-06-retry-reopened-candidate.png')) {
+      $retryImages[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
+   }
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();retry_pid=$retryPid;reopened_pid=$retryReopenedPid;synthetic_only=$true;actual_model='qwen2.5:1.5b';context_limit=512;actual_native_retry=$true;retry_recovered_after_restart=$true;cancelled_response_preserved=$true;duplicate_user_message_absent=$true;completed_retry_disabled=$true;database_reopen_identity_verified=$true;images=$retryImages;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-retry-ui-proof.json') -Encoding utf8
+   Write-Output 'P03 T05 actual Windows Retry after restart and independent database proof passed'
  } catch {
    [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true;input_checks=@($script:inputChecks.ToArray())} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-partial-ui-failure.json') -Encoding utf8
    if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {try {Capture 'DEBUG-native-partial-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}}

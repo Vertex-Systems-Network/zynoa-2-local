@@ -16,7 +16,7 @@ def digest(value):
 def main():
     assert os.environ.get("GITHUB_ACTIONS") == "true"
     parser = argparse.ArgumentParser()
-    parser.add_argument("--stage", choices=("baseline", "saved", "reopened"), required=True)
+    parser.add_argument("--stage", choices=("baseline", "saved", "reopened", "retry-baseline", "retry-saved", "retry-reopened"), required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--prior", type=Path, required=True)
     args = parser.parse_args()
@@ -47,6 +47,62 @@ def main():
     if args.stage == "baseline":
         assert not target and not target_messages
         print(json.dumps({"baseline": True}))
+        return
+    if args.stage.startswith("retry-"):
+        assert len(target) == 1
+        tid, _, revision = target[0]
+        original = json.loads((args.output / "p03-partial-db-reopened.json").read_text(encoding="utf-8"))
+        assert original["thread_id"] == tid
+        ordered = sorted(target_messages, key=lambda m: m[3])
+        user, cancelled = ordered[:2]
+        assert user[0] == original["user_id"] and user[2:] == (None, 1, "user", PROMPT, "complete", 1)
+        assert cancelled[0] == original["assistant_id"] and cancelled[2:5] == (user[0], 2, "assistant")
+        assert cancelled[6:] == ("cancelled", 1)
+        assert hashlib.sha256(cancelled[5].encode("utf-8")).hexdigest() == original["partial_sha256"]
+        settings = [r for r in records if r[0] == tid]
+        assert len(settings) == 1
+        baseline = args.output / "p03-retry-baseline.json"
+        if args.stage == "retry-baseline":
+            assert len(ordered) == 2 and revision == 3
+            assert digest([threads, messages, records, journal]) == original["fingerprint"]
+            with baseline.open("x", encoding="utf-8") as stream:
+                json.dump({"settings": settings[0], "fingerprint": original["fingerprint"]}, stream)
+            print(json.dumps({"baseline": True}))
+            return
+        assert len(ordered) == 3 and revision == 4
+        completed = ordered[2]
+        assert completed[0] not in (user[0], cancelled[0])
+        assert completed[2:5] == (user[0], 3, "assistant")
+        assert completed[6:] == ("complete", 1) and completed[5].strip()
+        prior_settings = json.loads(baseline.read_text(encoding="utf-8"))
+        assert prior_settings["fingerprint"] == original["fingerprint"]
+        config = json.loads(settings[0][2])
+        assert settings[0][1] == "preference" and config["model"] == "qwen2.5:1.5b"
+        assert config["context_limit"] == 512 and config["revision"] == settings[0][3] == prior_settings["settings"][3] + 1
+        assert journal[-2:] == [("message", completed[0], 1, "insert"), ("conversation", tid, 4, "message_added")]
+        original_rows = [
+            [(t[0], t[1], 3) if t[0] == tid else t for t in threads],
+            [m for m in messages if m[0] != completed[0]],
+            [tuple(prior_settings["settings"]) if r[0] == tid else r for r in records],
+            journal[:-2],
+        ]
+        assert digest(original_rows) == original["fingerprint"], "retry altered previous committed history"
+        proof = {"fingerprint": digest([threads, messages, records, journal]),
+                 "prior_fingerprint": original["fingerprint"], "thread_id": tid, "user_id": user[0],
+                 "cancelled_id": cancelled[0], "cancelled_sha256": original["partial_sha256"],
+                 "retry_id": completed[0], "retry_sha256": hashlib.sha256(completed[5].encode("utf-8")).hexdigest(),
+                 "retry_status": "complete", "user_message_count": 1, "thread_count": 4,
+                 "message_count": 8, "settings_count": 3, "integrity": "ok", "foreign_keys": "ok", "synthetic_only": True}
+        saved = args.output / "p03-retry-db-saved.json"
+        if args.stage == "retry-saved":
+            with saved.open("x", encoding="utf-8") as stream:
+                json.dump(proof, stream, indent=2)
+            print(json.dumps({"assistant_text": completed[5]}, ensure_ascii=True))
+        else:
+            assert json.loads(saved.read_text(encoding="utf-8")) == proof
+            with (args.output / "p03-retry-db-reopened.json").open("x", encoding="utf-8") as stream:
+                json.dump(proof, stream, indent=2)
+            print(json.dumps(proof))
         return
     assert len(target) == 1 and len(target_messages) == 2
     tid, _, revision = target[0]

@@ -321,7 +321,13 @@ impl LocalModelGateway {
         {
             return Err(fault("ZYN-MODEL-INPUT"));
         }
+        let flag = Arc::new(TurnCancellation::default());
+        // Serialize admission and parent validation, not network I/O.
         let (settings, context) = {
+            let mut active = self.active.lock().map_err(|_| fault("ZYN-MODEL-BUSY"))?;
+            if active.contains_key(&q.conversation_id) {
+                return Err(fault("ZYN-MODEL-BUSY"));
+            }
             let vault = storage.lock().map_err(|_| fault("ZYN-MODEL-STORAGE"))?;
             let parent = vault
                 .get_chat_message(&q.conversation_id, &q.parent_id)
@@ -340,16 +346,9 @@ impl LocalModelGateway {
             if context.messages.last().map(|m| m.id.as_str()) != Some(q.parent_id.as_str()) {
                 return Err(fault("ZYN-MODEL-INPUT"));
             }
+            active.insert(q.conversation_id.clone(), (q.turn_id.clone(), flag.clone()));
             (settings, context)
         };
-        let flag = Arc::new(TurnCancellation::default());
-        {
-            let mut active = self.active.lock().map_err(|_| fault("ZYN-MODEL-BUSY"))?;
-            if active.contains_key(&q.conversation_id) {
-                return Err(fault("ZYN-MODEL-BUSY"));
-            }
-            active.insert(q.conversation_id.clone(), (q.turn_id.clone(), flag.clone()));
-        }
         struct Guard<'a> {
             map: &'a Mutex<HashMap<String, (String, Arc<TurnCancellation>)>>,
             conversation: String,
@@ -891,6 +890,12 @@ mod tests {
             assert_eq!(retry["receipt"]["id"], "message_asst_002");
             assert_eq!(retry["evalCount"], 2);
             assert!(gateway.active.lock().unwrap().is_empty());
+            let stale = tauri::async_runtime::block_on(gateway.generate(&storage, GeneratePayload {
+                conversation_id: "thread_alpha".into(), turn_id: "turn_alpha_003".into(),
+                parent_id: "message_user_001".into(), assistant_message_id: "message_asst_003".into(),
+            }, &|_| panic!("stale retry published an event")));
+            assert_eq!(stale.unwrap_err().code, "ZYN-MODEL-INPUT");
+            assert!(gateway.active.lock().unwrap().is_empty());
             let recorded = events.into_inner().unwrap();
             assert_eq!(recorded.len(), 2);
             assert_eq!(recorded[0].turn_id, "turn_alpha_002");
@@ -902,6 +907,10 @@ mod tests {
             let saved = reopened.get_chat_message("thread_alpha", "message_asst_002").unwrap().unwrap();
             assert_eq!(saved.status, "complete");
             assert_eq!(saved.content, "retry complete");
+            let history = reopened.list_chat_messages("thread_alpha", 0, 10).unwrap();
+            assert_eq!(history.len(), 2);
+            assert_eq!(history[0].role, "user");
+            assert_eq!(history[1].parent_id.as_deref(), Some("message_user_001"));
         }
     }
 

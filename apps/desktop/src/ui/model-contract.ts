@@ -1,3 +1,4 @@
+import type { Message } from "./chat-contract";
 export type InstalledModel={name:string;digest:string;size:number};
 export type ModelSettings={model:string;contextLimit:number;revision:number};
 export type ContextInspection={estimatedTokens:number;limit:number;includedMessages:number;omittedMessages:number};
@@ -8,6 +9,22 @@ export function modelAvailable(settings:ModelSettings|null,models:readonly Insta
 }
 export function retryAvailable(target:RetryTarget|null,conversationId:string|null,available:boolean):boolean{
  return Boolean(available&&target&&conversationId&&target.conversationId===conversationId);
+}
+// Recover only from the final history page. A bare saved user message
+// is not evidence of an attempted generation except in the live session.
+export function recoverRetryTarget(messages:readonly Message[],next:number|null,conversationId:string|null,session:RetryTarget|null):RetryTarget|null{
+ if(next!==null||!conversationId||messages.length===0)return null;
+ const last=messages[messages.length-1];
+ if(last.role==="user"){
+   return last.status==="complete"&&last.attachments.length===0&&session?.conversationId===conversationId&&session.parentId===last.id?session:null;
+ }
+ if(last.role!=="assistant"||last.status==="complete"||!last.parentId)return null;
+ const parentIndex=messages.findIndex(m=>m.id===last.parentId);
+ if(parentIndex<0||parentIndex===messages.length-1)return null;
+ const parent=messages[parentIndex];
+ if(parent.role!=="user"||parent.status!=="complete"||parent.attachments.length!==0)return null;
+ if(messages.slice(parentIndex+1).some(m=>m.role!=="assistant"||m.status==="complete"||m.parentId!==parent.id))return null;
+ return {conversationId,parentId:parent.id};
 }
 export function currentContext(snapshot:ContextSnapshot|null,conversationId:string|null,settings:ModelSettings|null,draft:string):ContextInspection|null{
  return snapshot&&settings&&snapshot.conversationId===conversationId&&snapshot.settingsRevision===settings.revision&&snapshot.draft===draft&&snapshot.inspection.limit===settings.contextLimit?snapshot.inspection:null;
