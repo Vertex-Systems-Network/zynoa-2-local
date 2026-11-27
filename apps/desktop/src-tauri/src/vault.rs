@@ -274,11 +274,42 @@ pub(crate) struct ManagedRecoveryInventory {
     pub(crate) unexpected_entries: usize,
     pub(crate) unlinked_metadata: usize,
 }
+#[derive(Clone, Serialize)]
+#[serde(rename_all="camelCase")]
+pub(crate) struct ReviewPreview {
+    conversation_id: String,
+    request_id: String,
+    source_id: String,
+    target_id: String,
+    target_sha256: String,
+    tool: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all="camelCase")]
+pub(crate) struct ReviewTrace {
+    request_id: String,
+    target_id: String,
+    target_sha256: String,
+    tool: String,
+    decision: String,
+    recorded_at: i64,
+}
+
+struct PendingToolReview {
+    identity: crate::artifact_contracts::ToolReviewIdentity,
+    source_id: String,
+    attachment_id: Option<String>,
+    conversation_revision: i64,
+    expires: std::time::Instant,
+}
+
 pub(crate) struct NativeVault {
     app_root: PathBuf,
     conn: Connection,
     attachment_draft: AttachmentDraft,
     discarded_uploads: std::collections::VecDeque<(String,String)>,
+    pending_review: Option<PendingToolReview>,
 }
 
 fn safe_id(value: &str) -> bool {
@@ -627,7 +658,7 @@ impl NativeVault {
         // Check constraints and version before committing the atomic DDL.
         if validate_schema(&tx)? != SCHEMA_VERSION { return Err(VaultFault::Corrupt); }
         tx.commit().map_err(map_sql)?;
-        Ok(Self { app_root: app_root.to_path_buf(), conn, attachment_draft: AttachmentDraft::default(), discarded_uploads: std::collections::VecDeque::new() })
+        Ok(Self { app_root: app_root.to_path_buf(), conn, attachment_draft: AttachmentDraft::default(), discarded_uploads: std::collections::VecDeque::new(), pending_review: None })
     }
 
     /// Persist an exact native review decision, never a capability grant.
@@ -721,6 +752,96 @@ impl NativeVault {
             .ok_or(VaultFault::Corrupt)?;
         ToolReviewIdentity::new(conversation_id,turn_id,request_id,&artifact_id,
             &receipt.sha256,"local.write_artifact").ok_or(VaultFault::InvalidRecord)
+    }
+
+    /// A new explicit local review supersedes any unconsumed review. IDs
+    /// correlate native session state; they are not bearer capabilities.
+    pub(crate) fn begin_tool_review(&mut self, conversation_id: &str, source_id: &str,
+        attachment_id: Option<&str>) -> Result<ReviewPreview,VaultFault>
+    {
+        use sha2::{Digest,Sha256};
+        static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+        let revision=self.get_conversation(conversation_id)?.ok_or(VaultFault::Conflict)?.revision;
+        let now=SystemTime::now().duration_since(UNIX_EPOCH).map_err(|_|VaultFault::StorageUnavailable)?;
+        let seq=NEXT.fetch_add(1,std::sync::atomic::Ordering::Relaxed);
+        let request=format!("{:x}",Sha256::digest(format!("zynoa-review-v1:{}:{}:{seq}",std::process::id(),now.as_nanos()).as_bytes()));
+        // A user-initiated operation has a native action ID, not a model turn.
+        let identity=match attachment_id {
+            Some(id)=>self.prepare_attachment_review(conversation_id,&request,&request,source_id,id)?,
+            None=>self.prepare_text_artifact_review(conversation_id,&request,&request,source_id)?,
+        };
+        let (_,_,_,target,digest,tool)=identity.record_fields();
+        let preview=ReviewPreview{conversation_id:conversation_id.to_owned(),request_id:request,
+            source_id:source_id.to_owned(),target_id:target.to_owned(),target_sha256:digest.to_owned(),tool:tool.to_owned()};
+        self.pending_review=Some(PendingToolReview{identity,source_id:source_id.to_owned(),
+            attachment_id:attachment_id.map(str::to_owned),conversation_revision:revision,
+            expires:std::time::Instant::now()+Duration::from_secs(120)});
+        Ok(preview)
+    }
+
+    /// Consume the live request once, under the native vault lock. Durable
+    /// approval is recorded before dispatch and cannot be used as a grant later.
+    /// Failed execution never silently replays; start a fresh review explicitly.
+    pub(crate) fn finish_tool_review(&mut self, conversation_id: &str, request_id: &str,
+        choice: crate::artifact_contracts::ReviewChoice) -> Result<bool,VaultFault>
+    {
+        use crate::artifact_contracts::ReviewChoice;
+        if !safe_id(conversation_id)||!safe_id(request_id) {return Err(VaultFault::InvalidRecord);}
+        let pending=self.pending_review.as_ref().ok_or(VaultFault::Conflict)?;
+        let (thread,_,request,_,_,_)=pending.identity.record_fields();
+        if thread!=conversation_id||request!=request_id {return Err(VaultFault::Conflict);}
+        let pending=self.pending_review.take().ok_or(VaultFault::Conflict)?;
+        if std::time::Instant::now()>=pending.expires {return Err(VaultFault::Conflict);}
+        if self.get_conversation(conversation_id)?.ok_or(VaultFault::Conflict)?.revision!=pending.conversation_revision {
+            return Err(VaultFault::Conflict);
+        }
+        if choice==ReviewChoice::Deny {
+            self.record_tool_review(&pending.identity,&pending.identity,choice)?;
+            return Ok(false);
+        }
+        let (_,turn,request,_,_,_)=pending.identity.record_fields();
+        let actual=match &pending.attachment_id {
+            Some(id)=>self.prepare_attachment_review(conversation_id,turn,request,&pending.source_id,id)?,
+            None=>self.prepare_text_artifact_review(conversation_id,turn,request,&pending.source_id)?,
+        };
+        self.record_tool_review(&pending.identity,&actual,choice)?;
+        match &pending.attachment_id {
+            Some(id)=>{
+                // Verify the exact local blob after durable approval. No bytes
+                // are exposed to the WebView, model or arbitrary destination.
+                let verified=self.prepare_attachment_review(conversation_id,turn,request,&pending.source_id,id)?;
+                if verified!=pending.identity {return Err(VaultFault::Conflict);}
+            },
+            None=>{self.create_text_artifact(conversation_id,&pending.source_id)?;},
+        }
+        Ok(true)
+    }
+
+    /// Historical decisions only, never a live capability or execution receipt.
+    /// Exact thread and stable bounded cursor; validate each stored identity.
+    pub(crate) fn list_tool_reviews(&self, conversation_id:&str, after:Option<&str>,limit:u32)
+        -> Result<Vec<ReviewTrace>,VaultFault>
+    {
+        use crate::artifact_contracts::{ToolReviewIdentity,ReviewChoice};
+        if !safe_id(conversation_id)||after.is_some_and(|id|!safe_id(id))||!(1..=51).contains(&limit) {
+            return Err(VaultFault::InvalidRecord);
+        }
+        if self.get_conversation(conversation_id)?.is_none(){return Err(VaultFault::Conflict);}
+        let mut stmt=self.conn.prepare("SELECT request_id,turn_id,target_id,target_sha256,tool,decision,recorded_at
+            FROM tool_review_decisions WHERE conversation_id=?1 AND request_id>?2 ORDER BY request_id LIMIT ?3").map_err(map_sql)?;
+        let rows=stmt.query_map(params![conversation_id,after.unwrap_or(""),limit],|r|Ok((
+            r.get::<_,String>(0)?,r.get::<_,String>(1)?,r.get::<_,String>(2)?,r.get::<_,String>(3)?,
+            r.get::<_,String>(4)?,r.get::<_,String>(5)?,r.get::<_,i64>(6)?
+        ))).map_err(map_sql)?;
+        let mut out=Vec::new();
+        for row in rows {
+            let (request,turn,target,digest,tool,decision,recorded_at)=row.map_err(|_|VaultFault::Corrupt)?;
+            let identity=ToolReviewIdentity::new(conversation_id,&turn,&request,&target,&digest,&tool).ok_or(VaultFault::Corrupt)?;
+            let expected=match decision.as_str(){"approve"=>ReviewChoice::Approve,"deny"=>ReviewChoice::Deny,_=>return Err(VaultFault::Corrupt)};
+            if recorded_at<=0||self.read_tool_review(&identity)?!=Some(expected){return Err(VaultFault::Corrupt);}
+            out.push(ReviewTrace{request_id:request,target_id:target,target_sha256:digest,tool,decision,recorded_at});
+        }
+        Ok(out)
     }
 
     /// Accept only bytes already supplied to the local chat domain. The chunk
@@ -1459,6 +1580,45 @@ mod tests {
         assert_eq!(validate_schema(&db).unwrap(),3);
         assert_eq!(count(&db,"SELECT count(*) FROM sqlite_schema WHERE name='tool_review_decisions'"),0);
         assert_eq!(fs::read(app.join("backups")).unwrap(),b"occupied");
+    }
+
+    #[test]
+    fn live_tool_review_consumes_once_and_keeps_historical_decisions() {
+        use crate::artifact_contracts::ReviewChoice;
+        let f=Fixture::new();let app=f.app();let mut v=NativeVault::open(&app).unwrap();
+        v.create_conversation("thread_alpha","One").unwrap();
+        v.create_conversation("thread_bravo","Two").unwrap();
+        let a=LinkedAttachment{id:"artifact_001".into(),receipt:v.stage_managed_blob("note.txt",b"contents").unwrap()};
+        v.append_chat_message_with_attachments(sample_message("message_0001","thread_alpha",None),&[a]).unwrap();
+        v.append_chat_message(ChatMessageInput{id:"assistant_001",conversation_id:"thread_alpha",
+            parent_id:Some("message_0001"),role:ChatRole::Assistant,content:"Synthetic answer",status:ChatStatus::Complete}).unwrap();
+        let pending=v.begin_tool_review("thread_alpha","assistant_001",None).unwrap();
+        assert!(v.finish_tool_review("thread_bravo",&pending.request_id,ReviewChoice::Approve).is_err());
+        assert!(!v.finish_tool_review("thread_alpha",&pending.request_id,ReviewChoice::Deny).unwrap());
+        assert!(v.finish_tool_review("thread_alpha",&pending.request_id,ReviewChoice::Approve).is_err());
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM managed_artifacts"),1);
+        let pending=v.begin_tool_review("thread_alpha","message_0001",Some("artifact_001")).unwrap();
+        assert!(v.finish_tool_review("thread_alpha",&pending.request_id,ReviewChoice::Approve).unwrap());
+        assert!(v.finish_tool_review("thread_alpha",&pending.request_id,ReviewChoice::Approve).is_err());
+        let pending=v.begin_tool_review("thread_alpha","assistant_001",None).unwrap();
+        assert!(v.finish_tool_review("thread_alpha",&pending.request_id,ReviewChoice::Approve).unwrap());
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM managed_artifacts"),2);
+        assert_eq!(v.preview_text_artifact("thread_alpha","assistant_001").unwrap(),"Synthetic answer");
+        let expired=v.begin_tool_review("thread_alpha","assistant_001",None).unwrap();
+        v.pending_review.as_mut().unwrap().expires=std::time::Instant::now();
+        assert!(v.finish_tool_review("thread_alpha",&expired.request_id,ReviewChoice::Approve).is_err());
+        let stale=v.begin_tool_review("thread_alpha","assistant_001",None).unwrap();
+        v.append_chat_message(sample_message("message_0002","thread_alpha",None)).unwrap();
+        assert!(v.finish_tool_review("thread_alpha",&stale.request_id,ReviewChoice::Approve).is_err());
+        let lost=v.begin_tool_review("thread_alpha","assistant_001",None).unwrap();
+        drop(v);let mut v=NativeVault::open(&app).unwrap();
+        assert!(v.finish_tool_review("thread_alpha",&lost.request_id,ReviewChoice::Approve).is_err());
+        let trace=v.list_tool_reviews("thread_alpha",None,50).unwrap();
+        assert_eq!(trace.len(),3);
+        assert_eq!(trace.iter().filter(|t|t.decision=="approve").count(),2);
+        assert_eq!(trace.iter().filter(|t|t.decision=="deny").count(),1);
+        assert!(v.list_tool_reviews("thread_bravo",None,50).unwrap().is_empty());
+        assert_eq!(v.list_tool_reviews("thread_alpha",Some(&trace[0].request_id),50).unwrap().len(),2);
     }
 
     #[test]
