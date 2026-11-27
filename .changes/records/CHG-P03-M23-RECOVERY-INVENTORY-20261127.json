@@ -1,0 +1,36 @@
+{
+  "change_id": "CHG-P03-M23-RECOVERY-INVENTORY-20261127",
+  "module_id": "M23",
+  "kind": "feature",
+  "title": "Bounded read-only managed recovery inventory",
+  "summary": "Identify verified referenced/unreferenced blobs, interrupted stages, corruption and unavailable content without mutating possible sole copies.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
+  "affected_option_ids": [],
+  "docs_paths": [
+    "docs/evidence/P03_T08_MANAGED_RECOVERY_INVENTORY_20261127.md",
+    "docs/modules/M23.md",
+    "docs/modules/M03.md"
+  ],
+  "help_paths": [],
+  "wiki_paths": [],
+  "test_evidence": [
+    "apps/desktop/src-tauri/src/vault.rs"
+  ],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "Read-only inventory; no schema migration or new grants.",
+  "created_at": "2026-11-27",
+  "updated_at": "2026-11-27",
+  "version_bump": "none",
+  "docs_impact": true,
+  "data_migration": false
+}

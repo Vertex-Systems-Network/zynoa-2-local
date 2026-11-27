@@ -23,4 +23,6 @@
 
 - 2026-11-27 | P03 | RESOLVED | [#33](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/33) | Exact 37c8386 UIA filename discovery failed; native HWND discovery repair candidate, fresh CI pending.
 
-- 2026-11-27 | P03 | OPEN | [#34](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/34) | Exact deec001 picker and saved DB/blob passed; reopened history UI readback failed; repair candidate pending fresh CI.
+- 2026-11-27 | P03 | RESOLVED | [#34](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/34) | Exact deec001 picker and saved DB/blob passed; reopened history UI readback failed; repair candidate pending fresh CI.
+
+- 2026-11-27 | P03 | RESOLVED | [#34](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/34) | Exact 01f2a05 native attachment selection/save/restart and independent DB/blob proof passed; original artifact verified.

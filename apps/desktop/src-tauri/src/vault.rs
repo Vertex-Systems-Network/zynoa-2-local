@@ -10,6 +10,9 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 const SCHEMA_VERSION: i64 = 3;
 const CHAT_SCHEMA_VERSION: i64 = 2;
 const MAX_MESSAGE_ATTACHMENTS: usize = 8;
+// Explicit bounded recovery inspection, never a deletion authorization.
+const MAX_RECOVERY_ENTRIES: usize = 4096;
+const MAX_RECOVERY_BYTES: u64 = 100 * 1024 * 1024;
 const MAX_MESSAGE_ATTACHMENT_BYTES: u64 = 100 * 1024 * 1024;
 const LEGACY_VERSION: i64 = 1;
 const MAX_CONTENT_BYTES: usize = 262_144;
@@ -206,6 +209,17 @@ struct AttachmentDraft {
     uploads: Vec<AttachmentUpload>,
 }
 pub(crate) const MAX_ATTACHMENT_CHUNK: usize = 64 * 1024;
+#[derive(Debug, Default, PartialEq, Eq)]
+pub(crate) struct ManagedRecoveryInventory {
+    pub(crate) referenced_hashes: usize,
+    pub(crate) verified_referenced: usize,
+    pub(crate) verified_unreferenced: usize,
+    pub(crate) unavailable_referenced: usize,
+    pub(crate) damaged_or_unreadable: usize,
+    pub(crate) interrupted_stages: usize,
+    pub(crate) unexpected_entries: usize,
+    pub(crate) unlinked_metadata: usize,
+}
 pub(crate) struct NativeVault {
     app_root: PathBuf,
     conn: Connection,
@@ -700,6 +714,117 @@ impl NativeVault {
         read_verified_blob(&dir.join(&receipt.sha256), receipt)
     }
 
+    /// Read-only, bounded candidate recovery inventory. A blob unreferenced in
+    /// this snapshot may still be staged by another process or needed by a backup.
+    /// Never remove, move, repair or expose a path on the basis of this result.
+    pub(crate) fn inspect_managed_recovery(&mut self) -> Result<ManagedRecoveryInventory, VaultFault> {
+        use std::collections::{HashMap, HashSet};
+        use crate::artifact_contracts::AttachmentReceipt;
+        managed_directory(&self.app_root)?;
+        let mut report = ManagedRecoveryInventory::default();
+        let mut referenced: HashMap<String,u64> = HashMap::new();
+        let mut seen = HashSet::new();
+        let mut entries = 0usize;
+        let mut bytes_checked = 0u64;
+        // Hold a stable DB view while inspecting managed storage. Staging
+        // outside the transaction can still race this read-only observation.
+        let tx = self.conn.transaction_with_behavior(TransactionBehavior::Deferred).map_err(map_sql)?;
+        {
+            let mut stmt = tx.prepare("SELECT a.sha256,a.bytes,a.name,l.artifact_id IS NOT NULL
+                FROM managed_artifacts a LEFT JOIN artifact_links l ON l.artifact_id=a.id
+                ORDER BY a.id LIMIT ?1").map_err(map_sql)?;
+            let mut rows = stmt.query([(MAX_RECOVERY_ENTRIES+1) as i64]).map_err(map_sql)?;
+            while let Some(row) = rows.next().map_err(map_sql)? {
+                entries += 1;
+                if entries > MAX_RECOVERY_ENTRIES { return Err(VaultFault::StorageUnavailable); }
+                let hash: String = row.get(0).map_err(|_| VaultFault::Corrupt)?;
+                let size = managed_length_from_sql(row.get(1).map_err(|_| VaultFault::Corrupt)?)?;
+                let name: String = row.get(2).map_err(|_| VaultFault::Corrupt)?;
+                let linked: bool = row.get(3).map_err(|_| VaultFault::Corrupt)?;
+                if !managed_hash_valid(&hash) || !crate::artifact_contracts::valid_managed_basename(&name) {
+                    return Err(VaultFault::Corrupt);
+                }
+                if let Some(previous) = referenced.insert(hash,size) {
+                    if previous != size { return Err(VaultFault::Corrupt); }
+                }
+                if !linked { report.unlinked_metadata += 1; }
+            }
+        }
+        report.referenced_hashes = referenced.len();
+        let mut root = self.app_root.clone();
+        for name in ["data","artifacts","sha256"] {
+            root.push(name);
+            match fs::symlink_metadata(&root) {
+                Ok(meta) if meta.is_dir() && managed_plain(&meta) => (),
+                Ok(_) => return Err(VaultFault::InvalidLocation),
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                    report.unavailable_referenced = referenced.len();
+                    tx.commit().map_err(map_sql)?;
+                    return Ok(report);
+                }
+                Err(_) => return Err(VaultFault::StorageUnavailable),
+            }
+        }
+        for prefix in fs::read_dir(&root).map_err(|_| VaultFault::StorageUnavailable)? {
+            entries += 1;
+            if entries > MAX_RECOVERY_ENTRIES { return Err(VaultFault::StorageUnavailable); }
+            let prefix = prefix.map_err(|_| VaultFault::StorageUnavailable)?;
+            let prefix_name = prefix.file_name();
+            let Some(prefix_name) = prefix_name.to_str() else { report.unexpected_entries += 1; continue; };
+            let prefix_meta = fs::symlink_metadata(prefix.path()).map_err(|_| VaultFault::StorageUnavailable)?;
+            if prefix_name.len()!=2 || !prefix_name.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+                || !prefix_meta.is_dir() || !managed_plain(&prefix_meta) {
+                report.unexpected_entries += 1;
+                continue;
+            }
+            for item in fs::read_dir(prefix.path()).map_err(|_| VaultFault::StorageUnavailable)? {
+                entries += 1;
+                if entries > MAX_RECOVERY_ENTRIES { return Err(VaultFault::StorageUnavailable); }
+                let item = item.map_err(|_| VaultFault::StorageUnavailable)?;
+                let name = item.file_name();
+                let Some(name) = name.to_str() else { report.unexpected_entries += 1; continue; };
+                let meta = fs::symlink_metadata(item.path()).map_err(|_| VaultFault::StorageUnavailable)?;
+                if !meta.is_file() || !managed_plain(&meta) {
+                    report.unexpected_entries += 1;
+                    continue;
+                }
+                if let Some(suffix) = name.strip_prefix(".stage-") {
+                    let parts: Vec<_> = suffix.split('-').collect();
+                    if parts.len()==3 && parts.iter().all(|part| !part.is_empty() && part.bytes().all(|b| b.is_ascii_digit())) {
+                        report.interrupted_stages += 1;
+                    } else { report.unexpected_entries += 1; }
+                    continue;
+                }
+                if !managed_hash_valid(name) || &name[..2]!=prefix_name {
+                    report.unexpected_entries += 1;
+                    continue;
+                }
+                seen.insert(name.to_owned());
+                let expected = referenced.get(name).copied();
+                let size = expected.unwrap_or(meta.len());
+                if meta.len()!=size || size>crate::artifact_contracts::MAX_ATTACHMENT {
+                    report.damaged_or_unreadable += 1;
+                    if expected.is_some() { report.unavailable_referenced += 1; }
+                    continue;
+                }
+                bytes_checked = bytes_checked.checked_add(size).ok_or(VaultFault::StorageUnavailable)?;
+                if bytes_checked > MAX_RECOVERY_BYTES { return Err(VaultFault::StorageUnavailable); }
+                let receipt = AttachmentReceipt{name:"recovery.bin".into(),bytes:size,sha256:name.to_owned()};
+                match read_verified_blob(&item.path(),&receipt) {
+                    Ok(_) if expected.is_some() => report.verified_referenced += 1,
+                    Ok(_) => report.verified_unreferenced += 1,
+                    Err(_) => {
+                        report.damaged_or_unreadable += 1;
+                        if expected.is_some() { report.unavailable_referenced += 1; }
+                    }
+                }
+            }
+        }
+        report.unavailable_referenced += referenced.keys().filter(|hash| !seen.contains(*hash)).count();
+        tx.commit().map_err(map_sql)?;
+        Ok(report)
+    }
+
     /// New-only insert. A receipt is returned only AFTER transaction commit.
     /// Duplicate IDs fail, including retries: they cannot report a false save.
     pub(crate) fn insert_new(&mut self, id: &str, class: ContentClass, contents: &str)
@@ -1033,6 +1158,65 @@ mod tests {
         }
     }
     impl Drop for Fixture { fn drop(&mut self) { let _ = fs::remove_dir_all(&self.0); } }
+
+    #[test]
+    fn managed_recovery_inventory_preserves_unlinked_blobs_stages_and_corruption() {
+        let f=Fixture::new();
+        let app=f.app();
+        let mut v=NativeVault::open(&app).unwrap();
+        assert_eq!(v.inspect_managed_recovery().unwrap(), ManagedRecoveryInventory::default());
+        v.create_conversation("thread_alpha","Recovery").unwrap();
+        let linked=v.stage_managed_blob("linked.txt",b"linked").unwrap();
+        let orphan=v.stage_managed_blob("orphan.txt",b"unlinked").unwrap();
+        let broken=v.stage_managed_blob("broken.txt",b"before").unwrap();
+        let missing=v.stage_managed_blob("missing.txt",b"absent").unwrap();
+        let items=[
+            LinkedAttachment{id:"artifact_001".into(),receipt:linked.clone()},
+            LinkedAttachment{id:"artifact_002".into(),receipt:broken.clone()},
+            LinkedAttachment{id:"artifact_003".into(),receipt:missing.clone()},
+        ];
+        v.append_chat_message_with_attachments(sample_message("message_0001","thread_alpha",None),&items).unwrap();
+        let dir=v.managed_blob_directory(&orphan.sha256,false).unwrap();
+        let stage=dir.join(".stage-1-2-3");
+        fs::write(&stage,b"interrupted only copy").unwrap();
+        let unexpected=dir.join("unexpected.bin");
+        fs::write(&unexpected,b"preserve").unwrap();
+        let corrupt_path=v.managed_blob_directory(&broken.sha256,false).unwrap().join(&broken.sha256);
+        fs::write(&corrupt_path,b"after!").unwrap();
+        let missing_path=v.managed_blob_directory(&missing.sha256,false).unwrap().join(&missing.sha256);
+        fs::remove_file(&missing_path).unwrap(); // synthetic failure fixture only
+        let before=count(&v.conn,"SELECT count(*) FROM chat_change_journal");
+        drop(v);
+        let mut v=NativeVault::open(&app).unwrap();
+        let report=v.inspect_managed_recovery().unwrap();
+        assert_eq!(report,ManagedRecoveryInventory{referenced_hashes:3,verified_referenced:1,
+            verified_unreferenced:1,unavailable_referenced:2,damaged_or_unreadable:1,
+            interrupted_stages:1,unexpected_entries:1,unlinked_metadata:0});
+        assert_eq!(fs::read(&stage).unwrap(),b"interrupted only copy");
+        assert_eq!(fs::read(&unexpected).unwrap(),b"preserve");
+        assert_eq!(fs::read(&corrupt_path).unwrap(),b"after!");
+        assert_eq!(v.read_managed_blob(&orphan).unwrap(),b"unlinked");
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM chat_change_journal"),before);
+        assert_eq!(v.list_message_attachments("thread_alpha","message_0001").unwrap().len(),3);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn managed_recovery_inventory_does_not_follow_observed_symlink_entries() {
+        use std::os::unix::fs::symlink;
+        let f=Fixture::new();
+        let mut v=NativeVault::open(&f.app()).unwrap();
+        let receipt=v.stage_managed_blob("note.txt",b"source").unwrap();
+        let directory=v.managed_blob_directory(&receipt.sha256,false).unwrap();
+        let outside=f.0.join("outside.txt");
+        fs::write(&outside,b"outside").unwrap();
+        fs::remove_file(directory.join(&receipt.sha256)).unwrap();
+        symlink(&outside,directory.join(&receipt.sha256)).unwrap();
+        let report=v.inspect_managed_recovery().unwrap();
+        assert_eq!(report.unexpected_entries,1);
+        assert_eq!(report.verified_unreferenced,0);
+        assert_eq!(fs::read(&outside).unwrap(),b"outside");
+    }
 
     #[test]
     fn managed_blob_stage_deduplicates_and_reopens_without_original_path() {
