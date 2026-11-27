@@ -17,6 +17,16 @@ class NativeProbeIntegrity(unittest.TestCase):
         self.assertIn("+$')", guard)
         self.assertIn("-cnotmatch", guard)
 
+    def test_picker_uses_exact_owned_dialog_field(self):
+        source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
+        picker = source.split("function Select-SyntheticFile", 1)[1].split("if ($AttachmentAcceptance)", 1)[0]
+        for marker in ("FromHandle($dialog)", "AutomationId -eq '1148'", "ControlType]::Edit",
+                       "GetWindowRect($dialog", "Automation]::Compare($focused,$filenameEdit)",
+                       "GetForegroundWindow() -ne $dialog", "$value.Current.Value -cne $Path"):
+            self.assertIn(marker, picker)
+        self.assertNotIn("SendWait('%n')", picker)
+        self.assertNotIn("SetValue(", picker)
+
     def test_ast_validation_precedes_build_and_original_acceptance_gates(self):
         workflow = (ROOT / ".github/workflows/p03-native-baseline.yml").read_text(encoding="utf-8")
         self.assertIn("[System.Management.Automation.Language.Parser]::ParseFile", workflow)

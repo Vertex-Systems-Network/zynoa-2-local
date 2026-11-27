@@ -7,7 +7,8 @@
   "status": "implementing",
   "audience": "developer",
   "source_issue_urls": [
-    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/32"
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/32",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/33"
   ],
   "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
   "affected_option_ids": [

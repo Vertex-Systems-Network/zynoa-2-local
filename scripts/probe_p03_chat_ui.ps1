@@ -376,15 +376,52 @@ function Select-SyntheticFile([string]$Path) {
    Start-Sleep -Milliseconds 250
  }
  if ($dialog -eq [IntPtr]::Zero) {throw 'ZYN-ATTACH-PROBE-003: owned native file dialog missing'}
- [System.Windows.Forms.SendKeys]::SendWait('%n')
- Start-Sleep -Milliseconds 250
- if ([ChatProbeWindow]::GetForegroundWindow() -ne $dialog) {throw 'ZYN-ATTACH-PROBE-004: dialog foreground lost'}
- $focused=[System.Windows.Automation.AutomationElement]::FocusedElement
- if ($null -eq $focused -or $focused.Current.ControlType.ProgrammaticName -ne 'ControlType.Edit') {throw 'ZYN-ATTACH-PROBE-005: file name edit not focused'}
+ # The shell's Alt+N mnemonic may focus the combo container, not its
+ # editable child. Resolve the exact filename field within this owned dialog.
+ $dialogRoot=[System.Windows.Automation.AutomationElement]::FromHandle($dialog)
+ $filenameEdit=$null
+ for ($attempt=0;$attempt -lt 40;$attempt++) {
+   if ([ChatProbeWindow]::GetForegroundWindow() -ne $dialog) {throw 'ZYN-ATTACH-PROBE-004: dialog foreground lost'}
+   $fields=$dialogRoot.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
+   $candidates=[System.Collections.Generic.List[object]]::new()
+   foreach ($field in $fields) {
+     try {
+       $kind=$field.Current.ControlType.ProgrammaticName
+       $isName=($field.Current.AutomationId -eq '1148' -or $field.Current.Name -match '^File name:?$')
+       if (!$isName -or !$field.Current.IsEnabled -or $field.Current.IsOffscreen) {continue}
+       if ($kind -eq 'ControlType.Edit') {$candidates.Add($field);continue}
+       if ($kind -ne 'ControlType.ComboBox') {continue}
+       $editType=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::ControlTypeProperty,[System.Windows.Automation.ControlType]::Edit)
+       $edits=$field.FindAll([System.Windows.Automation.TreeScope]::Descendants,$editType)
+       foreach ($edit in $edits) {if ($edit.Current.IsEnabled -and !$edit.Current.IsOffscreen) {$candidates.Add($edit)}}
+     } catch [System.Windows.Automation.ElementNotAvailableException] {}
+   }
+   $unique=@($candidates | Group-Object {($_.GetRuntimeId() -join ':')} | ForEach-Object {$_.Group[0]})
+   if ($unique.Count -eq 1) {$filenameEdit=$unique[0];break}
+   Start-Sleep -Milliseconds 250
+ }
+ if ($null -eq $filenameEdit) {throw 'ZYN-ATTACH-PROBE-005: unique dialog filename edit not found'}
+ $rect=New-Object ChatProbeWindow+RECT
+ if (![ChatProbeWindow]::GetWindowRect($dialog,[ref]$rect)) {throw 'ZYN-ATTACH-PROBE-005: dialog bounds unavailable'}
+ $bounds=$filenameEdit.Current.BoundingRectangle
+ if ($bounds.IsEmpty -or $bounds.Width -lt 10 -or $bounds.Height -lt 5) {throw 'ZYN-ATTACH-PROBE-005: filename edit bounds invalid'}
+ $x=[int]($bounds.Left+$bounds.Width/2);$y=[int]($bounds.Top+$bounds.Height/2)
+ if ($x -lt $rect.Left -or $x -ge $rect.Right -or $y -lt $rect.Top -or $y -ge $rect.Bottom -or [ChatProbeWindow]::GetForegroundWindow() -ne $dialog) {throw 'ZYN-ATTACH-PROBE-005: filename click not inside owned foreground dialog'}
+ if (![ChatProbeWindow]::SetCursorPos($x,$y)) {throw 'ZYN-ATTACH-PROBE-005: pointer positioning failed'}
+ [ChatProbeWindow]::mouse_event(2,0,0,0,[UIntPtr]::Zero)
+ [ChatProbeWindow]::mouse_event(4,0,0,0,[UIntPtr]::Zero)
+ $focused=$null
+ for ($i=0;$i -lt 20;$i++) {
+   $focused=[System.Windows.Automation.AutomationElement]::FocusedElement
+   if ($null -ne $focused -and [System.Windows.Automation.Automation]::Compare($focused,$filenameEdit)) {break}
+   Start-Sleep -Milliseconds 100
+ }
+ if ($null -eq $focused -or ![System.Windows.Automation.Automation]::Compare($focused,$filenameEdit) -or [ChatProbeWindow]::GetForegroundWindow() -ne $dialog) {throw 'ZYN-ATTACH-PROBE-005: exact filename edit not focused'}
  [System.Windows.Forms.SendKeys]::SendWait('^a')
  [System.Windows.Forms.SendKeys]::SendWait($Path)
- $value=$focused.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+ $value=$filenameEdit.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
  if ([string]$value.Current.Value -cne $Path) {throw 'ZYN-ATTACH-PROBE-006: file path keyboard readback mismatch'}
+ Write-Output 'Native owned file dialog: exact filename keyboard readback verified'
  if ([ChatProbeWindow]::GetForegroundWindow() -ne $dialog) {throw 'ZYN-ATTACH-PROBE-007: dialog foreground lost before confirmation'}
  [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
  [void](Wait-Name 'Remove p03-attachment-fixture.bin' 'Button' $true)

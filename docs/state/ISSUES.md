@@ -17,4 +17,6 @@
 
 - 2026-11-26 | P03 | RESOLVED | [#31](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/31) | Exact b34a95b Linux/Windows E0277; checked i64 conversion repair verified on exact 4a9aff6 Windows and Linux.
 
-- 2026-11-27 | P03 | OPEN | [#32](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/32) | Exact 8508edb Windows parser failure before T03; repair and early AST gate candidate, fresh CI pending.
+- 2026-11-27 | P03 | RESOLVED | [#32](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/32) | Exact 8508edb Windows parser failure before T03; repair and early AST gate verified on ba82847; T03 and T05–T07 passed.
+
+- 2026-11-27 | P03 | OPEN | [#33](https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/33) | Exact ba82847 actual owned file dialog failed filename focus; candidate repair pending verification.
