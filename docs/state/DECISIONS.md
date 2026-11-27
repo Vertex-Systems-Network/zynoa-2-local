@@ -266,3 +266,5 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-27 | P03 | Recover retry only from latest complete history pagination or explicit in-session zero-output target | Avoid auto-generating save-only rows or stale parents; serialize native admission; use 512 context for bounded actual retry acceptance after verified 8192 Stop. Preserve original partial evidence and only permitted new rows.
 
 2026-11-27 | P03 | Show unavailable model rather than speculative fallback; read native preference on inventory refresh; scope context to conversation revision | Preserve per-thread choice; invalidate stale estimate; no new authority/schema.
+
+2026-11-27 | P03 | T06 real model availability native journey using reversible fixture-only alias | Preserve pinned original digest, restore before removing alias, assert unavailable control and unchanged prior fingerprint; no user model deletion or permission changes. Fix changelog category per existing validator.

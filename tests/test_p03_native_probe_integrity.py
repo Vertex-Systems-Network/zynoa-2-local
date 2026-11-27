@@ -68,6 +68,18 @@ class NativeProbeIntegrity(unittest.TestCase):
                        'completed[2:5] == (user[0], 3, "assistant")'):
             self.assertIn(marker, verifier)
 
+    def test_actual_availability_journey_preserves_prior_history(self):
+        source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
+        verifier = (ROOT / "scripts/verify_p03_partial_ui_database.py").read_text(encoding="utf-8")
+        for marker in ("p03-windows-models", "Invoke-FixtureModelCommand @('cp',$originalModel,$alias)",
+                       "Invoke-FixtureModelCommand @('rm',$originalModel)", "Invoke-FixtureModelCommand @('cp',$alias,$originalModel)",
+                       "Assert-Combo 'Model' 'Previously selected model unavailable'",
+                       "ZYN-MODEL-AVAIL-007", "Assert-NoContextEstimate",
+                       "Read-PartialVault 'retry-check'", "p03-model-availability-ui-proof.json"):
+            self.assertIn(marker, source)
+        self.assertIn('args.stage == "retry-check"', verifier)
+        self.assertIn('json.loads(reopened.read_text(encoding="utf-8")) == proof', verifier)
+
     def test_ast_validation_precedes_build_and_original_acceptance_gates(self):
         workflow = (ROOT / ".github/workflows/p03-native-baseline.yml").read_text(encoding="utf-8")
         self.assertIn("[System.Management.Automation.Language.Parser]::ParseFile", workflow)

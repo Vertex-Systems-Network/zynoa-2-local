@@ -16,7 +16,7 @@ def digest(value):
 def main():
     assert os.environ.get("GITHUB_ACTIONS") == "true"
     parser = argparse.ArgumentParser()
-    parser.add_argument("--stage", choices=("baseline", "saved", "reopened", "retry-baseline", "retry-saved", "retry-reopened"), required=True)
+    parser.add_argument("--stage", choices=("baseline", "saved", "reopened", "retry-baseline", "retry-saved", "retry-reopened", "retry-check"), required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--prior", type=Path, required=True)
     args = parser.parse_args()
@@ -100,8 +100,12 @@ def main():
             print(json.dumps({"assistant_text": completed[5]}, ensure_ascii=True))
         else:
             assert json.loads(saved.read_text(encoding="utf-8")) == proof
-            with (args.output / "p03-retry-db-reopened.json").open("x", encoding="utf-8") as stream:
-                json.dump(proof, stream, indent=2)
+            reopened = args.output / "p03-retry-db-reopened.json"
+            if args.stage == "retry-check":
+                assert json.loads(reopened.read_text(encoding="utf-8")) == proof
+            else:
+                with reopened.open("x", encoding="utf-8") as stream:
+                    json.dump(proof, stream, indent=2)
             print(json.dumps(proof))
         return
     assert len(target) == 1 and len(target_messages) == 2

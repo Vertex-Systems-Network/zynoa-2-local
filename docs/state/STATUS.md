@@ -1,5 +1,7 @@
 # Status — 2026-11-26
 
+P03 T06 availability candidate (2026-11-27): exact 8012305 Windows/local-model/foundation/runner/task-sync passed; Governance failed invalid change record kind (#35). Correct kind to bugfix without changing validator. Add actual reversible model removal and restoration using verified digest alias in disposable runner store only, actual unavailable selector and disabled Send with nonempty draft, context invalidation and unchanged prior database receipts. Fresh exact-head CI required; 4/16 DONE.
+
 P03 T06–T07 candidate (2026-11-27): exact b971498 all six CI passed; original retry artifact 15179387078 independently inspected, 1 user, preserved cancelled hash, new completed assistant, identical reopened receipt; screenshot scroll limitations. Correct misleading missing-model dropdown and fail closed on settings read failure, re-read saved model on refresh, bind context estimate to conversation revision. New behavioral tests; fresh CI pending. T05–T07 IN_PROGRESS; 4/16 DONE.
 
 P03 T05 retry candidate (2026-11-27): exact dd76702 six applicable CI passed; Windows run 45952089114 uploaded partial artifact 15176819493. Reimplement restart recovery from final history, session-only zero-output fallback, serialize native admission with parent validation, behavioral UI/native regressions and actual Retry after restart with independent preservation of cancelled/user records and new assistant. Fresh CI and artifact review pending. Codex 2b02d1a inaccessible, no imported patch. T05 remains IN_PROGRESS; 4/16 DONE.

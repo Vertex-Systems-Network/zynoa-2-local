@@ -6,7 +6,8 @@ param(
  [switch]$ModelAcceptance,
  [switch]$AttachmentAcceptance,
  [switch]$PartialAcceptance,
- [string]$PriorModelProofDirectory=''
+ [string]$PriorModelProofDirectory='',
+ [string]$OllamaExecutable=''
 )
 $ErrorActionPreference='Stop'
 if ($env:GITHUB_ACTIONS -ne 'true' -or $SourceSha -cnotmatch '^[a-f0-9]{40}$') { throw 'ZYN-CHAT-PROBE-001: disposable CI only' }
@@ -576,6 +577,31 @@ function Read-PartialVault([string]$Stage) {
  if ($LASTEXITCODE -ne 0) {throw 'ZYN-PARTIAL-PROBE-001: independent partial database verification failed'}
  return ($result | ConvertFrom-Json)
 }
+function Read-FixtureInventory {
+ $inventory=Invoke-RestMethod -Uri 'http://127.0.0.1:11434/api/tags' -NoProxy -TimeoutSec 10
+ return @($inventory.models)
+}
+function Invoke-FixtureModelCommand([string[]]$Arguments) {
+ # This mutates only the pinned disposable runner model store, never user models.
+ $expectedStore=Join-Path $env:RUNNER_TEMP 'p03-windows-models'
+ $runtimeRoot=Join-Path $env:RUNNER_TEMP 'p03-ollama-windows'
+ if ($env:GITHUB_ACTIONS -cne 'true' -or !$OllamaExecutable -or !$env:OLLAMA_MODELS -or
+     [IO.Path]::GetFullPath($env:OLLAMA_MODELS) -ine [IO.Path]::GetFullPath($expectedStore) -or
+     $env:OLLAMA_HOST -cne '127.0.0.1:11434' -or $env:OLLAMA_NO_CLOUD -cne '1' -or
+     !(Test-Path -LiteralPath $OllamaExecutable -PathType Leaf) -or
+     ![IO.Path]::GetFullPath($OllamaExecutable).StartsWith([IO.Path]::GetFullPath($runtimeRoot)+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)) {
+   throw 'ZYN-MODEL-AVAIL-001: disposable runtime identity required'
+ }
+ & $OllamaExecutable @Arguments
+ if ($LASTEXITCODE -ne 0) {throw 'ZYN-MODEL-AVAIL-002: fixture model command failed'}
+}
+function Assert-NoContextEstimate {
+ $items=$script:root.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
+ foreach ($item in $items) {
+   try {if ([string]$item.Current.Name -match '^Estimated [0-9]+ / [0-9]+ tokens') {throw 'ZYN-MODEL-AVAIL-003: stale context estimate survived refresh'}}
+   catch [System.Windows.Automation.ElementNotAvailableException] {}
+ }
+}
 function Wait-RealStreamingPrefix {
  $condition=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,'Streaming assistant response')
  for ($i=0;$i -lt 1200;$i++) {
@@ -689,6 +715,75 @@ if ($PartialAcceptance) {
    }
    [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();retry_pid=$retryPid;reopened_pid=$retryReopenedPid;synthetic_only=$true;actual_model='qwen2.5:1.5b';context_limit=512;actual_native_retry=$true;retry_recovered_after_restart=$true;cancelled_response_preserved=$true;duplicate_user_message_absent=$true;completed_retry_disabled=$true;database_reopen_identity_verified=$true;images=$retryImages;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-retry-ui-proof.json') -Encoding utf8
    Write-Output 'P03 T05 actual Windows Retry after restart and independent database proof passed'
+   $script:stage='model availability baseline'
+   $null=Read-PartialVault 'retry-check'
+   $originalModel='qwen2.5:0.5b'
+   $otherModel='qwen2.5:1.5b'
+   $alias='p03-availability-restore:latest'
+   $before=@(Read-FixtureInventory)
+   $original=@($before | Where-Object {$_.name -ceq $originalModel})
+   if ($before.Count -ne 2 -or $original.Count -ne 1 -or @($before | Where-Object {$_.name -ceq $otherModel}).Count -ne 1 -or @($before | Where-Object {$_.name -ceq $alias}).Count -ne 0) {throw 'ZYN-MODEL-AVAIL-004: unexpected baseline inventory'}
+   Start-Native
+   $availabilityPid=$script:app.Id
+   Click-Control 'Chat'
+   Click-Control 'P03 model alpha'
+   Assert-Combo 'Model' $originalModel
+   Assert-Combo 'Context budget' '512 tokens'
+   Type-Exact 'Message' 'Hello again.'
+   Click-Control 'Inspect context'
+   $estimateBefore=Wait-TextPattern '^Estimated [0-9]+ / 512 tokens'
+   [void](Wait-Name 'Send' 'Button' $true)
+   $script:stage='copy fixture model for reversible removal'
+   Invoke-FixtureModelCommand @('cp',$originalModel,$alias)
+   $copied=@(Read-FixtureInventory)
+   $backup=@($copied | Where-Object {$_.name -ceq $alias})
+   if ($copied.Count -ne 3 -or $backup.Count -ne 1 -or $backup[0].digest -cne $original[0].digest) {throw 'ZYN-MODEL-AVAIL-005: restore alias identity mismatch'}
+   try {
+     $script:stage='actual saved model missing after refresh'
+     Invoke-FixtureModelCommand @('rm',$originalModel)
+     $missing=@(Read-FixtureInventory)
+     if ($missing.Count -ne 2 -or @($missing | Where-Object {$_.name -ceq $originalModel}).Count -ne 0 -or @($missing | Where-Object {$_.name -ceq $otherModel}).Count -ne 1) {throw 'ZYN-MODEL-AVAIL-006: original model still installed'}
+     Click-Control 'Refresh local models'
+     Assert-Combo 'Model' 'Previously selected model unavailable'
+     [void](Wait-Name 'The saved model is unavailable. Refresh local models or choose an installed model. Your saved messages are unchanged.')
+     $send=Wait-Name 'Send' 'Button' $false
+     if ($send.Current.IsEnabled) {throw 'ZYN-MODEL-AVAIL-007: Send enabled for missing saved model with nonempty draft'}
+     Assert-NoContextEstimate
+     $null=Read-PartialVault 'retry-check'
+     Capture 'M03-OPT-01-missing-model-candidate.png'
+   } finally {
+     # Restore the exact original digest before removing its temporary alias.
+     $current=@(Read-FixtureInventory)
+     if (@($current | Where-Object {$_.name -ceq $originalModel}).Count -eq 0) {
+       Invoke-FixtureModelCommand @('cp',$alias,$originalModel)
+     }
+     $restored=@(Read-FixtureInventory | Where-Object {$_.name -ceq $originalModel})
+     if ($restored.Count -ne 1 -or $restored[0].digest -cne $original[0].digest) {throw 'ZYN-MODEL-AVAIL-008: original digest not restored; preserve alias'}
+     Invoke-FixtureModelCommand @('rm',$alias)
+   }
+   $script:stage='actual model restoration and context refresh'
+   $after=@(Read-FixtureInventory)
+   $beforeIdentity=@($before | Sort-Object name | Select-Object name,digest | ConvertTo-Json -Compress)
+   $afterIdentity=@($after | Sort-Object name | Select-Object name,digest | ConvertTo-Json -Compress)
+   if (($beforeIdentity -join '') -cne ($afterIdentity -join '')) {throw 'ZYN-MODEL-AVAIL-009: restored inventory changed'}
+   Click-Control 'Refresh local models'
+   Assert-Combo 'Model' $originalModel
+   Assert-Combo 'Context budget' '512 tokens'
+   [void](Wait-Name 'Send' 'Button' $true)
+   Assert-NoContextEstimate
+   Click-Control 'Inspect context'
+   $estimateAfter=Wait-TextPattern '^Estimated [0-9]+ / 512 tokens'
+   if ($estimateBefore -cne $estimateAfter) {throw 'ZYN-MODEL-AVAIL-010: identical draft/history context changed'}
+   Capture 'M03-OPT-01-restored-model-candidate.png'
+   Click-Control 'Clear draft'
+   Stop-Native
+   $identity=Read-PartialVault 'retry-check'
+   $availabilityImages=[ordered]@{}
+   foreach ($name in @('M03-OPT-01-missing-model-candidate.png','M03-OPT-01-restored-model-candidate.png')) {
+     $availabilityImages[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
+   }
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();pid=$availabilityPid;synthetic_only=$true;actual_model=$originalModel;model_digest=$original[0].digest;other_model_present=$true;actual_model_removal=$true;missing_placeholder_verified=$true;send_disabled_with_draft=$true;inventory_restored=$true;original_preference_preserved=$true;stale_context_invalidated=$true;context_estimates=@($estimateBefore,$estimateAfter);prior_database_fingerprint=$identity.fingerprint;images=$availabilityImages;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-model-availability-ui-proof.json') -Encoding utf8
+   Write-Output 'P03 T06 actual missing-model and restoration UI proof passed'
  } catch {
    [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true;input_checks=@($script:inputChecks.ToArray())} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-partial-ui-failure.json') -Encoding utf8
    if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {try {Capture 'DEBUG-native-partial-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}}
