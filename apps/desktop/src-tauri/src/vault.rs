@@ -655,6 +655,74 @@ impl NativeVault {
         Ok(())
     }
 
+    /// Historical decision readback only. Never use a stored approval to
+    /// authorize execution: this method does not establish liveness or expiry.
+    pub(crate) fn read_tool_review(&self,
+        expected: &crate::artifact_contracts::ToolReviewIdentity)
+        -> Result<Option<crate::artifact_contracts::ReviewChoice>, VaultFault>
+    {
+        use crate::artifact_contracts::{ToolReviewIdentity, ReviewChoice};
+        let (conversation, _, request, _, _, _) = expected.record_fields();
+        let row = self.conn.query_row(
+            "SELECT conversation_id,turn_id,request_id,target_id,target_sha256,tool,decision,recorded_at
+             FROM tool_review_decisions WHERE conversation_id=?1 AND request_id=?2",
+            params![conversation,request], |r| Ok((
+                r.get::<_,String>(0)?,r.get::<_,String>(1)?,r.get::<_,String>(2)?,
+                r.get::<_,String>(3)?,r.get::<_,String>(4)?,r.get::<_,String>(5)?,
+                r.get::<_,String>(6)?,r.get::<_,i64>(7)?
+            )),
+        ).optional().map_err(|_| VaultFault::Corrupt)?;
+        let Some((conversation,turn,request,target,digest,tool,decision,recorded_at)) = row else {
+            return Ok(None);
+        };
+        let actual = ToolReviewIdentity::new(&conversation,&turn,&request,&target,&digest,&tool)
+            .ok_or(VaultFault::Corrupt)?;
+        if recorded_at <= 0 { return Err(VaultFault::Corrupt); }
+        let choice = match decision.as_str() {
+            "approve" => ReviewChoice::Approve,
+            "deny" => ReviewChoice::Deny,
+            _ => return Err(VaultFault::Corrupt),
+        };
+        if &actual != expected { return Err(VaultFault::Conflict); }
+        Ok(Some(choice))
+    }
+
+    /// Bind a native review candidate to a saved, verified attachment. The
+    /// caller must separately establish the live turn and request provenance.
+    /// Neither the original path nor the managed bytes leave this boundary.
+    pub(crate) fn prepare_attachment_review(&self, conversation_id: &str, turn_id: &str,
+        request_id: &str, message_id: &str, artifact_id: &str)
+        -> Result<crate::artifact_contracts::ToolReviewIdentity, VaultFault>
+    {
+        use crate::artifact_contracts::ToolReviewIdentity;
+        if !safe_id(turn_id) || !safe_id(request_id) || !safe_id(artifact_id) {
+            return Err(VaultFault::InvalidRecord);
+        }
+        let item = self.list_message_attachments(conversation_id,message_id)?
+            .into_iter().find(|item| item.id == artifact_id).ok_or(VaultFault::Conflict)?;
+        self.read_managed_blob(&item.receipt)?;
+        ToolReviewIdentity::new(conversation_id,turn_id,request_id,&item.id,
+            &item.receipt.sha256,"local.read_attachment").ok_or(VaultFault::InvalidRecord)
+    }
+
+    /// Bind a write candidate to the exact deterministic text artifact output
+    /// of a complete assistant message. No file or database write occurs here.
+    pub(crate) fn prepare_text_artifact_review(&self, conversation_id: &str, turn_id: &str,
+        request_id: &str, source_id: &str)
+        -> Result<crate::artifact_contracts::ToolReviewIdentity, VaultFault>
+    {
+        use crate::artifact_contracts::{ToolReviewIdentity, attachment_receipt};
+        if !safe_id(turn_id) || !safe_id(request_id) { return Err(VaultFault::InvalidRecord); }
+        let source = self.get_chat_message(conversation_id,source_id)?.ok_or(VaultFault::Conflict)?;
+        if source.role != "assistant" || source.status != "complete"
+            || !valid_text(&source.content,MAX_CONTENT_BYTES) { return Err(VaultFault::InvalidRecord); }
+        let (_,artifact_id) = text_artifact_ids(conversation_id,source_id);
+        let receipt = attachment_receipt(TEXT_ARTIFACT_NAME,source.content.as_bytes())
+            .ok_or(VaultFault::Corrupt)?;
+        ToolReviewIdentity::new(conversation_id,turn_id,request_id,&artifact_id,
+            &receipt.sha256,"local.write_artifact").ok_or(VaultFault::InvalidRecord)
+    }
+
     /// Accept only bytes already supplied to the local chat domain. The chunk
     /// offset and original metadata must match on retransmission. No disk write
     /// occurs until the user explicitly requests the message transaction.
@@ -1391,6 +1459,85 @@ mod tests {
         assert_eq!(validate_schema(&db).unwrap(),3);
         assert_eq!(count(&db,"SELECT count(*) FROM sqlite_schema WHERE name='tool_review_decisions'"),0);
         assert_eq!(fs::read(app.join("backups")).unwrap(),b"occupied");
+    }
+
+    #[test]
+    fn tool_review_readback_is_exact_scoped_and_fails_closed() {
+        use crate::artifact_contracts::{ToolReviewIdentity,ReviewChoice};
+        let f=Fixture::new();
+        let app=f.app();
+        let mut v=NativeVault::open(&app).unwrap();
+        v.create_conversation("thread_alpha","One").unwrap();
+        v.create_conversation("thread_bravo","Two").unwrap();
+        let digest="a".repeat(64);
+        let identity=|conversation,turn,request,target,hash,tool|
+            ToolReviewIdentity::new(conversation,turn,request,target,hash,tool).unwrap();
+        let a=identity("thread_alpha","turn_001","request_001","target_001",&digest,"local.read_attachment");
+        let b=identity("thread_alpha","turn_001","request_002","target_001",&digest,"local.read_attachment");
+        assert_eq!(v.read_tool_review(&a).unwrap(),None);
+        v.record_tool_review(&a,&a,ReviewChoice::Approve).unwrap();
+        v.record_tool_review(&b,&b,ReviewChoice::Deny).unwrap();
+        drop(v);
+        let v=NativeVault::open(&app).unwrap();
+        assert_eq!(v.read_tool_review(&a).unwrap(),Some(ReviewChoice::Approve));
+        assert_eq!(v.read_tool_review(&b).unwrap(),Some(ReviewChoice::Deny));
+        let other=identity("thread_bravo","turn_001","request_001","target_001",&digest,"local.read_attachment");
+        assert_eq!(v.read_tool_review(&other).unwrap(),None);
+        let missing=identity("thread_alpha","turn_001","request_999","target_001",&digest,"local.read_attachment");
+        assert_eq!(v.read_tool_review(&missing).unwrap(),None);
+        for mismatch in [
+            identity("thread_alpha","turn_002","request_001","target_001",&digest,"local.read_attachment"),
+            identity("thread_alpha","turn_001","request_001","target_002",&digest,"local.read_attachment"),
+            identity("thread_alpha","turn_001","request_001","target_001",&"b".repeat(64),"local.read_attachment"),
+            identity("thread_alpha","turn_001","request_001","target_001",&digest,"local.write_artifact"),
+        ] {
+            assert_eq!(v.read_tool_review(&mismatch),Err(VaultFault::Conflict));
+        }
+        // Synthetic corruption only; production never disables constraints.
+        v.conn.execute_batch("DROP TRIGGER tool_review_no_update;
+            PRAGMA ignore_check_constraints=ON;
+            UPDATE tool_review_decisions SET decision='unknown' WHERE request_id='request_001';
+            PRAGMA ignore_check_constraints=OFF;").unwrap();
+        assert_eq!(v.read_tool_review(&a),Err(VaultFault::Corrupt));
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM tool_review_decisions"),2);
+    }
+
+    #[test]
+    fn tool_review_targets_are_derived_from_verified_saved_content() {
+        let f=Fixture::new();
+        let app=f.app();
+        let mut v=NativeVault::open(&app).unwrap();
+        v.create_conversation("thread_alpha","One").unwrap();
+        v.create_conversation("thread_bravo","Two").unwrap();
+        let a=LinkedAttachment{id:"artifact_001".into(),receipt:v.stage_managed_blob("note.txt",b"contents").unwrap()};
+        let digest=a.receipt.sha256.clone();
+        v.append_chat_message_with_attachments(sample_message("message_0001","thread_alpha",None),&[a]).unwrap();
+        let read=v.prepare_attachment_review("thread_alpha","turn_001","request_001","message_0001","artifact_001").unwrap();
+        assert_eq!(read.record_fields(),("thread_alpha","turn_001","request_001","artifact_001",digest.as_str(),"local.read_attachment"));
+        assert!(v.prepare_attachment_review("thread_bravo","turn_001","request_001","message_0001","artifact_001").is_err());
+        assert!(v.prepare_attachment_review("thread_alpha","turn_001","request_001","message_0001","artifact_002").is_err());
+        assert!(v.prepare_attachment_review("thread_alpha","turn_001","../bad","message_0001","artifact_001").is_err());
+        let blob=v.managed_blob_directory(&digest,false).unwrap().join(&digest);
+        fs::write(&blob,b"changed!").unwrap();
+        assert!(v.prepare_attachment_review("thread_alpha","turn_001","request_001","message_0001","artifact_001").is_err());
+        fs::remove_file(&blob).unwrap();
+        assert!(v.prepare_attachment_review("thread_alpha","turn_001","request_001","message_0001","artifact_001").is_err());
+        let text="Synthetic assistant response";
+        v.append_chat_message(ChatMessageInput{id:"assistant_001",conversation_id:"thread_alpha",
+            parent_id:Some("message_0001"),role:ChatRole::Assistant,content:text,status:ChatStatus::Complete}).unwrap();
+        v.append_chat_message(ChatMessageInput{id:"assistant_002",conversation_id:"thread_alpha",
+            parent_id:Some("message_0001"),role:ChatRole::Assistant,content:"partial",status:ChatStatus::Cancelled}).unwrap();
+        let write=v.prepare_text_artifact_review("thread_alpha","turn_001","request_002","assistant_001").unwrap();
+        let (_,target)=text_artifact_ids("thread_alpha","assistant_001");
+        let receipt=crate::artifact_contracts::attachment_receipt(TEXT_ARTIFACT_NAME,text.as_bytes()).unwrap();
+        assert_eq!(write.record_fields(),("thread_alpha","turn_001","request_002",target.as_str(),receipt.sha256.as_str(),"local.write_artifact"));
+        for source in ["message_0001","assistant_002","assistant_999"] {
+            assert!(v.prepare_text_artifact_review("thread_alpha","turn_001","request_002",source).is_err());
+        }
+        assert!(v.prepare_text_artifact_review("thread_bravo","turn_001","request_002","assistant_001").is_err());
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM tool_review_decisions"),0);
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM managed_artifacts"),1);
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM messages"),3);
     }
 
     #[test]
