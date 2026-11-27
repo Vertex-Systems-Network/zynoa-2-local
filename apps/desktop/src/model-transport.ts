@@ -16,4 +16,5 @@ export function modelError(error:unknown):string{const code=error instanceof Err
  switch(code){case "ZYN-MODEL-OFFLINE":return "Ollama is not available at the local loopback service.";case "ZYN-MODEL-MISSING":return "The selected model is no longer installed. Refresh local models.";
  case "ZYN-MODEL-BUSY":return "This conversation already has an active local turn.";case "ZYN-MODEL-CONTEXT":return "The selected context budget cannot contain the latest message.";
  case "ZYN-MODEL-SETTINGS":return "Choose an installed model before sending.";case "ZYN-MODEL-TIMEOUT":return "The local model did not finish in time. Stop the turn or retry explicitly.";
+ case "ZYN-MODEL-TOOL-DENIED":return "The model requested an unsupported tool. No tool was executed. Any earlier partial text remains in saved history.";
  case "ZYN-MODEL-RESPONSE":return "The local model response failed validation.";default:return "Local inference failed. Your saved messages remain available.";}}
