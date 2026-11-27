@@ -52,10 +52,19 @@ def main():
     mid = derive("zynoa-text-artifact-message-v1",cid,source[0])
     aid = derive("zynoa-text-artifact-file-v1",cid,source[0])
     h = sha(content)
+    attachment_threads = [t for t in threads if t[1]=="P03 attachment proof"]
+    assert len(attachment_threads)==1
+    attachment_cid=attachment_threads[0][0]
+    attached=[a for a in artifacts if a[1]==attachment_cid and a[2]=="p03-attachment-fixture.bin"]
+    assert len(attached)==1 and attached[0][4]==70000
     for row in reviews:
         assert len(row[0]) == 64 and all(c in "0123456789abcdef" for c in row[0])
-        assert row[1:6] == (cid,row[0],aid,h,"local.write_artifact")
-        assert row[6] in ("approve","deny") and row[7] > 0
+        if row[5]=="local.write_artifact":
+            assert row[1:6] == (cid,row[0],aid,h,"local.write_artifact")
+            assert row[6] in ("approve","deny")
+        else:
+            assert row[1:7] == (attachment_cid,row[0],attached[0][0],attached[0][3],"local.read_attachment","approve")
+        assert row[7] > 0
     fingerprint = digest([threads,messages,records,journal,artifacts,links])
     base_path = args.output / "p03-review-baseline.json"
     if args.stage == "baseline":
@@ -77,8 +86,9 @@ def main():
         print(json.dumps(proof))
         return
     denied = read_json(denied_path)
-    assert len(reviews) == 2 and list(next(r for r in reviews if r[6]=="deny")) == denied["review"]
-    assert sum(r[6]=="approve" for r in reviews) == 1
+    assert len(reviews) == 3 and list(next(r for r in reviews if r[6]=="deny")) == denied["review"]
+    assert sum(r[5]=="local.write_artifact" and r[6]=="approve" for r in reviews) == 1
+    assert sum(r[5]=="local.read_attachment" and r[6]=="approve" for r in reviews) == 1
     assert len(history) == 3 and rev == baseline["revision"]+1
     assert history[2][:8] == (mid,cid,source[0],3,"system","Saved assistant response as text artifact.","complete",1)
     generated = [a for a in artifacts if a[0] == aid]

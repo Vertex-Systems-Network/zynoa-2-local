@@ -291,7 +291,7 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
      <p className="chat-notice">Only explicitly reviewed local attachment verification and fixed text artifact actions are supported. Model-requested tools remain blocked.</p>
      {review&&review.conversationId===selected.id&&<div role="group" aria-label="Pending local tool review">
       <p>{review.tool==="local.read_attachment"?"Verify saved attachment":"Generate fixed text artifact"}</p>
-      <p className="chat-notice">Target ID: {review.targetId}</p>
+      <p className="chat-notice" style={{overflowWrap:"anywhere"}}>Target ID: {review.targetId}</p>
       <p className="chat-notice" style={{overflowWrap:"anywhere"}}>SHA-256: {review.targetSha256}</p>
       <p>Review expires after two minutes. Approval applies only to this action.</p>
       <div className="chat-actions"><button type="button" className="gold-action" disabled={!canEdit||activeTurn!==null} onClick={()=>finishReview("approve")}>Approve local tool</button><button type="button" className="subtle-action" disabled={!canEdit||activeTurn!==null} onClick={()=>finishReview("deny")}>Deny local tool</button></div>

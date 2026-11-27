@@ -641,6 +641,12 @@ if ($ReviewAcceptance) {
    Wait-ReviewDecision 'Tool decision: approve local.write_artifact'
    Capture 'M03-OPT-08-approved-candidate.png'
    Click-Control 'Preview text artifact from receipt 3'
+   Click-Control 'Close artifact preview'
+   Click-Control 'P03 attachment proof'
+   Click-Control 'Review attachment tool p03-attachment-fixture.bin'
+   Click-Control 'Approve local tool'
+   Wait-ReviewDecision 'Tool decision: approve local.read_attachment'
+   Capture 'M03-OPT-08-attachment-approved-candidate.png'
    Stop-Native
    $null=Read-ReviewVault 'approved'
    $script:stage='restart and actual review trace readback'
@@ -653,13 +659,17 @@ if ($ReviewAcceptance) {
    Wait-ReviewDecision 'Tool decision: deny local.write_artifact'
    Wait-ReviewDecision 'Tool decision: approve local.write_artifact'
    Capture 'M03-OPT-08-reopened-candidate.png'
+   Click-Control 'P03 attachment proof'
+   Click-Control 'Refresh tool trace'
+   Wait-ReviewDecision 'Tool decision: approve local.read_attachment'
+   Capture 'M03-OPT-08-attachment-reopened-candidate.png'
    Stop-Native
    $null=Read-ReviewVault 'reopened'
    $images=[ordered]@{}
-   foreach ($name in @('M03-S05-review-pending-candidate.png','M03-OPT-08-denied-candidate.png','M03-OPT-08-approved-candidate.png','M03-OPT-08-reopened-candidate.png')) {
+   foreach ($name in @('M03-S05-review-pending-candidate.png','M03-OPT-08-denied-candidate.png','M03-OPT-08-approved-candidate.png','M03-OPT-08-reopened-candidate.png','M03-OPT-08-attachment-approved-candidate.png','M03-OPT-08-attachment-reopened-candidate.png')) {
      $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
    }
-   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;approved_pid=$secondPid;reopened_pid=$thirdPid;synthetic_only=$true;actual_native_denial=$true;actual_native_approval=$true;reopened_trace=$true;independent_db_and_blob_proof=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-review-ui-proof.json') -Encoding utf8
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;approved_pid=$secondPid;reopened_pid=$thirdPid;synthetic_only=$true;actual_native_denial=$true;actual_native_approval=$true;actual_attachment_verification_approval=$true;reopened_trace=$true;independent_db_and_blob_proof=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-review-ui-proof.json') -Encoding utf8
  } catch {
    [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-review-ui-failure.json') -Encoding utf8
    if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {try {Capture 'DEBUG-native-review-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}}
