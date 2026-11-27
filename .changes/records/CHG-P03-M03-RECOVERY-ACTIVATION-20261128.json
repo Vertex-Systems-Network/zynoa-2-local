@@ -1,0 +1,45 @@
+{
+  "change_id": "CHG-P03-M03-RECOVERY-ACTIVATION-20261128",
+  "module_id": "M03",
+  "kind": "bugfix",
+  "title": "Bound native read-only recovery activation fallback",
+  "summary": "Reacquire recovery control once after UIA Invoke failure without retrying mutations or weakening proof gates.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/39"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
+  "affected_option_ids": [
+    "M03-OPT-04"
+  ],
+  "docs_paths": [
+    "docs/evidence/P03_T08_RECOVERY_ACTIVATION_REPAIR_20261128.md",
+    "docs/modules/M03.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M03.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M03.md"
+  ],
+  "test_evidence": [
+    "scripts/probe_p03_chat_ui.ps1",
+    "tests/test_p03_native_probe_integrity.py",
+    "scripts/verify_p03_attachment_ui_database.py"
+  ],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "Test probe only, no runtime or data change.",
+  "created_at": "2026-11-28",
+  "updated_at": "2026-11-28",
+  "version_bump": "none",
+  "docs_impact": true,
+  "data_migration": false
+}
