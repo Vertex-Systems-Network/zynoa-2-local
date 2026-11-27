@@ -52,19 +52,19 @@
       "id": "P03-T08",
       "title": "Managed attachments, immutable hashes and safe file validation",
       "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/39"
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/46079716635"
     },
     {
       "id": "P03-T09",
       "title": "Artifact generation, storage and recovery contracts",
       "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/46026288194"
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/46079716635"
     },
     {
       "id": "P03-T10",
       "title": "Tool trace, permission review and fail-closed tool boundary",
       "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/46078531183"
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/37d37c652805edb099b3af4d94a5b8201ca6a9c1"
     },
     {
       "id": "P03-T11",
