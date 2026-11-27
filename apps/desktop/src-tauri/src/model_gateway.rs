@@ -195,7 +195,7 @@ fn validate_text_only_event(event: &Value) -> Result<(), ModelError> {
     if has_call(event) || event.get("message").is_some_and(|message| {
         has_call(message) || message.get("role").and_then(Value::as_str) == Some("tool")
     }) {
-        return Err(fault("ZYN-MODEL-RESPONSE"));
+        return Err(fault("ZYN-MODEL-TOOL-DENIED"));
     }
     Ok(())
 }
@@ -501,7 +501,10 @@ impl LocalModelGateway {
             schema_version: 1, turn_id: q.turn_id.clone(), sequence: sequence + 1,
             kind: "terminal", content: String::new(),
         })?;
-        if !cancelled && receipt.is_none() {
+        // Report a blocked tool call even if earlier safe text was committed.
+        // The UI reconciles saved history after an error; no tool arguments cross IPC.
+        if !cancelled && (receipt.is_none()
+            || matches!(&result, Err(error) if error.code == "ZYN-MODEL-TOOL-DENIED")) {
             if let Err(error) = result { return Err(error); }
         }
         Ok((
@@ -649,7 +652,7 @@ mod tests {
             json!({"message":{"function_call":{}},"done":true}),
             json!({"message":{"role":"tool","content":"untrusted result"},"done":true}),
         ] {
-            assert_eq!(validate_text_only_event(&event).unwrap_err().code, "ZYN-MODEL-RESPONSE");
+            assert_eq!(validate_text_only_event(&event).unwrap_err().code, "ZYN-MODEL-TOOL-DENIED");
         }
     }
 
@@ -792,6 +795,92 @@ mod tests {
         let reopened = NativeVault::open(&path).unwrap();
         let saved = reopened.get_chat_message("thread_alpha", "message_asst_001").unwrap().unwrap();
         assert_eq!(saved.status, "cancelled"); assert_eq!(saved.content, "partial");
+    }
+
+    #[test]
+    fn denied_tool_frame_preserves_only_prior_safe_text_after_restart() {
+        use std::io::BufRead;
+        use std::time::{Instant, SystemTime, UNIX_EPOCH};
+        let root = std::env::temp_dir().join(format!("zynoa-tool-denial-{}-{}", std::process::id(),
+            SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos()));
+        let path = root.join("com.zynoa.desktop");
+        std::fs::create_dir_all(&path).unwrap();
+        struct Cleanup(std::path::PathBuf);
+        impl Drop for Cleanup { fn drop(&mut self) { let _ = std::fs::remove_dir_all(&self.0); } }
+        let _cleanup = Cleanup(root);
+        let mut vault = NativeVault::open(&path).unwrap();
+        vault.create_conversation("thread_alpha", "Alpha").unwrap();
+        vault.append_chat_message(ChatMessageInput { id: "message_user_001", conversation_id: "thread_alpha",
+            parent_id: None, role: ChatRole::User, content: "Hello", status: ChatStatus::Complete }).unwrap();
+        vault.set_inference_settings("thread_alpha", "qwen2.5:0.5b", 2048).unwrap();
+        let storage = Arc::new(Mutex::new(vault));
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        listener.set_nonblocking(true).unwrap();
+        let gateway = LocalModelGateway::fixture(&format!("http://{}", listener.local_addr().unwrap()));
+        let server = std::thread::spawn(move || {
+            for (request_prefix, mime, body) in [
+                ("GET /api/version ", "application/json", r#"{"version":"0.40.18"}"#),
+                ("GET /api/tags ", "application/json", r#"{"models":[{"name":"qwen2.5:0.5b","digest":"abc","size":42}]}"#),
+                ("POST /api/chat ", "application/x-ndjson",
+                    concat!("{\"message\":{\"content\":\"safe partial\"},\"done\":false}\n",
+                        "{\"message\":{\"content\":\"blocked text\",\"tool_calls\":[{\"function\":{\"name\":\"local.read_attachment\",\"arguments\":{\"marker\":\"fixture-only\"}}}]},\"done\":true}\n")),
+            ] {
+                let started = Instant::now();
+                let mut stream = loop {
+                    match listener.accept() {
+                        Ok((socket, _)) => break socket,
+                        Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                            assert!(started.elapsed() < Duration::from_secs(8), "fixture accept timeout");
+                            std::thread::sleep(Duration::from_millis(5));
+                        }
+                        Err(e) => panic!("fixture accept: {e}"),
+                    }
+                };
+                stream.set_nonblocking(false).unwrap();
+                stream.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+                stream.set_write_timeout(Some(Duration::from_secs(3))).unwrap();
+                let mut reader = std::io::BufReader::new(&mut stream);
+                let mut first = String::new();
+                reader.read_line(&mut first).unwrap();
+                assert!(first.starts_with(request_prefix));
+                let mut length = 0usize;
+                loop {
+                    let mut line = String::new();
+                    assert!(reader.read_line(&mut line).unwrap() > 0);
+                    if line == "\r\n" { break; }
+                    if let Some((key, value)) = line.split_once(':') {
+                        if key.eq_ignore_ascii_case("content-length") { length = value.trim().parse().unwrap(); }
+                    }
+                }
+                assert!(length <= 1_000_000);
+                let mut request = vec![0; length];
+                reader.read_exact(&mut request).unwrap();
+                drop(reader);
+                write!(stream, "HTTP/1.1 200 OK\r\nContent-Type: {mime}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}", body.len()).unwrap();
+            }
+        });
+        let events = Mutex::new(Vec::<ModelEvent>::new());
+        let result = tauri::async_runtime::block_on(gateway.generate(&storage, GeneratePayload {
+            conversation_id: "thread_alpha".into(), turn_id: "turn_alpha_001".into(),
+            parent_id: "message_user_001".into(), assistant_message_id: "message_asst_001".into(),
+        }, &|event| { events.lock().unwrap().push(event); Ok(()) }));
+        server.join().unwrap();
+        assert_eq!(result.unwrap_err().code, "ZYN-MODEL-TOOL-DENIED");
+        assert!(gateway.active.lock().unwrap().is_empty());
+        let events = events.into_inner().unwrap();
+        assert_eq!(events.len(), 2);
+        assert_eq!(events[0].kind, "delta");
+        assert_eq!(events[0].content, "safe partial");
+        assert_eq!(events[0].sequence, 1);
+        assert_eq!(events[1].kind, "terminal");
+        assert!(events[1].content.is_empty());
+        assert_eq!(events[1].sequence, 2);
+        drop(storage);
+        let reopened = NativeVault::open(&path).unwrap();
+        let saved = reopened.get_chat_message("thread_alpha", "message_asst_001").unwrap().unwrap();
+        assert_eq!(saved.status, "failed");
+        assert_eq!(saved.content, "safe partial");
+        assert_eq!(reopened.list_chat_messages("thread_alpha", 0, 10).unwrap().len(), 2);
     }
 
     // A loopback fixture that deliberately stalls one HTTP stage without
