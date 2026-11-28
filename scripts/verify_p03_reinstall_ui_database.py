@@ -12,8 +12,10 @@ def main():
     p.add_argument("--stage", choices=("baseline", "crashed", "restarted", "uninstalled", "reinstalled"), required=True)
     p.add_argument("--output", type=Path, required=True)
     p.add_argument("--backup-proof", type=Path, required=True)
+    p.add_argument("--attachment-proof", type=Path, required=True)
     a = p.parse_args()
     prior = json.loads((a.backup_proof / "p03-backup-db-restored.json").read_text(encoding="utf-8"))
+    attachment_prior = json.loads((a.attachment_proof / "p03-attachment-recovery-db.json").read_text(encoding="utf-8"))
     root = Path(os.environ["LOCALAPPDATA"]) / "com.zynoa.desktop"
     rows = db_state(root)
     files = file_state(root, rows)
@@ -30,6 +32,7 @@ def main():
     stages = list((root / "data" / "artifacts" / "sha256").glob("*/.stage-1-2-3"))
     assert len(stages) == 1 and stages[0].is_file() and not stages[0].is_symlink()
     assert stages[0].read_bytes() == b"synthetic interrupted stage"
+    assert sha(stages[0].read_bytes()) == attachment_prior["stage_sha256"]
     proof = {"fingerprint": fingerprint, "backup_sha256": prior["sha256"],
              "restore_marker_sha256": sha(marker.read_bytes()),
              "interrupted_stage_sha256": sha(stages[0].read_bytes()), "file_hashes": files,

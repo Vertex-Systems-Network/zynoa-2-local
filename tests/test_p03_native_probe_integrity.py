@@ -188,6 +188,8 @@ class NativeProbeIntegrity(unittest.TestCase):
                        "Start-Process -FilePath $uninstaller -ArgumentList '/S'", "Wait-SavedAttachment"):
             self.assertIn(marker, source)
         self.assertIn('db_state(restored) == rows', verifier)
+        self.assertIn('attachment_prior["stage_sha256"]', verifier)
+        self.assertIn('--attachment-proof', source)
         self.assertIn('== proof', verifier)
         self.assertIn("--no-binary-patching", workflow)
         self.assertLess(workflow.index("name: Upload actual backup UI candidate evidence"),

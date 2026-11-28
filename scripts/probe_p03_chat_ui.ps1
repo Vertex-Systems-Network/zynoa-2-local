@@ -614,7 +614,7 @@ function Wait-ReviewDecision([string]$Name) {
  if ($row.Current.IsOffscreen -or $row.Current.BoundingRectangle.IsEmpty) {throw 'ZYN-REVIEW-PROBE-002: decision not visible'}
 }
 function Read-ReinstallVault([string]$Stage) {
- $result=& python scripts/verify_p03_reinstall_ui_database.py --stage $Stage --output $OutputDirectory --backup-proof (Join-Path $env:RUNNER_TEMP 'p03-backup-ui-proof')
+ $result=& python scripts/verify_p03_reinstall_ui_database.py --stage $Stage --output $OutputDirectory --backup-proof (Join-Path $env:RUNNER_TEMP 'p03-backup-ui-proof') --attachment-proof (Join-Path $env:RUNNER_TEMP 'p03-attachment-ui-proof')
  if ($LASTEXITCODE -ne 0) {throw 'ZYN-REINSTALL-PROBE-001: independent vault verification failed'}
  return ($result | ConvertFrom-Json)
 }
