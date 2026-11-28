@@ -33,8 +33,8 @@
     {
       "id": "P03-T05",
       "title": "Streaming lifecycle, cancellation, retry and durable acknowledgements",
-      "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/b9e194c01d0211b77628c834b134b4d3667deb99"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/46084849892"
     },
     {
       "id": "P03-T06",
@@ -75,7 +75,8 @@
     {
       "id": "P03-T12",
       "title": "Encrypted portable backup and staged independent restore",
-      "status": "IN_PROGRESS"
+      "status": "IN_PROGRESS",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/3650646bc4a2d0d96b731594db9b0c369436dfa9"
     },
     {
       "id": "P03-T13",

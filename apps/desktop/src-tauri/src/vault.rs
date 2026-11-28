@@ -1006,6 +1006,14 @@ impl NativeVault {
         let created=SystemTime::now().duration_since(UNIX_EPOCH).map_err(|_|VaultFault::StorageUnavailable)?.as_secs();
         let plain=builder.finish(created).map_err(portable_fault)?;
         let archive=backup_contracts::seal_portable(plain,passphrase).map_err(portable_fault)?;
+        // Verify authenticated contents and the complete manifest before any
+        // publication; the independent restore still verifies DB and blobs.
+        {
+            let authenticated=backup_contracts::open_portable(&archive,passphrase).map_err(portable_fault)?;
+            if backup_contracts::unpack_portable(&authenticated).map_err(portable_fault)?.len()!=items{
+                return Err(VaultFault::Corrupt);
+            }
+        }
         let backups=managed_child(&self.app_root,"backups")?;
         let dir=managed_child(&backups,"portable")?;
         let filename=format!("{backup_id}.awbackup");

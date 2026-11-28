@@ -35,3 +35,7 @@ All use existing P02 tokens, keyboard/focus and local Help. Actual screenshots a
 | M03-OPT-08 | Tool details, disclosure; read-only, denied by default | T10 never execute from model output, redacted trace; M03-S05 |
 
 T03 conversation home/list and detail (M03-S01/S02); T15 Help articles docs/help/articles/M03.md and M23.md, hosted Wiki mapping and real per-screen/option evidence. Typed event envelope and correlation/idempotency must be designed per service before respective implementation. Release, actual tool execution, cloud routing, retrieval, model management are excluded from T02.
+
+## T12 dependency amendment candidate (2026-11-28)
+
+See [portable backup preflight](../evidence/P03_T12_PORTABLE_BACKUP_20261128.md). Argon2 0.5.3 plus blake2 0.10.6/base64ct 1.8.3, existing ring 0.17.14 direct and rusqlite serialize feature: pinned standard crypto alternative and strict bounded archive, independent staged profile only. This amendment is not yet verified or accepted for release; locked build and security/dependency review required. T11 fixed local export destination is a scoped candidate, not the original native chooser acceptance.
