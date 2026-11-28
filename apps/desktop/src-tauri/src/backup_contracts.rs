@@ -194,6 +194,52 @@ mod portable_tests {
         assert!(seal_portable(Zeroizing::new(vec![1]),b"short").is_err());
     }
     #[test]
+    fn portable_unpack_rejects_authenticated_but_invalid_manifest_structure(){
+        let mut builder=PortableBuilder::new();
+        builder.add("database","state.sqlite",b"db").unwrap();
+        builder.add("export","conversation-AbCd1234.json",b"one").unwrap();
+        builder.add("export","conversation-EfGh5678.json",b"two").unwrap();
+        let plain=builder.finish(1).unwrap();
+        let size=u32::from_le_bytes(plain[..4].try_into().unwrap()) as usize;
+        let original:serde_json::Value=serde_json::from_slice(&plain[4..4+size]).unwrap();
+        let bytes=&plain[4+size..];
+        let encode=|manifest:&serde_json::Value|{
+            let json=serde_json::to_vec(manifest).unwrap();
+            let mut data=(json.len() as u32).to_le_bytes().to_vec();
+            data.extend_from_slice(&json);
+            data.extend_from_slice(bytes);
+            data
+        };
+        assert_eq!(unpack_portable(&encode(&original)).unwrap().len(),3);
+        let mut bad=original.clone();
+        bad["items"][2]["id"]=serde_json::json!("conversation-abcd1234.json");
+        assert!(unpack_portable(&encode(&bad)).is_err());
+        let mut bad=original.clone();
+        bad["items"][1]["id"]=serde_json::json!("../outside.json");
+        assert!(unpack_portable(&encode(&bad)).is_err());
+        let mut bad=original.clone();
+        bad["items"][1]["offset"]=serde_json::json!(0);
+        assert!(unpack_portable(&encode(&bad)).is_err());
+        let mut bad=original.clone();
+        bad["items"][1]["bytes"]=serde_json::json!(u64::MAX);
+        assert!(unpack_portable(&encode(&bad)).is_err());
+        let mut bad=original.clone();
+        bad["items"][1]["path"]=serde_json::json!("external");
+        assert!(unpack_portable(&encode(&bad)).is_err());
+        let mut trailing=encode(&original);
+        trailing.push(0);
+        assert!(unpack_portable(&trailing).is_err());
+        // AEAD authenticity is necessary, not sufficient: a valid-key
+        // archive containing a malformed manifest still fails validation.
+        let mut bad=original.clone();
+        bad["items"][2]["id"]=serde_json::json!("conversation-abcd1234.json");
+        let pass=b"synthetic portable passphrase";
+        let encrypted=seal_portable(Zeroizing::new(encode(&bad)),pass).unwrap();
+        let decrypted=open_portable(&encrypted,pass).unwrap();
+        assert!(unpack_portable(&decrypted).is_err());
+    }
+
+    #[test]
     fn portable_manifest_refuses_escape_duplicate_and_modified_payload(){
         let mut b=PortableBuilder::new();b.add("database","state.sqlite",b"db").unwrap();
         assert!(b.add("database","state.sqlite",b"db").is_err());
