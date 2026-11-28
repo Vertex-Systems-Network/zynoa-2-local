@@ -654,7 +654,9 @@ if ($ReinstallAcceptance) {
    $script:stage='actual fixture install'
    Install-DisposableFixture
    $Executable=$installed
+   $clock=[System.Diagnostics.Stopwatch]::StartNew()
    Start-Native
+   $installedStartupMs=[int64]$clock.ElapsedMilliseconds
    $crashPid=$script:app.Id
    Click-Control 'Chat'
    Click-Control 'P03 attachment proof'
@@ -683,7 +685,9 @@ if ($ReinstallAcceptance) {
    $null=Read-ReinstallVault 'uninstalled'
    $script:stage='actual reinstall and saved-history UI readback'
    Install-DisposableFixture
+   $clock=[System.Diagnostics.Stopwatch]::StartNew()
    Start-Native
+   $reinstallStartupMs=[int64]$clock.ElapsedMilliseconds
    $reinstallPid=$script:app.Id
    if ($reinstallPid -in @($restartPid,$crashPid)) {throw 'ZYN-REINSTALL-PROBE-014: distinct reinstall process required'}
    Click-Control 'Chat'
@@ -693,7 +697,9 @@ if ($ReinstallAcceptance) {
    Capture 'M23-reinstalled-history-candidate.png'
    Stop-Native
    $reopened=Read-ReinstallVault 'reinstalled'
-   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;synthetic_only=$true;installer_sha256=$installerHash;executable_sha256=$sourceHash;crash_pid=$crashPid;restart_pid=$restartPid;reinstall_pid=$reinstallPid;vault_fingerprint=$reopened.fingerprint;actual_uninstall_reinstall=$true;data_deletion_requested=$false;active_history_preserved=$true;screenshots=@('M23-installed-history-candidate.png','M23-reinstalled-history-candidate.png')} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-reinstall-ui-proof.json') -Encoding utf8
+   $startupBudgetMs=15000
+   $startupWithinBudget=($installedStartupMs -le $startupBudgetMs -and $reinstallStartupMs -le $startupBudgetMs)
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;synthetic_only=$true;installer_sha256=$installerHash;executable_sha256=$sourceHash;crash_pid=$crashPid;restart_pid=$restartPid;reinstall_pid=$reinstallPid;installed_startup_ms=$installedStartupMs;reinstalled_startup_ms=$reinstallStartupMs;startup_budget_ms=$startupBudgetMs;startup_within_budget=$startupWithinBudget;vault_fingerprint=$reopened.fingerprint;actual_uninstall_reinstall=$true;data_deletion_requested=$false;active_history_preserved=$true;screenshots=@('M23-installed-history-candidate.png','M23-reinstalled-history-candidate.png')} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-reinstall-ui-proof.json') -Encoding utf8
  } finally {Stop-Native}
  return
 }
@@ -714,12 +720,25 @@ function Type-SyntheticSecret([string]$Name,[string]$Secret) {
  [System.Windows.Forms.SendKeys]::SendWait('{BACKSPACE}')
  foreach ($char in $Secret.ToCharArray()) {[System.Windows.Forms.SendKeys]::SendWait([string]$char);Start-Sleep -Milliseconds 30}
 }
-function Consent-Backup([string]$Name) {
- $control=Wait-Name $Name 'CheckBox' $true
- Focus-Control $control
+function Confirm-ConsentByKeyboard([string]$Name,[string]$Action) {
+ $checkbox=Wait-Name $Name 'CheckBox' $true
+ $button=Wait-Name $Action 'Button'
+ if ($button.Current.IsEnabled) {throw 'ZYN-A11Y-PROBE-001: action enabled before consent'}
+ Focus-Control $checkbox
  $toggle=$null
- if (!$control.TryGetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern,[ref]$toggle) -or $toggle.Current.ToggleState -ne [System.Windows.Automation.ToggleState]::Off) {throw 'ZYN-BACKUP-PROBE-005: consent unavailable or preselected'}
- $toggle.Toggle()
+ if (!$checkbox.TryGetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern,[ref]$toggle) -or $toggle.Current.ToggleState -ne [System.Windows.Automation.ToggleState]::Off) {throw 'ZYN-A11Y-PROBE-002: consent unavailable or preselected'}
+ $focused=[System.Windows.Automation.AutomationElement]::FocusedElement
+ if ($focused.Current.Name -cne $Name -or !$focused.Current.HasKeyboardFocus) {throw 'ZYN-A11Y-PROBE-003: checkbox keyboard focus missing'}
+ [System.Windows.Forms.SendKeys]::SendWait(' ')
+ $confirmed=$false
+ for ($i=0;$i -lt 40;$i++) {
+   $current=Wait-Name $Name 'CheckBox' $true
+   $state=$null
+   if ($current.TryGetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern,[ref]$state) -and $state.Current.ToggleState -eq [System.Windows.Automation.ToggleState]::On) {$confirmed=$true;break}
+   Start-Sleep -Milliseconds 100
+ }
+ if (!$confirmed) {throw 'ZYN-A11Y-PROBE-004: Space did not confirm consent'}
+ [void](Wait-Name $Action 'Button' $true)
 }
 if ($BackupAcceptance) {
  try {
@@ -732,7 +751,7 @@ if ($BackupAcceptance) {
    $script:stage='native encrypted archive creation'
    Type-SyntheticSecret 'Backup passphrase' 'synthetic backup fixture 2026'
    Type-SyntheticSecret 'Confirm backup passphrase' 'synthetic backup fixture 2026'
-   Consent-Backup 'I choose the local portable backup folder and understand recovery requires the passphrase'
+   Confirm-ConsentByKeyboard 'I choose the local portable backup folder and understand recovery requires the passphrase' 'Create encrypted backup'
    Click-Control 'Create encrypted backup'
    $idControl=Wait-Name 'Verified backup ID' 'Edit' $false 480
    $value=$idControl.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
@@ -751,7 +770,7 @@ if ($BackupAcceptance) {
    Click-Control 'Backup Center'
    Type-Exact 'Backup ID to restore' $backupId
    Type-SyntheticSecret 'Backup passphrase' 'incorrect fixture passphrase'
-   Consent-Backup 'I understand restore creates a separate plaintext profile without replacing active data'
+   Confirm-ConsentByKeyboard 'I understand restore creates a separate plaintext profile without replacing active data' 'Verify and restore to new profile'
    Click-Control 'Verify and restore to new profile'
    [void](Wait-Name 'Backup authentication failed. Check the passphrase or use an intact archive. No active profile was replaced. Check the recorded operation ID and local folder before another attempt.' '' $false 480)
    Stop-Native
@@ -763,7 +782,7 @@ if ($BackupAcceptance) {
    Click-Control 'Backup Center'
    Type-Exact 'Backup ID to restore' $backupId
    Type-SyntheticSecret 'Backup passphrase' 'synthetic backup fixture 2026'
-   Consent-Backup 'I understand restore creates a separate plaintext profile without replacing active data'
+   Confirm-ConsentByKeyboard 'I understand restore creates a separate plaintext profile without replacing active data' 'Verify and restore to new profile'
    Click-Control 'Verify and restore to new profile'
    $restore=Wait-Name 'Relative restored profile path' 'Edit' $false 480
    $value=$restore.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
@@ -778,7 +797,7 @@ if ($BackupAcceptance) {
    foreach ($name in @('M23-OPT-07-encrypted-backup-candidate.png','M23-OPT-09-restore-preview-candidate.png')) {
       $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
    }
-   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;wrong_key_pid=$secondPid;restored_pid=$thirdPid;synthetic_only=$true;actual_native_backup=$true;wrong_key_rejected=$true;actual_native_separate_restore=$true;independent_db_and_blob_comparison=$true;active_profile_preserved=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-backup-ui-proof.json') -Encoding utf8
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;wrong_key_pid=$secondPid;restored_pid=$thirdPid;synthetic_only=$true;actual_native_backup=$true;keyboard_consent_verified=$true;wrong_key_rejected=$true;actual_native_separate_restore=$true;independent_db_and_blob_comparison=$true;active_profile_preserved=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-backup-ui-proof.json') -Encoding utf8
  } catch {
    [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-backup-ui-failure.json') -Encoding utf8
    # Never capture an error screenshot while password fields could contain input.
@@ -807,7 +826,7 @@ if ($ExportAcceptance) {
    if (!$checkbox.TryGetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern,[ref]$toggle)) {throw 'ZYN-EXPORT-PROBE-003: consent toggle unavailable'}
    if ($toggle.Current.ToggleState -ne [System.Windows.Automation.ToggleState]::Off) {throw 'ZYN-EXPORT-PROBE-004: consent preselected'}
    Capture 'M03-S06-export-consent-candidate.png'
-   $toggle.Toggle()
+   Confirm-ConsentByKeyboard 'I understand the export is unencrypted and choose the local exports folder' 'Export full conversation'
    Click-Control 'Export full conversation'
    $path=Wait-Name 'Relative export path' 'Edit'
    $value=$null
@@ -829,7 +848,7 @@ if ($ExportAcceptance) {
    foreach ($name in @('M03-S06-export-consent-candidate.png','M03-OPT-07-export-candidate.png')) {
       $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
    }
-   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;actual_native_consent=$true;actual_native_export=$true;readonly_receipt_path=$true;independent_contents_and_restart_verified=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-export-ui-proof.json') -Encoding utf8
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;actual_native_consent=$true;keyboard_consent_verified=$true;actual_native_export=$true;readonly_receipt_path=$true;independent_contents_and_restart_verified=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-export-ui-proof.json') -Encoding utf8
  } catch {
    [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-export-ui-failure.json') -Encoding utf8
    if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {try {Capture 'DEBUG-native-export-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}}
@@ -848,8 +867,12 @@ if ($ReviewAcceptance) {
    Click-Control 'Chat'
    Click-Control 'P03 model beta'
    Click-Control 'Review text artifact tool from message 2'
-   $button=Wait-Name 'Deny local tool' 'Button' $true
-   Focus-Control $button
+   $approve=Wait-Name 'Approve local tool' 'Button' $true
+   Focus-Control $approve
+   [System.Windows.Forms.SendKeys]::SendWait('{TAB}')
+   Start-Sleep -Milliseconds 350
+   $focused=[System.Windows.Automation.AutomationElement]::FocusedElement
+   if ($focused.Current.Name -cne 'Deny local tool' -or !$focused.Current.HasKeyboardFocus) {throw 'ZYN-A11Y-PROBE-005: review Tab order mismatch'}
    Capture 'M03-S05-review-pending-candidate.png'
    Click-Control 'Deny local tool'
    Wait-ReviewDecision 'Tool decision: deny local.write_artifact'
@@ -897,7 +920,7 @@ if ($ReviewAcceptance) {
    foreach ($name in @('M03-S05-review-pending-candidate.png','M03-OPT-08-denied-candidate.png','M03-OPT-08-approved-candidate.png','M03-OPT-08-reopened-candidate.png','M03-OPT-08-attachment-approved-candidate.png','M03-OPT-08-attachment-reopened-candidate.png')) {
      $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
    }
-   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;approved_pid=$secondPid;reopened_pid=$thirdPid;synthetic_only=$true;actual_native_denial=$true;actual_native_approval=$true;actual_attachment_verification_approval=$true;reopened_trace=$true;independent_db_and_blob_proof=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-review-ui-proof.json') -Encoding utf8
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;approved_pid=$secondPid;reopened_pid=$thirdPid;synthetic_only=$true;actual_native_denial=$true;keyboard_review_tab_order_verified=$true;actual_native_approval=$true;actual_attachment_verification_approval=$true;reopened_trace=$true;independent_db_and_blob_proof=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-review-ui-proof.json') -Encoding utf8
  } catch {
    [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-review-ui-failure.json') -Encoding utf8
    if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {try {Capture 'DEBUG-native-review-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}}

@@ -133,7 +133,7 @@ impl PortableBuilder {
     pub(crate) fn add(&mut self,kind:&str,id:&str,bytes:&[u8])->Result<(),PortableFault>{
         if !valid_item(kind,id,bytes.len() as u64)||self.items.len()>=MAX_ITEMS||
             self.data.len().checked_add(bytes.len()).filter(|n|*n<=MAX_PORTABLE_BYTES).is_none()||
-            self.items.iter().any(|x|x.kind==kind&&x.id==id){return Err(PortableFault::Invalid);}
+            self.items.iter().any(|x|x.kind==kind&&x.id.eq_ignore_ascii_case(id)){return Err(PortableFault::Invalid);}
         let hash=sha(bytes);
         if kind=="blob"&&hash!=id{return Err(PortableFault::Invalid);}
         self.items.push(PortableItem{kind:kind.into(),id:id.into(),offset:self.data.len() as u64,bytes:bytes.len() as u64,sha256:hash});
@@ -164,7 +164,7 @@ pub(crate) fn unpack_portable(plain:&[u8])->Result<Vec<(PortableItem,&[u8])>,Por
     let data=&plain[4+n..];let mut at=0usize;let mut seen=std::collections::HashSet::new();let mut out=Vec::new();
     for item in m.items{
         if !valid_item(&item.kind,&item.id,item.bytes)||item.offset!=at as u64||
-            !seen.insert((item.kind.clone(),item.id.clone()))||!hash_valid(&item.sha256)||
+            !seen.insert((item.kind.clone(),item.id.to_ascii_lowercase()))||!hash_valid(&item.sha256)||
             item.bytes>MAX_PORTABLE_BYTES as u64{return Err(PortableFault::Invalid);}
         let end=at.checked_add(item.bytes as usize).filter(|n|*n<=data.len()).ok_or(PortableFault::Invalid)?;
         let bytes=&data[at..end];
@@ -198,10 +198,12 @@ mod portable_tests {
         let mut b=PortableBuilder::new();b.add("database","state.sqlite",b"db").unwrap();
         assert!(b.add("database","state.sqlite",b"db").is_err());
         assert!(b.add("export","../escape.json",b"x").is_err());
+        b.add("export","conversation-AbCd1234.json",b"one").unwrap();
+        assert!(b.add("export","conversation-abcd1234.json",b"two").is_err());
         assert!(b.add("blob",&"a".repeat(64),b"x").is_err());
         b.add("blob",&sha(b"blob"),b"blob").unwrap();
         let mut p=b.finish(1).unwrap();
-        assert_eq!(unpack_portable(&p).unwrap().len(),2);
+        assert_eq!(unpack_portable(&p).unwrap().len(),3);
         let end=p.len()-1;p[end]^=1;
         assert!(unpack_portable(&p).is_err());
     }

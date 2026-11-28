@@ -144,7 +144,7 @@ class NativeProbeIntegrity(unittest.TestCase):
         source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
         verifier = (ROOT / "scripts/verify_p03_export_ui_database.py").read_text(encoding="utf-8")
         workflow = (ROOT / ".github/workflows/p03-native-baseline.yml").read_text(encoding="utf-8")
-        for marker in ("$toggle.Toggle()", "Click-Control 'Export full conversation'", "Read-ExportVault 'saved'", "Read-ExportVault 'reopened'"):
+        for marker in ("Confirm-ConsentByKeyboard", "Click-Control 'Export full conversation'", "Read-ExportVault 'saved'", "Read-ExportVault 'reopened'"):
             self.assertIn(marker, source)
         self.assertIn("mode=ro", verifier)
         self.assertIn("assert fp==prior", verifier)
@@ -180,6 +180,17 @@ class NativeProbeIntegrity(unittest.TestCase):
         self.assertIn("--no-binary-patching", workflow)
         self.assertLess(workflow.index("name: Upload actual backup UI candidate evidence"),
                         workflow.index("name: P03 T13 actual Windows installed"))
+
+    def test_native_consent_keyboard_and_recovery_timings(self):
+        source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
+        css = (ROOT / "apps/desktop/src/styles.css").read_text(encoding="utf-8")
+        for marker in ("function Confirm-ConsentByKeyboard", "action enabled before consent",
+                       "HasKeyboardFocus", "Space did not confirm consent",
+                       "review Tab order mismatch", "keyboard_consent_verified",
+                       "installed_startup_ms", "startup_within_budget"):
+            self.assertIn(marker, source)
+        self.assertIn(".local-consent input[type=", css)
+        self.assertIn("min-height:20px", css)
 
     def test_ast_validation_precedes_build_and_original_acceptance_gates(self):
         workflow = (ROOT / ".github/workflows/p03-native-baseline.yml").read_text(encoding="utf-8")

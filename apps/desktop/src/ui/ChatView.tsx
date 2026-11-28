@@ -302,25 +302,25 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
      <p className="chat-notice">Only explicitly reviewed local attachment verification and fixed text artifact actions are supported. Model-requested tools remain blocked.</p>
      {review&&review.conversationId===selected.id&&<div role="group" aria-label="Pending local tool review">
       <p>{review.tool==="local.read_attachment"?"Verify saved attachment":"Generate fixed text artifact"}</p>
-      <p className="chat-notice" style={{overflowWrap:"anywhere"}}>Target ID: {review.targetId}</p>
-      <p className="chat-notice" style={{overflowWrap:"anywhere"}}>SHA-256: {review.targetSha256}</p>
+      <p className="chat-notice">Target ID: {review.targetId}</p>
+      <p className="chat-notice">SHA-256: {review.targetSha256}</p>
       <p>Review expires after two minutes. Approval applies only to this action.</p>
-      <div className="chat-actions"><button type="button" className="gold-action" disabled={!canEdit||activeTurn!==null} onClick={()=>finishReview("approve")}>Approve local tool</button><button type="button" className="subtle-action" disabled={!canEdit||activeTurn!==null} onClick={()=>finishReview("deny")}>Deny local tool</button></div>
+      <div className="chat-actions"><button data-testid="chat-review-approve" type="button" className="gold-action" disabled={!canEdit||activeTurn!==null} onClick={()=>finishReview("approve")}>Approve local tool</button><button data-testid="chat-review-deny" type="button" className="subtle-action" disabled={!canEdit||activeTurn!==null} onClick={()=>finishReview("deny")}>Deny local tool</button></div>
      </div>}
      <button type="button" className="subtle-action" disabled={!canEdit||activeTurn!==null} onClick={()=>void run(()=>loadReviewTrace(selected.id))}>Refresh tool trace</button>
      {traceLoaded&&trace.length===0&&<p className="chat-notice">No recorded tool decisions in this conversation.</p>}
-     <ul aria-label="Recorded tool decisions">{trace.map(row=><li key={row.requestId} aria-label={`Tool decision: ${row.decision} ${row.tool}`} tabIndex={-1}><strong>{row.decision==="approve"?"Approved":"Denied"} · {row.tool}</strong><p className="chat-notice" style={{overflowWrap:"anywhere"}}>Request: {row.requestId} · target: {row.targetId} · SHA-256: {row.targetSha256}</p><small>Historical decision, not an execution receipt or reusable permission.</small></li>)}</ul>
+     <ul aria-label="Recorded tool decisions">{trace.map(row=><li key={row.requestId} aria-label={`Tool decision: ${row.decision} ${row.tool}`} tabIndex={-1}><strong>{row.decision==="approve"?"Approved":"Denied"} · {row.tool}</strong><p className="chat-notice">Request: {row.requestId} · target: {row.targetId} · SHA-256: {row.targetSha256}</p><small>Historical decision, not an execution receipt or reusable permission.</small></li>)}</ul>
      {traceCursor!==null&&<button type="button" className="subtle-action" disabled={!canEdit} onClick={()=>void run(()=>loadReviewTrace(selected.id,traceCursor))}>More tool decisions</button>}
     </section>
     {selected&&<section className="chat-recovery" aria-label="Conversation export">
      <h3>Conversation export</h3>
      <p className="chat-notice">Export all saved messages and linked files in this conversation as a plaintext JSON file (up to 32 MiB). No model, account or other conversation data is exported. Destination: the local application data folder, data/exports. Anyone with access to this file may read its contents.</p>
-     <label><input type="checkbox" checked={exportConfirmed} disabled={!canEdit||activeTurn!==null} onChange={e=>setExportConfirmed(e.target.checked)}/> I understand the export is unencrypted and choose the local exports folder</label>
-     <button type="button" className="subtle-action" disabled={!canEdit||activeTurn!==null||!exportConfirmed} onClick={exportConversation}>Export full conversation</button>
+     <label className="local-consent"><input data-testid="chat-export-consent" type="checkbox" checked={exportConfirmed} disabled={!canEdit||activeTurn!==null} onChange={e=>setExportConfirmed(e.target.checked)}/> I understand the export is unencrypted and choose the local exports folder</label>
+     <button data-testid="chat-export-confirmed" type="button" className="subtle-action" disabled={!canEdit||activeTurn!==null||!exportConfirmed} onClick={exportConversation}>Export full conversation</button>
      {exportReceipt&&exportReceipt.conversationId===selected.id&&<div role="group" aria-label="Conversation export receipt">
       <p>Export verified: {exportReceipt.messageCount} messages · {exportReceipt.attachmentCount} linked files · {exportReceipt.bytes.toLocaleString()} bytes</p>
       <label>Relative export path<input readOnly aria-label="Relative export path" value={exportReceipt.relativePath}/></label>
-      <p className="chat-notice" style={{overflowWrap:"anywhere"}}>SHA-256: {exportReceipt.sha256}</p>
+      <p className="chat-notice">SHA-256: {exportReceipt.sha256}</p>
      </div>}
     </section>}
     <p className="chat-notice">Inference stays on fixed loopback. Files can be saved with a message. Complete assistant responses can be saved and previewed as verified text artifacts. Opening imported files, model file consumption, and model-requested tools are not available in this slice. Saved metadata does not grant arbitrary file access.</p>
