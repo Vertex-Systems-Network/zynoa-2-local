@@ -2832,4 +2832,106 @@ mod tests {
         assert!(matches!(v.model_context("thread_alpha",512,64),Err(VaultFault::InvalidRecord)));
     }
 
+
+    // Test-only SQLite capacity fault: does not fill the runner disk.
+    #[test]
+    fn recovery_sqlite_full_rejects_ack_and_preserves_committed_history() {
+        let f=Fixture::new();
+        let app=f.app();
+        let mut vault=NativeVault::open(&app).unwrap();
+        vault.create_conversation("thread_alpha","Recovery fixture").unwrap();
+        let first=vault.append_chat_message(sample_message("message_0001","thread_alpha",None)).unwrap();
+        let before_journal=count(&vault.conn,"SELECT count(*) FROM chat_change_journal");
+        let pages=count(&vault.conn,"PRAGMA page_count");
+        let cap=count(&vault.conn,&format!("PRAGMA max_page_count={pages}"));
+        assert_eq!(cap,pages);
+        let body="x".repeat(240_000);
+        let mut next=sample_message("message_0002","thread_alpha",Some("message_0001"));
+        next.content=&body;
+        assert!(matches!(vault.append_chat_message(next),Err(VaultFault::StorageUnavailable)));
+        assert_eq!(count(&vault.conn,"SELECT count(*) FROM messages"),1);
+        assert_eq!(count(&vault.conn,"SELECT count(*) FROM chat_change_journal"),before_journal);
+        assert_eq!(vault.get_conversation("thread_alpha").unwrap().unwrap().revision,first.conversation_revision);
+        assert!(count(&vault.conn,&format!("PRAGMA max_page_count={}",pages+1024))>pages);
+        drop(vault);
+        let mut reopened=NativeVault::open(&app).unwrap();
+        assert_eq!(reopened.get_chat_message("thread_alpha","message_0001").unwrap().unwrap().content,"synthetic message");
+        assert!(reopened.get_chat_message("thread_alpha","message_0002").unwrap().is_none());
+        assert_eq!(count(&reopened.conn,"SELECT count(*) FROM chat_change_journal"),before_journal);
+        let mut retry=sample_message("message_0002","thread_alpha",Some("message_0001"));
+        retry.content=&body;
+        let ack=reopened.append_chat_message(retry).unwrap();
+        assert_eq!(ack.ordinal,Some(2));
+        drop(reopened);
+        let verified=NativeVault::open(&app).unwrap();
+        assert_eq!(verified.get_chat_message("thread_alpha","message_0002").unwrap().unwrap().content,body);
+        assert_eq!(validate_schema(&verified.conn).unwrap(),SCHEMA_VERSION);
+    }
+
+    // Abrupt OS process termination, not normal Transaction::drop rollback.
+    // Only this test executable can enter the child branch; a unique synthetic
+    // fixture and ready file establish that a write transaction was in flight.
+    #[test]
+    fn recovery_killed_process_rolls_back_uncommitted_wal() {
+        const CHILD_ENV:&str="ZYNOA_T13_TEST_CRASH_FIXTURE";
+        if let Some(root)=std::env::var_os(CHILD_ENV) {
+            let root=PathBuf::from(root);
+            assert!(root.file_name().and_then(|s|s.to_str()).is_some_and(|s|s.starts_with("zynoa-vault-test-")));
+            assert_eq!(fs::read(root.join("child-authorized")).unwrap(),b"synthetic T13 fixture");
+            let mut vault=NativeVault::open(&root.join("com.zynoa.desktop")).unwrap();
+            vault.conn.execute_batch("PRAGMA cache_size=8; PRAGMA cache_spill=ON;").unwrap();
+            let tx=vault.conn.transaction_with_behavior(TransactionBehavior::Immediate).unwrap();
+            let body="y".repeat(240_000);
+            tx.execute("INSERT INTO messages(id,conversation_id,parent_id,ordinal,role,content,status,revision,created_at)
+                VALUES('message_0002','thread_alpha','message_0001',2,'assistant',?1,'complete',1,unixepoch())",[&body]).unwrap();
+            tx.execute("UPDATE conversations SET revision=revision+1 WHERE id='thread_alpha'",[]).unwrap();
+            tx.execute("INSERT INTO chat_change_journal(entity_type,entity_id,revision,operation,persisted_at)
+                VALUES('message','message_0002',1,'insert',unixepoch()),('conversation','thread_alpha',3,'message_added',unixepoch())",[]).unwrap();
+            assert_eq!(count(&tx,"SELECT count(*) FROM messages"),2);
+            assert!(fs::metadata(root.join("com.zynoa.desktop").join("data").join("state.sqlite-wal")).unwrap().len()>32);
+            let mut ready=OpenOptions::new().create_new(true).write(true).open(root.join("child-ready")).unwrap();
+            std::io::Write::write_all(&mut ready,b"uncommitted WAL").unwrap();
+            ready.sync_all().unwrap();
+            // The parent must kill this process. On timeout, fail without commit.
+            std::thread::sleep(Duration::from_secs(60));
+            drop(tx);
+            panic!("crash fixture was not terminated");
+        }
+        let f=Fixture::new();
+        let app=f.app();
+        let mut vault=NativeVault::open(&app).unwrap();
+        vault.create_conversation("thread_alpha","Crash fixture").unwrap();
+        let ack=vault.append_chat_message(sample_message("message_0001","thread_alpha",None)).unwrap();
+        let journal=count(&vault.conn,"SELECT count(*) FROM chat_change_journal");
+        drop(vault);
+        fs::write(f.0.join("child-authorized"),b"synthetic T13 fixture").unwrap();
+        let mut child=std::process::Command::new(std::env::current_exe().unwrap())
+            .args(["--exact","vault::tests::recovery_killed_process_rolls_back_uncommitted_wal","--nocapture"])
+            .env(CHILD_ENV,&f.0).stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null())
+            .spawn().unwrap();
+        let deadline=std::time::Instant::now()+Duration::from_secs(20);
+        let mut ready=false;
+        while std::time::Instant::now()<deadline {
+            if fs::read(f.0.join("child-ready")).ok().as_deref()==Some(b"uncommitted WAL".as_slice()) {ready=true;break;}
+            if child.try_wait().unwrap().is_some(){break;}
+            std::thread::sleep(Duration::from_millis(25));
+        }
+        let killed=child.kill();
+        let exit=child.wait().unwrap();
+        assert!(ready,"child never reached an uncommitted WAL write");
+        assert!(killed.is_ok()&&!exit.success(),"fixture must be killed, not cleanly closed");
+        let mut reopened=NativeVault::open(&app).unwrap();
+        assert_eq!(validate_schema(&reopened.conn).unwrap(),SCHEMA_VERSION);
+        assert_eq!(reopened.get_chat_message("thread_alpha","message_0001").unwrap().unwrap().content,"synthetic message");
+        assert!(reopened.get_chat_message("thread_alpha","message_0002").unwrap().is_none());
+        assert_eq!(count(&reopened.conn,"SELECT count(*) FROM chat_change_journal"),journal);
+        assert_eq!(reopened.get_conversation("thread_alpha").unwrap().unwrap().revision,ack.conversation_revision);
+        let retry=reopened.append_chat_message(sample_message("message_0002","thread_alpha",Some("message_0001"))).unwrap();
+        assert_eq!(retry.ordinal,Some(2));
+        drop(reopened);
+        let verified=NativeVault::open(&app).unwrap();
+        assert_eq!(count(&verified.conn,"SELECT count(*) FROM messages"),2);
+        assert_eq!(validate_schema(&verified.conn).unwrap(),SCHEMA_VERSION);
+    }
+
 }

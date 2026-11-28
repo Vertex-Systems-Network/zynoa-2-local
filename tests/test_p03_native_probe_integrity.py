@@ -13,6 +13,12 @@ class NativeProbeIntegrity(unittest.TestCase):
                        "if ($AttachmentAcceptance) {",
                        "ZYN-ATTACH-PROBE-002"):
             self.assertEqual(source.count(marker), 1, marker)
+        for mode in ("Model", "Partial", "Attachment", "Artifact", "Review", "Export", "Backup"):
+            self.assertEqual(source.count(f"if (${mode}Acceptance) {{"), 1, mode)
+        for code in ("ZYN-EXPORT-PROBE-006", "ZYN-BACKUP-PROBE-002", "ZYN-BACKUP-PROBE-008"):
+            self.assertEqual(source.count(code), 1, code)
+            line = next(line for line in source.splitlines() if code in line)
+            self.assertIn("$')", line)
         guard = next(line for line in source.splitlines() if "ZYN-ATTACH-PROBE-002" in line)
         self.assertIn("+$')", guard)
         self.assertIn("-cnotmatch", guard)
