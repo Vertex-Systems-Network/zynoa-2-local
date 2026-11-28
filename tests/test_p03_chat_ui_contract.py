@@ -14,6 +14,11 @@ class ChatUiContract(unittest.TestCase):
         self.assertIn('hidden={view !== "chat"}',app)
         for forbidden in ("localStorage","sessionStorage","dangerouslySetInnerHTML","fetch(","console.log"):
             self.assertNotIn(forbidden,view+transport)
+    def test_review_panel_requires_selected_conversation(self):
+        view=(ROOT/"src/ui/ChatView.tsx").read_text(encoding="utf-8")
+        self.assertIn('{selected&&<section className="chat-recovery" aria-label="Tool trace and permission review">',view)
+        self.assertIn('</section>}\n    {selected&&<section className="chat-recovery" aria-label="Conversation export">',view)
+
     def test_model_ui_state_is_scoped_and_fail_closed(self):
         view=(ROOT/"src/ui/ChatView.tsx").read_text(encoding="utf-8")
         transport=(ROOT/"src/model-transport.ts").read_text(encoding="utf-8")

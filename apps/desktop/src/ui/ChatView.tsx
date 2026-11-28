@@ -297,7 +297,7 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
       <ul aria-label="Managed file counts">{recoveryRows(recovery).map(row=><li key={row} aria-label={row} tabIndex={-1}>{row}</li>)}</ul>
      </div>}
     </section>
-    <section className="chat-recovery" aria-label="Tool trace and permission review">
+    {selected&&<section className="chat-recovery" aria-label="Tool trace and permission review">
      <h3>Tool trace and permission review</h3>
      <p className="chat-notice">Only explicitly reviewed local attachment verification and fixed text artifact actions are supported. Model-requested tools remain blocked.</p>
      {review&&review.conversationId===selected.id&&<div role="group" aria-label="Pending local tool review">
@@ -311,7 +311,7 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
      {traceLoaded&&trace.length===0&&<p className="chat-notice">No recorded tool decisions in this conversation.</p>}
      <ul aria-label="Recorded tool decisions">{trace.map(row=><li key={row.requestId} aria-label={`Tool decision: ${row.decision} ${row.tool}`} tabIndex={-1}><strong>{row.decision==="approve"?"Approved":"Denied"} · {row.tool}</strong><p className="chat-notice">Request: {row.requestId} · target: {row.targetId} · SHA-256: {row.targetSha256}</p><small>Historical decision, not an execution receipt or reusable permission.</small></li>)}</ul>
      {traceCursor!==null&&<button type="button" className="subtle-action" disabled={!canEdit} onClick={()=>void run(()=>loadReviewTrace(selected.id,traceCursor))}>More tool decisions</button>}
-    </section>
+    </section>}
     {selected&&<section className="chat-recovery" aria-label="Conversation export">
      <h3>Conversation export</h3>
      <p className="chat-notice">Export all saved messages and linked files in this conversation as a plaintext JSON file (up to 32 MiB). No model, account or other conversation data is exported. Destination: the local application data folder, data/exports. Anyone with access to this file may read its contents.</p>
