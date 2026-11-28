@@ -619,6 +619,19 @@ fn portable_fault(f:crate::backup_contracts::PortableFault)->VaultFault{
 
 // Reject extra tables, virtual tables, triggers and changed SQL definitions
 // in authenticated archives too. Authentication does not imply trusted schema.
+// SQLite's deserialize API cannot open a WAL-mode image, including a
+// completed online backup serialized from an in-memory connection.
+// https://www.sqlite.org/c3ref/deserialize.html documents normalizing the
+// two format bytes on the isolated snapshot, never on a live database.
+fn portable_snapshot_rollback_header(bytes:&mut [u8])->Result<(),VaultFault>{
+    if bytes.len()<100||&bytes[..16]!=b"SQLite format 3\0"{return Err(VaultFault::Corrupt);}
+    match (bytes[18],bytes[19]){
+        (1,1)=>Ok(()),
+        (2,2)=>{bytes[18]=1;bytes[19]=1;Ok(())},
+        _=>Err(VaultFault::Corrupt),
+    }
+}
+
 fn validate_portable_db(db:&Connection)->Result<(),VaultFault>{
     if validate_schema(db)?!=SCHEMA_VERSION{return Err(VaultFault::UnsupportedSchema);}
     let expected=Connection::open_in_memory().map_err(map_sql)?;
@@ -974,8 +987,20 @@ impl NativeVault {
         let blobs=portable_blobs(&snapshot)?;
         let mut builder=PortableBuilder::new();
         let db=snapshot.serialize(MAIN_DB).map_err(map_sql)?;
-        builder.add("database","state.sqlite",&db).map_err(portable_fault)?;
+        let mut image=zeroize::Zeroizing::new(db.to_vec());
         drop(db);drop(snapshot);
+        portable_snapshot_rollback_header(&mut image)?;
+        // Prove the self-contained image can be opened and validated before
+        // publishing an archive, rather than discovering this at restore.
+        {
+            let mut verify=Connection::open_in_memory().map_err(map_sql)?;
+            verify.deserialize_read_exact(MAIN_DB,image.as_slice(),image.len(),true).map_err(|_|VaultFault::Corrupt)?;
+            verify.execute_batch("PRAGMA trusted_schema=OFF; PRAGMA query_only=ON;").map_err(map_sql)?;
+            validate_portable_db(&verify)?;
+            if portable_blobs(&verify)?!=blobs{return Err(VaultFault::Corrupt);}
+        }
+        builder.add("database","state.sqlite",&image).map_err(portable_fault)?;
+        drop(image);
         let mut items=1;
         for (hash,receipt) in blobs{
             let data=zeroize::Zeroizing::new(self.read_managed_blob(&receipt)?);
@@ -1040,6 +1065,11 @@ impl NativeVault {
         let plain=backup_contracts::open_portable(&archive,passphrase).map_err(portable_fault)?;
         let items=backup_contracts::unpack_portable(&plain).map_err(portable_fault)?;
         let db_bytes=items.first().ok_or(VaultFault::Corrupt)?.1;
+        // V1 archives must contain a standalone rollback-format snapshot.
+        // Reject noncanonical images rather than modifying authenticated input.
+        if db_bytes.len()<100||&db_bytes[..16]!=b"SQLite format 3\0"||db_bytes[18..20]!=[1,1]{
+            return Err(VaultFault::Corrupt);
+        }
         // Validate SQLite in memory before any restore profile is created.
         let mut snapshot=Connection::open_in_memory().map_err(map_sql)?;
         snapshot.deserialize_read_exact(MAIN_DB,db_bytes,db_bytes.len(),true).map_err(|_|VaultFault::Corrupt)?;
@@ -1910,6 +1940,37 @@ mod tests {
         assert_eq!(validate_schema(&db).unwrap(),3);
         assert_eq!(count(&db,"SELECT count(*) FROM sqlite_schema WHERE name='tool_review_decisions'"),0);
         assert_eq!(fs::read(app.join("backups")).unwrap(),b"occupied");
+    }
+
+    #[test]
+    fn portable_snapshot_wal_header_normalization_is_scoped_and_validated(){
+        use rusqlite::backup::Backup;
+        let f=Fixture::new();let app=f.app();let mut v=NativeVault::open(&app).unwrap();
+        v.create_conversation("thread_alpha","Snapshot fixture").unwrap();
+        v.append_chat_message(sample_message("message_0001","thread_alpha",None)).unwrap();
+        let mut snapshot=Connection::open_in_memory().unwrap();
+        {
+            let copy=Backup::new(&v.conn,&mut snapshot).unwrap();
+            copy.run_to_completion(128,Duration::from_millis(5),None).unwrap();
+        }
+        let serialized=snapshot.serialize(MAIN_DB).unwrap();
+        let mut image=serialized.to_vec();
+        assert_eq!(&image[..16],b"SQLite format 3\0");
+        let before=image.clone();
+        portable_snapshot_rollback_header(&mut image).unwrap();
+        assert_eq!(&image[18..20],&[1,1]);
+        assert_eq!(&image[..18],&before[..18]);
+        assert_eq!(&image[20..],&before[20..]);
+        let mut verify=Connection::open_in_memory().unwrap();
+        verify.deserialize_read_exact(MAIN_DB,image.as_slice(),image.len(),true).unwrap();
+        verify.execute_batch("PRAGMA trusted_schema=OFF; PRAGMA query_only=ON;").unwrap();
+        validate_portable_db(&verify).unwrap();
+        assert_eq!(count(&verify,"SELECT count(*) FROM messages"),1);
+        let mode:String=v.conn.query_row("PRAGMA journal_mode",[],|r|r.get(0)).unwrap();
+        assert_eq!(mode,"wal");
+        assert!(portable_snapshot_rollback_header(&mut [0;100]).is_err());
+        image[18]=2;
+        assert!(portable_snapshot_rollback_header(&mut image).is_err());
     }
 
     #[test]

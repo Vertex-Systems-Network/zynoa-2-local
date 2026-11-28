@@ -1,5 +1,9 @@
 # Status — 2026-11-26
 
+## P03 batch — portable snapshot restore repair
+
+Exact 06d3d24aa3d7c8fc2eb9cb68d91d111364dc9055 completed: five applicable workflows passed including Linux model preflight; Windows run 46087598810 failed only native portable backup correct-key restore (98 passed, 1 failed, 1 ignored). T13 real child-process kill and SQLite capacity rejection tests passed; frontend TypeScript gate passed. Local SQLite reproduction and documented isolated rollback header normalization address restore failure; validate read-only snapshot before publishing, native regression added. Accumulate earlier 806f3ae malformed authenticated-manifest tests in same batch. Actual native UI journeys and full Windows re-verification remain outstanding; board 9/16 DONE, no merge/release. No running prior CI canceled.
+
 ## P03 batched CI reconciliation — nullable review panel and receipt evidence
 
 Exact 47ea1631277d7f9351a3386433f86ba9735d92b1: Governance, P00, P01, board sync and Linux real model preflight 46087195840 passed; Windows 46087195832 failed strict TypeScript TS18047 at three selected-conversation accesses in the tool-review panel. AST and Python checks passed before the failing TypeScript step. Candidate 51d049e conditionally renders the entire review panel only for a selected conversation, retains strict mode, adds regression guard. While Linux was running, 37019fd added readonly export/backup SHA-256 receipt fields and independent UI-to-file digest comparison; e25c86e links reinstall stage preservation to original T08 recovery receipt. All previous checks finished before publication, no CI cancellation. Fresh Windows compile, Rust recovery/crypto tests and native T10–T15 journeys still required. No DONE promotions; 9/16 (56.25%). Next: reconcile exact-head results, review actual artifacts and resolve remaining failures before final acceptance. No merge/release, lease released.
