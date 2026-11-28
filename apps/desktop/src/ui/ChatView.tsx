@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { chatRequest, chatError, mutationId, uploadSelectedFiles, type SelectedFile } from "../chat-transport";
 import {modelRequest,modelError} from "../model-transport";
-import { byteLength, validText, validSelection, recoveryRows, isTextArtifactReceipt, type ReviewPreview, type ReviewTrace, type ReviewChoice, type TextArtifactPreview, type RecoveryInventory, type Thread, type Message, type Payloads } from "./chat-contract";
+import { byteLength, validText, validSelection, recoveryRows, isTextArtifactReceipt, type ExportReceipt, type ReviewPreview, type ReviewTrace, type ReviewChoice, type TextArtifactPreview, type RecoveryInventory, type Thread, type Message, type Payloads } from "./chat-contract";
 import {modelAvailable,modelSelectValue,retryAvailable,recoverRetryTarget,currentContext,type InstalledModel,type ModelSettings,type ContextSnapshot,type RetryTarget} from "./model-contract";
 type Transport="pending"|"connected"|"unavailable"|"preview";
 type Pending={command:"chat.create";payload:Payloads["chat.create"]}|{command:"chat.saveUserMessage";payload:Payloads["chat.saveUserMessage"]}|{command:"attachment-upload";payload:Payloads["chat.saveUserMessage"];files:SelectedFile[]};
@@ -20,6 +20,8 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
  const [notice,setNotice]=useState("");
  const [recovery,setRecovery]=useState<RecoveryInventory|null>(null);
  const [artifactPreview,setArtifactPreview]=useState<TextArtifactPreview|null>(null);
+ const [exportConfirmed,setExportConfirmed]=useState(false);
+ const [exportReceipt,setExportReceipt]=useState<ExportReceipt|null>(null);
  const [review,setReview]=useState<ReviewPreview|null>(null);
  const [trace,setTrace]=useState<ReviewTrace[]>([]);
  const [traceCursor,setTraceCursor]=useState<string|null>(null);
@@ -61,7 +63,7 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
    }
    // A new history read must not expose another conversation's preference
    // if its native settings lookup fails.
-   if(after===0){setSettings(null);setContext(null);setArtifactPreview(null);setReview(null);setTrace([]);setTraceCursor(null);setTraceLoaded(false);}
+   if(after===0){setSettings(null);setContext(null);setArtifactPreview(null);setExportConfirmed(false);setExportReceipt(null);setReview(null);setTrace([]);setTraceCursor(null);setTraceLoaded(false);}
    setSelected(page.conversation);
    setMessages(old=>after===0?page.items:[...old,...page.items.filter(m=>!old.some(x=>x.id===m.id))]);
    setHistoryCursor(page.next);
@@ -216,6 +218,15 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
      }finally{await loadReviewTrace(current.conversationId);}
    });
  }
+ function exportConversation(){
+   if(!selected||!exportConfirmed||!canEdit||lock.current||activeTurn)return;
+   const conversationId=selected.id,revision=selected.revision;
+   setExportConfirmed(false);setExportReceipt(null);
+   void run(async()=>{
+     const receipt=await chatRequest("chat.export.conversation",{conversationId,revision,exportId:mutationId(),destination:"local-data-exports"});
+     setExportReceipt(receipt);setNotice("Full conversation exported locally.");
+   });
+ }
  function inspectRecovery(){
    if(!canEdit||lock.current||pendingRef.current)return;
    setRecovery(null);
@@ -301,7 +312,18 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
      <ul aria-label="Recorded tool decisions">{trace.map(row=><li key={row.requestId} aria-label={`Tool decision: ${row.decision} ${row.tool}`} tabIndex={-1}><strong>{row.decision==="approve"?"Approved":"Denied"} · {row.tool}</strong><p className="chat-notice" style={{overflowWrap:"anywhere"}}>Request: {row.requestId} · target: {row.targetId} · SHA-256: {row.targetSha256}</p><small>Historical decision, not an execution receipt or reusable permission.</small></li>)}</ul>
      {traceCursor!==null&&<button type="button" className="subtle-action" disabled={!canEdit} onClick={()=>void run(()=>loadReviewTrace(selected.id,traceCursor))}>More tool decisions</button>}
     </section>
-    <p className="chat-notice">Inference stays on fixed loopback. Files can be saved with a message. Complete assistant responses can be saved and previewed as verified text artifacts. Opening imported files, model file consumption, model-requested tools and export are not available in this slice. Saved metadata does not grant arbitrary file access.</p>
+    {selected&&<section className="chat-recovery" aria-label="Conversation export">
+     <h3>Conversation export</h3>
+     <p className="chat-notice">Export all saved messages and linked files in this conversation as a plaintext JSON file (up to 32 MiB). No model, account or other conversation data is exported. Destination: the local application data folder, data/exports. Anyone with access to this file may read its contents.</p>
+     <label><input type="checkbox" checked={exportConfirmed} disabled={!canEdit||activeTurn!==null} onChange={e=>setExportConfirmed(e.target.checked)}/> I understand the export is unencrypted and choose the local exports folder</label>
+     <button type="button" className="subtle-action" disabled={!canEdit||activeTurn!==null||!exportConfirmed} onClick={exportConversation}>Export full conversation</button>
+     {exportReceipt&&exportReceipt.conversationId===selected.id&&<div role="group" aria-label="Conversation export receipt">
+      <p>Export verified: {exportReceipt.messageCount} messages · {exportReceipt.attachmentCount} linked files · {exportReceipt.bytes.toLocaleString()} bytes</p>
+      <label>Relative export path<input readOnly aria-label="Relative export path" value={exportReceipt.relativePath}/></label>
+      <p className="chat-notice" style={{overflowWrap:"anywhere"}}>SHA-256: {exportReceipt.sha256}</p>
+     </div>}
+    </section>}
+    <p className="chat-notice">Inference stays on fixed loopback. Files can be saved with a message. Complete assistant responses can be saved and previewed as verified text artifacts. Opening imported files, model file consumption, and model-requested tools are not available in this slice. Saved metadata does not grant arbitrary file access.</p>
    </section>
    </div>
  </section>;

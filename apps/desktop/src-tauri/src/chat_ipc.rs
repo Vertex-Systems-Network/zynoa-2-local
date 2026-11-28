@@ -57,6 +57,9 @@ struct ReviewFinishPayload { conversation_id:String, request_id:String, decision
 struct ReviewListPayload { conversation_id:String, after:Option<String>,limit:u32 }
 #[derive(Deserialize)]
 #[serde(rename_all="camelCase",deny_unknown_fields)]
+struct ExportPayload { conversation_id:String, revision:i64, export_id:String, destination:String }
+#[derive(Deserialize)]
+#[serde(rename_all="camelCase",deny_unknown_fields)]
 struct CreatePayload { id: String, title: String }
 #[derive(Deserialize)]
 #[serde(rename_all="camelCase",deny_unknown_fields)]
@@ -124,7 +127,7 @@ fn authorize_request(label:&str, request:&ChatRequest) -> Result<(),ChatError> {
     if request.schema_version!=1 || request.workspace_scope!="local" || !token(&request.correlation_id) {
         return Err(error("ZYN-CHAT-INPUT"));
     }
-    if !matches!(request.command_id.as_str(),"chat.list"|"chat.create"|"chat.history"|"chat.saveUserMessage"|"chat.attachment.chunk"|"chat.attachment.discard"|"chat.recovery.inspect"|"chat.artifact.createText"|"chat.artifact.previewText"|"chat.review.begin"|"chat.review.finish"|"chat.review.list") {
+    if !matches!(request.command_id.as_str(),"chat.list"|"chat.create"|"chat.history"|"chat.saveUserMessage"|"chat.attachment.chunk"|"chat.attachment.discard"|"chat.recovery.inspect"|"chat.artifact.createText"|"chat.artifact.previewText"|"chat.review.begin"|"chat.review.finish"|"chat.review.list"|"chat.export.conversation") {
         return Err(error("ZYN-CHAT-DENIED"));
     }
     if serde_json::to_vec(&request.payload).map_err(|_|error("ZYN-CHAT-INPUT"))?.len()>MAX_REQUEST_BYTES {
@@ -134,6 +137,14 @@ fn authorize_request(label:&str, request:&ChatRequest) -> Result<(),ChatError> {
 }
 fn execute(vault:&mut NativeVault, request:ChatRequest) -> Result<ChatReply,ChatError> {
     let data=match request.command_id.as_str() {
+        "chat.export.conversation" => {
+            let q:ExportPayload=parse(request.payload)?;
+            if !token(&q.conversation_id)||!token(&q.export_id)||q.revision<=0||q.destination!="local-data-exports" {
+                return Err(error("ZYN-CHAT-INPUT"));
+            }
+            serde_json::to_value(vault.export_conversation(&q.conversation_id,q.revision,&q.export_id)?)
+                .map_err(|_|error("ZYN-CHAT-STORAGE"))?
+        },
         "chat.review.begin" => {
             let q:ReviewBeginPayload=parse(request.payload)?;
             if !token(&q.conversation_id)||!token(&q.source_id)||q.attachment_id.as_ref().is_some_and(|id|!token(id)) {
@@ -308,6 +319,23 @@ mod tests {
     fn call(v:&mut NativeVault,command:&str,payload:Value)->Result<Value,ChatError> {
         let req=request(command,payload);authorize_request("main",&req)?;Ok(execute(v,req)?.data)
     }
+    #[test]
+    fn chat_ipc_export_is_local_and_has_no_arbitrary_path_authority() {
+        let f=Fixture::new();let mut v=NativeVault::open(&f.0).unwrap();
+        call(&mut v,"chat.create",json!({"id":A,"title":"Synthetic"})).unwrap();
+        call(&mut v,"chat.saveUserMessage",json!({"id":M,"conversationId":A,"content":"Prompt"})).unwrap();
+        let q=json!({"conversationId":A,"revision":2,"exportId":"export-alpha-00001","destination":"local-data-exports"});
+        assert!(authorize_request("remote",&request("chat.export.conversation",q.clone())).is_err());
+        let mut bad=q.clone();bad["path"]=json!("outside");
+        assert!(call(&mut v,"chat.export.conversation",bad).is_err());
+        let mut bad=q.clone();bad["destination"]=json!("outside");
+        assert!(call(&mut v,"chat.export.conversation",bad).is_err());
+        let ack=call(&mut v,"chat.export.conversation",q.clone()).unwrap();
+        assert_eq!(ack["messageCount"],1);
+        assert_eq!(ack["relativePath"],"data/exports/conversation-export-alpha-00001.json");
+        assert!(call(&mut v,"chat.export.conversation",q).is_err());
+    }
+
     #[test]
     fn chat_ipc_review_is_local_scoped_single_use_and_strict() {
         let f=Fixture::new();let mut v=NativeVault::open(&f.0).unwrap();

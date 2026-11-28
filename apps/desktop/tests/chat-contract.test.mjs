@@ -99,3 +99,11 @@ test("review replies enforce exact request and thread, bounded tool vocabulary a
  assert.throws(()=>decode("chat.review.list",{...page,items:[{...trace,decision:"always"}]},list),/ZYN-CHAT-RESPONSE/);
  assert.throws(()=>decode("chat.review.list",{...page,items:[trace,trace]},list),/ZYN-CHAT-RESPONSE/);
 });
+
+
+test("export acknowledgement is exact scope, revision, destination and bounded counts",()=>{
+ const q={conversationId:thread.id,revision:2,exportId:"export-alpha-00001",destination:"local-data-exports"};
+ const ack={conversationId:q.conversationId,revision:q.revision,exportId:q.exportId,relativePath:"data/exports/conversation-export-alpha-00001.json",bytes:124,sha256:"a".repeat(64),messageCount:2,attachmentCount:1};
+ assert.deepEqual(decode("chat.export.conversation",ack,q),ack);
+ for(const bad of [{...ack,relativePath:"../escape"},{...ack,revision:3},{...ack,sha256:"bad"},{...ack,messageCount:4097},{...ack,attachmentCount:17},{...ack,bytes:32*1024*1024+1},{...ack,conversationId:"other-thread-001"}])assert.throws(()=>decode("chat.export.conversation",bad,q),/ZYN-CHAT-RESPONSE/);
+});
