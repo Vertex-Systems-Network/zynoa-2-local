@@ -2005,6 +2005,50 @@ mod tests {
     }
 
     #[test]
+    fn authenticated_restore_rejects_extra_schema_and_missing_linked_blob_before_profile_write(){
+        use crate::backup_contracts::{PortableBuilder,seal_portable};
+        use rusqlite::backup::Backup;
+        let f=Fixture::new();let app=f.app();let mut v=NativeVault::open(&app).unwrap();
+        v.create_conversation("thread_alpha","Restore boundary fixture").unwrap();
+        let a=LinkedAttachment{id:"artifact_001".into(),receipt:v.stage_managed_blob("note.txt",b"synthetic linked data").unwrap()};
+        let hash=a.receipt.sha256.clone();
+        v.append_chat_message_with_attachments(sample_message("message_0001","thread_alpha",None),&[a]).unwrap();
+        let revision=v.get_conversation("thread_alpha").unwrap().unwrap().revision;
+        let journal=count(&v.conn,"SELECT count(*) FROM chat_change_journal");
+        let backups=managed_child(&app,"backups").unwrap();
+        let portable=managed_child(&backups,"portable").unwrap();
+        let pass=b"synthetic portable passphrase";
+        for (id,extra_schema) in [("missing_001",false),("schema_001",true)]{
+            let mut snapshot=Connection::open_in_memory().unwrap();
+            {
+                let copy=Backup::new(&v.conn,&mut snapshot).unwrap();
+                copy.run_to_completion(128,Duration::from_millis(5),None).unwrap();
+            }
+            validate_portable_db(&snapshot).unwrap();
+            if extra_schema{
+                snapshot.execute_batch("CREATE TABLE unexpected_fixture(id INTEGER);").unwrap();
+                assert!(validate_portable_db(&snapshot).is_err());
+            }
+            let serialized=snapshot.serialize(MAIN_DB).unwrap();
+            let mut image=zeroize::Zeroizing::new(serialized.to_vec());
+            portable_snapshot_rollback_header(&mut image).unwrap();
+            let mut builder=PortableBuilder::new();
+            builder.add("database","state.sqlite",&image).unwrap();
+            // A valid authenticated manifest with all linked bytes but an
+            // extra schema object must fail independently of blob validation.
+            if extra_schema{builder.add("blob",&hash,b"synthetic linked data").unwrap();}
+            let archive=seal_portable(builder.finish(1).unwrap(),pass).unwrap();
+            write_portable_new(&portable.join(format!("{id}.awbackup")),&archive).unwrap();
+            assert!(matches!(v.restore_portable_preview(id,id,pass),Err(VaultFault::Corrupt)));
+            assert!(!backups.join("restored").join(id).exists());
+        }
+        assert_eq!(v.get_conversation("thread_alpha").unwrap().unwrap().revision,revision);
+        assert_eq!(count(&v.conn,"SELECT count(*) FROM chat_change_journal"),journal);
+        assert_eq!(v.get_chat_message("thread_alpha","message_0001").unwrap().unwrap().content,"synthetic message");
+        assert_eq!(validate_schema(&v.conn).unwrap(),SCHEMA_VERSION);
+    }
+
+    #[test]
     fn conversation_export_is_complete_scoped_verified_and_new_only() {
         let f=Fixture::new();let app=f.app();let mut v=NativeVault::open(&app).unwrap();
         v.create_conversation("thread_alpha","One").unwrap();

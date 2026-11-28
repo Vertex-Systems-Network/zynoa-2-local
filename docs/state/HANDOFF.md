@@ -1,5 +1,9 @@
 # Handoff (canonical starter)
 
+## P03 next accumulated candidate (not yet published)
+
+While 8785f5a native/Linux CI runs, prepared T14 native UI latency receipts and negative authenticated restore boundary regression; T15 manifest candidate moves to IN_PROGRESS (no completion promotion). Previous exact 3e2657d passed backup restore and 101 Rust / 9 focused vault tests; native review keyboard failure repair published at 8785f5a. Next push only after all applicable current runs complete, reconcile failures and update PR task board. No unattended worker, no merge/release.
+
 ## P03 latest CI reconciliation — native backup fixed, review keyboard focus candidate
 
 Exact 3e2657d1fba5769917e6ca0c35c0ee6086ffda09: five applicable workflows passed; Windows 46088926027 job 140804998271 passed 101 Rust tests (one ignored) and nine focused vault tests, including correct-key independent restore, WAL header normalization, malformed authenticated archive, capacity and killed-process regressions. Existing model/partial/attachment/text-artifact journeys passed. T10 native journey stopped at ZYN-A11Y-PROBE-005 Tab order mismatch before explicit denial; T11–T15 native evidence not reached. Root cause not yet established: prior probe did not establish actual keyboard focus before sending Tab. Candidate explicitly focuses the safe deny control once per new review after native loading, then verifies native focus, Shift+Tab to Approve, Tab back to Deny, and keyboard Space denial with independent durable DB proof. No test relaxation. Batch includes 9e4faa5 T15 exact-head screenshot inventory checks (11 receipts, 31 images). Fresh CI required; no task status promotion, no merge/release. All previous runs completed before push; lease released.
