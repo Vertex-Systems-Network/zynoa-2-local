@@ -75,20 +75,20 @@
     {
       "id": "P03-T12",
       "title": "Encrypted portable backup and staged independent restore",
-      "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/46092374549"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/46094660046"
     },
     {
       "id": "P03-T13",
       "title": "Crash, disk failure, restart and uninstall/reinstall persistence",
-      "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/e25c86e45672f841996afa96c91368d1714c233b"
+      "status": "DONE",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/46094660046"
     },
     {
       "id": "P03-T14",
       "title": "Security, accessibility, performance and prior-phase regressions",
       "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/1ee15de60823985a023d9efa2733c9e70bd6156d"
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/c58588bc0c4672970c8799ed25cf6b678ffacd04"
     },
     {
       "id": "P03-T15",
