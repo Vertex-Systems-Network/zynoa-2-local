@@ -203,7 +203,9 @@ class NativeProbeIntegrity(unittest.TestCase):
                        "review Tab order mismatch", "keyboard_consent_verified",
                        "keyboard_default_deny_verified", "keyboard_deny_activation_verified",
                        "Wait-ReviewKeyboardFocus 'Approve local tool'", "SendWait('+{TAB}')",
-                       "installed_startup_ms", "startup_within_budget"):
+                       "installed_startup_ms", "startup_within_budget",
+                       "send_to_visible_prefix_ms", "save_to_acknowledgement_ms",
+                       "retry_to_saved_notice_ms", "Wait-Name 'Message saved locally.'"):
             self.assertIn(marker, source)
         self.assertIn(".local-consent input[type=", css)
         self.assertIn("min-height:20px", css)

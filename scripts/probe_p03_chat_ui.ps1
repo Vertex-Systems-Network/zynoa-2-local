@@ -140,7 +140,7 @@ function Wait-Name([string]$Name,[string]$Type='', [bool]$Enabled=$false,[int]$A
        # Completion status remains above the composer after Send scrolls it
        # into view. Read its exact accessible text even outside the viewport;
        # the later independent vault checks still verify durable output.
-       if (!$e.Current.IsOffscreen -or $Type -or $Name -ceq 'Turn stopped; any partial response was saved as cancelled.' -or $Name -ceq 'Local model response completed and saved.' -or $Name -ceq 'Message and attachments saved locally. No model response was requested.') {return $e}
+       if (!$e.Current.IsOffscreen -or $Type -or $Name -ceq 'Turn stopped; any partial response was saved as cancelled.' -or $Name -ceq 'Local model response completed and saved.' -or $Name -ceq 'Message saved locally.' -or $Name -ceq 'Message and attachments saved locally. No model response was requested.') {return $e}
      } catch [System.Windows.Automation.ElementNotAvailableException] {}
    }
    Start-Sleep -Milliseconds 250
@@ -1188,8 +1188,10 @@ if ($PartialAcceptance) {
    Assert-Combo 'Context budget' '8192 tokens'
    Type-Exact 'Message' 'List the numbers from one to one thousand in words. Use one line for every number. Do not summarize or stop early.'
    $script:stage='actual real model stream'
+   $streamClock=[Diagnostics.Stopwatch]::StartNew()
    Click-Control 'Send'
    $prefix=Wait-RealStreamingPrefix
+   $firstVisiblePrefixMs=[int64]$streamClock.ElapsedMilliseconds
    $script:stage='actual Stop during nonempty stream'
    $stop=Wait-Name 'Stop' 'Button' $true 8
    if ([ChatProbeWindow]::GetForegroundWindow() -ne $script:hwnd) {throw 'ZYN-PARTIAL-PROBE-004: foreground lost before Stop'}
@@ -1221,7 +1223,7 @@ if ($PartialAcceptance) {
    foreach ($name in @('M03-OPT-02-stopped-candidate.png','M03-OPT-02-partial-reopened-candidate.png')) {
      $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
    }
-   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;actual_model='qwen2.5:1.5b';context_limit=8192;actual_native_stop=$true;nonempty_live_prefix_verified=$true;live_prefix_chars=$prefix.Length;stop_to_cancel_notice_ms=$elapsed;cancelled_partial_persisted=$true;ui_partial_reopen_verified=$true;database_reopen_identity_verified=$true;images=$images;visual_review='candidate_pending_visual_review';retry_ui_verified=$false;full_accessibility_certified=$false;input_checks=@($script:inputChecks.ToArray())} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-partial-ui-proof.json') -Encoding utf8
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;actual_model='qwen2.5:1.5b';context_limit=8192;actual_native_stop=$true;nonempty_live_prefix_verified=$true;live_prefix_chars=$prefix.Length;send_to_visible_prefix_ms=$firstVisiblePrefixMs;stop_to_cancel_notice_ms=$elapsed;cancelled_partial_persisted=$true;ui_partial_reopen_verified=$true;database_reopen_identity_verified=$true;images=$images;visual_review='candidate_pending_visual_review';retry_ui_verified=$false;full_accessibility_certified=$false;input_checks=@($script:inputChecks.ToArray())} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-partial-ui-proof.json') -Encoding utf8
    Write-Output 'P03 T05 actual real-model partial response Stop and restart proof passed'
    $script:stage='retry baseline after independent partial reopen'
    $null=Read-PartialVault 'retry-baseline'
@@ -1236,8 +1238,10 @@ if ($PartialAcceptance) {
    Select-Combo 'Context budget' '{HOME}' '512 tokens'
    Assert-Combo 'Context budget' '512 tokens'
    Capture 'M03-OPT-06-retry-ready-candidate.png'
+   $retryClock=[Diagnostics.Stopwatch]::StartNew()
    Click-Control 'Retry turn'
    [void](Wait-Name 'Local model response completed and saved.' '' $false 640)
+   $retryCompletionMs=[int64]$retryClock.ElapsedMilliseconds
    $script:stage='independent retry receipt and original cancelled preservation'
    $retry=Read-PartialVault 'retry-saved'
    Wait-Assistant $retry.assistant_text
@@ -1263,7 +1267,7 @@ if ($PartialAcceptance) {
    foreach ($name in @('M03-OPT-06-retry-ready-candidate.png','M03-OPT-06-retry-completed-candidate.png','M03-OPT-06-retry-reopened-candidate.png')) {
       $retryImages[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
    }
-   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();retry_pid=$retryPid;reopened_pid=$retryReopenedPid;synthetic_only=$true;actual_model='qwen2.5:1.5b';context_limit=512;actual_native_retry=$true;retry_recovered_after_restart=$true;cancelled_response_preserved=$true;duplicate_user_message_absent=$true;completed_retry_disabled=$true;database_reopen_identity_verified=$true;images=$retryImages;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-retry-ui-proof.json') -Encoding utf8
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();retry_pid=$retryPid;reopened_pid=$retryReopenedPid;synthetic_only=$true;actual_model='qwen2.5:1.5b';context_limit=512;actual_native_retry=$true;retry_to_saved_notice_ms=$retryCompletionMs;retry_recovered_after_restart=$true;cancelled_response_preserved=$true;duplicate_user_message_absent=$true;completed_retry_disabled=$true;database_reopen_identity_verified=$true;images=$retryImages;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-retry-ui-proof.json') -Encoding utf8
    Write-Output 'P03 T05 actual Windows Retry after restart and independent database proof passed'
    $script:stage='model availability baseline'
    $null=Read-PartialVault 'retry-check'
@@ -1458,7 +1462,10 @@ try {
  [void](Wait-Name 'Message' 'Edit' $true)
  Type-Exact 'Message' $content
  $script:stage='save message'
+ $saveClock=[Diagnostics.Stopwatch]::StartNew()
  Click-Control 'Save message'
+ [void](Wait-Name 'Message saved locally.')
+ $saveAcknowledgementMs=[int64]$saveClock.ElapsedMilliseconds
  [void](Wait-Name $content)
  Stop-Native
  $script:stage='independent saved fixture check'
@@ -1482,7 +1489,7 @@ try {
  foreach ($name in @('M03-S01-candidate.png','M03-S02-candidate.png')) {
    $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
  }
- $proof=[ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();method='actual Windows Tauri UIA, real keyboard ValuePattern readback and independent read-only SQLite';first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;empty_profile=$true;keyboard_input_verified=$true;input_checks=@($script:inputChecks.ToArray());ui_create_save=$true;ui_reopen_readback=$true;database_reopen_identity_verified=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false;model_inference_claimed=$false}
+ $proof=[ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();method='actual Windows Tauri UIA, real keyboard ValuePattern readback and independent read-only SQLite';first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;empty_profile=$true;keyboard_input_verified=$true;input_checks=@($script:inputChecks.ToArray());ui_create_save=$true;save_to_acknowledgement_ms=$saveAcknowledgementMs;ui_reopen_readback=$true;database_reopen_identity_verified=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false;model_inference_claimed=$false}
  $proof | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-chat-ui-proof.json') -Encoding utf8
  Write-Output 'P03 scoped real native chat interaction and independent restart readback passed'
 } catch {
