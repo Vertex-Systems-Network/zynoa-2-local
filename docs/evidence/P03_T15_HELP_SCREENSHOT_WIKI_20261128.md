@@ -1,0 +1,46 @@
+# P03 T15 Help, screenshots and Wiki candidate
+
+Current option-level guides updated for M03 and M23 chat-data scope; P02 captures remain historical. No generated or substituted screenshot, no hosted publication claim. Exact-source Windows CI must produce and independently validate each native screenshot, SHA-256 receipt, control labels, focus and readable layout. Map actual captures to canonical option/screen IDs only after original artifact review. Publish/read back hosted Wiki only through the approved guarded job after prerequisites; preserve main/release gates.
+
+## Candidate capture inventory
+
+- `M23-installed-history-candidate.png`
+- `M23-reinstalled-history-candidate.png`
+- `M23-OPT-07-encrypted-backup-candidate.png`
+- `M23-OPT-09-restore-preview-candidate.png`
+- `M03-S06-export-consent-candidate.png`
+- `M03-OPT-07-export-candidate.png`
+- `DEBUG-native-export-ui-failure.png`
+- `M03-S05-review-pending-candidate.png`
+- `M03-OPT-08-denied-candidate.png`
+- `M03-OPT-08-approved-candidate.png`
+- `M03-OPT-08-attachment-approved-candidate.png`
+- `M03-OPT-08-reopened-candidate.png`
+- `M03-OPT-08-attachment-reopened-candidate.png`
+- `DEBUG-native-review-ui-failure.png`
+- `M03-OPT-05-candidate.png`
+- `M03-OPT-05-reopened-candidate.png`
+- `M03-OPT-05-replayed-candidate.png`
+- `DEBUG-native-text-artifact-ui-failure.png`
+- `M03-S03-candidate.png`
+- `M03-OPT-04-candidate.png`
+- `M03-managed-recovery-candidate.png`
+- `DEBUG-native-attachment-ui-failure.png`
+- `M03-OPT-02-stopped-candidate.png`
+- `M03-OPT-02-partial-reopened-candidate.png`
+- `M03-OPT-06-retry-ready-candidate.png`
+- `M03-OPT-06-retry-completed-candidate.png`
+- `M03-OPT-06-retry-reopened-candidate.png`
+- `M03-OPT-01-missing-model-candidate.png`
+- `M03-OPT-01-restored-model-candidate.png`
+- `DEBUG-native-partial-ui-failure.png`
+- `M03-OPT-01-candidate.png`
+- `M03-OPT-03-candidate.png`
+- `M03-OPT-02-candidate.png`
+- `M03-S04-candidate.png`
+- `DEBUG-native-model-ui-failure.png`
+- `M03-S01-candidate.png`
+- `M03-S02-candidate.png`
+- `DEBUG-native-ui-failure.png`
+
+Remaining: review coverage against all required M03 screens/options and scoped M23 controls; capture missing views, verify Help routes and hosted Wiki readback, resolve outstanding CI. T15 not DONE.
