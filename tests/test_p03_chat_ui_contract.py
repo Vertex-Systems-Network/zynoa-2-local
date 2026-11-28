@@ -29,6 +29,17 @@ class ChatUiContract(unittest.TestCase):
                          'ref={reviewDenyRef} data-testid="chat-review-deny"'):
             self.assertIn(fragment,view)
 
+    def test_chat_receipt_fields_wrap_without_losing_exact_readback(self):
+        view=(ROOT/"src/ui/ChatView.tsx").read_text(encoding="utf-8")
+        css=(ROOT/"src/styles.css").read_text(encoding="utf-8")
+        self.assertIn("grid-template-columns:minmax(180px, 26%) minmax(0, 1fr)",css)
+        self.assertIn("@container(max-width:580px)",css)
+        self.assertIn("position:sticky; top:12px",css)
+        self.assertIn('className="chat-review-fields"',view)
+        for label in ("Relative export path","Export SHA-256"):
+            self.assertIn(f'<textarea className="chat-receipt-value" readOnly aria-label="{label}"',view)
+        self.assertIn("overflow-wrap:anywhere; white-space:pre-wrap",css)
+
     def test_model_ui_state_is_scoped_and_fail_closed(self):
         view=(ROOT/"src/ui/ChatView.tsx").read_text(encoding="utf-8")
         transport=(ROOT/"src/model-transport.ts").read_text(encoding="utf-8")

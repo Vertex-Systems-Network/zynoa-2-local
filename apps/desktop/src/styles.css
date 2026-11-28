@@ -669,11 +669,29 @@ main:focus{outline:none}
 .shell [data-testid="chat-view"] { container-type:inline-size; }
 .shell [data-testid="chat-view"] .section-heading { gap:12px; margin-bottom:12px; }
 .shell [data-testid="chat-view"] .section-heading .lead { margin-bottom:10px; }
-.shell .chat-layout { grid-template-columns:minmax(190px, 1fr) minmax(0, 1.75fr); }
+.shell .chat-layout { grid-template-columns:minmax(180px, 26%) minmax(0, 1fr); }
 .shell .chat-pane { border-color:var(--line); }
 .shell .chat-pane input,.shell .chat-pane textarea { min-height:44px; }
 .shell .chat-pane textarea { min-height:100px; }
 @container(max-width:580px){.shell .chat-layout { grid-template-columns:minmax(0,1fr); }}
+/* Keep the saved-thread navigator available while reviewing long receipts,
+   but never pin it above the viewport on smaller windows. */
+@media(min-height:760px){
+ @container(min-width:581px){
+  .shell .chat-layout > .chat-pane:first-child { position:sticky; top:12px; max-height:calc(100vh - 32px); overflow:auto; }
+ }
+}
+.shell .chat-pane .chat-recovery { min-width:0; border-top:1px solid var(--line); margin-top:20px; padding-top:16px; }
+.shell .chat-recovery h3 { font-size:16px; margin:0 0 8px; }
+.shell .chat-recovery [aria-label="Recorded tool decisions"] { list-style:none; padding:0; margin:12px 0; display:grid; gap:10px; }
+.shell .chat-recovery [aria-label="Recorded tool decisions"] li { padding:12px; border:1px solid var(--line); border-radius:8px; min-width:0; }
+.shell .chat-recovery [aria-label="Recorded tool decisions"] li:focus-visible { outline:2px solid var(--outline); outline-offset:2px; }
+.shell .chat-review-fields { display:grid; gap:4px; min-width:0; margin:10px 0; }
+.shell .chat-review-fields dt { font-weight:700; font-size:12px; color:var(--text-secondary); }
+.shell .chat-review-fields dd { margin:0 0 6px; font-size:12px; line-height:1.5; overflow-wrap:anywhere; min-width:0; }
+.shell .chat-pane textarea.chat-receipt-value { min-height:54px; height:auto; font-size:12px; line-height:1.5; resize:vertical; overflow-wrap:anywhere; white-space:pre-wrap; }
+.shell .chat-recovery [aria-label="Conversation export receipt"] { display:grid; gap:8px; margin-top:12px; min-width:0; }
+.shell .chat-recovery [aria-label="Conversation export receipt"] label { display:grid; gap:4px; min-width:0; }
 
 .shell .chat-recovery-result { margin-top:12px; min-width:0; padding:12px; border:1px solid var(--line); border-radius:9px; background:var(--surface-raised); }
 .shell .chat-recovery-result p { margin:0 0 8px; }
