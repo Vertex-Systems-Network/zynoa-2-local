@@ -69,7 +69,8 @@
     {
       "id": "P03-T11",
       "title": "Full conversation export with privacy and integrity checks",
-      "status": "IN_PROGRESS"
+      "status": "IN_PROGRESS",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/fb3edc96ed203aad8058280c2abd14b9e2879b43"
     },
     {
       "id": "P03-T12",
