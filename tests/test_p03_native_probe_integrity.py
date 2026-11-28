@@ -134,6 +134,18 @@ class NativeProbeIntegrity(unittest.TestCase):
         self.assertLess(workflow.index("name: Upload actual attachment UI candidate evidence"),
                         workflow.index("name: P03 T09 actual Windows text artifact"))
 
+    def test_full_export_has_native_consent_and_read_only_scoped_verifier(self):
+        source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
+        verifier = (ROOT / "scripts/verify_p03_export_ui_database.py").read_text(encoding="utf-8")
+        workflow = (ROOT / ".github/workflows/p03-native-baseline.yml").read_text(encoding="utf-8")
+        for marker in ("$toggle.Toggle()", "Click-Control 'Export full conversation'", "Read-ExportVault 'saved'", "Read-ExportVault 'reopened'"):
+            self.assertIn(marker, source)
+        self.assertIn("mode=ro", verifier)
+        self.assertIn("assert fp==prior", verifier)
+        self.assertIn("bytes.fromhex", verifier)
+        self.assertLess(workflow.index("name: Upload actual review UI candidate evidence"),
+                        workflow.index("name: P03 T11 actual Windows full conversation export"))
+
     def test_review_journey_preserves_prior_artifact_and_has_real_decisions(self):
         source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
         verifier = (ROOT / "scripts/verify_p03_review_ui_database.py").read_text(encoding="utf-8")

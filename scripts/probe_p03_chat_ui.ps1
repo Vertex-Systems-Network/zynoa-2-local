@@ -8,6 +8,7 @@ param(
  [switch]$PartialAcceptance,
  [switch]$ArtifactAcceptance,
  [switch]$ReviewAcceptance,
+ [switch]$ExportAcceptance,
  [string]$PriorModelProofDirectory='',
  [string]$OllamaExecutable=''
 )
@@ -608,6 +609,666 @@ function Wait-ReviewDecision([string]$Name) {
  $row=Wait-Name $Name 'ListItem'
  Focus-Control $row
  if ($row.Current.IsOffscreen -or $row.Current.BoundingRectangle.IsEmpty) {throw 'ZYN-REVIEW-PROBE-002: decision not visible'}
+}
+function Read-ExportVault([string]$Stage) {
+ $result=& python scripts/verify_p03_export_ui_database.py --stage $Stage --output $OutputDirectory --review-proof (Join-Path $env:RUNNER_TEMP 'p03-review-ui-proof')
+ if ($LASTEXITCODE -ne 0) {throw 'ZYN-EXPORT-PROBE-001: independent export verification failed'}
+ return ($result | ConvertFrom-Json)
+}
+if ($ExportAcceptance) {
+ try {
+   if ($AttachmentAcceptance -or $PartialAcceptance -or $ModelAcceptance -or $ArtifactAcceptance -or $ReviewAcceptance) {throw 'ZYN-EXPORT-PROBE-002: mutually exclusive journeys'}
+   $script:stage='export baseline after review proof'
+   $null=Read-ExportVault 'baseline'
+   Start-Native
+   $firstPid=$script:app.Id
+   Click-Control 'Chat'
+   Click-Control 'P03 attachment proof'
+   $script:stage='explicit native plaintext export consent'
+   $checkbox=Wait-Name 'I understand the export is unencrypted and choose the local exports folder' 'CheckBox' $true
+   Focus-Control $checkbox
+   $toggle=$null
+   if (!$checkbox.TryGetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern,[ref]$toggle)) {throw 'ZYN-EXPORT-PROBE-003: consent toggle unavailable'}
+   if ($toggle.Current.ToggleState -ne [System.Windows.Automation.ToggleState]::Off) {throw 'ZYN-EXPORT-PROBE-004: consent preselected'}
+   Capture 'M03-S06-export-consent-candidate.png'
+   $toggle.Toggle()
+   Click-Control 'Export full conversation'
+   $path=Wait-Name 'Relative export path' 'Edit'
+   $value=$null
+   if (!$path.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern,[ref]$value) -or !$value.Current.IsReadOnly) {throw 'ZYN-EXPORT-PROBE-005: receipt not readonly'}
+   $relative=$value.Current.Value
+   if ($relative -cnotmatch '^data/exports/conversation-[A-Za-z0-9-]{16,64}\.json
+ try {
+   if ($AttachmentAcceptance -or $PartialAcceptance -or $ModelAcceptance -or $ArtifactAcceptance) {throw 'ZYN-REVIEW-PROBE-003: mutually exclusive journeys'}
+   $script:stage='review baseline after T09 proof'
+   $null=Read-ReviewVault 'baseline'
+   $script:stage='native pending and explicit deny'
+   Start-Native
+   $firstPid=$script:app.Id
+   Click-Control 'Chat'
+   Click-Control 'P03 model beta'
+   Click-Control 'Review text artifact tool from message 2'
+   $button=Wait-Name 'Deny local tool' 'Button' $true
+   Focus-Control $button
+   Capture 'M03-S05-review-pending-candidate.png'
+   Click-Control 'Deny local tool'
+   Wait-ReviewDecision 'Tool decision: deny local.write_artifact'
+   Capture 'M03-OPT-08-denied-candidate.png'
+   Stop-Native
+   $null=Read-ReviewVault 'denied'
+   $script:stage='native reopened denial and explicit approval'
+   Start-Native
+   $secondPid=$script:app.Id
+   if ($secondPid -eq $firstPid) {throw 'ZYN-REVIEW-PROBE-004: distinct process required'}
+   Click-Control 'Chat'
+   Click-Control 'P03 model beta'
+   Click-Control 'Refresh tool trace'
+   Wait-ReviewDecision 'Tool decision: deny local.write_artifact'
+   Click-Control 'Review text artifact tool from message 2'
+   Click-Control 'Approve local tool'
+   Wait-ReviewDecision 'Tool decision: approve local.write_artifact'
+   Capture 'M03-OPT-08-approved-candidate.png'
+   Click-Control 'Preview text artifact from receipt 3'
+   Click-Control 'Close artifact preview'
+   Click-Control 'P03 attachment proof'
+   Click-Control 'Review attachment tool p03-attachment-fixture.bin'
+   Click-Control 'Approve local tool'
+   Wait-ReviewDecision 'Tool decision: approve local.read_attachment'
+   Capture 'M03-OPT-08-attachment-approved-candidate.png'
+   Stop-Native
+   $null=Read-ReviewVault 'approved'
+   $script:stage='restart and actual review trace readback'
+   Start-Native
+   $thirdPid=$script:app.Id
+   if ($thirdPid -in @($firstPid,$secondPid)) {throw 'ZYN-REVIEW-PROBE-005: distinct process required'}
+   Click-Control 'Chat'
+   Click-Control 'P03 model beta'
+   Click-Control 'Refresh tool trace'
+   Wait-ReviewDecision 'Tool decision: deny local.write_artifact'
+   Wait-ReviewDecision 'Tool decision: approve local.write_artifact'
+   Capture 'M03-OPT-08-reopened-candidate.png'
+   Click-Control 'P03 attachment proof'
+   Click-Control 'Refresh tool trace'
+   Wait-ReviewDecision 'Tool decision: approve local.read_attachment'
+   Capture 'M03-OPT-08-attachment-reopened-candidate.png'
+   Stop-Native
+   $null=Read-ReviewVault 'reopened'
+   $images=[ordered]@{}
+   foreach ($name in @('M03-S05-review-pending-candidate.png','M03-OPT-08-denied-candidate.png','M03-OPT-08-approved-candidate.png','M03-OPT-08-reopened-candidate.png','M03-OPT-08-attachment-approved-candidate.png','M03-OPT-08-attachment-reopened-candidate.png')) {
+     $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
+   }
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;approved_pid=$secondPid;reopened_pid=$thirdPid;synthetic_only=$true;actual_native_denial=$true;actual_native_approval=$true;actual_attachment_verification_approval=$true;reopened_trace=$true;independent_db_and_blob_proof=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-review-ui-proof.json') -Encoding utf8
+ } catch {
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-review-ui-failure.json') -Encoding utf8
+   if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {try {Capture 'DEBUG-native-review-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}}
+   throw
+ } finally {Stop-Native}
+ return
+}
+if ($ArtifactAcceptance) {
+ try {
+   if ($AttachmentAcceptance -or $PartialAcceptance -or $ModelAcceptance) {throw 'ZYN-ARTIFACT-PROBE-003: mutually exclusive journeys'}
+   $script:stage='artifact baseline after attachment and recovery proof'
+   $baseline=Read-ArtifactVault 'baseline'
+   $script:stage='actual native artifact creation from saved model response'
+   Start-Native
+   $firstPid=$script:app.Id
+   Click-Control 'Chat'
+   Click-Control 'P03 model alpha'
+   Click-Control 'Generate text artifact from message 2'
+   Wait-ArtifactPreview $baseline.assistant_text
+   Capture 'M03-OPT-05-candidate.png'
+   Stop-Native
+   $script:stage='independent committed artifact receipt'
+   $null=Read-ArtifactVault 'saved'
+   $script:stage='restart and explicit artifact preview'
+   Start-Native
+   $secondPid=$script:app.Id
+   if ($firstPid -eq $secondPid) {throw 'ZYN-ARTIFACT-PROBE-004: distinct process required'}
+   Click-Control 'Chat'
+   Click-Control 'P03 model alpha'
+   Click-Control 'Preview text artifact from receipt 3'
+   Wait-ArtifactPreview $baseline.assistant_text
+   Capture 'M03-OPT-05-reopened-candidate.png'
+   Click-Control 'Close artifact preview'
+   Stop-Native
+   $null=Read-ArtifactVault 'reopened'
+   $script:stage='restart and repeat same source creation'
+   Start-Native
+   $thirdPid=$script:app.Id
+   if ($thirdPid -in @($firstPid,$secondPid)) {throw 'ZYN-ARTIFACT-PROBE-005: distinct replay process required'}
+   Click-Control 'Chat'
+   Click-Control 'P03 model alpha'
+   Click-Control 'Generate text artifact from message 2'
+   Wait-ArtifactPreview $baseline.assistant_text
+   Capture 'M03-OPT-05-replayed-candidate.png'
+   Stop-Native
+   $null=Read-ArtifactVault 'replayed'
+   $images=[ordered]@{}
+   foreach ($name in @('M03-OPT-05-candidate.png','M03-OPT-05-reopened-candidate.png','M03-OPT-05-replayed-candidate.png')) {
+      $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
+   }
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;reopened_pid=$secondPid;replayed_pid=$thirdPid;synthetic_only=$true;source_is_real_saved_model_response=$true;actual_native_creation=$true;readonly_preview_exact_readback=$true;actual_native_reopen_preview=$true;actual_native_replay=$true;no_duplicate_receipt=$true;prior_attachment_and_stage_preserved=$true;database_blob_reopen_verified=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-text-artifact-ui-proof.json') -Encoding utf8
+ } catch {
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-text-artifact-ui-failure.json') -Encoding utf8
+   if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {try {Capture 'DEBUG-native-text-artifact-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}}
+   throw
+ } finally {Stop-Native}
+ return
+}
+if ($AttachmentAcceptance) {
+ try {
+   if ($ModelAcceptance) {throw 'ZYN-ATTACH-PROBE-008: mutually exclusive journeys'}
+   $script:stage='attachment baseline identity'
+   Read-AttachmentVault 'baseline'
+   $fixture=Join-Path $env:RUNNER_TEMP 'p03-attachment-fixture.bin'
+   if (Test-Path -LiteralPath $fixture) {throw 'ZYN-ATTACH-PROBE-009: fixture already exists'}
+   $bytes=[byte[]]::new(70000)
+   for ($i=0;$i -lt $bytes.Length;$i++) {$bytes[$i]=[byte]($i % 251)}
+   [IO.File]::WriteAllBytes($fixture,$bytes)
+   $script:stage='attachment native first start'
+   Start-Native
+   $firstPid=$script:app.Id
+   Click-Control 'Chat'
+   Type-Exact 'Conversation title' 'P03 attachment proof'
+   Click-Control 'Create conversation'
+   [void](Wait-Name 'Message' 'Edit' $true)
+   Type-Exact 'Message' 'P03 synthetic attachment message'
+   $script:stage='select actual file'
+   Select-SyntheticFile $fixture
+   $remove=Wait-Name 'Remove p03-attachment-fixture.bin' 'Button' $true
+   Focus-Control $remove
+   Capture 'M03-S03-candidate.png'
+   $script:stage='remove and reselect actual file'
+   Click-Control 'Remove p03-attachment-fixture.bin'
+   $condition=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,'Remove p03-attachment-fixture.bin')
+   for ($i=0;$i -lt 40;$i++) {
+     if ($script:root.FindAll([System.Windows.Automation.TreeScope]::Descendants,$condition).Count -eq 0) {break}
+     Start-Sleep -Milliseconds 250
+   }
+   if ($script:root.FindAll([System.Windows.Automation.TreeScope]::Descendants,$condition).Count -ne 0) {throw 'ZYN-ATTACH-PROBE-010: removed file remains selected'}
+   Select-SyntheticFile $fixture
+   $script:stage='save attachment transaction'
+   Click-Control 'Save message'
+   [void](Wait-Name 'Message and attachments saved locally. No model response was requested.' '' $false 240)
+   Stop-Native
+   Read-AttachmentVault 'saved'
+   # Remove only the disposable original fixture; verify independent managed storage.
+   Remove-Item -LiteralPath $fixture
+   if (Test-Path -LiteralPath $fixture) {throw 'ZYN-ATTACH-PROBE-011: original fixture remains'}
+   $script:stage='restart and reopen saved attachment'
+   Start-Native
+   $secondPid=$script:app.Id
+   if ($firstPid -eq $secondPid) {throw 'ZYN-ATTACH-PROBE-012: distinct process required'}
+   Click-Control 'Chat'
+   Click-Control 'P03 attachment proof'
+   $script:stage='reopened message UI readback'
+   Wait-Assistant 'P03 synthetic attachment message'
+   $script:stage='reopened attachment filename and size UI readback'
+   Wait-SavedAttachment 'p03-attachment-fixture.bin' 70000
+   Capture 'M03-OPT-04-candidate.png'
+   Stop-Native
+   $script:stage='independent reopened attachment database and blob proof'
+   Read-AttachmentVault 'reopened'
+   $script:stage='prepare disposable interrupted managed stage fixture'
+   $attachmentReceipt=Get-Content -LiteralPath (Join-Path $OutputDirectory 'p03-attachment-db-reopened.json') -Raw | ConvertFrom-Json
+   if ($attachmentReceipt.sha256 -cnotmatch '^[a-f0-9]{64}$' -or $attachmentReceipt.bytes -ne 70000) {throw 'ZYN-RECOVERY-PROBE-001: invalid fixture receipt'}
+   $managedRoot=Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop\data\artifacts\sha256'
+   $managedDirectory=Join-Path $managedRoot $attachmentReceipt.sha256.Substring(0,2)
+   $stagePath=Join-Path $managedDirectory '.stage-1-2-3'
+   if (!(Test-Path -LiteralPath (Join-Path $managedDirectory $attachmentReceipt.sha256) -PathType Leaf) -or (Test-Path -LiteralPath $stagePath)) {throw 'ZYN-RECOVERY-PROBE-002: unexpected managed fixture inventory'}
+   $stageStream=[IO.File]::Open($stagePath,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+   try {$stageBytes=[Text.Encoding]::UTF8.GetBytes('synthetic interrupted stage');$stageStream.Write($stageBytes,0,$stageBytes.Length);$stageStream.Flush($true)} finally {$stageStream.Dispose()}
+   $script:stage='actual native recovery inspection after restart'
+   Start-Native
+   $recoveryPid=$script:app.Id
+   if ($recoveryPid -in @($firstPid,$secondPid)) {throw 'ZYN-RECOVERY-PROBE-003: distinct process required'}
+   Click-Control 'Chat'
+   Click-Control 'P03 attachment proof'
+   Click-Control 'Check managed files'
+   $recoveryCounts=@(Wait-RecoveryCounts)
+   if ($recoveryCounts.Count -ne 8) {throw 'ZYN-RECOVERY-PROBE-005: incomplete native recovery count readback'}
+   Capture 'M03-managed-recovery-candidate.png'
+   Stop-Native
+   $script:stage='independent recovery stage and prior DB preservation'
+   Read-AttachmentVault 'recovery'
+   $images=[ordered]@{}
+   foreach ($name in @('M03-S03-candidate.png','M03-OPT-04-candidate.png','M03-managed-recovery-candidate.png')) {
+     $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
+   }
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;actual_os_picker=$true;remove_reselect=$true;original_removed=$true;database_blob_reopen_verified=$true;ui_filename_readback=$true;actual_recovery_inspection=$true;recovery_counts=$recoveryCounts;recovery_pid=$recoveryPid;interrupted_stage_preserved=$true;input_checks=@($script:inputChecks.ToArray());images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false;model_ingestion_claimed=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-attachment-ui-proof.json') -Encoding utf8
+ } catch {
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true;input_checks=@($script:inputChecks.ToArray())} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-attachment-ui-failure.json') -Encoding utf8
+   if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {try {Capture 'DEBUG-native-attachment-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}}
+   throw
+ } finally {Stop-Native}
+ return
+}
+
+function Read-PartialVault([string]$Stage) {
+ $result=& python scripts/verify_p03_partial_ui_database.py --stage $Stage --output $OutputDirectory --prior $PriorModelProofDirectory
+ if ($LASTEXITCODE -ne 0) {throw 'ZYN-PARTIAL-PROBE-001: independent partial database verification failed'}
+ return ($result | ConvertFrom-Json)
+}
+function Read-FixtureInventory {
+ $inventory=Invoke-RestMethod -Uri 'http://127.0.0.1:11434/api/tags' -NoProxy -TimeoutSec 10
+ return @($inventory.models)
+}
+function Invoke-FixtureModelCommand([string[]]$Arguments) {
+ # This mutates only the pinned disposable runner model store, never user models.
+ $expectedStore=Join-Path $env:RUNNER_TEMP 'p03-windows-models'
+ $runtimeRoot=Join-Path $env:RUNNER_TEMP 'p03-ollama-windows'
+ if ($env:GITHUB_ACTIONS -cne 'true' -or !$OllamaExecutable -or !$env:OLLAMA_MODELS -or
+     [IO.Path]::GetFullPath($env:OLLAMA_MODELS) -ine [IO.Path]::GetFullPath($expectedStore) -or
+     $env:OLLAMA_HOST -cne '127.0.0.1:11434' -or $env:OLLAMA_NO_CLOUD -cne '1' -or
+     !(Test-Path -LiteralPath $OllamaExecutable -PathType Leaf) -or
+     ![IO.Path]::GetFullPath($OllamaExecutable).StartsWith([IO.Path]::GetFullPath($runtimeRoot)+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)) {
+   throw 'ZYN-MODEL-AVAIL-001: disposable runtime identity required'
+ }
+ & $OllamaExecutable @Arguments
+ if ($LASTEXITCODE -ne 0) {throw 'ZYN-MODEL-AVAIL-002: fixture model command failed'}
+}
+function Assert-NoContextEstimate {
+ $items=$script:root.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
+ foreach ($item in $items) {
+   try {if ([string]$item.Current.Name -match '^Estimated [0-9]+ / [0-9]+ tokens') {throw 'ZYN-MODEL-AVAIL-003: stale context estimate survived refresh'}}
+   catch [System.Windows.Automation.ElementNotAvailableException] {}
+ }
+}
+function Assert-ModelControlBounds([bool]$Missing) {
+ # Actual HWND-owned UIA rectangles, not DOM measurements or a mockup.
+ # Only horizontal containment is asserted; vertical scrolling and complete
+ # accessibility certification remain independent acceptance requirements.
+ $group=Wait-Name 'Local model and context settings' '' $false
+ $bounds=$group.Current.BoundingRectangle
+ $window=New-Object ChatProbeWindow+RECT
+ if (![ChatProbeWindow]::GetWindowRect($script:hwnd,[ref]$window) -or $bounds.IsEmpty -or $bounds.Width -le 0 -or
+     $bounds.Left -lt ($window.Left-2) -or $bounds.Right -gt ($window.Right+2)) {
+   throw 'ZYN-MODEL-LAYOUT-001: settings group outside native window'
+ }
+ $controls=@(
+   @{Name='Model';Type='ComboBox'},
+   @{Name='Context budget';Type='ComboBox'},
+   @{Name='Inspect context';Type='Button'}
+ )
+ if ($Missing) {
+   $controls+=@{Name='The saved model is unavailable. Refresh local models or choose an installed model. Your saved messages are unchanged.';Type=''}
+ }
+ $measured=@()
+ foreach ($spec in $controls) {
+   $control=Wait-Name $spec.Name $spec.Type $false
+   $rect=$control.Current.BoundingRectangle
+   if ($rect.IsEmpty -or $rect.Width -le 0 -or $rect.Left -lt ($bounds.Left-2) -or $rect.Right -gt ($bounds.Right+2)) {
+     throw ('ZYN-MODEL-LAYOUT-002: control outside settings group: '+$spec.Name)
+   }
+   $measured+=@{name=$spec.Name;left=$rect.Left;right=$rect.Right;width=$rect.Width}
+ }
+ return @{missing=$Missing;group_left=$bounds.Left;group_right=$bounds.Right;controls=$measured}
+}
+function Wait-RealStreamingPrefix {
+ $condition=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty,'Streaming assistant response')
+ for ($i=0;$i -lt 1200;$i++) {
+   $groups=$script:root.FindAll([System.Windows.Automation.TreeScope]::Descendants,$condition)
+   foreach ($group in $groups) {
+     $textCondition=[System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::ControlTypeProperty,[System.Windows.Automation.ControlType]::Text)
+     foreach ($item in $group.FindAll([System.Windows.Automation.TreeScope]::Descendants,$textCondition)) {
+       try {
+         $prefix=([string]$item.Current.Name -replace '\s+',' ').Trim()
+         if ($prefix.Length -ge 12 -and $prefix -cne 'Generating locally' -and $prefix -cne 'Streaming assistant response' -and !$item.Current.IsOffscreen) {return $prefix}
+       } catch [System.Windows.Automation.ElementNotAvailableException] {}
+     }
+   }
+   Start-Sleep -Milliseconds 100
+ }
+ throw 'ZYN-PARTIAL-PROBE-002: nonempty real streaming text not observed before Stop'
+}
+if ($PartialAcceptance) {
+ try {
+   if ($ModelAcceptance -or $AttachmentAcceptance -or !$PriorModelProofDirectory) {throw 'ZYN-PARTIAL-PROBE-003: separate journey requires prior model proof'}
+   $script:stage='partial baseline identity'
+   $null=Read-PartialVault 'baseline'
+   $script:stage='native partial first start'
+   Start-Native
+   $firstPid=$script:app.Id
+   Click-Control 'Chat'
+   Type-Exact 'Conversation title' 'P03 partial persistence'
+   Click-Control 'Create conversation'
+   [void](Wait-Name 'Message' 'Edit' $true)
+   Click-Control 'Refresh local models'
+   Select-Combo 'Model' '{END}' 'qwen2.5:1.5b'
+   Select-Combo 'Context budget' '{HOME}{DOWN 4}' '8192 tokens'
+   Assert-Combo 'Model' 'qwen2.5:1.5b'
+   Assert-Combo 'Context budget' '8192 tokens'
+   Type-Exact 'Message' 'List the numbers from one to one thousand in words. Use one line for every number. Do not summarize or stop early.'
+   $script:stage='actual real model stream'
+   Click-Control 'Send'
+   $prefix=Wait-RealStreamingPrefix
+   $script:stage='actual Stop during nonempty stream'
+   $stop=Wait-Name 'Stop' 'Button' $true 8
+   if ([ChatProbeWindow]::GetForegroundWindow() -ne $script:hwnd) {throw 'ZYN-PARTIAL-PROBE-004: foreground lost before Stop'}
+   $pattern=$null
+   if (!$stop.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern,[ref]$pattern)) {throw 'ZYN-PARTIAL-PROBE-005: actual Stop activation unavailable'}
+   $clock=[Diagnostics.Stopwatch]::StartNew()
+   $pattern.Invoke()
+   [void](Wait-Name 'Turn stopped; any partial response was saved as cancelled.' '' $false 80)
+   $elapsed=[int64]$clock.ElapsedMilliseconds
+   $script:stage='independent cancelled partial persistence'
+   $saved=Read-PartialVault 'saved'
+   $normalized=([string]$saved.assistant_text -replace '\s+',' ').Trim()
+   if (!$normalized.StartsWith($prefix,[StringComparison]::Ordinal)) {throw 'ZYN-PARTIAL-PROBE-006: observed live prefix not present in durable cancelled response'}
+   Wait-Assistant $saved.assistant_text
+   Capture 'M03-OPT-02-stopped-candidate.png'
+   Stop-Native
+   $script:stage='reopen cancelled partial in distinct process'
+   Start-Native
+   $secondPid=$script:app.Id
+   if ($firstPid -eq $secondPid) {throw 'ZYN-PARTIAL-PROBE-007: distinct process required'}
+   Click-Control 'Chat'
+   Click-Control 'P03 partial persistence'
+   Wait-Assistant $saved.assistant_text
+   Capture 'M03-OPT-02-partial-reopened-candidate.png'
+   Stop-Native
+   $script:stage='independent reopened partial identity'
+   $null=Read-PartialVault 'reopened'
+   $images=[ordered]@{}
+   foreach ($name in @('M03-OPT-02-stopped-candidate.png','M03-OPT-02-partial-reopened-candidate.png')) {
+     $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
+   }
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;actual_model='qwen2.5:1.5b';context_limit=8192;actual_native_stop=$true;nonempty_live_prefix_verified=$true;live_prefix_chars=$prefix.Length;stop_to_cancel_notice_ms=$elapsed;cancelled_partial_persisted=$true;ui_partial_reopen_verified=$true;database_reopen_identity_verified=$true;images=$images;visual_review='candidate_pending_visual_review';retry_ui_verified=$false;full_accessibility_certified=$false;input_checks=@($script:inputChecks.ToArray())} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-partial-ui-proof.json') -Encoding utf8
+   Write-Output 'P03 T05 actual real-model partial response Stop and restart proof passed'
+   $script:stage='retry baseline after independent partial reopen'
+   $null=Read-PartialVault 'retry-baseline'
+   Start-Native
+   $retryPid=$script:app.Id
+   if ($retryPid -eq $firstPid -or $retryPid -eq $secondPid) {throw 'ZYN-RETRY-PROBE-001: distinct process required'}
+   Click-Control 'Chat'
+   Click-Control 'P03 partial persistence'
+   [void](Wait-Name 'Retry turn' 'Button' $true)
+   Wait-Assistant $saved.assistant_text
+   $script:stage='retry after restart with bounded response budget'
+   Select-Combo 'Context budget' '{HOME}' '512 tokens'
+   Assert-Combo 'Context budget' '512 tokens'
+   Capture 'M03-OPT-06-retry-ready-candidate.png'
+   Click-Control 'Retry turn'
+   [void](Wait-Name 'Local model response completed and saved.' '' $false 640)
+   $script:stage='independent retry receipt and original cancelled preservation'
+   $retry=Read-PartialVault 'retry-saved'
+   Wait-Assistant $retry.assistant_text
+   Wait-Assistant $saved.assistant_text
+   $retryControl=Wait-Name 'Retry turn' 'Button' $false
+   if ($retryControl.Current.IsEnabled) {throw 'ZYN-RETRY-PROBE-002: completed turn remains retryable'}
+   Capture 'M03-OPT-06-retry-completed-candidate.png'
+   Stop-Native
+   $script:stage='reopen completed retry in distinct process'
+   Start-Native
+   $retryReopenedPid=$script:app.Id
+   if ($retryReopenedPid -in @($firstPid,$secondPid,$retryPid)) {throw 'ZYN-RETRY-PROBE-003: distinct process required'}
+   Click-Control 'Chat'
+   Click-Control 'P03 partial persistence'
+   Wait-Assistant $saved.assistant_text
+   Wait-Assistant $retry.assistant_text
+   $retryControl=Wait-Name 'Retry turn' 'Button' $false
+   if ($retryControl.Current.IsEnabled) {throw 'ZYN-RETRY-PROBE-004: reopened completed turn remains retryable'}
+   Capture 'M03-OPT-06-retry-reopened-candidate.png'
+   Stop-Native
+   $null=Read-PartialVault 'retry-reopened'
+   $retryImages=[ordered]@{}
+   foreach ($name in @('M03-OPT-06-retry-ready-candidate.png','M03-OPT-06-retry-completed-candidate.png','M03-OPT-06-retry-reopened-candidate.png')) {
+      $retryImages[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
+   }
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();retry_pid=$retryPid;reopened_pid=$retryReopenedPid;synthetic_only=$true;actual_model='qwen2.5:1.5b';context_limit=512;actual_native_retry=$true;retry_recovered_after_restart=$true;cancelled_response_preserved=$true;duplicate_user_message_absent=$true;completed_retry_disabled=$true;database_reopen_identity_verified=$true;images=$retryImages;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-retry-ui-proof.json') -Encoding utf8
+   Write-Output 'P03 T05 actual Windows Retry after restart and independent database proof passed'
+   $script:stage='model availability baseline'
+   $null=Read-PartialVault 'retry-check'
+   $originalModel='qwen2.5:0.5b'
+   $otherModel='qwen2.5:1.5b'
+   $alias='p03-availability-restore:latest'
+   $before=@(Read-FixtureInventory)
+   $original=@($before | Where-Object {$_.name -ceq $originalModel})
+   if ($before.Count -ne 2 -or $original.Count -ne 1 -or @($before | Where-Object {$_.name -ceq $otherModel}).Count -ne 1 -or @($before | Where-Object {$_.name -ceq $alias}).Count -ne 0) {throw 'ZYN-MODEL-AVAIL-004: unexpected baseline inventory'}
+   Start-Native
+   $availabilityPid=$script:app.Id
+   Click-Control 'Chat'
+   Click-Control 'P03 model alpha'
+   Assert-Combo 'Model' $originalModel
+   Assert-Combo 'Context budget' '512 tokens'
+   Type-Exact 'Message' 'Hello again.'
+   Click-Control 'Inspect context'
+   $estimateBefore=Wait-TextPattern '^Estimated [0-9]+ / 512 tokens'
+   [void](Wait-Name 'Send' 'Button' $true)
+   $script:stage='copy fixture model for reversible removal'
+   Invoke-FixtureModelCommand @('cp',$originalModel,$alias)
+   $copied=@(Read-FixtureInventory)
+   $backup=@($copied | Where-Object {$_.name -ceq $alias})
+   if ($copied.Count -ne 3 -or $backup.Count -ne 1 -or $backup[0].digest -cne $original[0].digest) {throw 'ZYN-MODEL-AVAIL-005: restore alias identity mismatch'}
+   try {
+     $script:stage='actual saved model missing after refresh'
+     Invoke-FixtureModelCommand @('rm',$originalModel)
+     $missing=@(Read-FixtureInventory)
+     if ($missing.Count -ne 2 -or @($missing | Where-Object {$_.name -ceq $originalModel}).Count -ne 0 -or @($missing | Where-Object {$_.name -ceq $otherModel}).Count -ne 1) {throw 'ZYN-MODEL-AVAIL-006: original model still installed'}
+     Click-Control 'Refresh local models'
+     Assert-Combo 'Model' 'Previously selected model unavailable'
+     [void](Wait-Name 'The saved model is unavailable. Refresh local models or choose an installed model. Your saved messages are unchanged.')
+     $send=Wait-Name 'Send' 'Button' $false
+     if ($send.Current.IsEnabled) {throw 'ZYN-MODEL-AVAIL-007: Send enabled for missing saved model with nonempty draft'}
+     Assert-NoContextEstimate
+     $null=Read-PartialVault 'retry-check'
+     $missingBounds=Assert-ModelControlBounds $true
+     Capture 'M03-OPT-01-missing-model-candidate.png'
+   } finally {
+     # Restore the exact original digest before removing its temporary alias.
+     $current=@(Read-FixtureInventory)
+     if (@($current | Where-Object {$_.name -ceq $originalModel}).Count -eq 0) {
+       Invoke-FixtureModelCommand @('cp',$alias,$originalModel)
+     }
+     $restored=@(Read-FixtureInventory | Where-Object {$_.name -ceq $originalModel})
+     if ($restored.Count -ne 1 -or $restored[0].digest -cne $original[0].digest) {throw 'ZYN-MODEL-AVAIL-008: original digest not restored; preserve alias'}
+     Invoke-FixtureModelCommand @('rm',$alias)
+   }
+   $script:stage='actual model restoration and context refresh'
+   $after=@(Read-FixtureInventory)
+   $beforeIdentity=@($before | Sort-Object name | Select-Object name,digest | ConvertTo-Json -Compress)
+   $afterIdentity=@($after | Sort-Object name | Select-Object name,digest | ConvertTo-Json -Compress)
+   if (($beforeIdentity -join '') -cne ($afterIdentity -join '')) {throw 'ZYN-MODEL-AVAIL-009: restored inventory changed'}
+   Click-Control 'Refresh local models'
+   Assert-Combo 'Model' $originalModel
+   Assert-Combo 'Context budget' '512 tokens'
+   [void](Wait-Name 'Send' 'Button' $true)
+   Assert-NoContextEstimate
+   Click-Control 'Inspect context'
+   $estimateAfter=Wait-TextPattern '^Estimated [0-9]+ / 512 tokens'
+   if ($estimateBefore -cne $estimateAfter) {throw 'ZYN-MODEL-AVAIL-010: identical draft/history context changed'}
+   $restoredBounds=Assert-ModelControlBounds $false
+   Capture 'M03-OPT-01-restored-model-candidate.png'
+   Click-Control 'Clear draft'
+   Stop-Native
+   $identity=Read-PartialVault 'retry-check'
+   $availabilityImages=[ordered]@{}
+   foreach ($name in @('M03-OPT-01-missing-model-candidate.png','M03-OPT-01-restored-model-candidate.png')) {
+     $availabilityImages[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
+   }
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();pid=$availabilityPid;synthetic_only=$true;actual_model=$originalModel;model_digest=$original[0].digest;other_model_present=$true;actual_model_removal=$true;missing_placeholder_verified=$true;send_disabled_with_draft=$true;inventory_restored=$true;original_preference_preserved=$true;stale_context_invalidated=$true;context_estimates=@($estimateBefore,$estimateAfter);prior_database_fingerprint=$identity.fingerprint;horizontal_layout_bounds=@($missingBounds,$restoredBounds);images=$availabilityImages;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-model-availability-ui-proof.json') -Encoding utf8
+   Write-Output 'P03 T06 actual missing-model and restoration UI proof passed'
+ } catch {
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true;input_checks=@($script:inputChecks.ToArray())} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-partial-ui-failure.json') -Encoding utf8
+   if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {try {Capture 'DEBUG-native-partial-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}}
+   throw
+ } finally {Stop-Native}
+ return
+}
+
+if ($ModelAcceptance) {
+ try {
+   $script:stage='model baseline identity'
+   $null=Read-ModelVault 'baseline'
+   $script:stage='real model first start'
+   Start-Native
+   $firstPid=$script:app.Id
+   Click-Control 'Chat'
+   [void](Wait-Name 'Conversation title' 'Edit' $true)
+   $alpha='P03 model alpha'
+   $beta='P03 model beta'
+   $modelA='qwen2.5:0.5b'
+   $modelB='qwen2.5:1.5b'
+   $promptA='Reply with a short greeting.'
+   $promptB='Say hello in three words.'
+   $script:stage='create first model thread'
+   Type-Exact 'Conversation title' $alpha
+   Click-Control 'Create conversation'
+   [void](Wait-Name 'Message' 'Edit' $true)
+   Click-Control 'Refresh local models'
+   [void](Wait-Name 'Model' 'ComboBox' $true)
+   $script:stage='first installed model selection'
+   Select-Combo 'Model' '{HOME}' $modelA
+   $null=Read-ModelVault 'settings' $alpha $modelA 2048
+   Assert-Combo 'Model' $modelA
+   $script:stage='switch model in same thread'
+   Select-Combo 'Model' '{END}' $modelB
+   $null=Read-ModelVault 'settings' $alpha $modelB 2048
+   Assert-Combo 'Model' $modelB
+   Select-Combo 'Model' '{HOME}' $modelA
+   $null=Read-ModelVault 'settings' $alpha $modelA 2048
+   Select-Combo 'Context budget' '{HOME}' '512 tokens'
+   $null=Read-ModelVault 'settings' $alpha $modelA 512
+   Assert-Combo 'Context budget' '512 tokens'
+   Capture 'M03-OPT-01-candidate.png'
+   $script:stage='inspect first draft context'
+   Type-Exact 'Message' $promptA
+   Click-Control 'Inspect context'
+   $estimateA=Wait-TextPattern '^Estimated [0-9]+ / 512 tokens'
+   Capture 'M03-OPT-03-candidate.png'
+   $script:stage='actual native send first model'
+   Click-Control 'Send'
+   [void](Wait-Name 'Local model response completed and saved.' '' $false 640)
+   $savedA=Read-ModelVault 'turn' $alpha $modelA 512
+   Wait-Assistant $savedA.assistant_text
+   Capture 'M03-OPT-02-candidate.png'
+   $script:stage='create second model thread'
+   Type-Exact 'Conversation title' $beta
+   Click-Control 'Create conversation'
+   [void](Wait-Name 'Message' 'Edit' $true)
+   Select-Combo 'Model' '{END}' $modelB
+   $null=Read-ModelVault 'settings' $beta $modelB 2048
+   Assert-Combo 'Model' $modelB
+   Type-Exact 'Message' $promptB
+   Click-Control 'Inspect context'
+   $estimateB=Wait-TextPattern '^Estimated [0-9]+ / 2048 tokens'
+   $script:stage='actual native send second model'
+   Click-Control 'Send'
+   [void](Wait-Name 'Local model response completed and saved.' '' $false 640)
+   $savedB=Read-ModelVault 'turn' $beta $modelB 2048
+   Wait-Assistant $savedB.assistant_text
+   $script:stage='verify model database before restart'
+   Stop-Native
+   $null=Read-ModelVault 'saved'
+   $script:stage='restart model UI'
+   Start-Native
+   $secondPid=$script:app.Id
+   if ($firstPid -eq $secondPid) {throw 'ZYN-MODEL-PROBE-007: distinct process required'}
+   Click-Control 'Chat'
+   Click-Control $alpha
+   Assert-Combo 'Model' $modelA
+   Assert-Combo 'Context budget' '512 tokens'
+   Wait-Assistant $savedA.assistant_text
+   Click-Control $beta
+   Assert-Combo 'Model' $modelB
+   Assert-Combo 'Context budget' '2048 tokens'
+   Wait-Assistant $savedB.assistant_text
+   Capture 'M03-S04-candidate.png'
+   Stop-Native
+   $null=Read-ModelVault 'reopened'
+   $images=[ordered]@{}
+   foreach ($name in @('M03-OPT-01-candidate.png','M03-OPT-03-candidate.png','M03-OPT-02-candidate.png','M03-S04-candidate.png')) {
+     $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
+   }
+   $proof=[ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;native_ui=$true;actual_model_send=$true;models=@($modelA,$modelB);same_thread_switch=$true;thread_settings_readback=$true;context_estimates=@($estimateA,$estimateB);ui_assistant_readback=$true;database_reopen_identity_verified=$true;keyboard_input_verified=$true;input_checks=@($script:inputChecks.ToArray());images=$images;visual_review='candidate_pending_visual_review';stop_retry_ui_verified=$false;full_accessibility_certified=$false}
+   $proof | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-model-ui-proof.json') -Encoding utf8
+   Write-Output 'P03 actual Windows model selection, generation and restart verified'
+ } catch {
+   $failure=[ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;input_checks=@($script:inputChecks.ToArray());status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true}
+   $failure | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-model-ui-failure.json') -Encoding utf8
+   if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {
+     try {Capture 'DEBUG-native-model-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}
+   }
+   throw
+ } finally {Stop-Native}
+ return
+}
+
+try {
+ $script:stage='verify empty fixture'
+ Read-Vault 'empty'
+ $script:stage='first native start'
+ Start-Native
+ $firstPid=$script:app.Id
+ Click-Control 'Chat'
+ [void](Wait-Name 'Conversation title' 'Edit' $true)
+ [void](Wait-Name 'No saved conversations.')
+ Capture 'M03-S01-candidate.png'
+ Type-Exact 'Conversation title' $title
+ $script:stage='create conversation'
+ Click-Control 'Create conversation'
+ [void](Wait-Name 'Message' 'Edit' $true)
+ Type-Exact 'Message' $content
+ $script:stage='save message'
+ Click-Control 'Save message'
+ [void](Wait-Name $content)
+ Stop-Native
+ $script:stage='independent saved fixture check'
+ Read-Vault 'saved'
+ $script:stage='restart native app'
+ Start-Native
+ $secondPid=$script:app.Id
+ if ($firstPid -eq $secondPid) {throw 'ZYN-CHAT-PROBE-016: process identity not distinct'}
+ Click-Control 'Chat'
+ $script:stage='reopen conversation from UI'
+ Click-Control $title
+ [void](Wait-Name $content)
+ $composer=Wait-Name 'Message' 'Edit' $true
+ Focus-Control $composer
+ [void](Wait-Name $content)
+ Capture 'M03-S02-candidate.png'
+ Stop-Native
+ $script:stage='independent reopened fixture check'
+ Read-Vault 'reopened'
+ $images=[ordered]@{}
+ foreach ($name in @('M03-S01-candidate.png','M03-S02-candidate.png')) {
+   $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
+ }
+ $proof=[ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();method='actual Windows Tauri UIA, real keyboard ValuePattern readback and independent read-only SQLite';first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;empty_profile=$true;keyboard_input_verified=$true;input_checks=@($script:inputChecks.ToArray());ui_create_save=$true;ui_reopen_readback=$true;database_reopen_identity_verified=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false;model_inference_claimed=$false}
+ $proof | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-chat-ui-proof.json') -Encoding utf8
+ Write-Output 'P03 scoped real native chat interaction and independent restart readback passed'
+} catch {
+ $failure=[ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;input_checks=@($script:inputChecks.ToArray());status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true}
+ $failure | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-chat-ui-failure.json') -Encoding utf8
+ if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {
+   try {Capture 'DEBUG-native-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}
+ }
+ throw
+} finally {Stop-Native}
+) {throw 'ZYN-EXPORT-PROBE-006: invalid receipt path'}
+   Focus-Control $path
+   Capture 'M03-OPT-07-export-candidate.png'
+   Stop-Native
+   $script:stage='independent exact export contents'
+   $saved=Read-ExportVault 'saved'
+   if ($saved.relative_path -cne $relative) {throw 'ZYN-EXPORT-PROBE-007: UI path mismatch'}
+   Start-Native
+   $secondPid=$script:app.Id
+   if ($firstPid -eq $secondPid) {throw 'ZYN-EXPORT-PROBE-008: distinct process required'}
+   Stop-Native
+   $null=Read-ExportVault 'reopened'
+   $images=[ordered]@{}
+   foreach ($name in @('M03-S06-export-consent-candidate.png','M03-OPT-07-export-candidate.png')) {
+      $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
+   }
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;actual_native_consent=$true;actual_native_export=$true;readonly_receipt_path=$true;independent_contents_and_restart_verified=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-export-ui-proof.json') -Encoding utf8
+ } catch {
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-export-ui-failure.json') -Encoding utf8
+   if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {try {Capture 'DEBUG-native-export-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}}
+   throw
+ } finally {Stop-Native}
+ return
 }
 if ($ReviewAcceptance) {
  try {
