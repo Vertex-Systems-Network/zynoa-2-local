@@ -1,5 +1,9 @@
 # Handoff (canonical starter)
 
+## P03 batch CI reconciliation — T13 crash/capacity candidate
+
+Exact 3fa13e4c1c26e6440b79ff132626616a8ee8ddbc completed: Windows 46086289420 failed PowerShell AST parsing; Governance 46086289392 failed duplicate-journey integrity test (same replacement-string expansion cause); Linux 46086289424 resolved and compiled locked Argon2/rusqlite dependencies but failed three SQLite unsigned FromSql reads. Reconstructed seven original probe branches, restored literal regex anchors and strengthened uniqueness guards; switched SQLite page count/size/conversation count to checked signed reads. Added T13 synthetic SQLite page-capacity rejection/retry and actual child process kill during uncommitted WAL tests, with prior acknowledgement and journal/revision recovery checks. T13 installer/reinstall and desktop forced restart evidence still outstanding. Prior applicable runs completed before combined fix push; no CI canceled. Fresh native/real UI/security/dependency checks pending; no new task DONE, no merge/release. Continue T13 remaining journey and T14 while CI runs, then reconcile before next combined update. Lease released; no unattended worker.
+
 ## P03 task pipeline — completed T05 CI, accumulated T10–T12 candidate publication
 
 Exact b39fa52427cdb53f7d1e9f4af8bcc3d5a9628af0: all six applicable CI passed; [Windows](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/46084849892) job 140791932011, 89 Rust tests (one ignored), 9 focused vault tests, actual prior native model/attachment/artifact journeys; explicit zero-output terminal notice native and frontend restart retry regressions passed. T05 DONE for scoped streaming/cancellation/retry/acknowledgement title. No active-process crash or universal performance claim (T13/T14).

@@ -952,8 +952,8 @@ impl NativeVault {
         use rusqlite::backup::{Backup,StepResult};
         use sha2::{Digest,Sha256};
         if !safe_id(backup_id)||!backup_contracts::valid_backup_passphrase(passphrase){return Err(VaultFault::InvalidRecord);}
-        let pages:u64=self.conn.query_row("PRAGMA page_count",[],|r|r.get(0)).map_err(map_sql)?;
-        let size:u64=self.conn.query_row("PRAGMA page_size",[],|r|r.get(0)).map_err(map_sql)?;
+        let pages=u64::try_from(self.conn.query_row("PRAGMA page_count",[],|r|r.get::<_,i64>(0)).map_err(map_sql)?).map_err(|_|VaultFault::Corrupt)?;
+        let size=u64::try_from(self.conn.query_row("PRAGMA page_size",[],|r|r.get::<_,i64>(0)).map_err(map_sql)?).map_err(|_|VaultFault::Corrupt)?;
         if pages.checked_mul(size).filter(|n|*n<=MAX_PORTABLE_BYTES as u64).is_none(){return Err(VaultFault::InvalidRecord);}
         let mut snapshot=Connection::open_in_memory().map_err(map_sql)?;
         {
@@ -1052,7 +1052,7 @@ impl NativeVault {
             let receipt=expected.get(&item.id).ok_or(VaultFault::Corrupt)?;
             if !crate::artifact_contracts::verify_attachment(receipt,data){return Err(VaultFault::Corrupt);}
         }
-        let count:u64=snapshot.query_row("SELECT count(*) FROM conversations",[],|r|r.get(0)).map_err(map_sql)?;
+        let count=u64::try_from(snapshot.query_row("SELECT count(*) FROM conversations",[],|r|r.get::<_,i64>(0)).map_err(map_sql)?).map_err(|_|VaultFault::Corrupt)?;
         drop(snapshot);
         let restored=managed_child(&backups,"restored")?;
         let stage=restored.join(restore_id);

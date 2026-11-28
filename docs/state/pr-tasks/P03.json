@@ -81,7 +81,8 @@
     {
       "id": "P03-T13",
       "title": "Crash, disk failure, restart and uninstall/reinstall persistence",
-      "status": "IN_PROGRESS"
+      "status": "IN_PROGRESS",
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/d6fde09605cebbef3c27c7c410009f08abf41d17"
     },
     {
       "id": "P03-T14",
