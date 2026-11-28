@@ -168,7 +168,7 @@ class NativeProbeIntegrity(unittest.TestCase):
         source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
         verifier = (ROOT / "scripts/verify_p03_review_ui_database.py").read_text(encoding="utf-8")
         workflow = (ROOT / ".github/workflows/p03-native-baseline.yml").read_text(encoding="utf-8")
-        for marker in ("Click-Control 'Deny local tool'", "Click-Control 'Approve local tool'",
+        for marker in ("Wait-ReviewKeyboardFocus 'Deny local tool'", "Click-Control 'Approve local tool'",
                        "Read-ReviewVault 'denied'", "Read-ReviewVault 'approved'", "Read-ReviewVault 'reopened'",
                        "Wait-ReviewDecision 'Tool decision: approve local.write_artifact'", "p03-review-ui-proof.json"):
             self.assertIn(marker, source)
@@ -201,6 +201,8 @@ class NativeProbeIntegrity(unittest.TestCase):
         for marker in ("function Confirm-ConsentByKeyboard", "action enabled before consent",
                        "HasKeyboardFocus", "Space did not confirm consent",
                        "review Tab order mismatch", "keyboard_consent_verified",
+                       "keyboard_default_deny_verified", "keyboard_deny_activation_verified",
+                       "Wait-ReviewKeyboardFocus 'Approve local tool'", "SendWait('+{TAB}')",
                        "installed_startup_ms", "startup_within_budget"):
             self.assertIn(marker, source)
         self.assertIn(".local-consent input[type=", css)

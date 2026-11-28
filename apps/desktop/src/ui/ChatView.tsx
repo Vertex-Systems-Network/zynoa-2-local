@@ -35,10 +35,21 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
  const [activeTurn,setActiveTurn]=useState<{turnId:string;conversationId:string;parentId:string}|null>(null);
  const [sessionRetry,setRetryTarget]=useState<RetryTarget|null>(null);
  const activeTurnRef=useRef<string|null>(null);
+ const reviewDenyRef=useRef<HTMLButtonElement>(null);
+ const focusedReviewRequest=useRef<string|null>(null);
  const lock=useRef(false), pendingRef=useRef<Pending|null>(null), started=useRef(false);
  const titleRef=useRef<HTMLInputElement>(null),composerRef=useRef<HTMLTextAreaElement>(null),fileRef=useRef<HTMLInputElement>(null);
  const online=transport==="connected";
  const canEdit=online&&!busy&&!pending;
+ // Move focus only once per newly opened review, after native loading has
+ // finished and the decision buttons are enabled. Default to denial.
+ useEffect(()=>{
+   if(!active||!canEdit||activeTurn||!review||review.conversationId!==selected?.id||focusedReviewRequest.current===review.requestId)return;
+   const button=reviewDenyRef.current;
+   if(!button||button.disabled)return;
+   focusedReviewRequest.current=review.requestId;
+   button.focus();
+ },[active,canEdit,activeTurn,review,selected?.id]);
  const installed=modelAvailable(settings,models,runtimeVersion);
  const retryTarget=recoverRetryTarget(messages,historyCursor,selected?.id??null,sessionRetry);
  const canRetry=retryAvailable(retryTarget,selected?.id??null,installed);
@@ -305,7 +316,7 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
       <p className="chat-notice">Target ID: {review.targetId}</p>
       <p className="chat-notice">SHA-256: {review.targetSha256}</p>
       <p>Review expires after two minutes. Approval applies only to this action.</p>
-      <div className="chat-actions"><button data-testid="chat-review-approve" type="button" className="gold-action" disabled={!canEdit||activeTurn!==null} onClick={()=>finishReview("approve")}>Approve local tool</button><button data-testid="chat-review-deny" type="button" className="subtle-action" disabled={!canEdit||activeTurn!==null} onClick={()=>finishReview("deny")}>Deny local tool</button></div>
+      <div className="chat-actions"><button data-testid="chat-review-approve" type="button" className="gold-action" disabled={!canEdit||activeTurn!==null} onClick={()=>finishReview("approve")}>Approve local tool</button><button ref={reviewDenyRef} data-testid="chat-review-deny" type="button" className="subtle-action" disabled={!canEdit||activeTurn!==null} onClick={()=>finishReview("deny")}>Deny local tool</button></div>
      </div>}
      <button type="button" className="subtle-action" disabled={!canEdit||activeTurn!==null} onClick={()=>void run(()=>loadReviewTrace(selected.id))}>Refresh tool trace</button>
      {traceLoaded&&trace.length===0&&<p className="chat-notice">No recorded tool decisions in this conversation.</p>}

@@ -608,6 +608,17 @@ function Read-ReviewVault([string]$Stage) {
  if ($LASTEXITCODE -ne 0) {throw 'ZYN-REVIEW-PROBE-001: independent review DB proof failed'}
  return ($result | ConvertFrom-Json)
 }
+function Wait-ReviewKeyboardFocus([string]$Name) {
+ for ($attempt=0;$attempt -lt 30;$attempt++) {
+   try {
+     $focused=[System.Windows.Automation.AutomationElement]::FocusedElement
+     if ($null -ne $focused -and $focused.Current.Name -ceq $Name -and $focused.Current.ControlType.ProgrammaticName -eq 'ControlType.Button' -and $focused.Current.HasKeyboardFocus -and [ChatProbeWindow]::GetForegroundWindow() -eq $script:hwnd) {return}
+   } catch [System.Windows.Automation.ElementNotAvailableException] {}
+   Start-Sleep -Milliseconds 100
+ }
+ # Do not activate or focus another button to manufacture a passing result.
+ throw ('ZYN-A11Y-PROBE-005: review Tab order mismatch; expected '+$Name)
+}
 function Wait-ReviewDecision([string]$Name) {
  $row=Wait-Name $Name 'ListItem'
  Focus-Control $row
@@ -879,14 +890,15 @@ if ($ReviewAcceptance) {
    Click-Control 'Chat'
    Click-Control 'P03 model beta'
    Click-Control 'Review text artifact tool from message 2'
-   $approve=Wait-Name 'Approve local tool' 'Button' $true
-   Focus-Control $approve
+   [void](Wait-Name 'Deny local tool' 'Button' $true)
+   Wait-ReviewKeyboardFocus 'Deny local tool'
+   [System.Windows.Forms.SendKeys]::SendWait('+{TAB}')
+   Wait-ReviewKeyboardFocus 'Approve local tool'
    [System.Windows.Forms.SendKeys]::SendWait('{TAB}')
-   Start-Sleep -Milliseconds 350
-   $focused=[System.Windows.Automation.AutomationElement]::FocusedElement
-   if ($focused.Current.Name -cne 'Deny local tool' -or !$focused.Current.HasKeyboardFocus) {throw 'ZYN-A11Y-PROBE-005: review Tab order mismatch'}
+   Wait-ReviewKeyboardFocus 'Deny local tool'
    Capture 'M03-S05-review-pending-candidate.png'
-   Click-Control 'Deny local tool'
+   Wait-ReviewKeyboardFocus 'Deny local tool'
+   [System.Windows.Forms.SendKeys]::SendWait(' ')
    Wait-ReviewDecision 'Tool decision: deny local.write_artifact'
    Capture 'M03-OPT-08-denied-candidate.png'
    Stop-Native
@@ -932,7 +944,7 @@ if ($ReviewAcceptance) {
    foreach ($name in @('M03-S05-review-pending-candidate.png','M03-OPT-08-denied-candidate.png','M03-OPT-08-approved-candidate.png','M03-OPT-08-reopened-candidate.png','M03-OPT-08-attachment-approved-candidate.png','M03-OPT-08-attachment-reopened-candidate.png')) {
      $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
    }
-   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;approved_pid=$secondPid;reopened_pid=$thirdPid;synthetic_only=$true;actual_native_denial=$true;keyboard_review_tab_order_verified=$true;actual_native_approval=$true;actual_attachment_verification_approval=$true;reopened_trace=$true;independent_db_and_blob_proof=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-review-ui-proof.json') -Encoding utf8
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;approved_pid=$secondPid;reopened_pid=$thirdPid;synthetic_only=$true;actual_native_denial=$true;keyboard_review_tab_order_verified=$true;keyboard_default_deny_verified=$true;keyboard_deny_activation_verified=$true;actual_native_approval=$true;actual_attachment_verification_approval=$true;reopened_trace=$true;independent_db_and_blob_proof=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-review-ui-proof.json') -Encoding utf8
  } catch {
    [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-review-ui-failure.json') -Encoding utf8
    if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {try {Capture 'DEBUG-native-review-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}}

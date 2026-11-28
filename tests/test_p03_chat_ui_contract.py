@@ -19,6 +19,16 @@ class ChatUiContract(unittest.TestCase):
         self.assertIn('{selected&&<section className="chat-recovery" aria-label="Tool trace and permission review">',view)
         self.assertIn('</section>}\n    {selected&&<section className="chat-recovery" aria-label="Conversation export">',view)
 
+    def test_review_focus_defaults_to_deny_once_per_request(self):
+        view=(ROOT/"src/ui/ChatView.tsx").read_text(encoding="utf-8")
+        for fragment in ('reviewDenyRef=useRef<HTMLButtonElement>(null)',
+                         'focusedReviewRequest.current===review.requestId',
+                         'focusedReviewRequest.current=review.requestId',
+                         'if(!button||button.disabled)return',
+                         'button.focus()',
+                         'ref={reviewDenyRef} data-testid="chat-review-deny"'):
+            self.assertIn(fragment,view)
+
     def test_model_ui_state_is_scoped_and_fail_closed(self):
         view=(ROOT/"src/ui/ChatView.tsx").read_text(encoding="utf-8")
         transport=(ROOT/"src/model-transport.ts").read_text(encoding="utf-8")

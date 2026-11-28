@@ -5,3 +5,5 @@ Prepared while exact 44615ae CI runs. Review found case-only portable export fil
 Governance and Windows regression at 44615ae: uniqueness test counted nested mutual-exclusion `if` as top-level Model journey. Anchor count to exact top-level declaration lines, preserving original duplicate tail and AST parser gates.
 
 Next-cycle candidate tests distinguish builder validation from untrusted decoded manifest validation: case-only duplicate filename, traversal, overlapping offset, oversized item, unknown path field, trailing bytes, and an AEAD-authenticated invalid manifest. Source-only until the next combined CI verifies it. No production authority or dependency changes.
+
+Exact 3e2657d Windows 46088926027 failed native review Tab order before denial. Candidate default deny focus once per request, explicit native focus assertions, reverse and forward Tab, Space activation of denial. Original independent decision and no-mutation verification retained. Cause of observed focus mismatch not established; fresh native CI required.
