@@ -107,3 +107,14 @@ test("export acknowledgement is exact scope, revision, destination and bounded c
  assert.deepEqual(decode("chat.export.conversation",ack,q),ack);
  for(const bad of [{...ack,relativePath:"../escape"},{...ack,revision:3},{...ack,sha256:"bad"},{...ack,messageCount:4097},{...ack,attachmentCount:17},{...ack,bytes:32*1024*1024+1},{...ack,conversationId:"other-thread-001"}])assert.throws(()=>decode("chat.export.conversation",bad,q),/ZYN-CHAT-RESPONSE/);
 });
+
+
+test("backup and staged restore receipts never expose secrets or active-profile changes",()=>{
+ const q={backupId:"backup-alpha-00001",passphrase:"synthetic fixture secret"};
+ const ack={backupId:q.backupId,relativePath:"backups/portable/backup-alpha-00001.awbackup",bytes:124,sha256:"a".repeat(64),itemCount:2};
+ assert.deepEqual(decode("chat.backup.create",ack,q),ack);
+ for(const bad of [{...ack,passphrase:q.passphrase},{...ack,relativePath:"outside"},{...ack,itemCount:4097}])assert.throws(()=>decode("chat.backup.create",bad,q),/ZYN-CHAT-RESPONSE/);
+ const restore={...q,restoreId:"restore-alpha-0001"};const result={backupId:q.backupId,restoreId:restore.restoreId,relativePath:"backups/restored/restore-alpha-0001/com.zynoa.desktop",itemCount:2,conversationCount:1,activeProfileChanged:false};
+ assert.deepEqual(decode("chat.backup.restorePreview",result,restore),result);
+ assert.throws(()=>decode("chat.backup.restorePreview",{...result,activeProfileChanged:true},restore),/ZYN-CHAT-RESPONSE/);
+});
