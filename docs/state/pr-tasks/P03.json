@@ -64,25 +64,25 @@
       "id": "P03-T10",
       "title": "Tool trace, permission review and fail-closed tool boundary",
       "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/2c70d52e309ba85aaaea58d69ce45214b62f9c5a"
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/51d049ec672cea9bd256c6f5642371f6e4457dda"
     },
     {
       "id": "P03-T11",
       "title": "Full conversation export with privacy and integrity checks",
       "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/fb3edc96ed203aad8058280c2abd14b9e2879b43"
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/37019fddfc75f76590a8040fdd8dac195ea388ca"
     },
     {
       "id": "P03-T12",
       "title": "Encrypted portable backup and staged independent restore",
       "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/3650646bc4a2d0d96b731594db9b0c369436dfa9"
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/37019fddfc75f76590a8040fdd8dac195ea388ca"
     },
     {
       "id": "P03-T13",
       "title": "Crash, disk failure, restart and uninstall/reinstall persistence",
       "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/d6fde09605cebbef3c27c7c410009f08abf41d17"
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/e25c86e45672f841996afa96c91368d1714c233b"
     },
     {
       "id": "P03-T14",

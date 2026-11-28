@@ -1,5 +1,9 @@
 # Status — 2026-11-26
 
+## P03 batched CI reconciliation — nullable review panel and receipt evidence
+
+Exact 47ea1631277d7f9351a3386433f86ba9735d92b1: Governance, P00, P01, board sync and Linux real model preflight 46087195840 passed; Windows 46087195832 failed strict TypeScript TS18047 at three selected-conversation accesses in the tool-review panel. AST and Python checks passed before the failing TypeScript step. Candidate 51d049e conditionally renders the entire review panel only for a selected conversation, retains strict mode, adds regression guard. While Linux was running, 37019fd added readonly export/backup SHA-256 receipt fields and independent UI-to-file digest comparison; e25c86e links reinstall stage preservation to original T08 recovery receipt. All previous checks finished before publication, no CI cancellation. Fresh Windows compile, Rust recovery/crypto tests and native T10–T15 journeys still required. No DONE promotions; 9/16 (56.25%). Next: reconcile exact-head results, review actual artifacts and resolve remaining failures before final acceptance. No merge/release, lease released.
+
 ## P03 task pipeline — completed T05 CI, accumulated T10–T12 candidate publication
 
 Exact b39fa52427cdb53f7d1e9f4af8bcc3d5a9628af0: all six applicable CI passed; [Windows](https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/46084849892) job 140791932011, 89 Rust tests (one ignored), 9 focused vault tests, actual prior native model/attachment/artifact journeys; explicit zero-output terminal notice native and frontend restart retry regressions passed. T05 DONE for scoped streaming/cancellation/retry/acknowledgement title. No active-process crash or universal performance claim (T13/T14).
