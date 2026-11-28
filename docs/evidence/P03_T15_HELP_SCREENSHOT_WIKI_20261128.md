@@ -46,3 +46,5 @@ Current option-level guides updated for M03 and M23 chat-data scope; P02 capture
 Remaining: review coverage against all required M03 screens/options and scoped M23 controls; capture missing views, verify Help routes and hosted Wiki readback, resolve outstanding CI. T15 not DONE.
 
 T11/T12 receipt acceptance strengthening: native readonly SHA-256 controls allow exact UIA readback. Compare displayed digest with independently calculated exported/archived bytes and preserve explicit evidence flags; not just a path match. Fresh native CI required. No acceptance status promotion.
+
+Next-batch T15 candidate: aggregate original 11 native proof receipts / 31 expected images, exact source and executable SHA, PNG signature and dimensions plus original image SHA. All names fixed, missing/wrong-source/changed files fail closed. This is an integrity inventory only; no visual, accessibility or hosted Wiki acceptance claim. Unit test synthetic header fixture is not native evidence. Fresh CI pending.

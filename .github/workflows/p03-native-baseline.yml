@@ -469,3 +469,18 @@ jobs:
           name: p03-reinstall-ui-${{ github.run_attempt }}
           path: ${{ runner.temp }}/p03-reinstall-ui-proof/
           if-no-files-found: error
+
+      - name: P03 T15 reconcile original screenshot integrity across all native journeys
+        shell: pwsh
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $exe=Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
+          python scripts/verify_p03_screenshot_inventory.py --root $env:RUNNER_TEMP --source $env:EXACT_HEAD --executable $exe --output (Join-Path $env:RUNNER_TEMP 'p03-screenshot-inventory.json')
+          if ($LASTEXITCODE -ne 0) { throw 'Native screenshot inventory verification failed' }
+      - name: Upload original screenshot integrity inventory (not visual acceptance)
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-screenshot-inventory-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-screenshot-inventory.json
+          if-no-files-found: error
