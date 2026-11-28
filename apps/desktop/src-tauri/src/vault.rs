@@ -304,6 +304,19 @@ struct PendingToolReview {
     expires: std::time::Instant,
 }
 
+#[derive(Serialize)]
+#[serde(rename_all="camelCase")]
+pub(crate) struct ConversationExportReceipt {
+    pub(crate) conversation_id:String,
+    pub(crate) revision:i64,
+    pub(crate) export_id:String,
+    pub(crate) relative_path:String,
+    pub(crate) bytes:u64,
+    pub(crate) sha256:String,
+    pub(crate) message_count:usize,
+    pub(crate) attachment_count:usize,
+}
+
 pub(crate) struct NativeVault {
     app_root: PathBuf,
     conn: Connection,
@@ -842,6 +855,94 @@ impl NativeVault {
             out.push(ReviewTrace{request_id:request,target_id:target,target_sha256:digest,tool,decision,recorded_at});
         }
         Ok(out)
+    }
+
+    /// Explicit plaintext export of one entire saved conversation. Never
+    /// expose a renderer-chosen path, silently truncate, or overwrite a file.
+    pub(crate) fn export_conversation(&self, conversation_id:&str, revision:i64, export_id:&str)
+        -> Result<ConversationExportReceipt,VaultFault>
+    {
+        use sha2::{Digest,Sha256};
+        use serde_json::json;
+        use std::io::Write;
+        const MAX_PACKAGE:usize=32*1024*1024;
+        const MAX_MESSAGES:usize=4096;
+        fn hex(bytes:&[u8])->String {
+            const H:&[u8;16]=b"0123456789abcdef";
+            let mut out=String::with_capacity(bytes.len()*2);
+            for b in bytes {out.push(H[(b>>4) as usize] as char);out.push(H[(b&15) as usize] as char);}
+            out
+        }
+        fn append(out:&mut Vec<u8>,bytes:&[u8])->Result<(),VaultFault>{
+            if out.len().checked_add(bytes.len()).filter(|n|*n<=MAX_PACKAGE).is_none(){return Err(VaultFault::InvalidRecord);}
+            out.extend_from_slice(bytes);Ok(())
+        }
+        if !safe_id(conversation_id)||!safe_id(export_id)||revision<=0{return Err(VaultFault::InvalidRecord);}
+        // Read all pages and links in one database snapshot. The shared
+        // native vault mutex prevents local-domain mutations during export.
+        let tx=self.conn.unchecked_transaction().map_err(map_sql)?;
+        let thread=self.get_conversation(conversation_id)?.ok_or(VaultFault::Conflict)?;
+        if thread.revision!=revision{return Err(VaultFault::Conflict);}
+        let mut bytes=Vec::new();
+        append(&mut bytes,b"{\"schemaVersion\":1,\"kind\":\"zynoa-conversation-export\",\"conversation\":")?;
+        append(&mut bytes,&serde_json::to_vec(&json!({"id":thread.id,"title":thread.title,
+            "revision":thread.revision,"createdAt":thread.created_at,"updatedAt":thread.updated_at})).map_err(|_|VaultFault::Corrupt)?)?;
+        append(&mut bytes,b",\"messages\":[")?;
+        let mut after=0;let mut message_count=0usize;let mut attachment_count=0usize;
+        loop {
+            let page=self.list_chat_messages(conversation_id,after,64)?;
+            if page.is_empty(){break;}
+            for m in page {
+                if message_count>=MAX_MESSAGES||m.ordinal<=after{return Err(VaultFault::InvalidRecord);}
+                if !safe_id(&m.id)||m.parent_id.as_ref().is_some_and(|id|!safe_id(id))||
+                    !matches!(m.role.as_str(),"user"|"assistant"|"system")||
+                    !matches!(m.status.as_str(),"complete"|"cancelled"|"failed")||
+                    m.content.len()>MAX_CONTENT_BYTES||m.content.contains('\0') {return Err(VaultFault::Corrupt);}
+                if message_count>0{append(&mut bytes,b",")?;}
+                let row=serde_json::to_vec(&json!({"id":m.id,"parentId":m.parent_id,"ordinal":m.ordinal,
+                    "role":m.role,"content":m.content,"contentSha256":format!("{:x}",Sha256::digest(m.content.as_bytes())),
+                    "status":m.status,"revision":m.revision,"createdAt":m.created_at})).map_err(|_|VaultFault::Corrupt)?;
+                append(&mut bytes,&row[..row.len()-1])?;
+                append(&mut bytes,b",\"attachments\":[")?;
+                for (index,a) in self.list_message_attachments(conversation_id,&m.id)?.into_iter().enumerate(){
+                    let encoded=a.receipt.bytes.checked_mul(2).ok_or(VaultFault::InvalidRecord)?;
+                    if encoded>MAX_PACKAGE.saturating_sub(bytes.len()) as u64{return Err(VaultFault::InvalidRecord);}
+                    let data=self.read_managed_blob(&a.receipt)?;
+                    if index>0{append(&mut bytes,b",")?;}
+                    let item=json!({"id":a.id,"name":a.receipt.name,"bytes":a.receipt.bytes,
+                        "sha256":a.receipt.sha256,"dataHex":hex(&data)});
+                    append(&mut bytes,&serde_json::to_vec(&item).map_err(|_|VaultFault::Corrupt)?)?;
+                    attachment_count+=1;
+                }
+                append(&mut bytes,b"]}")?;
+                after=m.ordinal;message_count+=1;
+            }
+        }
+        append(&mut bytes,b"]}")?;
+        tx.commit().map_err(map_sql)?;
+        let hash=format!("{:x}",Sha256::digest(&bytes));
+        let data=managed_child(&self.app_root,"data")?;
+        let dir=managed_child(&data,"exports")?;
+        let filename=format!("conversation-{export_id}.json");
+        let target=dir.join(&filename);
+        let stage=dir.join(format!(".export-stage-{export_id}"));
+        if fs::symlink_metadata(&target).is_ok(){return Err(VaultFault::Conflict);}
+        let mut options=OpenOptions::new();options.write(true).create_new(true);
+        #[cfg(unix)]
+        {use std::os::unix::fs::OpenOptionsExt;options.mode(0o600);}
+        let mut file=options.open(&stage).map_err(|_|VaultFault::StorageUnavailable)?;
+        file.write_all(&bytes).and_then(|_|file.sync_all()).map_err(|_|VaultFault::StorageUnavailable)?;
+        drop(file);
+        let meta=fs::symlink_metadata(&stage).map_err(|_|VaultFault::StorageUnavailable)?;
+        if !meta.is_file()||!managed_plain(&meta)||meta.len()!=bytes.len() as u64{return Err(VaultFault::Corrupt);}
+        let readback=fs::read(&stage).map_err(|_|VaultFault::StorageUnavailable)?;
+        if readback!=bytes{return Err(VaultFault::Corrupt);}
+        fs::hard_link(&stage,&target).map_err(|e|if e.kind()==std::io::ErrorKind::AlreadyExists{VaultFault::Conflict}else{VaultFault::StorageUnavailable})?;
+        #[cfg(unix)]
+        fs::File::open(&dir).and_then(|f|f.sync_all()).map_err(|_|VaultFault::StorageUnavailable)?;
+        let _=fs::remove_file(&stage);
+        Ok(ConversationExportReceipt{conversation_id:conversation_id.to_owned(),revision,export_id:export_id.to_owned(),
+            relative_path:format!("data/exports/{filename}"),bytes:bytes.len() as u64,sha256:hash,message_count,attachment_count})
     }
 
     /// Accept only bytes already supplied to the local chat domain. The chunk
@@ -1580,6 +1681,44 @@ mod tests {
         assert_eq!(validate_schema(&db).unwrap(),3);
         assert_eq!(count(&db,"SELECT count(*) FROM sqlite_schema WHERE name='tool_review_decisions'"),0);
         assert_eq!(fs::read(app.join("backups")).unwrap(),b"occupied");
+    }
+
+    #[test]
+    fn conversation_export_is_complete_scoped_verified_and_new_only() {
+        let f=Fixture::new();let app=f.app();let mut v=NativeVault::open(&app).unwrap();
+        v.create_conversation("thread_alpha","One").unwrap();
+        v.create_conversation("thread_bravo","Other private thread").unwrap();
+        let a=LinkedAttachment{id:"artifact_001".into(),receipt:v.stage_managed_blob("note.txt",b"contents").unwrap()};
+        let hash=a.receipt.sha256.clone();
+        v.append_chat_message_with_attachments(sample_message("message_0001","thread_alpha",None),&[a]).unwrap();
+        v.append_chat_message(ChatMessageInput{id:"assistant_001",conversation_id:"thread_alpha",
+            parent_id:Some("message_0001"),role:ChatRole::Assistant,content:"Partial text",status:ChatStatus::Cancelled}).unwrap();
+        v.append_chat_message(sample_message("message_0002","thread_bravo",None)).unwrap();
+        let rev=v.get_conversation("thread_alpha").unwrap().unwrap().revision;
+        assert!(v.export_conversation("thread_alpha",rev-1,"export_001").is_err());
+        assert!(v.export_conversation("thread_alpha",rev,"../escape").is_err());
+        let receipt=v.export_conversation("thread_alpha",rev,"export_001").unwrap();
+        assert_eq!((receipt.message_count,receipt.attachment_count),(2,1));
+        let path=app.join(&receipt.relative_path);
+        let data=fs::read(&path).unwrap();
+        use sha2::{Digest,Sha256};
+        assert_eq!(receipt.sha256,format!("{:x}",Sha256::digest(&data)));
+        let doc:serde_json::Value=serde_json::from_slice(&data).unwrap();
+        assert_eq!(doc["conversation"]["id"],"thread_alpha");
+        assert_eq!(doc["messages"][0]["ordinal"],1);
+        assert_eq!(doc["messages"][1]["status"],"cancelled");
+        assert_eq!(doc["messages"][1]["parentId"],"message_0001");
+        assert_eq!(doc["messages"][0]["attachments"][0]["dataHex"],"636f6e74656e7473");
+        assert_eq!(doc["messages"][0]["attachments"][0]["sha256"],hash);
+        assert!(!String::from_utf8_lossy(&data).contains("thread_bravo"));
+        assert!(v.export_conversation("thread_alpha",rev,"export_001").is_err());
+        assert_eq!(fs::read(&path).unwrap(),data);
+        drop(v);let v=NativeVault::open(&app).unwrap();
+        assert_eq!(fs::read(&path).unwrap(),data);
+        let blob=v.managed_blob_directory(&hash,false).unwrap().join(&hash);
+        fs::write(blob,b"changed!").unwrap();
+        assert!(v.export_conversation("thread_alpha",rev,"export_002").is_err());
+        assert!(!app.join("data/exports/conversation-export_002.json").exists());
     }
 
     #[test]
