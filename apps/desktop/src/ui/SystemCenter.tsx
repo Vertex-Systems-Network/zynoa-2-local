@@ -1,4 +1,5 @@
 import {useEffect,useRef,useState} from "react";
+import {PortableBackupPanel} from "./PortableBackupPanel";
 import {centerAvailability,getSystemCenter,initialCenterDraft,updateCenterDraft,filterCenterScreens,type CenterTransport,type CenterView} from "./system-centers";
 export function SystemCenter({view,transport,onHelp,onDiagnostics}:{view:CenterView;transport:CenterTransport;onHelp:()=>void;onDiagnostics:()=>void}){
   const center=getSystemCenter(view);
@@ -28,7 +29,8 @@ export function SystemCenter({view,transport,onHelp,onDiagnostics}:{view:CenterV
       {!visible.length&&<div role="status"><p>No matching screens.</p><button type="button" className="subtle-action" onClick={clearSearch}>Clear screen search</button></div>}</div></nav>
       <article className="system-center-detail" aria-labelledby="system-screen-heading">
         <div className="system-screen-heading"><span className="small-caps">{screen.id} · UI FOUNDATION</span><h2 tabIndex={-1} ref={heading} id="system-screen-heading" aria-label={screen.id+" "+screen.title}>{screen.title}</h2><p>{screen.description}</p></div>
-        <div className="system-center-empty" role="status"><strong>{screen.status}</strong><p>Service operations remain gated to {center.phase}. No simulated history, job progress or successful mutation.</p></div>
+        {view==="backup"&&["M23-S01","M23-S03","M23-S04","M23-S05","M23-S06","M23-S07"].includes(screen.id)&&<PortableBackupPanel connected={transport==="connected"}/>}
+        <div className="system-center-empty" role="status"><strong>{screen.status}</strong><p>{view==="backup"?"The portable backup panel supports scoped local backup and new-profile restore. Other planned controls remain gated.":`Service operations remain gated to ${center.phase}.`} No simulated history, job progress or successful mutation.</p></div>
         {optionItems.length>0&&<div className="system-center-options" aria-label="Screen options">{optionItems.map(option=><section key={option.id} className="system-center-option" role="group" tabIndex={0} aria-label={option.id+" "+option.title} aria-describedby={option.id+"-reason"}>
           <div className="system-option-top"><small>{option.id}</small><span>{option.kind==="blocked"?"Unavailable":"Session draft"}</span></div><h3>{option.title}</h3><p id={option.id+"-reason"}>{option.reason}</p>
           {option.kind==="blocked"?<button type="button" className="subtle-action" disabled aria-label={option.id+" action unavailable"}>Unavailable</button>:

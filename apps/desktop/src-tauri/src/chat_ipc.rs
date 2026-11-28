@@ -28,6 +28,7 @@ impl From<VaultFault> for ChatError {
         error(match fault {
             VaultFault::InvalidRecord => "ZYN-CHAT-INPUT",
             VaultFault::Conflict => "ZYN-CHAT-CONFLICT",
+            VaultFault::BackupAuthentication => "ZYN-CHAT-BACKUP-AUTH",
             _ => "ZYN-CHAT-STORAGE",
         })
     }
@@ -58,6 +59,12 @@ struct ReviewListPayload { conversation_id:String, after:Option<String>,limit:u3
 #[derive(Deserialize)]
 #[serde(rename_all="camelCase",deny_unknown_fields)]
 struct ExportPayload { conversation_id:String, revision:i64, export_id:String, destination:String }
+#[derive(Deserialize)]
+#[serde(rename_all="camelCase",deny_unknown_fields)]
+struct BackupCreatePayload { backup_id:String,passphrase:String }
+#[derive(Deserialize)]
+#[serde(rename_all="camelCase",deny_unknown_fields)]
+struct BackupRestorePayload { backup_id:String,restore_id:String,passphrase:String }
 #[derive(Deserialize)]
 #[serde(rename_all="camelCase",deny_unknown_fields)]
 struct CreatePayload { id: String, title: String }
@@ -127,7 +134,7 @@ fn authorize_request(label:&str, request:&ChatRequest) -> Result<(),ChatError> {
     if request.schema_version!=1 || request.workspace_scope!="local" || !token(&request.correlation_id) {
         return Err(error("ZYN-CHAT-INPUT"));
     }
-    if !matches!(request.command_id.as_str(),"chat.list"|"chat.create"|"chat.history"|"chat.saveUserMessage"|"chat.attachment.chunk"|"chat.attachment.discard"|"chat.recovery.inspect"|"chat.artifact.createText"|"chat.artifact.previewText"|"chat.review.begin"|"chat.review.finish"|"chat.review.list"|"chat.export.conversation") {
+    if !matches!(request.command_id.as_str(),"chat.list"|"chat.create"|"chat.history"|"chat.saveUserMessage"|"chat.attachment.chunk"|"chat.attachment.discard"|"chat.recovery.inspect"|"chat.artifact.createText"|"chat.artifact.previewText"|"chat.review.begin"|"chat.review.finish"|"chat.review.list"|"chat.export.conversation"|"chat.backup.create"|"chat.backup.restorePreview") {
         return Err(error("ZYN-CHAT-DENIED"));
     }
     if serde_json::to_vec(&request.payload).map_err(|_|error("ZYN-CHAT-INPUT"))?.len()>MAX_REQUEST_BYTES {
@@ -137,6 +144,20 @@ fn authorize_request(label:&str, request:&ChatRequest) -> Result<(),ChatError> {
 }
 fn execute(vault:&mut NativeVault, request:ChatRequest) -> Result<ChatReply,ChatError> {
     let data=match request.command_id.as_str() {
+        "chat.backup.create" => {
+            let q:BackupCreatePayload=parse(request.payload)?;
+            let secret=zeroize::Zeroizing::new(q.passphrase);
+            if !token(&q.backup_id){return Err(error("ZYN-CHAT-INPUT"));}
+            serde_json::to_value(vault.create_portable_backup(&q.backup_id,secret.as_bytes())?)
+                .map_err(|_|error("ZYN-CHAT-STORAGE"))?
+        },
+        "chat.backup.restorePreview" => {
+            let q:BackupRestorePayload=parse(request.payload)?;
+            let secret=zeroize::Zeroizing::new(q.passphrase);
+            if !token(&q.backup_id)||!token(&q.restore_id){return Err(error("ZYN-CHAT-INPUT"));}
+            serde_json::to_value(vault.restore_portable_preview(&q.backup_id,&q.restore_id,secret.as_bytes())?)
+                .map_err(|_|error("ZYN-CHAT-STORAGE"))?
+        },
         "chat.export.conversation" => {
             let q:ExportPayload=parse(request.payload)?;
             if !token(&q.conversation_id)||!token(&q.export_id)||q.revision<=0||q.destination!="local-data-exports" {
@@ -319,6 +340,18 @@ mod tests {
     fn call(v:&mut NativeVault,command:&str,payload:Value)->Result<Value,ChatError> {
         let req=request(command,payload);authorize_request("main",&req)?;Ok(execute(v,req)?.data)
     }
+    #[test]
+    fn chat_ipc_backup_denies_remote_paths_and_short_secrets() {
+        let f=Fixture::new();let mut v=NativeVault::open(&f.0).unwrap();
+        let q=json!({"backupId":"backup-alpha-00001","passphrase":"synthetic portable passphrase"});
+        assert!(authorize_request("remote",&request("chat.backup.create",q.clone())).is_err());
+        let mut bad=q.clone();bad["path"]=json!("outside");
+        assert!(call(&mut v,"chat.backup.create",bad).is_err());
+        assert!(call(&mut v,"chat.backup.create",json!({"backupId":"backup-alpha-00001","passphrase":"short"})).is_err());
+        assert!(call(&mut v,"chat.backup.restorePreview",json!({"backupId":"../outside","restoreId":"restore-alpha-0001","passphrase":"synthetic portable passphrase"})).is_err());
+        assert!(!f.0.join("backups/portable/backup-alpha-00001.awbackup").exists());
+    }
+
     #[test]
     fn chat_ipc_export_is_local_and_has_no_arbitrary_path_authority() {
         let f=Fixture::new();let mut v=NativeVault::open(&f.0).unwrap();

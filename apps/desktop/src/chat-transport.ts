@@ -12,7 +12,7 @@ export async function chatRequest<K extends ChatCommand>(command:K,payload:Paylo
  try{
    const reply=await Promise.race([
      invoke<unknown>("chat_request",{request}),
-     new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new Error("ZYN-CHAT-TIMEOUT")),15000);}),
+     new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new Error("ZYN-CHAT-TIMEOUT")),command==="chat.backup.create"||command==="chat.backup.restorePreview"?120000:15000);}),
    ]);
    return decodeReply(reply,command,correlationId,payload);
  }finally{if(timer!==undefined)clearTimeout(timer);}
@@ -41,6 +41,7 @@ export async function uploadSelectedFiles(conversationId:string,messageId:string
 export function chatError(error:unknown):string{
  const code=error instanceof Error?error.message:typeof error==="object"&&error!==null&&"code" in error?error.code:null;
  switch(code){
+  case "ZYN-CHAT-BACKUP-AUTH":return "Backup authentication failed. Check the passphrase or use an intact archive. No active profile was replaced.";
   case "ZYN-CHAT-FILE":return "The selected files could not be read or exceed attachment limits.";
   case "ZYN-CHAT-INPUT":return "The native service rejected the input. Check text and attachment limits.";
   case "ZYN-CHAT-CONFLICT":return "A saved ID conflicts with this request. Refresh history before creating another.";
