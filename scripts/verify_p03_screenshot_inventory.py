@@ -4,6 +4,7 @@ import hashlib
 import json
 import re
 import struct
+import zlib
 from pathlib import Path
 
 # Fixed expected inventory; a missing receipt or image is a failed gate.
@@ -33,11 +34,34 @@ def png_receipt(path, expected):
     require(path.is_file() and not path.is_symlink(), "missing original PNG")
     require(re.fullmatch(r"[a-f0-9]{64}", expected or ""), "invalid image digest")
     require(sha(path) == expected, "image digest mismatch")
-    with path.open("rb") as f:
-        header = f.read(24)
-    require(len(header) == 24 and header[:16] == b"\x89PNG\r\n\x1a\n\x00\x00\x00\x0dIHDR", "invalid PNG header")
-    width, height = struct.unpack(">II", header[16:24])
-    require(800 <= width <= 16384 and 500 <= height <= 16384, "capture dimensions outside bounds")
+    require(45 <= path.stat().st_size <= 64 * 1024 * 1024, "invalid capture size")
+    raw = path.read_bytes()
+    require(raw[:8] == b"\x89PNG\r\n\x1a\n", "invalid PNG signature")
+    pos = 8
+    width = height = 0
+    seen_data = seen_end = False
+    while pos < len(raw):
+        require(pos + 12 <= len(raw), "truncated PNG chunk")
+        size = struct.unpack_from(">I", raw, pos)[0]
+        end = pos + 12 + size
+        require(end <= len(raw), "truncated PNG payload")
+        kind = raw[pos+4:pos+8]
+        payload = raw[pos+8:end-4]
+        crc = struct.unpack_from(">I", raw, end-4)[0]
+        require(zlib.crc32(raw[pos+4:end-4]) == crc, "PNG CRC mismatch")
+        if pos == 8:
+            require(kind == b"IHDR" and size == 13, "invalid PNG header")
+            width, height = struct.unpack_from(">II", payload)
+            require(800 <= width <= 16384 and 500 <= height <= 16384, "capture dimensions outside bounds")
+        else:
+            require(kind != b"IHDR", "duplicate PNG header")
+        if kind == b"IDAT":
+            seen_data = True
+        if kind == b"IEND":
+            require(size == 0 and seen_data and end == len(raw), "invalid PNG termination")
+            seen_end = True
+        pos = end
+    require(seen_end, "missing PNG termination")
     return {"sha256": expected, "width": width, "height": height}
 
 def verify(root, source, executable):
