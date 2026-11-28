@@ -16,7 +16,7 @@ class NativeVaultContractTests(unittest.TestCase):
         cls.ci = (ROOT/".github/workflows/p01-desktop.yml").read_text(encoding="utf-8")
 
     def test_pinned_sqlite_native_dependency_and_ipc_denial(self):
-        self.assertIn('rusqlite = { version = "=0.43.0", features = ["bundled", "backup"] }', self.cargo)
+        self.assertIn('rusqlite = { version = "=0.43.0", features = ["bundled", "backup", "serialize"] }', self.cargo)
         self.assertIn("mod vault;", self.lib)
         self.assertIn("vault::NativeVault::open(&app_local)", self.lib)
         self.assertNotIn("vault::", (ROOT/"apps/desktop/src-tauri/src/ipc.rs").read_text(encoding="utf-8"))
