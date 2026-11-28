@@ -216,6 +216,17 @@ class NativeProbeIntegrity(unittest.TestCase):
                        "horizontal_layout_bounds=$reviewBounds", "horizontal_layout_bounds=$exportBounds"):
             self.assertIn(marker, source)
 
+    def test_restore_consent_uses_actual_tab_then_space_without_pointer_toggle(self):
+        source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
+        helper = source.split("function Confirm-ConsentByKeyboard",1)[1].split("if ($BackupAcceptance)",1)[0]
+        self.assertIn("Focus-ByPhysicalClick $anchor", helper)
+        self.assertIn("SendWait('{TAB}')", helper)
+        self.assertIn("SendWait(' ')", helper)
+        self.assertIn("consent changed before Space", helper)
+        self.assertNotIn(".Toggle()", helper)
+        self.assertNotIn("Focus-ByPhysicalClick $checkbox", helper)
+        self.assertEqual(source.count("'Verify and restore to new profile' 'Backup ID to restore'"),2)
+
     def test_native_consent_keyboard_and_recovery_timings(self):
         source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
         css = (ROOT / "apps/desktop/src/styles.css").read_text(encoding="utf-8")

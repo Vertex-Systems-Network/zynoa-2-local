@@ -766,15 +766,31 @@ function Type-SyntheticSecret([string]$Name,[string]$Secret) {
  $status=if ($Name -ceq 'Confirm backup passphrase') {'Backup passphrases match.'} else {'Backup passphrase meets input requirements.'}
  [void](Wait-Name $status '' $false 20)
 }
-function Confirm-ConsentByKeyboard([string]$Name,[string]$Action) {
+function Confirm-ConsentByKeyboard([string]$Name,[string]$Action,[string]$PreviousEdit='') {
  $checkbox=Wait-Name $Name 'CheckBox' $true
  $button=Wait-Name $Action 'Button'
  if ($button.Current.IsEnabled) {throw 'ZYN-A11Y-PROBE-001: action enabled before consent'}
- Focus-Control $checkbox
  $toggle=$null
  if (!$checkbox.TryGetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern,[ref]$toggle) -or $toggle.Current.ToggleState -ne [System.Windows.Automation.ToggleState]::Off) {throw 'ZYN-A11Y-PROBE-002: consent unavailable or preselected'}
- $focused=[System.Windows.Automation.AutomationElement]::FocusedElement
- if ($focused.Current.Name -cne $Name -or !$focused.Current.HasKeyboardFocus) {throw 'ZYN-A11Y-PROBE-003: checkbox keyboard focus missing'}
+ if ($PreviousEdit) {
+   # Restore: establish real WebView input focus on the preceding nonsecret
+   # edit. Never click the consent checkbox or invoke its TogglePattern.
+   $anchor=Wait-Name $PreviousEdit 'Edit' $true
+   Focus-ByPhysicalClick $anchor
+   $focus=[System.Windows.Automation.AutomationElement]::FocusedElement
+   if ($null -eq $focus -or $focus.Current.Name -cne $PreviousEdit -or !$focus.Current.HasKeyboardFocus -or $focus.Current.IsPassword -or [ChatProbeWindow]::GetForegroundWindow() -ne $script:hwnd) {throw 'ZYN-A11Y-PROBE-006: preceding edit lacks actual focus'}
+   [System.Windows.Forms.SendKeys]::SendWait('{TAB}')
+ } else {Focus-Control $checkbox}
+ $keyboardFocused=$false
+ for ($attempt=0;$attempt -lt 30;$attempt++){
+   $focused=[System.Windows.Automation.AutomationElement]::FocusedElement
+   if ($null -ne $focused -and $focused.Current.Name -ceq $Name -and $focused.Current.ControlType.ProgrammaticName -eq 'ControlType.CheckBox' -and $focused.Current.HasKeyboardFocus -and [ChatProbeWindow]::GetForegroundWindow() -eq $script:hwnd) {$keyboardFocused=$true;break}
+   Start-Sleep -Milliseconds 100
+ }
+ if (!$keyboardFocused) {throw 'ZYN-A11Y-PROBE-003: checkbox keyboard focus missing'}
+ $checkbox=Wait-Name $Name 'CheckBox' $true
+ $toggle=$null
+ if (!$checkbox.TryGetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern,[ref]$toggle) -or $toggle.Current.ToggleState -ne [System.Windows.Automation.ToggleState]::Off) {throw 'ZYN-A11Y-PROBE-007: consent changed before Space'}
  [System.Windows.Forms.SendKeys]::SendWait(' ')
  $confirmed=$false
  for ($i=0;$i -lt 40;$i++) {
@@ -819,7 +835,7 @@ if ($BackupAcceptance) {
    $script:stage='wrong-key masked input readiness'
    Type-SyntheticSecret 'Backup passphrase' 'incorrect fixture passphrase'
    $script:stage='wrong-key explicit keyboard consent'
-   Confirm-ConsentByKeyboard 'I understand restore creates a separate plaintext profile without replacing active data' 'Verify and restore to new profile'
+   Confirm-ConsentByKeyboard 'I understand restore creates a separate plaintext profile without replacing active data' 'Verify and restore to new profile' 'Backup ID to restore'
    Click-Control 'Verify and restore to new profile'
    [void](Wait-Name 'Backup authentication failed. Check the passphrase or use an intact archive. No active profile was replaced. Check the recorded operation ID and local folder before another attempt.' '' $false 480)
    Stop-Native
@@ -833,7 +849,7 @@ if ($BackupAcceptance) {
    $script:stage='correct-key masked input readiness'
    Type-SyntheticSecret 'Backup passphrase' 'synthetic backup fixture 2026'
    $script:stage='correct-key explicit keyboard consent'
-   Confirm-ConsentByKeyboard 'I understand restore creates a separate plaintext profile without replacing active data' 'Verify and restore to new profile'
+   Confirm-ConsentByKeyboard 'I understand restore creates a separate plaintext profile without replacing active data' 'Verify and restore to new profile' 'Backup ID to restore'
    Click-Control 'Verify and restore to new profile'
    $restore=Wait-Name 'Relative restored profile path' 'Edit' $false 480
    $value=$restore.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)

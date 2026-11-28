@@ -76,7 +76,7 @@
       "id": "P03-T12",
       "title": "Encrypted portable backup and staged independent restore",
       "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/46090231856"
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/46092374549"
     },
     {
       "id": "P03-T13",
@@ -88,7 +88,7 @@
       "id": "P03-T14",
       "title": "Security, accessibility, performance and prior-phase regressions",
       "status": "IN_PROGRESS",
-      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/38"
+      "reference": "https://github.com/Vertex-Systems-Network/zynoa-2-local/commit/1ee15de60823985a023d9efa2733c9e70bd6156d"
     },
     {
       "id": "P03-T15",

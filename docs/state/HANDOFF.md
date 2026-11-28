@@ -1,5 +1,9 @@
 # Handoff (canonical starter)
 
+## P03 batch reconciliation — restore keyboard consent and visual refinement
+
+Exact 4b7943946f349c003a58530c7fe449e569cfcedb: five applicable workflows passed; Windows 46092374549 job 140816003283 passed 102 Rust tests (one ignored), nine focused vault tests, actual T10 review and T11 export repeat journeys; T12 creation and masked password readiness passed, wrong-key restore journey stopped at ZYN-A11Y-PROBE-004 (Space did not confirm consent). First UIA-only Backup ID input again delivered zero characters; physical focus retry succeeded. Actual failure cause remains unproven. Restore consent candidate establishes actual keyboard focus on preceding nonsecret Backup ID edit using HWND-bounded physical click, sends real Tab to checkbox, requires exact focused checkbox and unchanged Off state, sends Space, and still requires checked state and enabled action. No click or programmatic toggle on consent, no password readback, no restore bypass. Includes accumulated caae1f7 wider chat detail/readonly wrapping receipts and 1ee15de actual group containment tests. Fresh Windows CI required; no new DONE promotion, no merge/release. Board 11/16 DONE. All previous runs completed before combined push.
+
 ## Next accumulated batch — T14 visual refinement candidate
 
 Exact 4b79439 native and Linux CI still running; prepared caae1f7 wider chat detail, conditional navigator stickiness and wrapping readonly export receipt fields, followed by native horizontal containment checks for review and export groups. Prior actual functional T10/T11 acceptance preserved; fresh screenshot review required. No new task promoted. Publish only after all previous workflows complete, reconcile errors and exact branch head. No unattended worker.
