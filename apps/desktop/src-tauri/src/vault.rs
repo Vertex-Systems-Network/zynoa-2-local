@@ -233,7 +233,7 @@ pub(crate) struct ModelContext {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum VaultFault {
-    InvalidLocation, InvalidRecord, Conflict, Corrupt, UnsupportedSchema, StorageUnavailable,
+    InvalidLocation, InvalidRecord, Conflict, Corrupt, UnsupportedSchema, StorageUnavailable, BackupAuthentication,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -315,6 +315,26 @@ pub(crate) struct ConversationExportReceipt {
     pub(crate) sha256:String,
     pub(crate) message_count:usize,
     pub(crate) attachment_count:usize,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all="camelCase")]
+pub(crate) struct PortableBackupReceipt {
+    pub(crate) backup_id:String,
+    pub(crate) relative_path:String,
+    pub(crate) bytes:u64,
+    pub(crate) sha256:String,
+    pub(crate) item_count:usize,
+}
+#[derive(Serialize)]
+#[serde(rename_all="camelCase")]
+pub(crate) struct PortableRestoreReceipt {
+    pub(crate) backup_id:String,
+    pub(crate) restore_id:String,
+    pub(crate) relative_path:String,
+    pub(crate) item_count:usize,
+    pub(crate) conversation_count:u64,
+    pub(crate) active_profile_changed:bool,
 }
 
 pub(crate) struct NativeVault {
@@ -590,6 +610,74 @@ fn snapshot_connection_new(app_root: &Path, source: &Connection, snapshot_id: &s
     Ok(path)
 }
 
+fn portable_fault(f:crate::backup_contracts::PortableFault)->VaultFault{
+    use crate::backup_contracts::PortableFault;
+    match f {PortableFault::Invalid=>VaultFault::InvalidRecord,
+        PortableFault::Authentication=>VaultFault::BackupAuthentication,
+        PortableFault::Storage=>VaultFault::StorageUnavailable}
+}
+
+// Reject extra tables, virtual tables, triggers and changed SQL definitions
+// in authenticated archives too. Authentication does not imply trusted schema.
+fn validate_portable_db(db:&Connection)->Result<(),VaultFault>{
+    if validate_schema(db)?!=SCHEMA_VERSION{return Err(VaultFault::UnsupportedSchema);}
+    let expected=Connection::open_in_memory().map_err(map_sql)?;
+    expected.execute_batch(LEGACY_SCHEMA).map_err(map_sql)?;
+    apply_v2(&expected,0,None)?;apply_v3(&expected,0,None)?;apply_v4(&expected,0,None)?;
+    fn objects(db:&Connection)->Result<Vec<(String,String,String,Option<String>)>,VaultFault>{
+        let mut q=db.prepare("SELECT type,name,tbl_name,sql FROM sqlite_schema WHERE name NOT LIKE 'sqlite_%' ORDER BY type,name")
+            .map_err(map_sql)?;
+        let rows=q.query_map([],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?,r.get(3)?))).map_err(map_sql)?;
+        rows.collect::<Result<Vec<_>,_>>().map_err(map_sql)
+    }
+    if objects(db)?!=objects(&expected)?{return Err(VaultFault::Corrupt);}
+    Ok(())
+}
+
+fn portable_blobs(db:&Connection)->Result<std::collections::BTreeMap<String,crate::artifact_contracts::AttachmentReceipt>,VaultFault>{
+    use crate::artifact_contracts::{AttachmentReceipt,valid_managed_basename};
+    let mut q=db.prepare("SELECT name,sha256,bytes FROM managed_artifacts ORDER BY sha256,id LIMIT 4097").map_err(map_sql)?;
+    let rows=q.query_map([],|r|Ok((r.get::<_,String>(0)?,r.get::<_,String>(1)?,r.get::<_,i64>(2)?))).map_err(map_sql)?;
+    let mut result=std::collections::BTreeMap::<String,AttachmentReceipt>::new();
+    for (index,row) in rows.enumerate(){
+        if index>=4096{return Err(VaultFault::InvalidRecord);}
+        let (name,sha256,size)=row.map_err(|_|VaultFault::Corrupt)?;
+        let bytes=managed_length_from_sql(size)?;
+        if !valid_managed_basename(&name)||!managed_hash_valid(&sha256){return Err(VaultFault::Corrupt);}
+        if let Some(old)=result.get(&sha256){if old.bytes!=bytes{return Err(VaultFault::Corrupt);}}
+        else {result.insert(sha256.clone(),AttachmentReceipt{name,sha256,bytes});}
+    }
+    Ok(result)
+}
+
+fn read_portable_file(path:&Path,max:usize)->Result<Vec<u8>,VaultFault>{
+    use std::io::Read;
+    let meta=fs::symlink_metadata(path).map_err(|_|VaultFault::StorageUnavailable)?;
+    if !meta.is_file()||!managed_plain(&meta)||meta.len()>max as u64{return Err(VaultFault::InvalidLocation);}
+    let mut opts=OpenOptions::new();opts.read(true);
+    #[cfg(windows)]
+    {use std::os::windows::fs::OpenOptionsExt;opts.custom_flags(0x00200000);}
+    let file=opts.open(path).map_err(|_|VaultFault::StorageUnavailable)?;
+    let opened=file.metadata().map_err(|_|VaultFault::StorageUnavailable)?;
+    if !opened.is_file()||!managed_plain(&opened)||opened.len()!=meta.len(){return Err(VaultFault::Corrupt);}
+    let mut data=Vec::new();
+    file.take(max as u64+1).read_to_end(&mut data).map_err(|_|VaultFault::StorageUnavailable)?;
+    if data.len()>max||data.len() as u64!=meta.len(){return Err(VaultFault::Corrupt);}
+    Ok(data)
+}
+fn write_portable_new(path:&Path,bytes:&[u8])->Result<(),VaultFault>{
+    use std::io::Write;
+    let mut opts=OpenOptions::new();opts.create_new(true).write(true);
+    #[cfg(unix)]
+    {use std::os::unix::fs::OpenOptionsExt;opts.mode(0o600);}
+    let mut f=opts.open(path).map_err(|e|if e.kind()==std::io::ErrorKind::AlreadyExists{VaultFault::Conflict}else{VaultFault::StorageUnavailable})?;
+    f.write_all(bytes).and_then(|_|f.sync_all()).map_err(|_|VaultFault::StorageUnavailable)?;
+    drop(f);
+    let data=zeroize::Zeroizing::new(read_portable_file(path,bytes.len())?);
+    if data.as_slice()!=bytes{return Err(VaultFault::Corrupt);}
+    Ok(())
+}
+
 impl NativeVault {
     pub(crate) fn open(app_root: &Path) -> Result<Self, VaultFault> {
         if !app_root.is_absolute() || app_root.file_name() != Some(std::ffi::OsStr::new("com.zynoa.desktop")) {
@@ -855,6 +943,139 @@ impl NativeVault {
             out.push(ReviewTrace{request_id:request,target_id:target,target_sha256:digest,tool,decision,recorded_at});
         }
         Ok(out)
+    }
+
+    /// Create a bounded encrypted full chat-vault archive. Snapshot in memory;
+    /// no live WAL file copy and no new plaintext backup temp file.
+    pub(crate) fn create_portable_backup(&self,backup_id:&str,passphrase:&[u8])->Result<PortableBackupReceipt,VaultFault>{
+        use crate::backup_contracts::{self,PortableBuilder,MAX_PORTABLE_BYTES};
+        use rusqlite::backup::{Backup,StepResult};
+        use sha2::{Digest,Sha256};
+        if !safe_id(backup_id)||!backup_contracts::valid_backup_passphrase(passphrase){return Err(VaultFault::InvalidRecord);}
+        let pages:u64=self.conn.query_row("PRAGMA page_count",[],|r|r.get(0)).map_err(map_sql)?;
+        let size:u64=self.conn.query_row("PRAGMA page_size",[],|r|r.get(0)).map_err(map_sql)?;
+        if pages.checked_mul(size).filter(|n|*n<=MAX_PORTABLE_BYTES as u64).is_none(){return Err(VaultFault::InvalidRecord);}
+        let mut snapshot=Connection::open_in_memory().map_err(map_sql)?;
+        {
+            let copy=Backup::new(&self.conn,&mut snapshot).map_err(map_sql)?;
+            let mut done=false;
+            for _ in 0..2048 {
+                match copy.step(128).map_err(map_sql)?{
+                    StepResult::Done=>{done=true;break;},
+                    StepResult::More=>(),
+                    StepResult::Busy|StepResult::Locked=>std::thread::sleep(Duration::from_millis(10)),
+                    _=>return Err(VaultFault::StorageUnavailable),
+                }
+            }
+            if !done{return Err(VaultFault::StorageUnavailable);}
+        }
+        snapshot.execute_batch("PRAGMA journal_mode=MEMORY; PRAGMA trusted_schema=OFF;").map_err(map_sql)?;
+        validate_portable_db(&snapshot)?;
+        let blobs=portable_blobs(&snapshot)?;
+        let mut builder=PortableBuilder::new();
+        let db=snapshot.serialize(MAIN_DB).map_err(map_sql)?;
+        builder.add("database","state.sqlite",&db).map_err(portable_fault)?;
+        drop(db);drop(snapshot);
+        let mut items=1;
+        for (hash,receipt) in blobs{
+            let data=zeroize::Zeroizing::new(self.read_managed_blob(&receipt)?);
+            builder.add("blob",&hash,&data).map_err(portable_fault)?;items+=1;
+        }
+        let exports=self.app_root.join("data").join("exports");
+        match fs::symlink_metadata(&exports){
+            Ok(_)=>{
+                managed_directory(&exports)?;
+                let mut files=Vec::new();
+                for (index,entry) in fs::read_dir(&exports).map_err(|_|VaultFault::StorageUnavailable)?.enumerate(){
+                    if index>=4096{return Err(VaultFault::InvalidRecord);}
+                    let entry=entry.map_err(|_|VaultFault::StorageUnavailable)?;
+                    let name=entry.file_name().into_string().map_err(|_|VaultFault::InvalidLocation)?;
+                    if name.starts_with(".export-stage-"){continue;}
+                    if !backup_contracts::valid_export_filename(&name){return Err(VaultFault::InvalidRecord);}
+                    files.push((name,entry.path()));
+                }
+                files.sort_by(|a,b|a.0.cmp(&b.0));
+                for (name,path) in files{
+                    let data=zeroize::Zeroizing::new(read_portable_file(&path,32*1024*1024)?);
+                    builder.add("export",&name,&data).map_err(portable_fault)?;items+=1;
+                }
+            },
+            Err(e) if e.kind()==std::io::ErrorKind::NotFound=>(),
+            Err(_)=>return Err(VaultFault::StorageUnavailable),
+        }
+        let created=SystemTime::now().duration_since(UNIX_EPOCH).map_err(|_|VaultFault::StorageUnavailable)?.as_secs();
+        let plain=builder.finish(created).map_err(portable_fault)?;
+        let archive=backup_contracts::seal_portable(plain,passphrase).map_err(portable_fault)?;
+        let backups=managed_child(&self.app_root,"backups")?;
+        let dir=managed_child(&backups,"portable")?;
+        let filename=format!("{backup_id}.awbackup");
+        let target=dir.join(&filename);
+        let stage=dir.join(format!(".backup-stage-{backup_id}"));
+        if fs::symlink_metadata(&target).is_ok(){return Err(VaultFault::Conflict);}
+        write_portable_new(&stage,&archive)?;
+        fs::hard_link(&stage,&target).map_err(|e|if e.kind()==std::io::ErrorKind::AlreadyExists{VaultFault::Conflict}else{VaultFault::StorageUnavailable})?;
+        #[cfg(unix)]
+        fs::File::open(&dir).and_then(|f|f.sync_all()).map_err(|_|VaultFault::StorageUnavailable)?;
+        let _=fs::remove_file(&stage);
+        Ok(PortableBackupReceipt{backup_id:backup_id.into(),relative_path:format!("backups/portable/{filename}"),
+            bytes:archive.len() as u64,sha256:format!("{:x}",Sha256::digest(&archive)),item_count:items})
+    }
+
+    /// Authenticate and independently restore to a new private profile only.
+    /// A verified marker is written last; no active profile pointer is changed.
+    pub(crate) fn restore_portable_preview(&self,backup_id:&str,restore_id:&str,passphrase:&[u8])->Result<PortableRestoreReceipt,VaultFault>{
+        use crate::backup_contracts::{self,MAX_PORTABLE_BYTES};
+        if !safe_id(backup_id)||!safe_id(restore_id)||!backup_contracts::valid_backup_passphrase(passphrase){return Err(VaultFault::InvalidRecord);}
+        let backups=self.app_root.join("backups");managed_directory(&backups)?;
+        let dir=backups.join("portable");managed_directory(&dir)?;
+        let archive=read_portable_file(&dir.join(format!("{backup_id}.awbackup")),MAX_PORTABLE_BYTES+60)?;
+        let plain=backup_contracts::open_portable(&archive,passphrase).map_err(portable_fault)?;
+        let items=backup_contracts::unpack_portable(&plain).map_err(portable_fault)?;
+        let db_bytes=items.first().ok_or(VaultFault::Corrupt)?.1;
+        // Validate SQLite in memory before any restore profile is created.
+        let mut snapshot=Connection::open_in_memory().map_err(map_sql)?;
+        snapshot.deserialize_read_exact(MAIN_DB,db_bytes,db_bytes.len(),true).map_err(|_|VaultFault::Corrupt)?;
+        snapshot.execute_batch("PRAGMA trusted_schema=OFF; PRAGMA query_only=ON;").map_err(map_sql)?;
+        validate_portable_db(&snapshot)?;
+        let expected=portable_blobs(&snapshot)?;
+        let present=items.iter().filter(|(i,_)|i.kind=="blob").collect::<Vec<_>>();
+        if present.len()!=expected.len(){return Err(VaultFault::Corrupt);}
+        for (item,data) in present{
+            let receipt=expected.get(&item.id).ok_or(VaultFault::Corrupt)?;
+            if !crate::artifact_contracts::verify_attachment(receipt,data){return Err(VaultFault::Corrupt);}
+        }
+        let count:u64=snapshot.query_row("SELECT count(*) FROM conversations",[],|r|r.get(0)).map_err(map_sql)?;
+        drop(snapshot);
+        let restored=managed_child(&backups,"restored")?;
+        let stage=restored.join(restore_id);
+        fs::create_dir(&stage).map_err(|e|if e.kind()==std::io::ErrorKind::AlreadyExists{VaultFault::Conflict}else{VaultFault::StorageUnavailable})?;
+        managed_directory(&stage)?;
+        let profile=managed_child(&stage,"com.zynoa.desktop")?;
+        let data=managed_child(&profile,"data")?;
+        for (item,bytes) in &items{
+            let path=match item.kind.as_str(){
+                "database"=>data.join("state.sqlite"),
+                "blob"=>{
+                    let artifacts=managed_child(&data,"artifacts")?;
+                    let hashes=managed_child(&artifacts,"sha256")?;
+                    managed_child(&hashes,&item.id[..2])?.join(&item.id)
+                },
+                "export"=>managed_child(&data,"exports")?.join(&item.id),
+                _=>return Err(VaultFault::Corrupt),
+            };
+            write_portable_new(&path,bytes)?;
+        }
+        let verified=Connection::open_with_flags(data.join("state.sqlite"),OpenFlags::SQLITE_OPEN_READ_ONLY).map_err(map_sql)?;
+        verified.execute_batch("PRAGMA trusted_schema=OFF; PRAGMA query_only=ON;").map_err(map_sql)?;
+        validate_portable_db(&verified)?;
+        if portable_blobs(&verified)?!=expected{return Err(VaultFault::Corrupt);}
+        drop(verified);
+        let receipt=PortableRestoreReceipt{backup_id:backup_id.into(),restore_id:restore_id.into(),
+            relative_path:format!("backups/restored/{restore_id}/com.zynoa.desktop"),item_count:items.len(),
+            conversation_count:count,active_profile_changed:false};
+        let marker=serde_json::to_vec(&receipt).map_err(|_|VaultFault::Corrupt)?;
+        write_portable_new(&stage.join("verified.json"),&marker)?;
+        Ok(receipt)
     }
 
     /// Explicit plaintext export of one entire saved conversation. Never
@@ -1681,6 +1902,37 @@ mod tests {
         assert_eq!(validate_schema(&db).unwrap(),3);
         assert_eq!(count(&db,"SELECT count(*) FROM sqlite_schema WHERE name='tool_review_decisions'"),0);
         assert_eq!(fs::read(app.join("backups")).unwrap(),b"occupied");
+    }
+
+    #[test]
+    fn portable_backup_restores_independent_vault_and_refuses_wrong_key_or_overwrite() {
+        let f=Fixture::new();let app=f.app();let mut v=NativeVault::open(&app).unwrap();
+        v.create_conversation("thread_alpha","Private chat").unwrap();
+        let a=LinkedAttachment{id:"artifact_001".into(),receipt:v.stage_managed_blob("note.txt",b"private attachment bytes").unwrap()};
+        let hash=a.receipt.sha256.clone();
+        v.append_chat_message_with_attachments(sample_message("message_0001","thread_alpha",None),&[a]).unwrap();
+        let revision=v.get_conversation("thread_alpha").unwrap().unwrap().revision;
+        let exported=v.export_conversation("thread_alpha",revision,"export_001").unwrap();
+        let pass=b"synthetic portable passphrase";
+        let receipt=v.create_portable_backup("backup_001",pass).unwrap();
+        assert_eq!(receipt.item_count,3);
+        let path=app.join(&receipt.relative_path);
+        let cipher=fs::read(&path).unwrap();
+        assert!(!cipher.windows(24).any(|x|x==b"private attachment bytes"));
+        assert!(v.restore_portable_preview("backup_001","wrong_001",b"incorrect passphrase").is_err());
+        assert!(!app.join("backups/restored/wrong_001").exists());
+        let restored=v.restore_portable_preview("backup_001","restore_001",pass).unwrap();
+        assert!(!restored.active_profile_changed);assert_eq!(restored.conversation_count,1);
+        let profile=app.join(&restored.relative_path);
+        let other=NativeVault::open(&profile).unwrap();
+        assert_eq!(other.get_chat_message("thread_alpha","message_0001").unwrap().unwrap().content,"synthetic message");
+        let items=other.list_message_attachments("thread_alpha","message_0001").unwrap();
+        assert_eq!(items[0].receipt.sha256,hash);
+        assert_eq!(other.read_managed_blob(&items[0].receipt).unwrap(),b"private attachment bytes");
+        assert_eq!(fs::read(profile.join(&exported.relative_path)).unwrap(),fs::read(app.join(&exported.relative_path)).unwrap());
+        assert!(v.restore_portable_preview("backup_001","restore_001",pass).is_err());
+        assert_eq!(fs::read(path).unwrap(),cipher);
+        assert_eq!(v.get_conversation("thread_alpha").unwrap().unwrap().revision,revision);
     }
 
     #[test]
