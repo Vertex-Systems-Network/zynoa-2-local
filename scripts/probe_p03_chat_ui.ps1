@@ -716,6 +716,26 @@ if ($ReinstallAcceptance) {
 }
 # Compare the exact receipt displayed by the real app with independently
 # measured bytes, not just a successful action or matching file name.
+# Native UIA rectangles: only horizontal containment, not a visual or
+# full accessibility certification. Keep exact value and keyboard gates.
+function Measure-LocalPanelBounds([string]$GroupName,[string[]]$Names,[string]$Type) {
+ $group=Wait-Name $GroupName 'Group'
+ $bounds=$group.Current.BoundingRectangle
+ $window=New-Object ChatProbeWindow+RECT
+ if (![ChatProbeWindow]::GetWindowRect($script:hwnd,[ref]$window) -or $bounds.IsEmpty -or $bounds.Width -le 0 -or $bounds.Left -lt ($window.Left-2) -or $bounds.Right -gt ($window.Right+2)) {
+   throw ('ZYN-LOCAL-LAYOUT-001: group outside window: '+$GroupName)
+ }
+ $measured=@()
+ foreach ($name in $Names) {
+   $control=Wait-Name $name $Type
+   $rect=$control.Current.BoundingRectangle
+   if ($rect.IsEmpty -or $rect.Width -le 0 -or $rect.Left -lt ($bounds.Left-2) -or $rect.Right -gt ($bounds.Right+2)) {
+     throw ('ZYN-LOCAL-LAYOUT-002: control outside group: '+$name)
+   }
+   $measured+=@{name=$name;left=$rect.Left;right=$rect.Right;width=$rect.Width}
+ }
+ return @{group=$GroupName;group_left=$bounds.Left;group_right=$bounds.Right;controls=$measured}
+}
 function Read-ReceiptSha256([string]$Name) {
  $control=Wait-Name $Name 'Edit'
  $value=$null
@@ -866,6 +886,7 @@ if ($ExportAcceptance) {
    if ($relative -cnotmatch '^data/exports/conversation-[A-Za-z0-9-]{16,64}\.json$') {throw 'ZYN-EXPORT-PROBE-006: invalid receipt path'}
    $exportDigest=Read-ReceiptSha256 'Export SHA-256'
    Focus-Control $path
+   $exportBounds=Measure-LocalPanelBounds 'Conversation export receipt' @('Relative export path','Export SHA-256') 'Edit'
    Capture 'M03-OPT-07-export-candidate.png'
    Stop-Native
    $script:stage='independent exact export contents'
@@ -880,7 +901,7 @@ if ($ExportAcceptance) {
    foreach ($name in @('M03-S06-export-consent-candidate.png','M03-OPT-07-export-candidate.png')) {
       $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
    }
-   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;actual_native_consent=$true;keyboard_consent_verified=$true;actual_native_export=$true;readonly_receipt_path=$true;ui_digest_matches_export=$true;independent_contents_and_restart_verified=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-export-ui-proof.json') -Encoding utf8
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;actual_native_consent=$true;keyboard_consent_verified=$true;actual_native_export=$true;readonly_receipt_path=$true;ui_digest_matches_export=$true;horizontal_layout_bounds=$exportBounds;independent_contents_and_restart_verified=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-export-ui-proof.json') -Encoding utf8
  } catch {
    [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-export-ui-failure.json') -Encoding utf8
    if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {try {Capture 'DEBUG-native-export-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}}
@@ -905,6 +926,7 @@ if ($ReviewAcceptance) {
    Wait-ReviewKeyboardFocus 'Approve local tool'
    [System.Windows.Forms.SendKeys]::SendWait('{TAB}')
    Wait-ReviewKeyboardFocus 'Deny local tool'
+   $reviewBounds=Measure-LocalPanelBounds 'Pending local tool review' @('Approve local tool','Deny local tool') 'Button'
    Capture 'M03-S05-review-pending-candidate.png'
    Wait-ReviewKeyboardFocus 'Deny local tool'
    [System.Windows.Forms.SendKeys]::SendWait(' ')
@@ -953,7 +975,7 @@ if ($ReviewAcceptance) {
    foreach ($name in @('M03-S05-review-pending-candidate.png','M03-OPT-08-denied-candidate.png','M03-OPT-08-approved-candidate.png','M03-OPT-08-reopened-candidate.png','M03-OPT-08-attachment-approved-candidate.png','M03-OPT-08-attachment-reopened-candidate.png')) {
      $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
    }
-   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;approved_pid=$secondPid;reopened_pid=$thirdPid;synthetic_only=$true;actual_native_denial=$true;keyboard_review_tab_order_verified=$true;keyboard_default_deny_verified=$true;keyboard_deny_activation_verified=$true;actual_native_approval=$true;actual_attachment_verification_approval=$true;reopened_trace=$true;independent_db_and_blob_proof=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-review-ui-proof.json') -Encoding utf8
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;approved_pid=$secondPid;reopened_pid=$thirdPid;synthetic_only=$true;actual_native_denial=$true;keyboard_review_tab_order_verified=$true;keyboard_default_deny_verified=$true;keyboard_deny_activation_verified=$true;horizontal_layout_bounds=$reviewBounds;actual_native_approval=$true;actual_attachment_verification_approval=$true;reopened_trace=$true;independent_db_and_blob_proof=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-review-ui-proof.json') -Encoding utf8
  } catch {
    [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-review-ui-failure.json') -Encoding utf8
    if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {try {Capture 'DEBUG-native-review-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}}

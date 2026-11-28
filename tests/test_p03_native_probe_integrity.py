@@ -208,6 +208,14 @@ class NativeProbeIntegrity(unittest.TestCase):
             self.assertIn(status, helper)
             self.assertIn(status, panel)
 
+    def test_native_review_and_export_horizontal_containment(self):
+        source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
+        for marker in ("function Measure-LocalPanelBounds", "ZYN-LOCAL-LAYOUT-001",
+                       "ZYN-LOCAL-LAYOUT-002", "Measure-LocalPanelBounds 'Pending local tool review'",
+                       "Measure-LocalPanelBounds 'Conversation export receipt'",
+                       "horizontal_layout_bounds=$reviewBounds", "horizontal_layout_bounds=$exportBounds"):
+            self.assertIn(marker, source)
+
     def test_native_consent_keyboard_and_recovery_timings(self):
         source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
         css = (ROOT / "apps/desktop/src/styles.css").read_text(encoding="utf-8")
