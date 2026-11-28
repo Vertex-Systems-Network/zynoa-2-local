@@ -140,7 +140,7 @@ function Wait-Name([string]$Name,[string]$Type='', [bool]$Enabled=$false,[int]$A
        # Completion status remains above the composer after Send scrolls it
        # into view. Read its exact accessible text even outside the viewport;
        # the later independent vault checks still verify durable output.
-       if (!$e.Current.IsOffscreen -or $Type -or $Name -ceq 'Turn stopped; any partial response was saved as cancelled.' -or $Name -ceq 'Local model response completed and saved.' -or $Name -ceq 'Message saved locally.' -or $Name -ceq 'Message and attachments saved locally. No model response was requested.') {return $e}
+       if (!$e.Current.IsOffscreen -or $Type -or $Name -ceq 'Turn stopped; any partial response was saved as cancelled.' -or $Name -ceq 'Local model response completed and saved.' -or $Name -ceq 'Backup passphrase meets input requirements.' -or $Name -ceq 'Backup passphrases match.' -or $Name -ceq 'Message saved locally.' -or $Name -ceq 'Message and attachments saved locally. No model response was requested.') {return $e}
      } catch [System.Windows.Automation.ElementNotAvailableException] {}
    }
    Start-Sleep -Milliseconds 250
@@ -734,12 +734,17 @@ function Type-SyntheticSecret([string]$Name,[string]$Secret) {
  if ($Secret -cnotmatch '^[A-Za-z0-9 ]{12,64}$') {throw 'ZYN-BACKUP-PROBE-002: invalid fixture secret'}
  $control=Wait-Name $Name 'Edit' $true
  if (!$control.Current.IsPassword) {throw 'ZYN-BACKUP-PROBE-003: input is not masked'}
- Focus-Control $control
+ # UIA SetFocus alone has acknowledged focus without delivering keyboard
+ # input on this WebView. Click only the exact masked input inside the HWND.
+ Focus-ByPhysicalClick $control
  $focused=[System.Windows.Automation.AutomationElement]::FocusedElement
- if ($focused.Current.Name -cne $Name -or !$focused.Current.IsPassword) {throw 'ZYN-BACKUP-PROBE-004: password focus mismatch'}
+ if ($null -eq $focused -or $focused.Current.Name -cne $Name -or !$focused.Current.IsPassword -or !$focused.Current.HasKeyboardFocus -or [ChatProbeWindow]::GetForegroundWindow() -ne $script:hwnd) {throw 'ZYN-BACKUP-PROBE-004: password focus mismatch'}
  [System.Windows.Forms.SendKeys]::SendWait('^a')
  [System.Windows.Forms.SendKeys]::SendWait('{BACKSPACE}')
- foreach ($char in $Secret.ToCharArray()) {[System.Windows.Forms.SendKeys]::SendWait([string]$char);Start-Sleep -Milliseconds 30}
+ foreach ($char in $Secret.ToCharArray()) {[System.Windows.Forms.SendKeys]::SendWait([string]$char);Start-Sleep -Milliseconds 50}
+ # Never read a password ValuePattern. Check only public validation state.
+ $status=if ($Name -ceq 'Confirm backup passphrase') {'Backup passphrases match.'} else {'Backup passphrase meets input requirements.'}
+ [void](Wait-Name $status '' $false 20)
 }
 function Confirm-ConsentByKeyboard([string]$Name,[string]$Action) {
  $checkbox=Wait-Name $Name 'CheckBox' $true
@@ -791,7 +796,9 @@ if ($BackupAcceptance) {
    if ($secondPid -eq $firstPid) {throw 'ZYN-BACKUP-PROBE-010: distinct process required'}
    Click-Control 'Backup Center'
    Type-Exact 'Backup ID to restore' $backupId
+   $script:stage='wrong-key masked input readiness'
    Type-SyntheticSecret 'Backup passphrase' 'incorrect fixture passphrase'
+   $script:stage='wrong-key explicit keyboard consent'
    Confirm-ConsentByKeyboard 'I understand restore creates a separate plaintext profile without replacing active data' 'Verify and restore to new profile'
    Click-Control 'Verify and restore to new profile'
    [void](Wait-Name 'Backup authentication failed. Check the passphrase or use an intact archive. No active profile was replaced. Check the recorded operation ID and local folder before another attempt.' '' $false 480)
@@ -803,7 +810,9 @@ if ($BackupAcceptance) {
    if ($thirdPid -in @($firstPid,$secondPid)) {throw 'ZYN-BACKUP-PROBE-011: distinct process required'}
    Click-Control 'Backup Center'
    Type-Exact 'Backup ID to restore' $backupId
+   $script:stage='correct-key masked input readiness'
    Type-SyntheticSecret 'Backup passphrase' 'synthetic backup fixture 2026'
+   $script:stage='correct-key explicit keyboard consent'
    Confirm-ConsentByKeyboard 'I understand restore creates a separate plaintext profile without replacing active data' 'Verify and restore to new profile'
    Click-Control 'Verify and restore to new profile'
    $restore=Wait-Name 'Relative restored profile path' 'Edit' $false 480

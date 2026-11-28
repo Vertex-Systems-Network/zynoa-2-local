@@ -195,6 +195,19 @@ class NativeProbeIntegrity(unittest.TestCase):
         self.assertLess(workflow.index("name: Upload actual backup UI candidate evidence"),
                         workflow.index("name: P03 T13 actual Windows installed"))
 
+    def test_backup_masked_input_requires_native_focus_and_public_readiness(self):
+        source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
+        panel = (ROOT / "apps/desktop/src/ui/PortableBackupPanel.tsx").read_text(encoding="utf-8")
+        helper = source.split("function Type-SyntheticSecret",1)[1].split("function Confirm-ConsentByKeyboard",1)[0]
+        self.assertIn("Focus-ByPhysicalClick $control", helper)
+        self.assertIn("HasKeyboardFocus", helper)
+        self.assertIn("Wait-Name $status", helper)
+        self.assertNotIn("GetCurrentPattern", helper)
+        self.assertNotIn("Write-Output", helper)
+        for status in ("Backup passphrase meets input requirements.", "Backup passphrases match."):
+            self.assertIn(status, helper)
+            self.assertIn(status, panel)
+
     def test_native_consent_keyboard_and_recovery_timings(self):
         source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
         css = (ROOT / "apps/desktop/src/styles.css").read_text(encoding="utf-8")
