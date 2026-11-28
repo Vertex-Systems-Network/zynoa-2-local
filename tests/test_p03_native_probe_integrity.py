@@ -13,8 +13,8 @@ class NativeProbeIntegrity(unittest.TestCase):
                        "if ($AttachmentAcceptance) {",
                        "ZYN-ATTACH-PROBE-002"):
             self.assertEqual(source.count(marker), 1, marker)
-        for mode in ("Model", "Partial", "Attachment", "Artifact", "Review", "Export", "Backup"):
-            self.assertEqual(source.count(f"if (${mode}Acceptance) {{"), 1, mode)
+        for mode in ("Model", "Partial", "Attachment", "Artifact", "Review", "Export", "Backup", "Reinstall"):
+            self.assertEqual(source.splitlines().count(f"if (${mode}Acceptance) {{"), 1, mode)
         for code in ("ZYN-EXPORT-PROBE-006", "ZYN-BACKUP-PROBE-002", "ZYN-BACKUP-PROBE-008"):
             self.assertEqual(source.count(code), 1, code)
             line = next(line for line in source.splitlines() if code in line)
@@ -165,6 +165,21 @@ class NativeProbeIntegrity(unittest.TestCase):
         self.assertIn("== baseline", verifier)
         self.assertLess(workflow.index("name: Upload actual text artifact UI candidate evidence"),
                         workflow.index("name: P03 T10 actual Windows scoped tool review"))
+
+    def test_reinstall_is_disposable_and_verifies_every_state(self):
+        source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
+        verifier = (ROOT / "scripts/verify_p03_reinstall_ui_database.py").read_text(encoding="utf-8")
+        workflow = (ROOT / ".github/workflows/p03-native-baseline.yml").read_text(encoding="utf-8")
+        for marker in ("RUNNER_ENVIRONMENT", "existing installation refused", "Stop-Process -Id $crashPid -Force",
+                       "Read-ReinstallVault 'crashed'", "Read-ReinstallVault 'restarted'",
+                       "Read-ReinstallVault 'uninstalled'", "Read-ReinstallVault 'reinstalled'",
+                       "Start-Process -FilePath $uninstaller -ArgumentList '/S'", "Wait-SavedAttachment"):
+            self.assertIn(marker, source)
+        self.assertIn('db_state(restored) == rows', verifier)
+        self.assertIn('== proof', verifier)
+        self.assertIn("--no-binary-patching", workflow)
+        self.assertLess(workflow.index("name: Upload actual backup UI candidate evidence"),
+                        workflow.index("name: P03 T13 actual Windows installed"))
 
     def test_ast_validation_precedes_build_and_original_acceptance_gates(self):
         workflow = (ROOT / ".github/workflows/p03-native-baseline.yml").read_text(encoding="utf-8")

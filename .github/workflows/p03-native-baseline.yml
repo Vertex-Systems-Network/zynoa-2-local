@@ -431,3 +431,41 @@ jobs:
           name: p03-backup-ui-${{ github.run_attempt }}
           path: ${{ runner.temp }}/p03-backup-ui-proof/
           if-no-files-found: error
+
+      - name: P03 T13 disposable Windows NSIS bundle (not release)
+        working-directory: apps/desktop
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:RUNNER_ENVIRONMENT -cne 'github-hosted') { throw 'Hosted fixture runner required' }
+          $config=Join-Path $env:RUNNER_TEMP 'p03-nsis-fixture.json'
+          if (Test-Path -LiteralPath $config) { throw 'Fresh fixture config required' }
+          $override=@{bundle=@{active=$true;targets=@('nsis');createUpdaterArtifacts=$false;windows=@{nsis=@{installMode='currentUser'};webviewInstallMode=@{type='skip'}}}}
+          $override | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $config -Encoding utf8
+          npm run tauri -- bundle --bundles nsis --config $config --no-binary-patching
+          if ($LASTEXITCODE -ne 0) { throw 'Disposable installer generation failed' }
+      - name: P03 T13 actual Windows installed crash restart uninstall reinstall
+        shell: pwsh
+        timeout-minutes: 10
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $exe=Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
+          $bundle=Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\bundle\nsis'
+          $candidates=@(Get-ChildItem -LiteralPath $bundle -Filter '*-setup.exe' -File)
+          if ($candidates.Count -ne 1) { throw 'Expected exactly one disposable installer' }
+          & scripts/probe_p03_chat_ui.ps1 -Executable $exe -SourceSha $env:EXACT_HEAD -OutputDirectory (Join-Path $env:RUNNER_TEMP 'p03-reinstall-ui-proof') -ReinstallAcceptance -Installer $candidates[0].FullName
+          if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) { throw 'P03 reinstall native probe failed' }
+      - name: Preserve failed reinstall diagnostics (not acceptance)
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-reinstall-ui-failure-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-reinstall-ui-proof/
+          if-no-files-found: warn
+      - name: Upload actual reinstall candidate evidence
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-reinstall-ui-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-reinstall-ui-proof/
+          if-no-files-found: error

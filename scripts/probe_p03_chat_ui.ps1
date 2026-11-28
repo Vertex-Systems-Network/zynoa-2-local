@@ -10,6 +10,8 @@ param(
  [switch]$ReviewAcceptance,
  [switch]$ExportAcceptance,
  [switch]$BackupAcceptance,
+ [switch]$ReinstallAcceptance,
+ [string]$Installer='',
  [string]$PriorModelProofDirectory='',
  [string]$OllamaExecutable=''
 )
@@ -610,6 +612,90 @@ function Wait-ReviewDecision([string]$Name) {
  $row=Wait-Name $Name 'ListItem'
  Focus-Control $row
  if ($row.Current.IsOffscreen -or $row.Current.BoundingRectangle.IsEmpty) {throw 'ZYN-REVIEW-PROBE-002: decision not visible'}
+}
+function Read-ReinstallVault([string]$Stage) {
+ $result=& python scripts/verify_p03_reinstall_ui_database.py --stage $Stage --output $OutputDirectory --backup-proof (Join-Path $env:RUNNER_TEMP 'p03-backup-ui-proof')
+ if ($LASTEXITCODE -ne 0) {throw 'ZYN-REINSTALL-PROBE-001: independent vault verification failed'}
+ return ($result | ConvertFrom-Json)
+}
+if ($ReinstallAcceptance) {
+ try {
+   if ($ModelAcceptance -or $PartialAcceptance -or $AttachmentAcceptance -or $ArtifactAcceptance -or $ReviewAcceptance -or $ExportAcceptance -or $BackupAcceptance) {throw 'ZYN-REINSTALL-PROBE-002: mutually exclusive journeys'}
+   if ($env:RUNNER_ENVIRONMENT -cne 'github-hosted') {throw 'ZYN-REINSTALL-PROBE-003: hosted runner required'}
+   $bundleDir=Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\bundle\nsis'
+   $candidates=@(Get-ChildItem -LiteralPath $bundleDir -File -Filter '*-setup.exe')
+   if ($candidates.Count -ne 1 -or [IO.Path]::GetFullPath($Installer) -ine $candidates[0].FullName) {throw 'ZYN-REINSTALL-PROBE-004: exact fixture installer required'}
+   if (($candidates[0].Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {throw 'ZYN-REINSTALL-PROBE-005: installer reparse point'}
+   $installRoot=Join-Path $env:RUNNER_TEMP 'p03-disposable-installed-app'
+   $installed=Join-Path $installRoot 'zynoa_desktop.exe'
+   $uninstaller=Join-Path $installRoot 'uninstall.exe'
+   if (Test-Path -LiteralPath $installRoot) {throw 'ZYN-REINSTALL-PROBE-006: fresh install path required'}
+   $registryRoots=@('HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall','HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall','HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall')
+   foreach ($reg in $registryRoots) {
+     if (Test-Path $reg) {
+       foreach ($key in (Get-ChildItem $reg)) {
+         $record=Get-ItemProperty -LiteralPath $key.PSPath
+         if ($record.DisplayName -eq 'Zynoa' -or $key.PSChildName -eq 'com.zynoa.desktop') {throw 'ZYN-REINSTALL-PROBE-007: existing installation refused'}
+       }
+     }
+   }
+   $sourceHash=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant()
+   $installerHash=(Get-FileHash -LiteralPath $Installer -Algorithm SHA256).Hash.ToLowerInvariant()
+   $script:stage='reinstall baseline after backup proof'
+   $null=Read-ReinstallVault 'baseline'
+   function Install-DisposableFixture {
+     $p=Start-Process -FilePath $Installer -ArgumentList @('/S','/NS',('/D='+$installRoot)) -Wait -PassThru
+     if ($p.ExitCode -ne 0 -or !(Test-Path -LiteralPath $installed -PathType Leaf) -or !(Test-Path -LiteralPath $uninstaller -PathType Leaf)) {throw 'ZYN-REINSTALL-PROBE-008: fixture install failed'}
+     foreach ($item in @($installRoot,$installed,$uninstaller)) {
+       if (((Get-Item -LiteralPath $item).Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {throw 'ZYN-REINSTALL-PROBE-009: installation reparse point'}
+     }
+     if ((Get-FileHash -LiteralPath $installed -Algorithm SHA256).Hash.ToLowerInvariant() -cne $sourceHash) {throw 'ZYN-REINSTALL-PROBE-010: installed binary differs from native-tested build'}
+   }
+   $script:stage='actual fixture install'
+   Install-DisposableFixture
+   $Executable=$installed
+   Start-Native
+   $crashPid=$script:app.Id
+   Click-Control 'Chat'
+   Click-Control 'P03 attachment proof'
+   Wait-Assistant 'P03 synthetic attachment message'
+   Wait-SavedAttachment 'p03-attachment-fixture.bin' 70000
+   Capture 'M23-installed-history-candidate.png'
+   $script:stage='force terminate actual installed desktop'
+   Stop-Process -Id $crashPid -Force
+   if (!$script:app.WaitForExit(10000)) {throw 'ZYN-REINSTALL-PROBE-011: process did not exit'}
+   $script:root=$null
+   $null=Read-ReinstallVault 'crashed'
+   $script:stage='actual installed desktop restart after kill'
+   Start-Native
+   $restartPid=$script:app.Id
+   if ($restartPid -eq $crashPid) {throw 'ZYN-REINSTALL-PROBE-012: distinct restart required'}
+   Click-Control 'Chat'
+   Click-Control 'P03 attachment proof'
+   Wait-Assistant 'P03 synthetic attachment message'
+   Wait-SavedAttachment 'p03-attachment-fixture.bin' 70000
+   Stop-Native
+   $null=Read-ReinstallVault 'restarted'
+   $script:stage='actual uninstall with data preservation'
+   # Only exact synthetic fixture uninstaller. No delete-app-data option.
+   $p=Start-Process -FilePath $uninstaller -ArgumentList '/S' -Wait -PassThru
+   if ($p.ExitCode -ne 0 -or (Test-Path -LiteralPath $installed)) {throw 'ZYN-REINSTALL-PROBE-013: uninstall failed or binary remains'}
+   $null=Read-ReinstallVault 'uninstalled'
+   $script:stage='actual reinstall and saved-history UI readback'
+   Install-DisposableFixture
+   Start-Native
+   $reinstallPid=$script:app.Id
+   if ($reinstallPid -in @($restartPid,$crashPid)) {throw 'ZYN-REINSTALL-PROBE-014: distinct reinstall process required'}
+   Click-Control 'Chat'
+   Click-Control 'P03 attachment proof'
+   Wait-Assistant 'P03 synthetic attachment message'
+   Wait-SavedAttachment 'p03-attachment-fixture.bin' 70000
+   Capture 'M23-reinstalled-history-candidate.png'
+   Stop-Native
+   $reopened=Read-ReinstallVault 'reinstalled'
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;synthetic_only=$true;installer_sha256=$installerHash;executable_sha256=$sourceHash;crash_pid=$crashPid;restart_pid=$restartPid;reinstall_pid=$reinstallPid;vault_fingerprint=$reopened.fingerprint;actual_uninstall_reinstall=$true;data_deletion_requested=$false;active_history_preserved=$true;screenshots=@('M23-installed-history-candidate.png','M23-reinstalled-history-candidate.png')} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-reinstall-ui-proof.json') -Encoding utf8
+ } finally {Stop-Native}
+ return
 }
 function Read-BackupVault([string]$Stage) {
  $result=& python scripts/verify_p03_backup_ui_database.py --stage $Stage --output $OutputDirectory --export-proof (Join-Path $env:RUNNER_TEMP 'p03-export-ui-proof')
