@@ -1,0 +1,42 @@
+{
+  "change_id": "CHG-P03-M03-NATIVE-KEYBOARD-REPAIR-20261125",
+  "module_id": "M03",
+  "kind": "bugfix",
+  "title": "Bounded native keyboard proof and failure diagnostics",
+  "summary": "Retain exact real input proof; bounded paced keyboard retry, actual supported UIA button activation, safe failure evidence and content-responsive Chat pane layout.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/27"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
+  "affected_option_ids": [],
+  "docs_paths": [
+    "docs/evidence/P03_T03_PREFLIGHT.md",
+    "docs/state/HANDOFF.md"
+  ],
+  "help_paths": [],
+  "wiki_paths": [],
+  "test_evidence": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45629508632",
+    "scripts/probe_p03_chat_ui.ps1",
+    ".github/workflows/p03-native-baseline.yml",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45631743384",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45632415583",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45632415583/artifacts/15030958332"
+  ],
+  "commit_sha": "8b73b99cdb83333cd3aae549f187e3f5682e0ba1",
+  "release": null,
+  "verification": {
+    "tests_passed": true,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "CI fixture only, no product data or schema modification.",
+  "created_at": "2026-11-25",
+  "updated_at": "2026-11-25",
+  "version_bump": "none",
+  "docs_impact": true,
+  "data_migration": false
+}

@@ -1,0 +1,120 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { decodeReply,validText,byteLength,validSelection,validAttachmentName,recoveryRows } from "../.ui-tests/chat-contract.js";
+const thread={id:"thread-alpha-001",title:"Saved",revision:2,createdAt:1,updatedAt:2};
+const msg={id:"message-alpha-001",parentId:null,ordinal:1,role:"user",content:"<script>plain text</script>",status:"complete",revision:1,createdAt:1,attachments:[]};
+const wrap=(commandId,data)=>({schemaVersion:1,commandId,correlationId:"correlation-00001",data});
+const decode=(cmd,data,payload)=>decodeReply(wrap(cmd,data),cmd,"correlation-00001",payload);
+test("UTF-8 byte bounds and NUL/whitespace rejection",()=>{
+ assert.equal(byteLength("é"),2);
+ assert.equal(validText("é".repeat(256),512),true);
+ assert.equal(validText("é".repeat(257),512),false);
+ assert.equal(validText("  ",512),false);
+ assert.equal(validText("x\0y",512),false);
+});
+test("list and history are scoped, ordered and bounded",()=>{
+ assert.deepEqual(decode("chat.list",{items:[thread],next:null},{after:null,limit:1}).items,[thread]);
+ const q={conversationId:thread.id,after:0,limit:1};
+ assert.deepEqual(decode("chat.history",{conversation:thread,items:[msg],next:null},q).items,[msg]);
+ for(const data of [{conversation:{...thread,id:"other-thread-001"},items:[msg],next:null},{conversation:thread,items:[msg,msg],next:null},{conversation:thread,items:[msg],next:99},{conversation:thread,items:[{...msg,role:"tool"}],next:null}]){
+  assert.throws(()=>decode("chat.history",data,q),/ZYN-CHAT-RESPONSE/);
+ }
+ assert.throws(()=>decode("chat.list",{items:[thread],next:"other-thread-001"},{after:null,limit:1}),/ZYN-CHAT-RESPONSE/);
+});
+test("attachment metadata is bounded, validated and never grants path authority",()=>{
+ const q={conversationId:thread.id,after:0,limit:1};
+ const a={id:"artifact-alpha-001",name:"note.txt",bytes:23,sha256:"a".repeat(64)};
+ const withAttachments=attachments=>({conversation:thread,items:[{...msg,attachments}],next:null});
+ assert.deepEqual(decode("chat.history",withAttachments([a]),q).items[0].attachments,[a]);
+ for(const invalid of [[{...a,name:"../outside"}],[{...a,name:"NUL.txt"}],[{...a,bytes:-1}],[{...a,bytes:25*1024*1024+1}],[{...a,sha256:"bad"}],[{...a,path:"outside"}],[a,a],Array.from({length:5},(_,i)=>({...a,id:"artifact-alpha-00"+i,bytes:25*1024*1024}))]){
+  assert.throws(()=>decode("chat.history",withAttachments(invalid),q),/ZYN-CHAT-RESPONSE/);
+ }
+});
+test("stale correlation and unverified acknowledgement rejected",()=>{
+ const q={id:msg.id,conversationId:thread.id,parentId:null,content:msg.content};
+ const ack={receipt:{id:msg.id,revision:1,conversationRevision:2,ordinal:1},replayed:true};
+ assert.deepEqual(decode("chat.saveUserMessage",ack,q),ack);
+ assert.throws(()=>decodeReply(wrap("chat.saveUserMessage",ack),"chat.saveUserMessage","different-correlation",q),/ZYN-CHAT-RESPONSE/);
+ assert.throws(()=>decode("chat.saveUserMessage",{...ack,receipt:{...ack.receipt,id:"wrong-message-001"}},q),/ZYN-CHAT-RESPONSE/);
+ assert.throws(()=>decode("chat.saveUserMessage",{...ack,receipt:{...ack.receipt,ordinal:null}},q),/ZYN-CHAT-RESPONSE/);
+});
+
+test("file selection limits and names match native policy",()=>{
+ assert.equal(validSelection([{name:"résumé.txt",size:0},{name:"note.txt",size:25*1024*1024}]),true);
+ for(const name of ["../x","NUL.txt","COM1 .txt","a.","a ",".hidden","x:y"])assert.equal(validAttachmentName(name),false);
+ assert.equal(validSelection(Array.from({length:9},()=>({name:"x",size:0}))),false);
+ assert.equal(validSelection(Array.from({length:5},()=>({name:"x",size:25*1024*1024}))),false);
+ assert.equal(validSelection([{name:"x",size:25*1024*1024+1}]),false);
+});
+test("upload acknowledgements bind exact scope, offset and final manifest",()=>{
+ const q={conversationId:thread.id,messageId:msg.id,artifactId:"artifact-alpha-001",name:"note.txt",total:2,offset:0,chunk:[1,2]};
+ const a={id:q.artifactId,name:q.name,bytes:2,sha256:"a".repeat(64)};
+ const ack={conversationId:q.conversationId,messageId:q.messageId,artifactId:q.artifactId,received:2,attachment:a};
+ assert.deepEqual(decode("chat.attachment.chunk",ack,q),ack);
+ for(const bad of [{...ack,received:1},{...ack,messageId:"wrong-message-001"},{...ack,attachment:null},{...ack,attachment:{...a,bytes:3}},{...ack,attachment:{...a,name:"other.txt"}}])assert.throws(()=>decode("chat.attachment.chunk",bad,q),/ZYN-CHAT-RESPONSE/);
+ const partial={...q,total:3};
+ assert.equal(decode("chat.attachment.chunk",{...ack,attachment:null},partial).attachment,null);
+ assert.throws(()=>decode("chat.attachment.chunk",ack,partial),/ZYN-CHAT-RESPONSE/);
+ const discard={conversationId:q.conversationId,messageId:q.messageId};
+ assert.deepEqual(decode("chat.attachment.discard",{...discard,discarded:true},discard),{...discard,discarded:true});
+ assert.throws(()=>decode("chat.attachment.discard",{...discard,discarded:false},discard),/ZYN-CHAT-RESPONSE/);
+});
+
+test("managed recovery inventory exposes counts only, with consistent bounded totals",()=>{
+ const report={referencedHashes:2,verifiedReferenced:1,verifiedUnreferenced:1,unavailableReferenced:1,damagedOrUnreadable:1,interruptedStages:1,unexpectedEntries:0,unlinkedMetadata:0};
+ assert.deepEqual(decode("chat.recovery.inspect",report,{}),report);
+ assert.deepEqual(recoveryRows(report),["Referenced hashes: 2","Verified referenced: 1","Unavailable referenced: 1","Verified unreferenced: 1","Damaged or unreadable: 1","Interrupted stages: 1","Unexpected entries: 0","Unlinked metadata: 0"]);
+ for(const invalid of [{...report,path:"outside"},{...report,referencedHashes:1},{...report,verifiedReferenced:-1},{...report,interruptedStages:4097},{...report,unexpectedEntries:0.5},{...report,unlinkedMetadata:"0"}]){
+  assert.throws(()=>decode("chat.recovery.inspect",invalid,{}),/ZYN-CHAT-RESPONSE/);
+ }
+});
+
+test("text artifact replies are scoped, bounded and plain text",()=>{
+ const q={conversationId:thread.id,sourceId:"assistant-alpha-0001"};
+ const a={id:"a".repeat(64),name:"assistant-response.txt",bytes:20,sha256:"b".repeat(64)};
+ const result={...q,messageId:"c".repeat(64),attachment:a,replayed:false};
+ assert.deepEqual(decode("chat.artifact.createText",result,q),result);
+ for(const bad of [{...result,sourceId:"wrong-source-0001"},{...result,messageId:"invalid"},{...result,attachment:{...a,name:"other.txt"}},{...result,attachment:{...a,bytes:262145}},{...result,path:"outside"}]){
+   assert.throws(()=>decode("chat.artifact.createText",bad,q),/ZYN-CHAT-RESPONSE/);
+ }
+ const p={...q,content:"<script>plain text</script> اردو"};
+ assert.deepEqual(decode("chat.artifact.previewText",p,q),p);
+ for(const bad of [{...p,conversationId:"wrong-thread-0001"},{...p,content:"\0"},{...p,content:"x".repeat(262145)},{...p,url:"file://outside"}]){
+   assert.throws(()=>decode("chat.artifact.previewText",bad,q),/ZYN-CHAT-RESPONSE/);
+ }
+});
+
+
+test("review replies enforce exact request and thread, bounded tool vocabulary and decision",()=>{
+ const q={conversationId:thread.id,sourceId:msg.id,attachmentId:null};
+ const p={conversationId:thread.id,sourceId:msg.id,requestId:"a".repeat(64),targetId:"b".repeat(64),targetSha256:"c".repeat(64),tool:"local.write_artifact"};
+ assert.deepEqual(decode("chat.review.begin",p,q),p);
+ for(const bad of [{...p,tool:"shell.exec"},{...p,sourceId:"wrong-source-001"},{...p,path:"outside"},{...p,targetSha256:"bad"}])assert.throws(()=>decode("chat.review.begin",bad,q),/ZYN-CHAT-RESPONSE/);
+ const finish={conversationId:thread.id,requestId:p.requestId,decision:"deny"};
+ assert.deepEqual(decode("chat.review.finish",{...finish,executed:false},finish),{...finish,executed:false});
+ assert.throws(()=>decode("chat.review.finish",{...finish,executed:true},finish),/ZYN-CHAT-RESPONSE/);
+ const trace={requestId:p.requestId,targetId:p.targetId,targetSha256:p.targetSha256,tool:p.tool,decision:"deny",recordedAt:1};
+ const list={conversationId:thread.id,after:null,limit:1};const page={conversationId:thread.id,items:[trace],next:null};
+ assert.deepEqual(decode("chat.review.list",page,list),page);
+ assert.throws(()=>decode("chat.review.list",{...page,items:[{...trace,decision:"always"}]},list),/ZYN-CHAT-RESPONSE/);
+ assert.throws(()=>decode("chat.review.list",{...page,items:[trace,trace]},list),/ZYN-CHAT-RESPONSE/);
+});
+
+
+test("export acknowledgement is exact scope, revision, destination and bounded counts",()=>{
+ const q={conversationId:thread.id,revision:2,exportId:"export-alpha-00001",destination:"local-data-exports"};
+ const ack={conversationId:q.conversationId,revision:q.revision,exportId:q.exportId,relativePath:"data/exports/conversation-export-alpha-00001.json",bytes:124,sha256:"a".repeat(64),messageCount:2,attachmentCount:1};
+ assert.deepEqual(decode("chat.export.conversation",ack,q),ack);
+ for(const bad of [{...ack,relativePath:"../escape"},{...ack,revision:3},{...ack,sha256:"bad"},{...ack,messageCount:4097},{...ack,attachmentCount:17},{...ack,bytes:32*1024*1024+1},{...ack,conversationId:"other-thread-001"}])assert.throws(()=>decode("chat.export.conversation",bad,q),/ZYN-CHAT-RESPONSE/);
+});
+
+
+test("backup and staged restore receipts never expose secrets or active-profile changes",()=>{
+ const q={backupId:"backup-alpha-00001",passphrase:"synthetic fixture secret"};
+ const ack={backupId:q.backupId,relativePath:"backups/portable/backup-alpha-00001.awbackup",bytes:124,sha256:"a".repeat(64),itemCount:2};
+ assert.deepEqual(decode("chat.backup.create",ack,q),ack);
+ for(const bad of [{...ack,passphrase:q.passphrase},{...ack,relativePath:"outside"},{...ack,itemCount:4097}])assert.throws(()=>decode("chat.backup.create",bad,q),/ZYN-CHAT-RESPONSE/);
+ const restore={...q,restoreId:"restore-alpha-0001"};const result={backupId:q.backupId,restoreId:restore.restoreId,relativePath:"backups/restored/restore-alpha-0001/com.zynoa.desktop",itemCount:2,conversationCount:1,activeProfileChanged:false};
+ assert.deepEqual(decode("chat.backup.restorePreview",result,restore),result);
+ assert.throws(()=>decode("chat.backup.restorePreview",{...result,activeProfileChanged:true},restore),/ZYN-CHAT-RESPONSE/);
+});

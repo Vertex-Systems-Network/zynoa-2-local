@@ -1,0 +1,41 @@
+{
+  "change_id": "CHG-P03-M03-PARTIAL-NATIVE-PROOF-20261127",
+  "module_id": "M03",
+  "kind": "feature",
+  "title": "Real native partial response persistence acceptance candidate",
+  "summary": "Actual native Stop after observed real-model streaming, independent cancelled SQLite receipt and distinct-process restart.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
+  "affected_option_ids": [
+    "M03-OPT-02"
+  ],
+  "docs_paths": [
+    "docs/evidence/P03_T05_PARTIAL_RESPONSE_NATIVE_CANDIDATE_20261127.md",
+    "docs/modules/M03.md"
+  ],
+  "help_paths": [],
+  "wiki_paths": [],
+  "test_evidence": [
+    "scripts/probe_p03_chat_ui.ps1",
+    "scripts/verify_p03_partial_ui_database.py",
+    ".github/workflows/p03-native-baseline.yml",
+    "tests/test_p03_native_probe_integrity.py",
+    "scripts/verify_p03_attachment_ui_database.py"
+  ],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No storage schema or permission changes.",
+  "created_at": "2026-11-27",
+  "updated_at": "2026-11-27",
+  "version_bump": "none",
+  "docs_impact": true,
+  "data_migration": false
+}

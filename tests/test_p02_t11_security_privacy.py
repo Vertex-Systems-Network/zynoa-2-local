@@ -15,11 +15,21 @@ def fixtures():
       {x:contents(x) for x in FRONTEND},
       contents(".github/workflows/p01-desktop.yml"),
       json.loads(contents("docs/state/PHASE.json")),
-      json.loads(contents("docs/state/pr-tasks/P02.json"))
+      json.loads(contents("docs/state/pr-tasks/P02.json")),
+      json.loads(contents("apps/desktop/src-tauri/capabilities/main-chat.json"))
     ]
+def audit_current(v):
+    return audit_source_contract(*v[:5],chat_capability=v[7])
+
 class SecurityReviewTests(unittest.TestCase):
+    def test_p03_chat_capability_cannot_add_host_or_remote_access(self):
+        for key,value in (("permissions",["allow-chat-request","shell:allow-execute"]),("remote",{"urls":["https://example.org"]}),("local",False)):
+            v=fixtures();v[7][key]=value
+            with self.assertRaises(P02SecurityViolation):audit_current(v)
+        with self.assertRaises(P02SecurityViolation):audit_source_contract(*fixtures()[:5])
+
     def test_current_tree_meets_narrow_security_contract(self):
-        r=audit_source_contract(*fixtures()[:5])
+        r=audit_current(fixtures())
         self.assertEqual(r["frontend_files_reviewed"],len(FRONTEND))
         self.assertTrue(r["strict_content_security_policy_verified"])
         self.assertTrue(r["tauri_readonly_capability_verified"])
@@ -37,17 +47,17 @@ class SecurityReviewTests(unittest.TestCase):
             for name in path[1:-1]:current=current[name]
             current[path[-1]]=value
             with self.subTest(path=path),self.assertRaises(P02SecurityViolation):
-                audit_source_contract(*v[:5])
+                audit_current(v)
     def test_fetch_html_injection_and_persistent_browser_storage_are_denied(self):
         for injected in ("fetch('https://example.org');","dangerouslySetInnerHTML",
                          "localStorage.setItem('key','value');","eval(code);"):
             v=fixtures()
             v[3]["apps/desktop/src/ui/HelpCenter.tsx"]+="\n"+injected
             with self.subTest(injected=injected),self.assertRaises(P02SecurityViolation):
-                audit_source_contract(*v[:5])
+                audit_current(v)
     def test_untrusted_pr_permissions_or_fake_done_state_are_denied(self):
         v=fixtures();v[4]+="\npull-requests: write"
-        with self.assertRaises(P02SecurityViolation):audit_source_contract(*v[:5])
+        with self.assertRaises(P02SecurityViolation):audit_current(v)
         v=fixtures()
         v[5].update(phase="P02",phase_status="IN_PROGRESS")
         for task in v[6]["tasks"]:
@@ -55,7 +65,7 @@ class SecurityReviewTests(unittest.TestCase):
             if task["id"]=="P02-T11": task["status"]="IN_PROGRESS"
         verify_premerge_state(v[5],v[6])
         next(t for t in v[6]["tasks"] if t["id"]=="P02-T11")["status"]="DONE"
-        with self.assertRaises(P02SecurityViolation):audit_sources(*v)
+        with self.assertRaises(P02SecurityViolation):audit_sources(*v[:7])
     def test_premerge_gate_rejects_closed_or_later_phase(self):
         v=fixtures()
         for task in v[6]["tasks"]:
@@ -64,10 +74,10 @@ class SecurityReviewTests(unittest.TestCase):
         for phase,status in (("P02","MERGED_VERIFIED"),("P03","IN_PROGRESS")):
             v[5].update(phase=phase,phase_status=status)
             with self.subTest(phase=phase,status=status),self.assertRaises(P02SecurityViolation):
-                audit_sources(*v)
-        self.assertTrue(audit_source_contract(*v[:5])["strict_content_security_policy_verified"])
+                audit_sources(*v[:7])
+        self.assertTrue(audit_current(v)["strict_content_security_policy_verified"])
     def test_broken_readonly_native_contract_is_rejected(self):
         v=fixtures()
         v[2]=v[2].replace("writable: false","writable: true")
-        with self.assertRaises(P02SecurityViolation):audit_source_contract(*v[:5])
+        with self.assertRaises(P02SecurityViolation):audit_current(v)
 if __name__=="__main__":unittest.main()

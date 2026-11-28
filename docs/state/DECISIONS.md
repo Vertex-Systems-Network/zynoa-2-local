@@ -186,3 +186,91 @@ M26 uses append-only event ledger, per-PR change records, verified-release manif
 2026-11-25 | P02 | Add fixed receipt denial codes and trusted-main path trigger for postmerge repair | Issue #22: do not guess root cause or relax any required proof; no P03 until actual receipt; maintenance snapshot unchanged.
 
 2026-11-25 | P02 | Use PR write scope rather than general issue write for main-only receipt and allowlisted HTTP status diagnostics | #22 confirmed POST-stage denial; https://docs.github.com/en/rest/issues/comments#create-an-issue-comment documents PR write; test actual publication before transition.
+
+2026-11-25 | P03 | Activate phase only after independent P02 bot receipt; use separate read-only exact-head Windows baseline workflow | Preserve P02 evidence and gates, avoid changing P01/P02 workflow scope. Real native baseline pending before feature code.
+
+2026-11-25 | P03 | Fix inherited SQLite connection lifetime as a minimal preflight regression repair | #26, full Windows suite failed with 31 leaked-handle cleanup errors. Explicit contextlib.closing preserves transactions and all tests; no P00 behavior expansion. Use pinned actual local Ollama probe and existing Rust SQLite vault; see P03 preflight ADR. T02 code waits for baseline.
+
+2026-11-25 | P03 | Move model cache location into runtime shell environment | Initial workflow failed before job creation; runner.temp is not available in job-level env. No tests or verification gates changed.
+
+2026-11-25 | P03 | Accept T01 scoped baseline and proceed to T02 | Native and local-model artifact readback and exact-head CI verified; inherited warnings recorded. T02 additive v2 migration and real Rust tests first.
+
+2026-11-25 | P03 | Implement additive native v2 normalized chat tables and pre-migration verified SQLite backup under reserved writer lock | Preserve v1 opaque records, no inferred history conversion. Typed postcommit receipts, journal atomicity, parent FK and bounded ordinal paging; no UI or portable encryption in T02. Native tests/boot proof pending.
+
+2026-11-25 | P03 | Accept T02 native storage scope from exact-source Windows CI and independently hash-verified original proof | Nine focused real SQLite tests, 41 total Rust tests, native boot/schema v2 and all regression checks passed. T03 next; 8 new dead-code warnings tracked for wiring and T14. No UI or encrypted backup claim.
+
+2026-11-25 | P03 | Accept T03 local conversation UI and durable restart scope from exact-source Windows proof | Real keyboard create/save, process restart, UI readback and independent SQLite identity passed; original artifact and PNG hashes independently verified and visually reviewed. T04 inference remains separate.
+
+2026-11-25 | P03 | T03 dedicated Chat view with bounded typed native domain commands, no generic SQL/FS/network grant | Official Tauri v2 command/capability docs; preserve old workspace handshake and P02 shell. Main-local scoped capability and explicit allowlist planned; no product authority expanded in preflight. Real UI create/restart/readback required before DONE.
+
+2026-11-25 | P03 | Split T03 into native thread query then bounded IPC/UI slices | Existing P01/P02 exact privilege allowlists require explicit scoped migration and new negative tests; preserve historical checks. Add metadata-only queries and same-thread reconciliation lookup first; no authority expansion yet.
+
+2026-11-25 | P03 | Implement scoped chat_request domain command and separate local capability | Keep workspace handshake unchanged, no arbitrary host authority; stable mutation ID replay, bounded reads, typed errors. Retain historical P02 strict gate and test current exact grant. Native and UI proof pending.
+
+2026-11-25 | P03 | Wire dedicated save-only Chat UI to native typed domain service | Preserve local-only capability and existing shortcuts; strict correlated response validation, stable ID retry and session drafts. Fix missed P02 exact capability assertion by validating both explicitly scoped local grants; no arbitrary privilege or weakened deny tests. Native interaction proof pending.
+
+2026-11-25 | P03 | Add real Windows UIA create/save/restart proof after existing empty-vault assertions | Reuse disposable runner and current read-only workflow; compare DB identities and journal before/after restart, no test injection or data reset. Screenshots candidate only until independent review. Fresh exact-head CI required.
+
+2026-11-25 | P03 | Repair native keyboard probe without weakening acceptance | Run 45629508632 passed 47 real Rust tests and build, failed exact keyboard readback; root cause unknown. Two bounded real keyboard attempts, UIA focus then actual pointer focus, exact ValuePattern comparison retained; preserve separate failure artifacts. Issue #27 open.
+
+2026-11-25 | P03 | Repair native ARIA pressed button activation and responsive conversation layout | Run 45632415583 independently confirmed real keyboard input and saved data; reopen list visible, provider InvokePattern unsupported for pressed button. Use actual supported Invoke/Toggle pattern or bounded physical click, retain postrestart exact UI+database proof. Review native screenshot showed unnecessary stacked pane at 1024 width; use content container breakpoint. No completion claim.
+
+2026-11-25 | P03 | Apply reviewed F01/F02/F04/F05 repair candidate plus F03 acknowledgement/status consistency; preserve active task status | Failed exact-head native assertion, bounded standard I/O, shared conservative draft-aware context and strict validation; interruptible transport and exact-head acceptance remain pending.
+
+2026-11-25 | P03 | Interruptible async loopback transport using pinned reqwest and a latched wakeable cancellation state | Prior Windows baseline passed; preserve byte limits and terminal persistence, no new dependency/schema/capability. Candidate tests require fresh exact-head native CI and real model UI proof.
+
+2026-11-25 | P03 | Expand cancellation acceptance without depending on installed runtime | Prior exact-head Windows baseline 45660752755 passed 57 native and 9 focused vault tests. Add bounded deterministic loopback stall/retry and terminal race fixtures; preserve real Ollama and native UI acceptance gates.
+
+2026-11-25 | P03 | Gate startup teardown on committed native audit ledger schema | Run 45664948466 passed 59 native / 9 focused vault tests but audit DB absent. Issue #28: probable early-stop race, not proven. Read-only readiness predicate, unchanged deadline and independent ledger validation; no app or data schema changes.
+
+2026-11-25 | P03 | Verify actual product adapter against pinned CPU Ollama in existing same-repository read-only preflight | Windows startup regression repaired and verified by 45667552634; issue #28 closed. Explicit ignored integration test only, synthetic disposable vault, no new app capability, no runtime installation in product, no output text in evidence. Existing smoke and new adapter proof remain separately labeled. Linux native build prerequisites added; exact-head CI, native model UI and actual token calibration pending.
+
+2026-11-25 | P03 | Accept T04 minimal fixed-loopback product adapter, calibrate T07 separately | Exact c1a79a1 Linux real gateway and Windows baseline passed, original product evidence independently inspected. No universal tokenizer claim; native-only prompt usage metric with existing IPC shape and pinned-model multilingual test. T05–T07 retain acceptance gates.
+
+2026-11-25 | P03 | Bind model controls to installed inventory, thread, settings revision and current draft | Verified a2dbceb calibration and baseline; avoid stale UI estimate or cross-thread retry and late stream state updates. Existing IPC/storage/dependencies retained; exact-head native/UI acceptance pending.
+
+2026-11-25 | P03 | Add real Windows model interaction after unchanged T03 baseline | Official runtime asset digest pinned, isolated CI-only two model inventory, keyboard selection and independent SQLite readback; no product capability or schema change. Actual proof and visual review pending.
+
+2026-11-25 | P03 | Require exact native dropdown acknowledgement before independent database readback | Windows run 45682806417 failed first model selection; original screenshot shows placeholder. Prefer actual provider selection, fallback to real physical click and bounded keyboard attempts; no direct state/DB injection or relaxed assertions. Issue #29 remains open.
+
+2026-11-26 | P03 | Align existing T05–T16 dependency order; share portable managed-name validation between attachment and restore candidates | Exact-head model UI candidate passed but independent proof pending; source-only contracts are not storage or encryption. No dependency, scope or gate expansion. See docs/evidence/P03_PLAN_ALIGNMENT_AUDIT_20261126.md.
+
+2026-11-26 | P03 | Repair confirmed CI regressions without weakening prior-phase checks | Issue #30: keep exact Wiki screen/option anchor inventory, explicitly decode UTF-8 Rust test sources. New-head verification required.
+
+2026-11-26 | P03 | Stage managed content under the existing vault by hash before adding DB links | Reuse existing SHA-256, create-new staging and no-replace publication; preserve source/occupied data; explicit native-only and durability/race limitations. Prior exact CI green; no new gate waived.
+
+2026-11-26 | P03 | Add V3 attachment schema with separate migration receipt and atomic message links | Existing V2 source snapshot mandatory before upgrade; preserve V2 history and all previous data assertions. No new dependencies or renderer authority. Fresh CI pending.
+
+2026-11-26 | P03 | Read SQLite attachment lengths as signed INTEGER and validate before conversion | Reject negative, oversized and aggregate-overflow metadata; maintain existing native acceptance gates. Issue #31.
+
+2026-11-26 | P03 | Expose scoped attachment metadata through existing bounded history only | Strict decoder, text-only replay conflict; no arbitrary file authority or model ingestion. #31 verified; new exact CI pending.
+
+2026-11-26 | P03 | Use bounded selected-byte chunks instead of arbitrary renderer paths | Single session draft scoped to message; exact retransmission and manifest replay; no new OS file permission or dependency. Renderer picker and final acceptance pending.
+
+2026-11-26 | P03 | Enable explicit WebView file selection and save-only attachments | No arbitrary paths, model attachment bytes or new grant; final manifest retry differs from unfinished upload retry. Recent discard tombstones; exact native picker journey required.
+
+2026-11-27 | P03 | Add actual OS picker and independent attachment restart acceptance | Preserve prior gates and previous chat/model state. Source fixture deletion is disposable CI only. No model file ingestion or acceptance claim until exact run.
+
+2026-11-27 | P03 | Repair corrupted literal insertion in native PowerShell probe; parse before build | Preserve previous journeys and all acceptance assertions; #32.
+
+2026-11-27 | P03 | Resolve actual owned Windows file dialog filename edit rather than Alt+N | Exact runtime identity, dialog-bounded physical click and keyboard readback; fail closed; #33.
+
+2026-11-27 | P03 | Resolve common-dialog filename native HWND when UIA label is absent | Native control IDs, owned foreground, actual keyboard focus and exact readback; diagnostic metadata only; #33.
+
+2026-11-27 | P03 | Verify reopened attachment as accessible filename and byte count in saved history | Actual screenshot shows combined row, not standalone filename; preserve restart and independent reopened DB checks; #34.
+
+2026-11-27 | P03 | Recovery inventory is read-only and bounded; unreferenced at inspection is not safe to delete | Preserve possible sole copies and stage files; no automatic deletion or startup gate; next explicit recovery integration.
+
+2026-11-27 | P03 | T05.8 independent actual Stop partial persistence journey | Preserve previous native model proof; require actual nonempty live prefix and exact cancelled record, distinct process reopen, no retry claim; update later attachment fixture baseline to preserve new thread.
+
+2026-11-27 | P03 | Recover retry only from latest complete history pagination or explicit in-session zero-output target | Avoid auto-generating save-only rows or stale parents; serialize native admission; use 512 context for bounded actual retry acceptance after verified 8192 Stop. Preserve original partial evidence and only permitted new rows.
+
+2026-11-27 | P03 | Show unavailable model rather than speculative fallback; read native preference on inventory refresh; scope context to conversation revision | Preserve per-thread choice; invalidate stale estimate; no new authority/schema.
+
+2026-11-27 | P03 | T06 real model availability native journey using reversible fixture-only alias | Preserve pinned original digest, restore before removing alias, assert unavailable control and unchanged prior fingerprint; no user model deletion or permission changes. Fix changelog category per existing validator.
+
+2026-11-27 | P03 | Fix model-state notice grid span and shrinkable controls rather than masking overflow | Actual missing-model screenshot revealed misplaced grid child and horizontal clipping; use native UIA group/window bounding rectangles as scoped regression, not full accessibility proof.
+
+2026-11-27 | P03 | Use visible, named individual recovery count rows instead of matching a wrapped assistant paragraph | Actual failed screenshot confirms counts but not UIA acceptance. Verify each exact count within named result group and retain independent post-inspection file/DB preservation.
+
+2026-11-27 | P03 | T09 native text artifact derives only from a committed complete assistant message | Reuse v3 managed storage and a native system provenance receipt linked to source, deterministic IDs and verified replay; exclude receipt from model context, no executable markup or arbitrary paths; no IPC in this slice. New schema deferred; UI must account for non-inference receipts before exposing command.

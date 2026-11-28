@@ -1,0 +1,12 @@
+{
+  "identifier": "main-chat",
+  "description": "Main local bundled window: bounded conversation domain only",
+  "local": true,
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "allow-chat-request",
+    "allow-model-request"
+  ]
+}

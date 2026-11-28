@@ -44,7 +44,7 @@ class NativeSecurityContractTests(unittest.TestCase):
         for forbidden in ("SensitiveText", "get_password(", "put(", "store_secret", "secret_value"):
             self.assertNotIn(forbidden, self.ipc)
         self.assertNotIn("secret", (ROOT / "apps/desktop/src/ipc.ts").read_text(encoding="utf-8").lower())
-        self.assertIn("generate_handler![ipc::workspace_handshake]", self.lib)
+        self.assertIn("generate_handler![ipc::workspace_handshake, chat_ipc::chat_request,", self.lib)
         self.assertNotIn("secrets::", self.lib)
 
     def test_keyring_real_windows_backend_and_sanitized_failures(self):
@@ -63,7 +63,7 @@ class NativeSecurityContractTests(unittest.TestCase):
         self.assertEqual(["allow-workspace-handshake"], cap["permissions"])
         self.assertNotIn("remote", cap)
         build = (NATIVE / "build.rs").read_text(encoding="utf-8")
-        self.assertIn('commands(&["workspace_handshake"])', build)
+        self.assertIn('"workspace_handshake", "chat_request", "model_request"', build)
 
     def test_no_unsafe_release_or_signing_claims(self):
         docs = (ROOT / "docs/operations/P01_NATIVE_SECURITY.md").read_text(encoding="utf-8")

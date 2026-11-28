@@ -1,4 +1,5 @@
 """P00 dependency DAG tests, all local SQLite; no network/process execution."""
+from contextlib import closing
 import tempfile
 import unittest
 from pathlib import Path
@@ -119,7 +120,7 @@ class JobGraphTests(unittest.TestCase):
         self.task("a")
         self.task("b")
         self.graph.add_dependencies("b", ["a"])
-        with self.queue._connect() as db:
+        with closing(self.queue._connect()) as db, db:
             db.execute("DELETE FROM development_jobs WHERE id='a'")
         info = self.graph.dependency_status("b")
         self.assertFalse(info["ready"])

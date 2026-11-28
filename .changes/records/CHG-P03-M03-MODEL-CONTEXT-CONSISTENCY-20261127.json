@@ -1,0 +1,50 @@
+{
+  "change_id": "CHG-P03-M03-MODEL-CONTEXT-CONSISTENCY-20261127",
+  "module_id": "M03",
+  "kind": "bugfix",
+  "title": "Preserve model preference and invalidate stale context estimates",
+  "summary": "Explicit unavailable model selector and conversation-revision-bound context inspection.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/35"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
+  "affected_option_ids": [
+    "M03-OPT-01",
+    "M03-OPT-03"
+  ],
+  "docs_paths": [
+    "docs/evidence/P03_T06_T07_MODEL_SELECTION_CONTEXT_REVISION_20261127.md",
+    "docs/modules/M03.md",
+    "docs/evidence/P03_T05_RETRY_RECOVERY_CANDIDATE_20261127.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M03.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M03.md"
+  ],
+  "test_evidence": [
+    "apps/desktop/tests/model-contract.test.mjs",
+    "tests/test_p03_chat_ui_contract.py",
+    "scripts/probe_p03_chat_ui.ps1",
+    "scripts/verify_p03_partial_ui_database.py",
+    ".github/workflows/p03-native-baseline.yml",
+    "tests/test_p03_native_probe_integrity.py"
+  ],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No storage schema or permission change.",
+  "created_at": "2026-11-27",
+  "updated_at": "2026-11-27",
+  "version_bump": "none",
+  "docs_impact": true,
+  "data_migration": false
+}

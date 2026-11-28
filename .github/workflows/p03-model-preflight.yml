@@ -1,0 +1,84 @@
+name: P03 Local Model Preflight
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/state/PHASE.json'
+      - 'docs/evidence/P03_T01_PREFLIGHT.md'
+      - '.github/workflows/p03-model-preflight.yml'
+      - 'scripts/probe_p03_model.py'
+      - 'apps/desktop/src-tauri/src/model_gateway.rs'
+      - 'apps/desktop/src-tauri/src/vault.rs'
+      - 'apps/desktop/src/model-transport.ts'
+      - 'apps/desktop/src/ui/model-contract.ts'
+      - 'apps/desktop/src/ui/ChatView.tsx'
+      - 'tests/test_p03_model_gateway_contract.py'
+permissions:
+  contents: read
+concurrency:
+  group: p03-model-preflight-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  loopback-probe:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'phase/03-chat'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      OLLAMA_HOST: 127.0.0.1:11434
+      OLLAMA_NO_CLOUD: '1'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with: { python-version: '3.12' }
+      - name: Install native Linux build prerequisites for product-adapter proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential pkg-config libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libssl-dev
+      - name: Compile exact-source product-adapter tests
+        working-directory: apps/desktop/src-tauri
+        run: cargo test --locked --lib --release --no-run
+      - name: Download and verify pinned official CPU runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          curl --fail --location --retry 2 --max-time 600 --output "$RUNNER_TEMP/ollama.tar.zst" https://github.com/ollama/ollama/releases/download/v0.40.18/ollama-linux-amd64.tar.zst
+          echo "b82649006cb5b54ed1237fa2d1a26a7f939a4fd03150033759acbff7ff315adf  $RUNNER_TEMP/ollama.tar.zst" | sha256sum --check
+          mkdir -p "$RUNNER_TEMP/ollama"
+          tar --zstd -xf "$RUNNER_TEMP/ollama.tar.zst" -C "$RUNNER_TEMP/ollama"
+          test -x "$RUNNER_TEMP/ollama/bin/ollama"
+      - name: Real local runtime and synthetic model smoke
+        shell: bash
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          export OLLAMA_MODELS="$RUNNER_TEMP/p03-models"
+          "$RUNNER_TEMP/ollama/bin/ollama" serve > "$RUNNER_TEMP/ollama-preflight.log" 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl --fail --silent --noproxy '*' --max-time 2 http://127.0.0.1:11434/api/version >/dev/null; then break; fi
+            sleep 2
+          done
+          curl --fail --silent --noproxy '*' --max-time 2 http://127.0.0.1:11434/api/version >/dev/null
+          "$RUNNER_TEMP/ollama/bin/ollama" pull qwen2.5:0.5b
+          python -m unittest tests.test_p03_model_gateway_contract -v
+          python scripts/probe_p03_model.py --source-sha "$EXACT_HEAD" --out "$RUNNER_TEMP/p03-model-preflight.json"
+          export ZYNOA_P03_SOURCE_SHA="$EXACT_HEAD"
+          export ZYNOA_P03_REAL_MODEL_PROOF="$RUNNER_TEMP/p03-product-adapter.json"
+          (cd apps/desktop/src-tauri && cargo test --locked --lib --release model_gateway::tests::real_ollama_product_gateway_and_restart -- --ignored --exact --nocapture)
+          test -s "$ZYNOA_P03_REAL_MODEL_PROOF"
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: p03-model-preflight-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/p03-model-preflight.json
+            ${{ runner.temp }}/p03-product-adapter.json
+          if-no-files-found: error

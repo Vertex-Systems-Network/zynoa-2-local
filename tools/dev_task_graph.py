@@ -6,6 +6,7 @@ execute models, shell commands, Git mutations, or release operations.
 """
 from __future__ import annotations
 
+from contextlib import closing
 from typing import Sequence
 
 from tools.dev_job_queue import JobQueue, QueuePolicyError
@@ -28,7 +29,7 @@ class JobGraph:
         if any(not isinstance(parent, str) or not parent or parent == job_id
                for parent in prerequisites):
             raise QueuePolicyError("invalid/self dependency")
-        with self.queue._connect() as db:
+        with closing(self.queue._connect()) as db, db:
             db.execute("BEGIN IMMEDIATE")
             target = db.execute(
                 "SELECT phase,branch,state,attempts FROM development_jobs WHERE id=?",
@@ -81,7 +82,7 @@ class JobGraph:
             return inserted
 
     def prerequisites(self, job_id: str) -> list[str]:
-        with self.queue._connect() as db:
+        with closing(self.queue._connect()) as db, db:
             return [
                 row[0] for row in db.execute(
                     "SELECT depends_on_job_id FROM job_dependencies "
@@ -92,7 +93,7 @@ class JobGraph:
 
     def dependency_status(self, job_id: str) -> dict:
         """Return no raw payload; only dependency IDs and durable status."""
-        with self.queue._connect() as db:
+        with closing(self.queue._connect()) as db, db:
             rows = db.execute(
                 """
                 SELECT d.depends_on_job_id,p.state FROM job_dependencies d

@@ -13,6 +13,17 @@ export type HelpArticle = {
 
 export const helpArticles: readonly HelpArticle[] = [
   {
+    id: "local-chat", title: "Local model conversations", category: "Get started",
+    summary: "Create durable threads, choose an installed model and stream a response through local Ollama.",
+    keywords: ["chat","conversation","history","M03","local","Ollama","model","context","stop","retry"],
+    sections: [
+      { heading: "Create and read a thread", paragraphs: ["Open Chat in the workspace rail. Enter a title and choose Create conversation. Select a saved thread and use Load more for additional history."] },
+      { heading: "Choose local inference settings", paragraphs: ["Select one model from the installed Ollama inventory for the current thread. Choose a bounded context budget, then use Inspect context to see the conservative estimated usage and omitted-message count before sending. Settings persist locally per conversation."] },
+      { heading: "Send, stop and retry", paragraphs: ["Send commits your user message before starting the fixed-loopback model request. Deltas appear in order. Stop requests cooperative cancellation; a non-empty partial response is stored as cancelled. Retry turn creates a new attempt without overwriting earlier output."] },
+      { heading: "Recover safely", paragraphs: ["If saving the user message is interrupted, use Retry same request to reconcile its stable ID. If inference fails, history remains durable and Retry turn starts a separate model attempt. Browser preview and a missing Ollama runtime cannot run inference."] },
+    ], related: ["privacy","native-troubleshooting"],
+  },
+  {
     id: "quick-start", title: "Get started with Zynoa", category: "Get started",
     summary: "Understand the desktop shell and which features are available today.",
     keywords: ["home", "overview", "windows", "native"],

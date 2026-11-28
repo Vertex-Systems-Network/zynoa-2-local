@@ -11,6 +11,7 @@ import re
 import sqlite3
 import time
 import uuid
+from contextlib import closing
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
@@ -44,7 +45,7 @@ class JobQueue:
         self.db_path = Path(db_path)
         self.clock = clock
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        with self._connect() as db:
+        with closing(self._connect()) as db, db:
             db.execute("PRAGMA journal_mode=WAL")
             db.execute("""
                 CREATE TABLE IF NOT EXISTS development_jobs (
@@ -111,7 +112,7 @@ class JobQueue:
         if type(priority) is not int or not 0 <= priority <= 100:
             raise QueuePolicyError("priority must be 0..100")
         now = self.clock()
-        with self._connect() as db:
+        with closing(self._connect()) as db, db:
             db.execute("BEGIN IMMEDIATE")
             existing = db.execute(
                 "SELECT phase, branch, kind, max_attempts, priority "
@@ -171,7 +172,7 @@ class JobQueue:
         if not 5 <= lease_seconds <= 3600:
             raise QueuePolicyError("lease must be 5..3600 seconds")
         now = self.clock()
-        with self._connect() as db:
+        with closing(self._connect()) as db, db:
             db.execute("BEGIN IMMEDIATE")
             self._recover_expired(db, now)
             row = db.execute(
@@ -203,7 +204,7 @@ class JobQueue:
         if not isinstance(job, ClaimedJob) or not isinstance(owner, str):
             raise QueuePolicyError("invalid fenced completion")
         now = self.clock()
-        with self._connect() as db:
+        with closing(self._connect()) as db, db:
             db.execute("BEGIN IMMEDIATE")
             cur = db.execute(
                 "UPDATE development_jobs SET " + fields + ",updated_at=? "
@@ -251,14 +252,14 @@ class JobQueue:
         )
 
     def max_attempts(self, id: str) -> int:
-        with self._connect() as db:
+        with closing(self._connect()) as db, db:
             row = db.execute("SELECT max_attempts FROM development_jobs WHERE id=?", (id,)).fetchone()
             if row is None:
                 raise QueuePolicyError("job not found")
             return int(row[0])
 
     def inspect(self, id: str) -> dict | None:
-        with self._connect() as db:
+        with closing(self._connect()) as db, db:
             db.row_factory = sqlite3.Row
             row = db.execute(
                 "SELECT id,phase,branch,kind,state,attempts,max_attempts,"
@@ -267,7 +268,7 @@ class JobQueue:
             return dict(row) if row else None
 
     def stats(self) -> dict:
-        with self._connect() as db:
+        with closing(self._connect()) as db, db:
             return {state: n for state, n in db.execute(
                 "SELECT state,COUNT(*) FROM development_jobs GROUP BY state"
             ).fetchall()}

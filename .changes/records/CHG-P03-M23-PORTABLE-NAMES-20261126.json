@@ -1,0 +1,45 @@
+{
+  "change_id": "CHG-P03-M23-PORTABLE-NAMES-20261126",
+  "module_id": "M23",
+  "kind": "bugfix",
+  "title": "Portable restore staging name validation",
+  "summary": "Shared bounded portable filename validation and negative Rust regression candidates; actual native integration and exact-head CI remain pending.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/30"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
+  "affected_option_ids": [
+    "M23-OPT-09"
+  ],
+  "docs_paths": [
+    "docs/evidence/P03_PLAN_ALIGNMENT_AUDIT_20261126.md",
+    "docs/modules/M23.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M23.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M23.md"
+  ],
+  "test_evidence": [
+    "apps/desktop/src-tauri/src/backup_contracts.rs",
+    "tests/test_p03_backup_contracts.py",
+    "tests/test_p02_t13_system_centers.py"
+  ],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No schema or data migration. Pure validator only; do not modify original user files.",
+  "created_at": "2026-11-26",
+  "updated_at": "2026-11-26",
+  "version_bump": "none",
+  "docs_impact": true,
+  "data_migration": false
+}

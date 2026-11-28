@@ -1,0 +1,40 @@
+{
+  "change_id": "CHG-P03-M23-CHAT-VAULT-V2-20261125",
+  "module_id": "M23",
+  "kind": "feature",
+  "title": "Native transactional chat data schema v2",
+  "summary": "Add normalized native chat data, verified pre-migration online backup, atomic journal and typed postcommit acknowledgements, scoped history and staged restore. Exact-source native CI and original proof verified; no UI exposure.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
+  "affected_option_ids": [],
+  "docs_paths": [
+    "docs/evidence/P03_T02_CHAT_VAULT.md",
+    "docs/modules/M23.md",
+    "docs/adr/0030-p03-chat-data-and-local-inference.md"
+  ],
+  "help_paths": [],
+  "wiki_paths": [],
+  "test_evidence": [
+    "tests/test_p03_chat_vault_contract.py",
+    ".github/workflows/p03-native-baseline.yml",
+    "apps/desktop/src-tauri/src/vault.rs",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45620810721",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45620812774"
+  ],
+  "commit_sha": "8d3944b35b08641f416967da8b758fedd98e7bce",
+  "release": null,
+  "verification": {
+    "tests_passed": true,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "Additive v1 to v2. Verify a new local online snapshot before atomic DDL; retain legacy records and backup. Older binaries reject v2; rollback via separate verified v1 staged profile, never overwrite active vault.",
+  "created_at": "2026-11-25",
+  "updated_at": "2026-11-25",
+  "version_bump": "none",
+  "docs_impact": true,
+  "data_migration": true
+}

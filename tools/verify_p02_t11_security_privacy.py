@@ -34,11 +34,21 @@ DENIED = (
 def require(cond, msg):
     if not cond: raise P02SecurityViolation(msg)
 
-def audit_source_contract(config, capability, ipc, frontend, workflow):
+def audit_source_contract(config, capability, ipc, frontend, workflow, *, chat_capability=None):
     """Check the P02 source contract, without inferring lifecycle or merge state."""
     require(isinstance(config,dict) and isinstance(capability,dict), "missing Tauri security sources")
     security=config.get("app",{}).get("security",{})
-    require(security.get("capabilities")==["main-readonly"], "Tauri capability broadened")
+    # Historical P02 calls remain strict. Later-phase regression tests may
+    # explicitly supply the separate, precisely scoped P03 capability.
+    expected=["main-readonly"] if chat_capability is None else ["main-readonly","main-chat"]
+    require(security.get("capabilities")==expected, "Tauri capability broadened")
+    if chat_capability is not None:
+        require(isinstance(chat_capability,dict) and chat_capability.get("identifier")=="main-chat"
+                and chat_capability.get("windows")==["main"] and chat_capability.get("local") is True
+                and chat_capability.get("permissions")==["allow-chat-request","allow-model-request"]
+                and "remote" not in chat_capability
+                and set(chat_capability)=={"identifier","description","windows","local","permissions"},
+                "unexpected P03 chat grant")
     csp=security.get("csp","")
     for directive in (
         "default-src 'self'", "script-src 'self'", "style-src 'self'",

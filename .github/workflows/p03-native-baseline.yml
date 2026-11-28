@@ -1,0 +1,516 @@
+name: P03 Native Chat Baseline
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/desktop/**'
+      - 'docs/state/PHASE.json'
+      - 'docs/evidence/P03_T01_PREFLIGHT.md'
+      - 'tests/test_p03_*.py'
+      - 'scripts/*p03*'
+      - 'tools/*p03*'
+      - '.github/workflows/p03-native-baseline.yml'
+permissions:
+  contents: read
+concurrency:
+  group: p03-native-baseline-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  baseline-windows:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'phase/03-chat'
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with: { python-version: '3.12' }
+      - uses: actions/setup-node@v6
+        with: { node-version: '22', package-manager-cache: false }
+      - name: Verify exact source and phase identity
+        shell: pwsh
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha }}
+          PRIMARY_PR: ${{ github.event.pull_request.number }}
+        run: |
+          if ((git rev-parse HEAD).Trim() -cne $env:EXACT_HEAD) { throw 'P03 source mismatch' }
+          $s = Get-Content docs/state/PHASE.json -Raw | ConvertFrom-Json
+          if ($s.phase -cne 'P03' -or $s.phase_status -cne 'IN_PROGRESS' -or $s.active_branch -cne 'phase/03-chat' -or $s.primary_pr -ne [int]$env:PRIMARY_PR) { throw 'P03 phase binding mismatch' }
+      - name: Parse Windows native probe before build
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $parseErrors = $null
+          $file = Join-Path $env:GITHUB_WORKSPACE 'scripts/probe_p03_chat_ui.ps1'
+          $null = [System.Management.Automation.Language.Parser]::ParseFile($file,[ref]$tokens,[ref]$parseErrors)
+          if ($parseErrors.Count -gt 0) {
+            foreach ($entry in $parseErrors) { Write-Error -ErrorAction Continue ("Probe parser error at line " + $entry.Extent.StartLineNumber + ": " + $entry.Message) }
+            throw 'P03 native probe parser validation failed'
+          }
+          Write-Output 'Native PowerShell probe parsed without errors'
+      - name: Existing native and shared UI regression suite
+        run: python -m unittest discover -s tests -v
+      - name: Resolve pinned dependency inventory
+        working-directory: apps/desktop
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Install verified lockfile dependencies
+        working-directory: apps/desktop
+        run: npm ci --no-audit --no-fund
+      - name: Frontend TypeScript check
+        working-directory: apps/desktop
+        run: npm run check
+      - name: Frontend UI algorithm tests
+        working-directory: apps/desktop
+        run: npm run test:ui
+      - name: Frontend offline production bundle
+        working-directory: apps/desktop
+        run: npm run build
+      - name: Native IPC validation tests (no user data)
+        working-directory: apps/desktop/src-tauri
+        run: cargo test --lib --release
+      - name: P03 T02 actual Rust SQLite migration and atomic write tests
+        working-directory: apps/desktop/src-tauri
+        shell: pwsh
+        run: |
+          cargo test --lib --release vault::tests::p03_ -- --test-threads=1 | Tee-Object -FilePath (Join-Path $env:RUNNER_TEMP 'p03-vault-native-tests.txt')
+          if ($LASTEXITCODE -ne 0) { throw 'P03 native chat vault tests failed' }
+          $report = Get-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'p03-vault-native-tests.txt') -Raw
+          if ($report -notmatch '9 passed; 0 failed; 0 ignored') { throw 'P03 required nine native tests missing or incomplete' }
+      - name: Native Windows desktop build (no release or signature)
+        id: native_build
+        working-directory: apps/desktop
+        run: npm run tauri -- build --no-bundle
+      - name: Real native startup and exact-source timing
+        shell: pwsh
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
+          if (!(Test-Path -LiteralPath $exe)) { throw 'P03 native binary missing' }
+          $root = Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop'
+          if (Test-Path -LiteralPath $root) { throw 'P03 requires a fresh disposable runner profile' }
+          $clock = [System.Diagnostics.Stopwatch]::StartNew()
+          $process = Start-Process -FilePath $exe -PassThru
+          try {
+            $deadline = (Get-Date).AddSeconds(45)
+            do {
+              Start-Sleep -Milliseconds 500
+              $process.Refresh()
+              if ($process.HasExited) { throw 'P03 native process exited before readiness' }
+              $metadataReady = ($process.MainWindowHandle -ne 0) -and (Test-Path -LiteralPath (Join-Path $root 'diagnostics\events-v1.jsonl')) -and (Test-Path -LiteralPath (Join-Path $root 'data\state.sqlite')) -and (Test-Path -LiteralPath (Join-Path $root 'storage-locations-v1.json'))
+              $ready = $false
+              if ($metadataReady) {
+                # M26 is initialized after the vault and registry. Wait for the
+                # native schema commit, not just the SQLite file's existence.
+                $ledgerReady = & python scripts/probe_p03_boot_readiness.py (Join-Path $root 'data\change-events-v1.sqlite')
+                if ($LASTEXITCODE -ne 0) { throw 'P03 native ledger readiness probe failed' }
+                $ready = ($ledgerReady -ceq 'ready')
+                $process.Refresh()
+                if ($process.HasExited) { throw 'P03 native process exited before readiness' }
+              }
+            } until ($ready -or (Get-Date) -ge $deadline)
+            if (!$ready) { throw 'P03 native window, metadata and committed audit ledger startup not verified' }
+            $proof = [ordered]@{schema_version=1; source_commit_sha=$env:EXACT_HEAD; executable_sha256=(Get-FileHash -Algorithm SHA256 -LiteralPath $exe).Hash.ToLowerInvariant(); startup_window_and_metadata_ms=[int64]$clock.ElapsedMilliseconds; no_user_data=$true; scope='native baseline only'}
+            $proof | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'p03-native-baseline.json') -Encoding utf8
+          } finally {
+            $process.Refresh()
+            if (!$process.HasExited) { Stop-Process -Id $process.Id -Force }
+          }
+      - name: Verify native boot wrote only allowlisted diagnostic metadata
+        shell: pwsh
+        run: |
+          $path = Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop\diagnostics\events-v1.jsonl'
+          if (-not (Test-Path -LiteralPath $path)) { throw 'ZYN-DIAG-101: missing real startup record' }
+          $lines = @(Get-Content -LiteralPath $path -Encoding utf8)
+          if ($lines.Count -lt 1) { throw 'ZYN-DIAG-102: empty spool' }
+          $records = @($lines | ForEach-Object { $_ | ConvertFrom-Json })
+          if (-not @($records | Where-Object { $_.module -eq 'M01' -and $_.code -eq 'BootReady' }).Count) { throw 'ZYN-DIAG-103: missing boot event' }
+          foreach ($record in $records) {
+            if ($record.schema_version -ne 1 -or $record.fingerprint.Length -gt 120) { throw 'ZYN-DIAG-104: invalid schema' }
+            $keys = @($record.PSObject.Properties.Name)
+            $allowed = @('schema_version', 'module', 'severity', 'code', 'fingerprint', 'trace_id', 'first_seen_ms', 'last_seen_ms', 'occurrence_count')
+            foreach ($key in $keys) { if ($key -notin $allowed) { throw 'ZYN-DIAG-105: unsafe extra field' } }
+          }
+          Write-Output 'Native startup diagnostic record validated without exposing raw private data'
+      - name: Verify real native vault outside executable after cold boot
+        shell: pwsh
+        run: |
+          $file = Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop\data\state.sqlite'
+          if (-not (Test-Path -LiteralPath $file)) { throw 'ZYN-DAT-101: native app vault missing' }
+          $env:ZYNOA_CI_VAULT = $file
+          $env:ZYNOA_SOURCE_SHA = (git rev-parse HEAD).Trim()
+          @'
+          import os
+          import sqlite3
+          from pathlib import Path
+          path = Path(os.environ["ZYNOA_CI_VAULT"])
+          assert path.is_file() and path.name == "state.sqlite"
+          assert "src-tauri" not in str(path).lower()
+          uri = f"file:{path.as_posix()}?mode=ro"
+          with sqlite3.connect(uri, uri=True) as db:
+              assert db.execute("PRAGMA user_version").fetchone()[0] == 4
+              assert db.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+              assert db.execute("PRAGMA journal_mode").fetchone()[0].lower() == "wal"
+              assert db.execute("SELECT count(*) FROM records").fetchone()[0] == 0
+              assert db.execute("PRAGMA foreign_key_check").fetchall() == []
+              assert db.execute("SELECT count(*) FROM schema_migrations WHERE version=2 AND from_version=0 AND backup_id IS NULL AND result='applied'").fetchone()[0] == 1
+              assert db.execute("SELECT count(*) FROM artifact_schema_migrations WHERE version=3 AND from_version=0 AND backup_id IS NULL").fetchone()[0] == 1
+              assert db.execute("SELECT count(*) FROM tool_review_schema_migrations WHERE version=4 AND from_version=0 AND backup_id IS NULL").fetchone()[0] == 1
+              assert db.execute("SELECT count(*) FROM sqlite_schema WHERE type='trigger' AND name IN ('tool_review_no_update','tool_review_no_delete','tool_review_no_replace')").fetchone()[0] == 3
+              for table in ("conversations", "messages", "chat_change_journal", "managed_artifacts", "artifact_links", "tool_review_decisions"):
+                  assert db.execute("SELECT count(*) FROM " + table).fetchone()[0] == 0
+          import json, hashlib
+          test_log = Path(os.environ["RUNNER_TEMP"]) / "p03-vault-native-tests.txt"
+          report = {"source_commit_sha": os.environ["ZYNOA_SOURCE_SHA"], "vault_schema_version": 4,
+                    "integrity_check": "ok", "foreign_key_check": "ok", "journal_mode": "wal",
+                    "fresh_migration_record": True, "native_chat_tests": 9, "no_user_data": True,
+                    "test_log_sha256": hashlib.sha256(test_log.read_bytes()).hexdigest()}
+          (Path(os.environ["RUNNER_TEMP"]) / "p03-vault-schema-proof.json").write_text(json.dumps(report), encoding="utf-8")
+          print(json.dumps(report, sort_keys=True))
+          print("Native app vault schema/integrity verified; no user records created")
+          '@ | python -
+      - name: Verify local storage ownership registry after real native boot
+        shell: pwsh
+        run: |
+          $file = Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop\storage-locations-v1.json'
+          if (-not (Test-Path -LiteralPath $file)) { throw 'ZYN-STO-101: registry missing' }
+          $env:ZYNOA_CI_REGISTRY = $file
+          @'
+          import os, json
+          from pathlib import Path
+          path = Path(os.environ["ZYNOA_CI_REGISTRY"])
+          registry = json.loads(path.read_text(encoding="utf-8"))
+          assert registry["schema_version"] == 1
+          assert registry["app_id"] == "com.zynoa.desktop"
+          keys = {item["kind"]:item for item in registry["locations"]}
+          for kind in ("user_vault","diagnostics","backups","cache","download_staging","managed_models"):
+              assert keys[kind]["owner"] == "app_managed"
+              relative = keys[kind]["relative"]
+              assert relative and not Path(relative).is_absolute()
+              assert ".." not in Path(relative).parts
+              assert keys[kind]["move_allowed"] is False
+          assert keys["external_runtime"]["owner"] == "external_read_only"
+          assert keys["external_runtime"]["relative"] is None
+          assert keys["external_runtime"]["move_allowed"] is False
+          print("Native registry safe ownership and no-move defaults verified")
+          '@ | python -
+      - name: Verify native append-only event DB after real startup
+        shell: pwsh
+        run: |
+          $file = Join-Path $env:LOCALAPPDATA 'com.zynoa.desktop\data\change-events-v1.sqlite'
+          if (-not (Test-Path -LiteralPath $file)) { throw 'ZYN-CHG-101: native audit database absent' }
+          $env:ZYNOA_CI_EVENTS = $file
+          @'
+          import os, sqlite3
+          from pathlib import Path
+          p = Path(os.environ["ZYNOA_CI_EVENTS"])
+          assert p.is_file() and "src-tauri" not in str(p).lower()
+          uri = f"file:{p.as_posix()}?mode=ro"
+          with sqlite3.connect(uri, uri=True) as c:
+              assert c.execute("PRAGMA user_version").fetchone()[0] == 1
+              assert c.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+              assert c.execute("PRAGMA journal_mode").fetchone()[0].lower() == "wal"
+              assert c.execute("SELECT count(*) FROM audit_events").fetchone()[0] == 0
+              triggers = {t[0] for t in c.execute("SELECT name FROM sqlite_master WHERE type='trigger'")}
+              assert {"audit_events_no_update", "audit_events_no_delete"} <= triggers
+          print("Private native event ledger verified: WAL, schema, append-only triggers, zero fabricated events")
+          '@ | python -
+      - name: P03 T03 actual Windows conversation UI and restart proof
+        shell: pwsh
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
+          & scripts/probe_p03_chat_ui.ps1 -Executable $exe -SourceSha $env:EXACT_HEAD -OutputDirectory (Join-Path $env:RUNNER_TEMP 'p03-chat-ui-proof')
+          if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) { throw 'P03 actual native UI probe failed' }
+      - name: Preserve failed synthetic UI probe diagnostics (not acceptance)
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-native-ui-failure-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/p03-chat-ui-proof/
+            ${{ runner.temp }}/p03-native-baseline.json
+            ${{ runner.temp }}/p03-vault-native-tests.txt
+            ${{ runner.temp }}/p03-vault-schema-proof.json
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v6
+        with:
+          name: p03-native-baseline-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/p03-native-baseline.json
+            ${{ runner.temp }}/p03-vault-native-tests.txt
+            ${{ runner.temp }}/p03-vault-schema-proof.json
+            ${{ runner.temp }}/p03-chat-ui-proof/
+          if-no-files-found: error
+      - name: P03 T05–T07 real Windows model interaction candidate
+        shell: pwsh
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $runtimeDir = Join-Path $env:RUNNER_TEMP 'p03-ollama-windows'
+          $zip = Join-Path $env:RUNNER_TEMP 'p03-ollama-windows.zip'
+          $proofDir = Join-Path $env:RUNNER_TEMP 'p03-model-ui-proof'
+          $env:OLLAMA_HOST = '127.0.0.1:11434'
+          $env:OLLAMA_NO_CLOUD = '1'
+          $env:OLLAMA_MODELS = Join-Path $env:RUNNER_TEMP 'p03-windows-models'
+          if (Get-NetTCPConnection -LocalPort 11434 -State Listen -ErrorAction SilentlyContinue) { throw 'P03 requires an unused local runtime port' }
+          & curl.exe --fail --location --retry 2 --max-time 900 --output $zip 'https://github.com/ollama/ollama/releases/download/v0.40.18/ollama-windows-amd64.zip'
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned Windows runtime download failed' }
+          if ((Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant() -cne 'ca97292ac1e9acc77fcf473bb2741fa6acd12e3798f261b419680068b7cc4c16') { throw 'Pinned Windows runtime SHA-256 mismatch' }
+          New-Item -ItemType Directory -Path $runtimeDir | Out-Null
+          & tar.exe -xf $zip -C $runtimeDir
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned Windows runtime extraction failed' }
+          Remove-Item -LiteralPath $zip
+          $candidates = @(Get-ChildItem -LiteralPath $runtimeDir -Recurse -File -Filter 'ollama.exe')
+          if ($candidates.Count -ne 1) { throw 'Unexpected runtime executable inventory' }
+          $ollama = $candidates[0].FullName
+          $server = Start-Process -FilePath $ollama -ArgumentList 'serve' -WorkingDirectory $candidates[0].DirectoryName -PassThru -RedirectStandardOutput (Join-Path $env:RUNNER_TEMP 'p03-ollama-stdout.log') -RedirectStandardError (Join-Path $env:RUNNER_TEMP 'p03-ollama-stderr.log')
+          try {
+            $version = $null
+            for ($i=0; $i -lt 60; $i++) {
+              $server.Refresh()
+              if ($server.HasExited) { throw 'Pinned Ollama process exited' }
+              try { $version = Invoke-RestMethod -Uri 'http://127.0.0.1:11434/api/version' -NoProxy -TimeoutSec 2; break } catch { Start-Sleep -Seconds 1 }
+            }
+            if ($version.version -cne '0.40.18') { throw 'Runtime readiness/version mismatch' }
+            foreach ($model in @('qwen2.5:0.5b','qwen2.5:1.5b')) {
+              & $ollama pull $model
+              if ($LASTEXITCODE -ne 0) { throw 'Synthetic fixture model pull failed' }
+            }
+            $inventory = Invoke-RestMethod -Uri 'http://127.0.0.1:11434/api/tags' -NoProxy -TimeoutSec 10
+            $models = @($inventory.models)
+            if ($models.Count -ne 2) { throw 'Unexpected installed test inventory' }
+            $a = @($models | Where-Object { $_.name -ceq 'qwen2.5:0.5b' })
+            $b = @($models | Where-Object { $_.name -ceq 'qwen2.5:1.5b' })
+            if ($a.Count -ne 1 -or $b.Count -ne 1 -or $a[0].digest -cne 'a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67' -or $b[0].digest -cnotmatch '^[a-f0-9]{64}$' -or $a[0].digest -ceq $b[0].digest) { throw 'Unexpected model identity' }
+            $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
+            & scripts/probe_p03_chat_ui.ps1 -Executable $exe -SourceSha $env:EXACT_HEAD -OutputDirectory $proofDir -ModelAcceptance
+            & scripts/probe_p03_chat_ui.ps1 -Executable $exe -SourceSha $env:EXACT_HEAD -OutputDirectory (Join-Path $env:RUNNER_TEMP 'p03-partial-ui-proof') -PartialAcceptance -PriorModelProofDirectory $proofDir -OllamaExecutable $ollama
+            [ordered]@{schema_version=1;source_commit_sha=$env:EXACT_HEAD;runtime_version=$version.version;runtime_archive_sha256='ca97292ac1e9acc77fcf473bb2741fa6acd12e3798f261b419680068b7cc4c16';models=@($models | Select-Object name,digest,size);local_only=$true;synthetic_only=$true} | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $proofDir 'p03-windows-model-inventory.json') -Encoding utf8
+          } finally {
+            $server.Refresh()
+            if (!$server.HasExited) { Stop-Process -Id $server.Id -Force }
+          }
+      - name: Preserve failed partial UI diagnostics (not acceptance)
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-partial-ui-failure-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-partial-ui-proof/
+          if-no-files-found: warn
+      - name: Upload actual partial response candidate evidence
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-partial-ui-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-partial-ui-proof/
+          if-no-files-found: error
+      - name: Preserve failed real model UI diagnostics (not acceptance)
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-model-ui-failure-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-model-ui-proof/
+          if-no-files-found: warn
+      - name: Upload actual model UI candidate evidence
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-model-ui-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-model-ui-proof/
+          if-no-files-found: error
+
+      - name: P03 T14 collect chat native performance observations
+        shell: pwsh
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $exe=Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
+          python scripts/verify_p03_performance_receipts.py --root $env:RUNNER_TEMP --source $env:EXACT_HEAD --executable $exe --output (Join-Path $env:RUNNER_TEMP 'p03-performance-chat.json')
+          if ($LASTEXITCODE -ne 0) { throw 'Native timing receipt reconciliation failed' }
+      - name: Upload chat native performance observations (not certification)
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-performance-chat-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-performance-chat.json
+          if-no-files-found: error
+
+      - name: P03 T08 actual Windows attachment selection and restart candidate
+        shell: pwsh
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
+          & scripts/probe_p03_chat_ui.ps1 -Executable $exe -SourceSha $env:EXACT_HEAD -OutputDirectory (Join-Path $env:RUNNER_TEMP 'p03-attachment-ui-proof') -AttachmentAcceptance
+          if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) { throw 'P03 attachment native probe failed' }
+      - name: Preserve failed attachment UI diagnostics (not acceptance)
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-attachment-ui-failure-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-attachment-ui-proof/
+          if-no-files-found: warn
+      - name: Upload actual attachment UI candidate evidence
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-attachment-ui-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-attachment-ui-proof/
+          if-no-files-found: error
+
+      - name: P03 T09 actual Windows text artifact creation preview and replay candidate
+        shell: pwsh
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
+          & scripts/probe_p03_chat_ui.ps1 -Executable $exe -SourceSha $env:EXACT_HEAD -OutputDirectory (Join-Path $env:RUNNER_TEMP 'p03-text-artifact-ui-proof') -ArtifactAcceptance
+          if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) { throw 'P03 text artifact native probe failed' }
+      - name: Preserve failed text artifact UI diagnostics (not acceptance)
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-text-artifact-ui-failure-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-text-artifact-ui-proof/
+          if-no-files-found: warn
+      - name: Upload actual text artifact UI candidate evidence
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-text-artifact-ui-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-text-artifact-ui-proof/
+          if-no-files-found: error
+
+      - name: P03 T10 actual Windows scoped tool review denial approval and restart candidate
+        shell: pwsh
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
+          & scripts/probe_p03_chat_ui.ps1 -Executable $exe -SourceSha $env:EXACT_HEAD -OutputDirectory (Join-Path $env:RUNNER_TEMP 'p03-review-ui-proof') -ReviewAcceptance
+          if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) { throw 'P03 review native probe failed' }
+      - name: Preserve failed review UI diagnostics (not acceptance)
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-review-ui-failure-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-review-ui-proof/
+          if-no-files-found: warn
+      - name: Upload actual review UI candidate evidence
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-review-ui-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-review-ui-proof/
+          if-no-files-found: error
+
+      - name: P03 T11 actual Windows full conversation export candidate
+        shell: pwsh
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
+          & scripts/probe_p03_chat_ui.ps1 -Executable $exe -SourceSha $env:EXACT_HEAD -OutputDirectory (Join-Path $env:RUNNER_TEMP 'p03-export-ui-proof') -ExportAcceptance
+          if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) { throw 'P03 export native probe failed' }
+      - name: Preserve failed export UI diagnostics (not acceptance)
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-export-ui-failure-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-export-ui-proof/
+          if-no-files-found: warn
+      - name: Upload actual export UI candidate evidence
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-export-ui-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-export-ui-proof/
+          if-no-files-found: error
+
+      - name: P03 T12 actual Windows encrypted backup wrong-key and independent restore candidate
+        shell: pwsh
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $exe = Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
+          & scripts/probe_p03_chat_ui.ps1 -Executable $exe -SourceSha $env:EXACT_HEAD -OutputDirectory (Join-Path $env:RUNNER_TEMP 'p03-backup-ui-proof') -BackupAcceptance
+          if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) { throw 'P03 backup native probe failed' }
+      - name: Preserve failed backup UI diagnostics (not acceptance)
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-backup-ui-failure-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-backup-ui-proof/
+          if-no-files-found: warn
+      - name: Upload actual backup UI candidate evidence
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-backup-ui-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-backup-ui-proof/
+          if-no-files-found: error
+
+      - name: P03 T13 disposable Windows NSIS bundle (not release)
+        working-directory: apps/desktop
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:RUNNER_ENVIRONMENT -cne 'github-hosted') { throw 'Hosted fixture runner required' }
+          $config=Join-Path $env:RUNNER_TEMP 'p03-nsis-fixture.json'
+          if (Test-Path -LiteralPath $config) { throw 'Fresh fixture config required' }
+          $override=@{bundle=@{active=$true;targets=@('nsis');createUpdaterArtifacts=$false;windows=@{nsis=@{installMode='currentUser'};webviewInstallMode=@{type='skip'}}}}
+          $override | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $config -Encoding utf8
+          npm run tauri -- bundle --bundles nsis --config $config --no-binary-patching
+          if ($LASTEXITCODE -ne 0) { throw 'Disposable installer generation failed' }
+      - name: P03 T13 actual Windows installed crash restart uninstall reinstall
+        shell: pwsh
+        timeout-minutes: 10
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $exe=Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
+          $bundle=Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\bundle\nsis'
+          $candidates=@(Get-ChildItem -LiteralPath $bundle -Filter '*-setup.exe' -File)
+          if ($candidates.Count -ne 1) { throw 'Expected exactly one disposable installer' }
+          & scripts/probe_p03_chat_ui.ps1 -Executable $exe -SourceSha $env:EXACT_HEAD -OutputDirectory (Join-Path $env:RUNNER_TEMP 'p03-reinstall-ui-proof') -ReinstallAcceptance -Installer $candidates[0].FullName
+          if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) { throw 'P03 reinstall native probe failed' }
+      - name: Preserve failed reinstall diagnostics (not acceptance)
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-reinstall-ui-failure-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-reinstall-ui-proof/
+          if-no-files-found: warn
+      - name: Upload actual reinstall candidate evidence
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-reinstall-ui-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-reinstall-ui-proof/
+          if-no-files-found: error
+
+      - name: P03 T14 collect installed native performance observations
+        shell: pwsh
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $exe=Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
+          python scripts/verify_p03_performance_receipts.py --root $env:RUNNER_TEMP --source $env:EXACT_HEAD --executable $exe --output (Join-Path $env:RUNNER_TEMP 'p03-performance-installed.json') --include-installed
+          if ($LASTEXITCODE -ne 0) { throw 'Native timing receipt reconciliation failed' }
+      - name: Upload installed native performance observations (not certification)
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-performance-installed-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-performance-installed.json
+          if-no-files-found: error
+
+      - name: P03 T15 reconcile original screenshot integrity across all native journeys
+        shell: pwsh
+        env:
+          EXACT_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $exe=Join-Path $env:GITHUB_WORKSPACE 'apps\desktop\src-tauri\target\release\zynoa_desktop.exe'
+          python scripts/verify_p03_screenshot_inventory.py --root $env:RUNNER_TEMP --source $env:EXACT_HEAD --executable $exe --output (Join-Path $env:RUNNER_TEMP 'p03-screenshot-inventory.json')
+          if ($LASTEXITCODE -ne 0) { throw 'Native screenshot inventory verification failed' }
+      - name: Upload original screenshot integrity inventory (not visual acceptance)
+        uses: actions/upload-artifact@v6
+        with:
+          name: p03-screenshot-inventory-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p03-screenshot-inventory.json
+          if-no-files-found: error

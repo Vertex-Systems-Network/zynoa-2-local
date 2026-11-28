@@ -1,0 +1,47 @@
+{
+  "change_id": "CHG-P03-M03-MANAGED-RECOVERY-UI-20261127",
+  "module_id": "M03",
+  "kind": "feature",
+  "title": "Expose read-only managed file inspection in Chat",
+  "summary": "Bounded native recovery counts, strict response and actual Windows inspection candidate.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/issues/37"
+  ],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
+  "affected_option_ids": [
+    "M03-OPT-04"
+  ],
+  "docs_paths": [
+    "docs/evidence/P03_T08_MANAGED_RECOVERY_INVENTORY_20261127.md",
+    "docs/modules/M03.md"
+  ],
+  "help_paths": [
+    "docs/help/articles/M03.md"
+  ],
+  "wiki_paths": [
+    "docs/wiki/pages/M03.md"
+  ],
+  "test_evidence": [
+    "apps/desktop/src-tauri/src/chat_ipc.rs",
+    "apps/desktop/tests/chat-contract.test.mjs",
+    "scripts/probe_p03_chat_ui.ps1",
+    "scripts/verify_p03_attachment_ui_database.py",
+    "tests/test_p03_native_probe_integrity.py"
+  ],
+  "commit_sha": null,
+  "release": null,
+  "verification": {
+    "tests_passed": false,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No schema or new capability grant; fixed local count-only command.",
+  "created_at": "2026-11-27",
+  "updated_at": "2026-11-27",
+  "version_bump": "none",
+  "docs_impact": true,
+  "data_migration": false
+}

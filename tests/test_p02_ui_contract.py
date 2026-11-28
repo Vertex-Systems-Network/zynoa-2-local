@@ -39,7 +39,13 @@ class P02UIContractTests(unittest.TestCase):
             self.assertNotIn(unsafe, app)
         cfg = json.loads((APP/"src-tauri/tauri.conf.json").read_text(encoding="utf-8"))
         cap = json.loads((APP/"src-tauri/capabilities/main-readonly.json").read_text(encoding="utf-8"))
-        self.assertEqual(["main-readonly"], cfg["app"]["security"]["capabilities"])
+        self.assertEqual(["main-readonly", "main-chat"], cfg["app"]["security"]["capabilities"])
+        chat = json.loads((APP/"src-tauri/capabilities/main-chat.json").read_text(encoding="utf-8"))
+        self.assertEqual(set(chat), {"identifier","description","local","windows","permissions"})
+        self.assertEqual(["main"],chat["windows"])
+        self.assertEqual(["allow-chat-request","allow-model-request"],chat["permissions"])
+        self.assertIs(chat["local"],True)
+        self.assertNotIn("remote",chat)
         self.assertEqual(["allow-workspace-handshake"], cap["permissions"])
 
     def test_palette_keyboard_focus_and_accessible_dialog(self):

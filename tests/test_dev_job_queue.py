@@ -18,6 +18,39 @@ STATE = {
 ROOT = Path(__file__).resolve().parents[1]
 
 
+class QueueConnectionLifecycleTests(unittest.TestCase):
+    def test_connection_closed_after_commit_and_rollback(self):
+        from contextlib import closing
+        import sqlite3
+        from unittest.mock import patch
+
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "queue.db"
+            queue = JobQueue(path)
+            connections = []
+            original = queue._connect
+
+            def tracked_connect():
+                conn = original()
+                connections.append(conn)
+                return conn
+
+            with patch.object(queue, "_connect", side_effect=tracked_connect):
+                queue.enqueue("fixture", PHASE, BRANCH, "phase-policy")
+                with self.assertRaises(QueuePolicyError):
+                    queue.enqueue("fixture", PHASE, BRANCH, "docs-integrity")
+                self.assertEqual(queue.inspect("fixture")["kind"], "phase-policy")
+            self.assertEqual(len(connections), 3)
+            for conn in connections:
+                with self.assertRaises(sqlite3.ProgrammingError):
+                    conn.execute("SELECT 1")
+            # Fresh independent connection verifies committed bytes.
+            with closing(sqlite3.connect(path)) as db:
+                self.assertEqual(db.execute("SELECT count(*) FROM development_jobs").fetchone()[0], 1)
+            path.rename(path.with_suffix(".moved"))
+            self.assertTrue(path.with_suffix(".moved").is_file())
+
+
 class JobQueueTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()

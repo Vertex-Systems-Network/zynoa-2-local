@@ -1,0 +1,37 @@
+{
+  "change_id": "CHG-P03-M03-CHAT-UI-20261125",
+  "module_id": "M03",
+  "kind": "feature",
+  "title": "Local conversation history interface",
+  "summary": "Dedicated native-backed conversation list/create/history/save-only view, strict response decoder and stable request retry. Exact-source native UI proof passed.",
+  "status": "implementing",
+  "audience": "developer",
+  "source_issue_urls": [],
+  "source_pr_url": "https://github.com/Vertex-Systems-Network/zynoa-2-local/pull/25",
+  "affected_option_ids": [],
+  "docs_paths": [
+    "docs/evidence/P03_T03_PREFLIGHT.md",
+    "docs/state/HANDOFF.md"
+  ],
+  "help_paths": [],
+  "wiki_paths": [],
+  "test_evidence": [
+    "apps/desktop/tests/chat-contract.test.mjs",
+    "tests/test_p03_chat_ui_contract.py",
+    "https://github.com/Vertex-Systems-Network/zynoa-2-local/actions/runs/45627430024"
+  ],
+  "commit_sha": "8b73b99cdb83333cd3aae549f187e3f5682e0ba1",
+  "release": null,
+  "verification": {
+    "tests_passed": true,
+    "merge_verified": false,
+    "release_published": false
+  },
+  "breaking_change": false,
+  "migration_notes": "No database schema change. Revert UI source only; retain native stored records.",
+  "created_at": "2026-11-25",
+  "updated_at": "2026-11-25",
+  "version_bump": "none",
+  "docs_impact": true,
+  "data_migration": false
+}

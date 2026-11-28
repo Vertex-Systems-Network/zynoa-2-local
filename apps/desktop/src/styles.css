@@ -640,3 +640,75 @@ main:focus{outline:none}
 .shell .system-center-option:focus,.shell .system-screen-heading h2:focus,.shell .system-center button:focus-visible,.shell .system-center input:focus-visible,.shell .system-center select:focus-visible{outline:2px solid var(--outline);outline-offset:3px}
 .shell .system-center-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
 @container(max-width:510px){.shell .system-center-layout{grid-template-columns:minmax(0,1fr)}.shell .system-center-screen-list{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}}
+
+/* M03 local history uses existing shared tokens, never external content. */
+.shell .chat-layout { display:grid; grid-template-columns:minmax(190px, 1fr) minmax(0, 2fr); gap:16px; align-items:start; }
+.shell .chat-pane { min-width:0; border:1px solid var(--outline); border-radius:12px; background:var(--surface); padding:16px; }
+.shell .chat-pane h2 { font-size:18px; margin:0 0 12px; overflow-wrap:anywhere; }
+.shell .chat-pane form { display:grid; gap:10px; margin:12px 0; }
+.shell .chat-pane input,.shell .chat-pane textarea { width:100%; min-width:0; font:inherit; color:var(--text-primary); background:var(--canvas); border:1px solid var(--outline); border-radius:8px; padding:10px; }
+.shell .chat-pane textarea { min-height:100px; resize:vertical; }
+.shell .chat-pane :is(input,textarea,button):focus-visible { outline:2px solid var(--outline); outline-offset:3px; }
+.shell .chat-list { list-style:none; margin:12px 0; padding:0; display:grid; gap:8px; max-height:420px; overflow:auto; }
+.shell .chat-list button { width:100%; text-align:left; padding:10px; overflow-wrap:anywhere; min-height:44px; color:var(--text-primary); background:var(--surface-raised); border:1px solid var(--outline); border-radius:8px; }
+.shell .chat-list button[aria-pressed="true"] { background:var(--surface-hover); border:2px solid var(--outline); }
+.shell .chat-history { display:grid; gap:12px; margin:16px 0; padding:0; list-style:none; max-height:390px; overflow:auto; }
+.shell .chat-history li { padding:12px; background:var(--surface-raised); border:1px solid var(--outline); border-radius:9px; }
+.shell .chat-history p { white-space:pre-wrap; overflow-wrap:anywhere; margin:6px 0; }
+.shell .chat-model-controls { display:grid; grid-template-columns:minmax(0, max-content) minmax(0, 1fr); gap:9px 12px; align-items:center; margin:12px 0; padding:14px; border:1px solid var(--outline); border-radius:12px; }
+.shell .chat-model-controls label { min-width:0; overflow-wrap:anywhere; font-size:12px; font-weight:700; }
+.shell .chat-model-controls select { width:100%; min-width:0; max-width:100%; padding:9px; border:1px solid var(--outline); border-radius:8px; background:var(--canvas); color:var(--text-primary); }
+.shell .chat-model-controls button,.shell .chat-model-controls output,.shell .chat-model-controls .chat-notice { grid-column:1/-1; min-width:0; max-width:100%; overflow-wrap:anywhere; }
+.shell .chat-model-controls .chat-notice { margin:0; }
+.shell .chat-model-controls select:focus-visible { outline:2px solid var(--outline); outline-offset:3px; }
+.shell .chat-model-controls output { font-size:12px; color:var(--text-secondary); }
+.shell .chat-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.shell .chat-notice { overflow-wrap:anywhere; color:var(--text-secondary); font-size:13px; line-height:1.6; }
+.shell .chat-pane [role="alert"] { border-left:3px solid var(--outline); padding:10px; }
+/* Use the actual available work area, not the full window width. */
+.shell [data-testid="chat-view"] { container-type:inline-size; }
+.shell [data-testid="chat-view"] .section-heading { gap:12px; margin-bottom:12px; }
+.shell [data-testid="chat-view"] .section-heading .lead { margin-bottom:10px; }
+.shell .chat-layout { grid-template-columns:minmax(180px, 26%) minmax(0, 1fr); }
+.shell .chat-pane { border-color:var(--line); }
+.shell .chat-pane input,.shell .chat-pane textarea { min-height:44px; }
+.shell .chat-pane textarea { min-height:100px; }
+@container(max-width:580px){.shell .chat-layout { grid-template-columns:minmax(0,1fr); }}
+/* Keep the saved-thread navigator available while reviewing long receipts,
+   but never pin it above the viewport on smaller windows. */
+@media(min-height:760px){
+ @container(min-width:581px){
+  .shell .chat-layout > .chat-pane:first-child { position:sticky; top:12px; max-height:calc(100vh - 32px); overflow:auto; }
+ }
+}
+.shell .chat-pane .chat-recovery { min-width:0; border-top:1px solid var(--line); margin-top:20px; padding-top:16px; }
+.shell .chat-recovery h3 { font-size:16px; margin:0 0 8px; }
+.shell .chat-recovery [aria-label="Recorded tool decisions"] { list-style:none; padding:0; margin:12px 0; display:grid; gap:10px; }
+.shell .chat-recovery [aria-label="Recorded tool decisions"] li { padding:12px; border:1px solid var(--line); border-radius:8px; min-width:0; }
+.shell .chat-recovery [aria-label="Recorded tool decisions"] li:focus-visible { outline:2px solid var(--outline); outline-offset:2px; }
+.shell .chat-review-fields { display:grid; gap:4px; min-width:0; margin:10px 0; }
+.shell .chat-review-fields dt { font-weight:700; font-size:12px; color:var(--text-secondary); }
+.shell .chat-review-fields dd { margin:0 0 6px; font-size:12px; line-height:1.5; overflow-wrap:anywhere; min-width:0; }
+.shell .chat-pane textarea.chat-receipt-value { min-height:54px; height:auto; font-size:12px; line-height:1.5; resize:vertical; overflow-wrap:anywhere; white-space:pre-wrap; }
+.shell .chat-recovery [aria-label="Conversation export receipt"] { display:grid; gap:8px; margin-top:12px; min-width:0; }
+.shell .chat-recovery [aria-label="Conversation export receipt"] label { display:grid; gap:4px; min-width:0; }
+
+.shell .chat-recovery-result { margin-top:12px; min-width:0; padding:12px; border:1px solid var(--line); border-radius:9px; background:var(--surface-raised); }
+.shell .chat-recovery-result p { margin:0 0 8px; }
+.shell .chat-recovery-result ul { list-style:none; margin:0; padding:0; display:grid; grid-template-columns:minmax(0,1fr); gap:5px; }
+.shell .chat-recovery-result li { font-size:13px; line-height:1.5; overflow-wrap:anywhere; min-width:0; }
+.shell .chat-recovery-result li:focus-visible { outline:2px solid var(--outline); outline-offset:2px; }
+
+.shell .chat-artifact-preview { min-width:0; border:1px solid var(--line); border-radius:9px; padding:12px; margin:12px 0; }
+.shell .chat-artifact-preview textarea { max-height:240px; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; min-width:0; color:var(--text-primary); font:inherit; padding:8px; background:var(--surface-raised); }
+.shell .chat-artifact-preview textarea:focus-visible { outline:2px solid var(--outline); outline-offset:2px; }
+.shell .chat-history .subtle-action { display:block; margin-top:8px; max-width:100%; white-space:normal; }
+
+/* M03/M23 local consent controls: do not inherit full-width text input styling. */
+.shell .local-consent { display:flex; align-items:flex-start; gap:10px; min-height:44px; padding:8px 0; line-height:1.5; overflow-wrap:anywhere; }
+.shell .local-consent input[type="checkbox"] { flex:0 0 20px; width:20px; height:20px; min-height:20px; margin:2px 0 0; padding:0; accent-color:var(--outline); }
+.shell .local-consent input[type="checkbox"]:focus-visible { outline:2px solid var(--outline); outline-offset:3px; }
+.shell .portable-backup-panel { display:grid; gap:8px; }
+.shell .portable-backup-panel :is(button,input) { min-width:0; max-width:100%; }
+.shell .portable-backup-panel button { min-height:44px; white-space:normal; }
+.shell .local-receipt-value { overflow-wrap:anywhere; }

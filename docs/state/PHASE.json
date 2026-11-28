@@ -1,9 +1,9 @@
 {
   "schema_version": 3,
-  "phase": "P02",
-  "phase_status": "MERGED_VERIFIED",
-  "active_branch": "phase/02-shared-ui",
-  "primary_pr": 12,
+  "phase": "P03",
+  "phase_status": "IN_PROGRESS",
+  "active_branch": "phase/03-chat",
+  "primary_pr": 25,
   "last_verified_remote_sha": "115b6c79fece26b5e4ec58ef8ad2364d7a77d244",
   "worker_running": false,
   "required_documents": [
@@ -13,6 +13,6 @@
     "docs/quality/PRE_DEVELOPMENT_CHECKLIST.md",
     "docs/operations/DESIGN_INTEROPERABILITY.md"
   ],
-  "next_phase": "P03",
+  "next_phase": "P04",
   "lease_holder": null
 }

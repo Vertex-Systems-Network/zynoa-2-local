@@ -1,6 +1,7 @@
 import type { HelpDestination } from "./ui/unified-search";
 import { useEffect, useRef, useState } from "react";
 import { probeWorkspaceStatus } from "./ipc";
+import { ChatView } from "./ui/ChatView";
 import { CommandPalette } from "./ui/CommandPalette";
 import { Workbench, ComponentGallery } from "./ui/Workbench";
 import { HelpCenter } from "./ui/HelpCenter";
@@ -15,6 +16,7 @@ type StartupState = "starting" | "desktop" | "browser";
 type TransportState = "pending" | "connected" | "unavailable" | "preview";
 const views: { key: View; title: string; shortcut: string; icon: string; section: string }[] = [
   { key: "startup", title: "Overview", shortcut: "1", icon: "⌂", section: "WORKSPACE" },
+  { key: "chat", title: "Chat", shortcut: "", icon: "◈", section: "WORKSPACE" },
   { key: "workbench", title: "Workbench", shortcut: "5", icon: "▣", section: "WORKSPACE" },
   { key: "gallery", title: "Components", shortcut: "6", icon: "◫", section: "EXPLORE" },
   { key: "help", title: "Help Center", shortcut: "F1", icon: "?", section: "EXPLORE" },
@@ -180,7 +182,7 @@ export function App() {
   const openContextHelp = () => {
     setHelpDestination(null);
     const topics: Record<View, string> = {
-      startup: "quick-start", workbench: "commands", gallery: "appearance",
+      startup: "quick-start", chat: "local-chat", workbench: "commands", gallery: "appearance",
       help: "quick-start", settings: "appearance", recovery: "privacy",
       diagnostics: "native-troubleshooting", changelog: "change-history", backup: "backup-center", locations: "data-locations", updates: "update-center",
     };
@@ -240,7 +242,7 @@ export function App() {
         setHelpDestination(null);
         setView(current => {
           const topics: Record<View, string> = {
-            startup: "quick-start", workbench: "commands", gallery: "appearance",
+            startup: "quick-start", chat: "local-chat", workbench: "commands", gallery: "appearance",
             help: "quick-start", settings: "appearance", recovery: "privacy",
             diagnostics: "native-troubleshooting", changelog: "change-history", backup: "backup-center", locations: "data-locations", updates: "update-center",
           };
@@ -299,7 +301,7 @@ export function App() {
                   onClick={() => navigateView(page.key)}>
                   <span className="nav-icon" aria-hidden="true">{page.icon}</span>
                   <span className="nav-link-title">{page.title}</span>
-                </button> : page.key === "backup" || page.key === "locations" || page.key === "updates" ?
+                </button> : page.key === "chat" || page.key === "backup" || page.key === "locations" || page.key === "updates" ?
                 <button key={page.key} type="button" className={"nav-link " + (view === page.key ? "selected" : "")} aria-current={view === page.key ? "page" : undefined} aria-label={page.title} onClick={()=>navigateView(page.key)}><span className="nav-icon" aria-hidden="true">{page.icon}</span><span className="nav-link-title">{page.title}</span></button> :
                 <button key={page.key} className={"nav-link " + (view === page.key ? "selected" : "")}
                   aria-current={view === page.key ? "page" : undefined}
@@ -333,7 +335,8 @@ export function App() {
           </div>
         </header>
         <div className="content">
-          {view === "startup" ? <Startup state={startup} transport={transport} /> :
+          <div hidden={view !== "chat"}><ChatView active={view === "chat"} transport={transport} onHelp={openContextHelp} /></div>
+          {view === "chat" ? null : view === "startup" ? <Startup state={startup} transport={transport} /> :
             view === "workbench" ? <Workbench transport={transport} onNavigate={navigateView}
               shortcuts={shortcuts}
               onRemapShortcut={(target, key) => setShortcuts(current => remapShortcut(current, target, key))}
@@ -345,7 +348,7 @@ export function App() {
             view === "changelog" ? <ChangeCenter transport={transport} onHelp={openContextHelp} /> :
             view === "backup" || view === "locations" || view === "updates" ? <SystemCenter key={view} view={view} transport={transport} onHelp={openContextHelp} onDiagnostics={()=>navigateView("diagnostics")} /> : <Diagnostics transport={transport} />}
         </div>
-        <footer className="footer"><span>Local-first shared interface · P02</span><span>Native services require verification · <strong>No workspace data stored</strong></span></footer>
+        <footer className="footer"><span>Local-first shared interface · P03</span><span>Native services require verification · <strong>{view === "chat" ? "Local chat history only" : "No workspace data stored"}</strong></span></footer>
       </main>
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)}
         onNavigate={navigateView}

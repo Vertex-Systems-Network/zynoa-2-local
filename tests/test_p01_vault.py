@@ -16,11 +16,11 @@ class NativeVaultContractTests(unittest.TestCase):
         cls.ci = (ROOT/".github/workflows/p01-desktop.yml").read_text(encoding="utf-8")
 
     def test_pinned_sqlite_native_dependency_and_ipc_denial(self):
-        self.assertIn('rusqlite = { version = "=0.43.0", features = ["bundled", "backup"] }', self.cargo)
+        self.assertIn('rusqlite = { version = "=0.43.0", features = ["bundled", "backup", "serialize"] }', self.cargo)
         self.assertIn("mod vault;", self.lib)
         self.assertIn("vault::NativeVault::open(&app_local)", self.lib)
         self.assertNotIn("vault::", (ROOT/"apps/desktop/src-tauri/src/ipc.rs").read_text(encoding="utf-8"))
-        self.assertIn("generate_handler![ipc::workspace_handshake]", self.lib)
+        self.assertIn("generate_handler![ipc::workspace_handshake, chat_ipc::chat_request,", self.lib)
         self.assertNotIn("#[tauri::command]", self.vault)
 
     def test_no_ack_until_commit_and_no_overwrite(self):
@@ -42,8 +42,8 @@ class NativeVaultContractTests(unittest.TestCase):
 
     def test_app_boot_wires_os_local_native_vault_but_never_exposes_command(self):
         self.assertIn("vault::NativeVault::open(&app_local)", self.lib)
-        self.assertIn("app.manage(std::sync::Mutex::new(storage))", self.lib)
-        self.assertIn("generate_handler![ipc::workspace_handshake]", self.lib)
+        self.assertIn("app.manage(std::sync::Arc::new(std::sync::Mutex::new(storage)))", self.lib)
+        self.assertIn("generate_handler![ipc::workspace_handshake, chat_ipc::chat_request,", self.lib)
         self.assertNotIn("vault::", (ROOT/"apps/desktop/src-tauri/src/ipc.rs").read_text(encoding="utf-8"))
         for marker in ("state.sqlite{suffix}", '"-wal", "-shm", "-journal"',
                        "restore_never_overwrites_a_preexisting_destination",

@@ -44,7 +44,7 @@ class NativeDiagnosticsContractTests(unittest.TestCase):
         self.assertIn("runtime.install_redacted_panic_hook()", self.lib)
         self.assertIn("diagnostics: tauri::State<'_, crate::diagnostics::NativeDiagnostics>", self.ipc)
         self.assertIn("diagnostics.record_denied_ipc()", self.ipc)
-        self.assertIn("generate_handler![ipc::workspace_handshake]", self.lib)
+        self.assertIn("generate_handler![ipc::workspace_handshake, chat_ipc::chat_request,", self.lib)
         for forbidden in ("#[tauri::command]", "reqwest", "println!", "eprintln!"):
             self.assertNotIn(forbidden, self.source)
 

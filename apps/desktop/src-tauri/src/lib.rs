@@ -1,11 +1,15 @@
 //! Native transport for P01. No arbitrary filesystem or network IPC commands.
 mod ipc;
+mod chat_ipc;
+mod model_gateway;
 mod security;
 mod secrets;
 mod diagnostics;
 mod vault;
 mod locations; // native-only; not available to WebView
 mod events; // M26 native-only immutable event ledger
+mod artifact_contracts; // P03 bounded attachment/export/tool contracts
+mod backup_contracts; // P03 encrypted-backup, restore and performance contracts
 
 use tauri::Manager;
 
@@ -26,17 +30,20 @@ pub fn run() {
                 .map_err(|_| std::io::Error::other("ZYN-STO-001"))?;
             app.manage(registry);
             // Native-only user vault is attached to the OS-owned app data root.
-            // It has NO Tauri invoke command or untrusted WebView write grant.
+            // Only the bounded M03 chat domain adapter may use it; no raw vault command.
             let storage = vault::NativeVault::open(&app_local)
                 .map_err(|_| std::io::Error::other("ZYN-DAT-001"))?;
-            app.manage(std::sync::Mutex::new(storage));
+            app.manage(std::sync::Arc::new(std::sync::Mutex::new(storage)));
+            app.manage(model_gateway::LocalModelGateway::new()
+                .map_err(|_| std::io::Error::other("ZYN-MODEL-001"))?);
             // M26 event ledger is native-only, never a WebView invoke command.
             let ledger = events::NativeEventLedger::open(&app_local)
                 .map_err(|_| std::io::Error::other("ZYN-CHG-001"))?;
             app.manage(std::sync::Mutex::new(ledger));
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![ipc::workspace_handshake])
+        .invoke_handler(tauri::generate_handler![ipc::workspace_handshake, chat_ipc::chat_request,
+            model_gateway::model_request])
         .run(tauri::generate_context!())
         .expect("ZYN-BOOT-002: unable to initialize native shell");
 }

@@ -4,6 +4,8 @@ use std::collections::HashSet;
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub(crate) enum Capability {
     WorkspaceStatus,
+    ChatLocal,
+    LocalModelLoopback,
     ReadUserFile,
     WriteUserFile,
     OutboundNetwork,
@@ -44,6 +46,18 @@ impl NativeAccessBroker {
     }
 }
 
+pub(crate) fn allow_local_chat(label: &str) -> Result<(), SecurityFault> {
+    let mut broker = NativeAccessBroker::default();
+    broker.approved.insert(Capability::ChatLocal);
+    broker.authorize(label, Capability::ChatLocal)
+}
+
+pub(crate) fn allow_local_model(label:&str)->Result<(),SecurityFault>{
+    let mut broker=NativeAccessBroker::default();
+    broker.approved.insert(Capability::LocalModelLoopback);
+    broker.authorize(label,Capability::LocalModelLoopback)
+}
+
 pub(crate) fn allow_local_workspace_handshake(label: &str) -> Result<(), SecurityFault> {
     NativeAccessBroker::for_local_read_only_shell()
         .authorize(label, Capability::WorkspaceStatus)
@@ -57,7 +71,7 @@ mod tests {
     fn default_policy_denies_all_native_capabilities() {
         let empty = NativeAccessBroker::default();
         for capability in [
-            Capability::WorkspaceStatus,
+            Capability::WorkspaceStatus, Capability::ChatLocal, Capability::LocalModelLoopback,
             Capability::ReadUserFile, Capability::WriteUserFile,
             Capability::OutboundNetwork, Capability::ReadCredential,
             Capability::WriteCredential,
@@ -70,6 +84,12 @@ mod tests {
     fn only_native_main_window_gets_nonmutating_status() {
         let broker = NativeAccessBroker::for_local_read_only_shell();
         assert_eq!(broker.authorize("main", Capability::WorkspaceStatus), Ok(()));
+        assert_eq!(broker.authorize("main", Capability::ChatLocal), Err(SecurityFault::Denied));
+        assert_eq!(broker.authorize("main", Capability::LocalModelLoopback), Err(SecurityFault::Denied));
+        assert_eq!(allow_local_chat("main"), Ok(()));
+        assert_eq!(allow_local_chat("remote"), Err(SecurityFault::Denied));
+        assert_eq!(allow_local_model("main"),Ok(()));
+        assert_eq!(allow_local_model("remote"),Err(SecurityFault::Denied));
         for other in ["", "settings", "remote", "main/", "main\0"] {
             assert_eq!(
                 broker.authorize(other, Capability::WorkspaceStatus),
