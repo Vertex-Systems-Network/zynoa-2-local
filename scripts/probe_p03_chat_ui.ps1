@@ -703,6 +703,16 @@ if ($ReinstallAcceptance) {
  } finally {Stop-Native}
  return
 }
+# Compare the exact receipt displayed by the real app with independently
+# measured bytes, not just a successful action or matching file name.
+function Read-ReceiptSha256([string]$Name) {
+ $control=Wait-Name $Name 'Edit'
+ $value=$null
+ if (!$control.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern,[ref]$value) -or !$value.Current.IsReadOnly) {throw 'ZYN-RECEIPT-PROBE-001: digest field unavailable or editable'}
+ $hash=[string]$value.Current.Value
+ if ($hash -cnotmatch '^[a-f0-9]{64}$') {throw 'ZYN-RECEIPT-PROBE-002: invalid digest field'}
+ return $hash
+}
 function Read-BackupVault([string]$Stage) {
  $result=& python scripts/verify_p03_backup_ui_database.py --stage $Stage --output $OutputDirectory --export-proof (Join-Path $env:RUNNER_TEMP 'p03-export-ui-proof')
  if ($LASTEXITCODE -ne 0) {throw 'ZYN-BACKUP-PROBE-001: independent backup verification failed'}
@@ -758,11 +768,12 @@ if ($BackupAcceptance) {
    if (!$value.Current.IsReadOnly) {throw 'ZYN-BACKUP-PROBE-007: backup receipt editable'}
    $backupId=$value.Current.Value
    if ($backupId -cnotmatch '^[A-Za-z0-9-]{16,64}$') {throw 'ZYN-BACKUP-PROBE-008: invalid backup receipt'}
+   $backupDigest=Read-ReceiptSha256 'Backup SHA-256'
    Focus-Control $idControl
    Capture 'M23-OPT-07-encrypted-backup-candidate.png'
    Stop-Native
    $saved=Read-BackupVault 'saved'
-   if ($saved.backup_id -cne $backupId) {throw 'ZYN-BACKUP-PROBE-009: archive receipt mismatch'}
+   if ($saved.backup_id -cne $backupId -or $saved.sha256 -cne $backupDigest) {throw 'ZYN-BACKUP-PROBE-009: archive receipt mismatch'}
    $script:stage='restart and wrong passphrase rejection'
    Start-Native
    $secondPid=$script:app.Id
@@ -797,7 +808,7 @@ if ($BackupAcceptance) {
    foreach ($name in @('M23-OPT-07-encrypted-backup-candidate.png','M23-OPT-09-restore-preview-candidate.png')) {
       $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
    }
-   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;wrong_key_pid=$secondPid;restored_pid=$thirdPid;synthetic_only=$true;actual_native_backup=$true;keyboard_consent_verified=$true;wrong_key_rejected=$true;actual_native_separate_restore=$true;independent_db_and_blob_comparison=$true;active_profile_preserved=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-backup-ui-proof.json') -Encoding utf8
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;wrong_key_pid=$secondPid;restored_pid=$thirdPid;synthetic_only=$true;actual_native_backup=$true;ui_digest_matches_archive=$true;keyboard_consent_verified=$true;wrong_key_rejected=$true;actual_native_separate_restore=$true;independent_db_and_blob_comparison=$true;active_profile_preserved=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-backup-ui-proof.json') -Encoding utf8
  } catch {
    [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-backup-ui-failure.json') -Encoding utf8
    # Never capture an error screenshot while password fields could contain input.
@@ -833,12 +844,13 @@ if ($ExportAcceptance) {
    if (!$path.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern,[ref]$value) -or !$value.Current.IsReadOnly) {throw 'ZYN-EXPORT-PROBE-005: receipt not readonly'}
    $relative=$value.Current.Value
    if ($relative -cnotmatch '^data/exports/conversation-[A-Za-z0-9-]{16,64}\.json$') {throw 'ZYN-EXPORT-PROBE-006: invalid receipt path'}
+   $exportDigest=Read-ReceiptSha256 'Export SHA-256'
    Focus-Control $path
    Capture 'M03-OPT-07-export-candidate.png'
    Stop-Native
    $script:stage='independent exact export contents'
    $saved=Read-ExportVault 'saved'
-   if ($saved.relative_path -cne $relative) {throw 'ZYN-EXPORT-PROBE-007: UI path mismatch'}
+   if ($saved.relative_path -cne $relative -or $saved.sha256 -cne $exportDigest) {throw 'ZYN-EXPORT-PROBE-007: UI path or digest mismatch'}
    Start-Native
    $secondPid=$script:app.Id
    if ($firstPid -eq $secondPid) {throw 'ZYN-EXPORT-PROBE-008: distinct process required'}
@@ -848,7 +860,7 @@ if ($ExportAcceptance) {
    foreach ($name in @('M03-S06-export-consent-candidate.png','M03-OPT-07-export-candidate.png')) {
       $images[$name]=(Get-FileHash -LiteralPath (Join-Path $OutputDirectory $name) -Algorithm SHA256).Hash.ToLowerInvariant()
    }
-   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;actual_native_consent=$true;keyboard_consent_verified=$true;actual_native_export=$true;readonly_receipt_path=$true;independent_contents_and_restart_verified=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-export-ui-proof.json') -Encoding utf8
+   [ordered]@{schema_version=1;source_commit_sha=$SourceSha;executable_sha256=(Get-FileHash -LiteralPath $Executable -Algorithm SHA256).Hash.ToLowerInvariant();first_pid=$firstPid;reopened_pid=$secondPid;synthetic_only=$true;actual_native_consent=$true;keyboard_consent_verified=$true;actual_native_export=$true;readonly_receipt_path=$true;ui_digest_matches_export=$true;independent_contents_and_restart_verified=$true;images=$images;visual_review='candidate_pending_visual_review';full_accessibility_certified=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-export-ui-proof.json') -Encoding utf8
  } catch {
    [ordered]@{schema_version=1;source_commit_sha=$SourceSha;stage=$script:stage;status='FAILED_NOT_ACCEPTANCE';synthetic_only=$true} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $OutputDirectory 'p03-export-ui-failure.json') -Encoding utf8
    if ($script:hwnd -ne [IntPtr]::Zero -and $null -ne $script:root) {try {Capture 'DEBUG-native-export-ui-failure.png'} catch {Write-Output 'Failure screenshot unavailable'}}

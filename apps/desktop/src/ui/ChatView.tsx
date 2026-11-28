@@ -320,7 +320,7 @@ export function ChatView({active,transport,onHelp}:{active:boolean;transport:Tra
      {exportReceipt&&exportReceipt.conversationId===selected.id&&<div role="group" aria-label="Conversation export receipt">
       <p>Export verified: {exportReceipt.messageCount} messages · {exportReceipt.attachmentCount} linked files · {exportReceipt.bytes.toLocaleString()} bytes</p>
       <label>Relative export path<input readOnly aria-label="Relative export path" value={exportReceipt.relativePath}/></label>
-      <p className="chat-notice">SHA-256: {exportReceipt.sha256}</p>
+      <label>Export SHA-256<input readOnly aria-label="Export SHA-256" value={exportReceipt.sha256}/></label>
      </div>}
     </section>}
     <p className="chat-notice">Inference stays on fixed loopback. Files can be saved with a message. Complete assistant responses can be saved and previewed as verified text artifacts. Opening imported files, model file consumption, and model-requested tools are not available in this slice. Saved metadata does not grant arbitrary file access.</p>

@@ -140,6 +140,18 @@ class NativeProbeIntegrity(unittest.TestCase):
         self.assertLess(workflow.index("name: Upload actual attachment UI candidate evidence"),
                         workflow.index("name: P03 T09 actual Windows text artifact"))
 
+    def test_native_export_and_backup_receipts_match_independent_digests(self):
+        source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
+        chat = (ROOT / "apps/desktop/src/ui/ChatView.tsx").read_text(encoding="utf-8")
+        backup = (ROOT / "apps/desktop/src/ui/PortableBackupPanel.tsx").read_text(encoding="utf-8")
+        for label, view, variable in (("Export SHA-256", chat, "exportDigest"),
+                                      ("Backup SHA-256", backup, "backupDigest")):
+            self.assertIn(f'readOnly aria-label="{label}"', view)
+            self.assertIn(f"Read-ReceiptSha256 '{label}'", source)
+            self.assertIn(f"$saved.sha256 -cne ${variable}", source)
+        self.assertIn("ui_digest_matches_archive=$true", source)
+        self.assertIn("ui_digest_matches_export=$true", source)
+
     def test_full_export_has_native_consent_and_read_only_scoped_verifier(self):
         source = (ROOT / "scripts/probe_p03_chat_ui.ps1").read_text(encoding="utf-8")
         verifier = (ROOT / "scripts/verify_p03_export_ui_database.py").read_text(encoding="utf-8")
